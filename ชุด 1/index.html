@@ -824,7 +824,7 @@
             
             score = 0;
             currentQuestionIndex = 0;
-            shuffledQuestions = quizData; // No shuffle to keep the order
+            shuffledQuestions = quizData.sort(() => Math.random() - 0.5);
             scoreCounterEl.textContent = `คะแนน: ${score}`;
             
             showQuestion();
