@@ -863,11 +863,11 @@
                 score++;
                 scoreCounterEl.textContent = `คะแนน: ${score}`;
                 selectedBtn.classList.add('correct');
-                feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-green-800">ไม่ได้ยากนิ!</h3><p class="text-green-700 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
+                feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-green-800">ถูกต้อง!!</h3><p class="text-green-700 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
                 feedbackEl.classList.add('bg-green-100', 'border', 'border-green-300');
             } else {
                 selectedBtn.classList.add('incorrect');
-                feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-red-800">ผิด ไอ้สัสสสสสส!!</h3><p class="text-red-700 mt-1">คำตอบที่ถูกต้องคือ: <strong>${shuffledQuestions[currentQuestionIndex].answer}</strong></p><p class="text-red-700 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
+                feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-red-800">ผิดครับ!!</h3><p class="text-red-700 mt-1">คำตอบที่ถูกต้องคือ: <strong>${shuffledQuestions[currentQuestionIndex].answer}</strong></p><p class="text-red-700 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
                 feedbackEl.classList.add('bg-red-100', 'border', 'border-red-300');
             }
             
