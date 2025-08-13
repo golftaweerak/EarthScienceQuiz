@@ -2222,6 +2222,7 @@
 
             score = 0;
             currentQuestionIndex = 0;
+            shuffledQuestions = quizData.sort(() => Math.random() - 0.5);
             // For a full quiz, we might not want to shuffle if sections are important
             // shuffledQuestions = quizData.sort(() => Math.random() - 0.5);
             shuffledQuestions = quizData;
