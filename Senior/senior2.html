@@ -57,6 +57,17 @@
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+  <!-- Home Button -->
+  <div class="absolute top-4 left-4 md:top-6 md:left-6">
+    <a href="../index.html" title="กลับหน้าหลัก"
+      class="inline-block p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    </a>
+  </div>
   <!-- Dark Mode Toggle Button -->
   <div class="absolute top-4 right-4 md:top-6 md:right-6">
     <button id="dark-mode-toggle"
@@ -1511,6 +1522,8 @@
     const feedbackEl = document.getElementById("feedback");
     const feedbackContentEl = feedbackEl.querySelector(".feedback-content");
 
+    const STORAGE_KEY = 'quizState-senior2'; // Unique key for this quiz
+
     // --- Quiz State ---
     let currentQuestionIndex = 0;
     let score = 0;
@@ -1528,6 +1541,7 @@
       scoreCounterEl.textContent = `คะแนน: ${score}`;
 
       showQuestion();
+        saveQuizState(); // Save the initial state of the new quiz
     }
 
     function renderAllMath() {
@@ -1632,12 +1646,14 @@
       currentQuestionIndex++;
       if (currentQuestionIndex < shuffledQuestions.length) {
         showQuestion();
+          saveQuizState(); // Save state for the new question
       } else {
         showResults();
       }
     }
 
     function showResults() {
+        localStorage.removeItem(STORAGE_KEY); // Clear state on completion
       quizScreen.classList.add("hidden");
       resultScreen.classList.remove("hidden");
 
@@ -1657,10 +1673,53 @@
       finalMessageEl.textContent = message;
     }
 
+      // --- Functions for Saving/Resuming ---
+      function saveQuizState() {
+        const state = {
+            currentQuestionIndex: currentQuestionIndex,
+            score: score,
+            shuffledQuestions: shuffledQuestions
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function resumeQuiz(savedState) {
+          currentQuestionIndex = savedState.currentQuestionIndex;
+          score = savedState.score;
+          shuffledQuestions = savedState.shuffledQuestions;
+
+          startScreen.classList.add("hidden");
+          quizScreen.classList.remove("hidden");
+          resultScreen.classList.add("hidden");
+
+          scoreCounterEl.textContent = `คะแนน: ${score}`;
+          showQuestion();
+      }
+
+      function checkForSavedQuiz() {
+          const savedStateJSON = localStorage.getItem(STORAGE_KEY);
+          if (savedStateJSON) {
+              try {
+                  const savedState = JSON.parse(savedStateJSON);
+                  if (typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions)) {
+                      if (confirm("พบข้อมูลการทำแบบทดสอบครั้งก่อน คุณต้องการทำต่อหรือไม่? (หากไม่ต้องการ ข้อมูลเดิมจะถูกลบ)")) {
+                          resumeQuiz(savedState);
+                      } else {
+                          localStorage.removeItem(STORAGE_KEY);
+                      }
+                  }
+              } catch (e) {
+                  localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
+              }
+          }
+      }
     // --- Event Listeners ---
     startBtn.addEventListener("click", startQuiz);
     nextBtn.addEventListener("click", showNextQuestion);
     restartBtn.addEventListener("click", startQuiz);
+
+      // --- Initialization ---
+      checkForSavedQuiz();
   </script>
 </body>
 

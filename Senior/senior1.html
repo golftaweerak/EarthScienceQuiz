@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th" class="">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,132 +14,122 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
     <style>
-      body {
-        font-family: "Sarabun", sans-serif;
-      }
+        body {
+            font-family: "Sarabun", sans-serif;
+        }
 
-      .quiz-container {
-        max-width: 800px;
-        margin: 2rem auto;
-      }
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+        }
 
-      .option-btn {
-        transition: all 0.3s ease;
-      }
+        .option-btn {
+            transition: all 0.3s ease;
+        }
 
-      .correct {
-        background-color: #22c55e !important;
-        color: white !important;
-        border-color: #16a34a !important;
-      }
+        .correct {
+            background-color: #22c55e !important;
+            color: white !important;
+            border-color: #16a34a !important;
+        }
 
-      .incorrect {
-        background-color: #ef4444 !important;
-        color: white !important;
-        border-color: #dc2626 !important;
-      }
+        .incorrect {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
 
-      .feedback-content {
-        max-height: 200px;
-        overflow-y: auto;
-      }
+        .feedback-content {
+            max-height: 200px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 
-<body
-    class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300"
->
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <!-- Home Button -->
+    <div class="absolute top-4 left-4 md:top-6 md:left-6">
+        <a href="../index.html" title="กลับหน้าหลัก"
+            class="inline-block p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+        </a>
+    </div>
+
     <!-- Dark Mode Toggle Button -->
     <div class="absolute top-4 right-4 md:top-6 md:right-6">
-        <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+        <button id="dark-mode-toggle"
+            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
             <!-- Icon will be inserted by JS -->
         </button>
     </div>
 
-    <div
-      id="quiz-container"
-      class="quiz-container bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg"
-    >
-      <div id="start-screen">
-        <h1
-          class="text-2xl sm:text-3xl font-bold text-center text-gray-700 dark:text-gray-100 mb-4"
-        >
-          แบบทดสอบเตรียมความพร้อม สอวน. ดาราศาสตร์
-        </h1>
-        <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
-          ค่าย 1 (ม.ปลาย) - ชุดที่ 1 (120 ข้อ)
-        </p>
-        <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
-          คลิก "เริ่มทำแบบทดสอบ" เพื่อเริ่มต้น
-        </p>
-        <button
-          id="start-btn"
-          class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
-        >
-          เริ่มทำแบบทดสอบ
-        </button>
-      </div>
+    <div id="quiz-container" class="quiz-container bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
+        <div id="start-screen">
+            <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-700 dark:text-gray-100 mb-4">
+                แบบทดสอบเตรียมความพร้อม สอวน. ดาราศาสตร์
+            </h1>
+            <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
+                ค่าย 1 (ม.ปลาย) - ชุดที่ 1 (120 ข้อ)
+            </p>
+            <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
+                คลิก "เริ่มทำแบบทดสอบ" เพื่อเริ่มต้น
+            </p>
+            <button id="start-btn"
+                class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+                เริ่มทำแบบทดสอบ
+            </button>
+        </div>
 
-      <div id="quiz-screen" class="hidden">
-        <div class="flex justify-between items-center mb-4">
-          <div
-            id="question-counter"
-            class="text-lg font-bold text-blue-600 dark:text-blue-400"
-          ></div>
-          <div id="score-counter" class="text-lg font-bold dark:text-gray-300">
-            คะแนน: 0
-          </div>
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <div id="question-counter" class="text-lg font-bold text-blue-600 dark:text-blue-400"></div>
+                <div id="score-counter" class="text-lg font-bold dark:text-gray-300">
+                    คะแนน: 0
+                </div>
+            </div>
+            <div class="mb-6">
+                <div id="question" class="text-xl font-semibold mb-6 min-h-[80px] dark:text-gray-100"></div>
+                <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+            <div id="feedback" class="hidden mt-6 p-4 rounded-lg">
+                <div class="feedback-content"></div>
+            </div>
+            <button id="next-btn"
+                class="hidden w-full mt-6 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+                ข้อต่อไป
+            </button>
         </div>
-        <div class="mb-6">
-          <div
-            id="question"
-            class="text-xl font-semibold mb-6 min-h-[80px] dark:text-gray-100"
-          ></div>
-          <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-        <div id="feedback" class="hidden mt-6 p-4 rounded-lg">
-          <div class="feedback-content"></div>
-        </div>
-        <button
-          id="next-btn"
-          class="hidden w-full mt-6 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
-        >
-          ข้อต่อไป
-        </button>
-      </div>
 
-      <div id="result-screen" class="hidden text-center">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-4 dark:text-gray-100">
-          สรุปผลการทดสอบ
-        </h2>
-        <p
-          id="final-score"
-          class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4"
-        ></p>
-        <p
-          id="final-message"
-          class="text-lg text-gray-600 dark:text-gray-400 mb-8"
-        ></p>
-        <button
-          id="restart-btn"
-          class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
-        >
-          ทำแบบทดสอบอีกครั้ง
-        </button>
-      </div>
+        <div id="result-screen" class="hidden text-center">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-4 dark:text-gray-100">
+                สรุปผลการทดสอบ
+            </h2>
+            <p id="final-score" class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4"></p>
+            <p id="final-message" class="text-lg text-gray-600 dark:text-gray-400 mb-8"></p>
+            <button id="restart-btn"
+                class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+                ทำแบบทดสอบอีกครั้ง
+            </button>
+        </div>
     </div>
 
     <script src="../dark-mode.js"></script>
     <script>
-      const quizData = [
+        const quizData = [
             {
                 question: "จุดอ้างอิงสำหรับวัดค่าไรต์แอสเซนชัน (Right Ascension) ในระบบพิกัดศูนย์สูตรคืออะไร",
                 options: ["จุดจอมฟ้า (Zenith)", "ขั้วฟ้าเหนือ (North Celestial Pole)", "จุดวสันตวิษุวัต (Vernal Equinox)", "จุดศูนย์กลางของกาแล็กซี"],
@@ -861,177 +852,228 @@
             }
         ];
 
-      // --- DOM Elements ---
-      const startScreen = document.getElementById("start-screen");
-      const quizScreen = document.getElementById("quiz-screen");
-      const resultScreen = document.getElementById("result-screen");
+        // --- DOM Elements ---
+        const startScreen = document.getElementById("start-screen");
+        const quizScreen = document.getElementById("quiz-screen");
+        const resultScreen = document.getElementById("result-screen");
 
-      const startBtn = document.getElementById("start-btn");
-      const nextBtn = document.getElementById("next-btn");
-      const restartBtn = document.getElementById("restart-btn");
+        const startBtn = document.getElementById("start-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const restartBtn = document.getElementById("restart-btn");
 
-      const questionCounterEl = document.getElementById("question-counter");
-      const scoreCounterEl = document.getElementById("score-counter");
-      const questionEl = document.getElementById("question");
-      const optionsEl = document.getElementById("options");
-      const feedbackEl = document.getElementById("feedback");
-      const feedbackContentEl = feedbackEl.querySelector(".feedback-content");
+        const questionCounterEl = document.getElementById("question-counter");
+        const scoreCounterEl = document.getElementById("score-counter");
+        const questionEl = document.getElementById("question");
+        const optionsEl = document.getElementById("options");
+        const feedbackEl = document.getElementById("feedback");
+        const feedbackContentEl = feedbackEl.querySelector(".feedback-content");
 
-      // --- Quiz State ---
-      let currentQuestionIndex = 0;
-      let score = 0;
-      let shuffledQuestions = [];
+        const finalScoreEl = document.getElementById("final-score");
+        const finalMessageEl = document.getElementById("final-message");
 
-      // --- Functions ---
-      function startQuiz() {
-        startScreen.classList.add("hidden");
-        quizScreen.classList.remove("hidden");
-        resultScreen.classList.add("hidden");
+        const STORAGE_KEY = 'quizState-senior1'; // Unique key for this quiz
 
-        score = 0;
-        currentQuestionIndex = 0;
-        shuffledQuestions = quizData.sort(() => Math.random() - 0.5);
-        scoreCounterEl.textContent = `คะแนน: ${score}`;
+        // --- Quiz State ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
 
-        showQuestion();
-      }
+        // --- Functions ---
+        function startQuiz() {
+            localStorage.removeItem(STORAGE_KEY); // Clear any previous state
+            startScreen.classList.add("hidden");
+            quizScreen.classList.remove("hidden");
+            resultScreen.classList.add("hidden");
 
-      function renderAllMath() {
-        if (typeof renderMathInElement === 'function') {
-            renderMathInElement(document.body, {
-              delimiters: [
-                  {left: '$$', right: '$$', display: true},
-                  {left: '$', right: '$', display: false},
-                  {left: '\\(', right: '\\)', display: false},
-                  {left: '\\[', right: '\\]', display: true}
-              ]
+            score = 0;
+            currentQuestionIndex = 0;
+            shuffledQuestions = quizData.sort(() => Math.random() - 0.5);
+            scoreCounterEl.textContent = `คะแนน: ${score}`;
+
+            showQuestion();
+            saveQuizState(); // Save the initial state of the new quiz
+        }
+
+        function renderAllMath() {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ]
+                });
+            }
+        }
+
+        function showQuestion() {
+            resetState();
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            questionCounterEl.textContent = `ข้อที่ ${currentQuestionIndex + 1
+                } / ${shuffledQuestions.length}`;
+            questionEl.innerHTML = currentQuestion.question;
+
+            currentQuestion.options.forEach((option) => {
+                const button = document.createElement("button");
+                button.innerHTML = option;
+                button.classList.add(
+                    "option-btn",
+                    "w-full",
+                    "p-4",
+                    "border-2",
+                    "border-gray-300",
+                    "dark:border-gray-600",
+                    "rounded-lg",
+                    "text-left",
+                    "hover:bg-gray-100",
+                    "dark:hover:bg-gray-700",
+                    "hover:border-blue-500",
+                    "dark:hover:border-blue-500"
+                );
+                button.addEventListener("click", selectAnswer);
+                optionsEl.appendChild(button);
             });
+
+            renderAllMath();
         }
-      }
 
-      function showQuestion() {
-        resetState();
-        const currentQuestion = shuffledQuestions[currentQuestionIndex];
-        questionCounterEl.textContent = `ข้อที่ ${
-          currentQuestionIndex + 1
-        } / ${shuffledQuestions.length}`;
-        questionEl.innerHTML = currentQuestion.question;
-        
-        currentQuestion.options.forEach((option) => {
-          const button = document.createElement("button");
-          button.innerHTML = option;
-          button.classList.add(
-            "option-btn",
-            "w-full",
-            "p-4",
-            "border-2",
-            "border-gray-300",
-            "dark:border-gray-600",
-            "rounded-lg",
-            "text-left",
-            "hover:bg-gray-100",
-            "dark:hover:bg-gray-700",
-            "hover:border-blue-500",
-            "dark:hover:border-blue-500"
-          );
-          button.addEventListener("click", selectAnswer);
-          optionsEl.appendChild(button);
-        });
-        
-        renderAllMath();
-      }
-
-      function resetState() {
-        nextBtn.classList.add("hidden");
-        feedbackEl.classList.add("hidden");
-        feedbackContentEl.innerHTML = "";
-        feedbackEl.className = "hidden mt-6 p-4 rounded-lg";
-        while (optionsEl.firstChild) {
-          optionsEl.removeChild(optionsEl.firstChild);
+        function resetState() {
+            nextBtn.classList.add("hidden");
+            feedbackEl.classList.add("hidden");
+            feedbackContentEl.innerHTML = "";
+            feedbackEl.className = "hidden mt-6 p-4 rounded-lg";
+            while (optionsEl.firstChild) {
+                optionsEl.removeChild(optionsEl.firstChild);
+            }
         }
-      }
 
-      function selectAnswer(e) {
-        const selectedBtn = e.currentTarget;
-        const correct =
-          selectedBtn.textContent.trim() ===
-          shuffledQuestions[currentQuestionIndex].answer.trim();
+        function selectAnswer(e) {
+            const selectedBtn = e.currentTarget;
+            const correct =
+                selectedBtn.textContent.trim() ===
+                shuffledQuestions[currentQuestionIndex].answer.trim();
 
-        if (correct) {
-          score++;
-          scoreCounterEl.textContent = `คะแนน: ${score}`;
-          selectedBtn.classList.add("correct");
-          feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-300">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-400 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
-          feedbackEl.classList.add(
-            "bg-green-100",
-            "dark:bg-green-900/50",
-            "border",
-            "border-green-300",
-            "dark:border-green-700"
-          );
-        } else {
-          selectedBtn.classList.add("incorrect");
-          feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-300">ผิดครับ!</h3><p class="text-red-700 dark:text-red-400 mt-1">คำตอบที่ถูกต้องคือ: <strong>${shuffledQuestions[currentQuestionIndex].answer}</strong></p><p class="text-red-700 dark:text-red-400 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
-          feedbackEl.classList.add(
-            "bg-red-100",
-            "dark:bg-red-900/50",
-            "border",
-            "border-red-300",
-            "dark:border-red-700"
-          );
+            if (correct) {
+                score++;
+                scoreCounterEl.textContent = `คะแนน: ${score}`;
+                selectedBtn.classList.add("correct");
+                feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-300">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-400 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
+                feedbackEl.classList.add(
+                    "bg-green-100",
+                    "dark:bg-green-900/50",
+                    "border",
+                    "border-green-300",
+                    "dark:border-green-700"
+                );
+            } else {
+                selectedBtn.classList.add("incorrect");
+                feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-300">ผิดครับ!</h3><p class="text-red-700 dark:text-red-400 mt-1">คำตอบที่ถูกต้องคือ: <strong>${shuffledQuestions[currentQuestionIndex].answer}</strong></p><p class="text-red-700 dark:text-red-400 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
+                feedbackEl.classList.add(
+                    "bg-red-100",
+                    "dark:bg-red-900/50",
+                    "border",
+                    "border-red-300",
+                    "dark:border-red-700"
+                );
+            }
+
+            renderAllMath();
+
+            Array.from(optionsEl.children).forEach((button) => {
+                if (
+                    button.textContent.trim() ===
+                    shuffledQuestions[currentQuestionIndex].answer.trim()
+                ) {
+                    button.classList.add("correct");
+                }
+                button.disabled = true;
+            });
+
+            feedbackEl.classList.remove("hidden");
+            nextBtn.classList.remove("hidden");
         }
-        
-        renderAllMath();
 
-        Array.from(optionsEl.children).forEach((button) => {
-          if (
-            button.textContent.trim() ===
-            shuffledQuestions[currentQuestionIndex].answer.trim()
-          ) {
-            button.classList.add("correct");
-          }
-          button.disabled = true;
-        });
-
-        feedbackEl.classList.remove("hidden");
-        nextBtn.classList.remove("hidden");
-      }
-
-      function showNextQuestion() {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < shuffledQuestions.length) {
-          showQuestion();
-        } else {
-          showResults();
+        function showNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                showQuestion();
+                saveQuizState(); // Save state for the new question
+            } else {
+                showResults();
+            }
         }
-      }
 
-      function showResults() {
-        quizScreen.classList.add("hidden");
-        resultScreen.classList.remove("hidden");
+        function showResults() {
+            localStorage.removeItem(STORAGE_KEY); // Clear state on completion
+            quizScreen.classList.add("hidden");
+            resultScreen.classList.remove("hidden");
 
-        const percentage = Math.round(
-          (score / shuffledQuestions.length) * 100
-        );
-        finalScoreEl.textContent = `${score} / ${shuffledQuestions.length} (${percentage}%)`;
+            const percentage = Math.round(
+                (score / shuffledQuestions.length) * 100
+            );
+            finalScoreEl.textContent = `${score} / ${shuffledQuestions.length} (${percentage}%)`;
 
-        let message = "";
-        if (percentage >= 90) {
-          message = "ยอดเยี่ยมมาก! คุณคืออนาคตนักดาราศาสตร์โอลิมปิก!";
-        } else if (percentage >= 75) {
-          message = "เก่งมาก! ความรู้แน่นจริงๆ";
-        } else if (percentage >= 50) {
-          message = "ทำได้ดี! ทบทวนอีกนิดหน่อยจะสมบูรณ์แบบเลย";
-        } else {
-          message = "ไม่เป็นไรนะ สู้ๆ แล้วลองพยายามอีกครั้ง!";
+            let message = "";
+            if (percentage >= 90) {
+                message = "ยอดเยี่ยมมาก! คุณคืออนาคตนักดาราศาสตร์โอลิมปิก!";
+            } else if (percentage >= 75) {
+                message = "เก่งมาก! ความรู้แน่นจริงๆ";
+            } else if (percentage >= 50) {
+                message = "ทำได้ดี! ทบทวนอีกนิดหน่อยจะสมบูรณ์แบบเลย";
+            } else {
+                message = "ไม่เป็นไรนะ สู้ๆ แล้วลองพยายามอีกครั้ง!";
+            }
+            finalMessageEl.textContent = message;
         }
-        finalMessageEl.textContent = message;
-      }
 
-      // --- Event Listeners ---
-      startBtn.addEventListener("click", startQuiz);
-      nextBtn.addEventListener("click", showNextQuestion);
-      restartBtn.addEventListener("click", startQuiz);
+        // --- Functions for Saving/Resuming ---
+        function saveQuizState() {
+            const state = {
+                currentQuestionIndex: currentQuestionIndex,
+                score: score,
+                shuffledQuestions: shuffledQuestions
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function resumeQuiz(savedState) {
+            currentQuestionIndex = savedState.currentQuestionIndex;
+            score = savedState.score;
+            shuffledQuestions = savedState.shuffledQuestions;
+
+            startScreen.classList.add("hidden");
+            quizScreen.classList.remove("hidden");
+            resultScreen.classList.add("hidden");
+
+            scoreCounterEl.textContent = `คะแนน: ${score}`;
+            showQuestion();
+        }
+
+        function checkForSavedQuiz() {
+            const savedStateJSON = localStorage.getItem(STORAGE_KEY);
+            if (savedStateJSON) {
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    if (typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions)) {
+                        if (confirm("พบข้อมูลการทำแบบทดสอบครั้งก่อน คุณต้องการทำต่อหรือไม่? (หากไม่ต้องการ ข้อมูลเดิมจะถูกลบ)")) {
+                            resumeQuiz(savedState);
+                        } else {
+                            localStorage.removeItem(STORAGE_KEY);
+                        }
+                    }
+                } catch (e) {
+                    localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
+                }
+            }
+        }
+        // --- Event Listeners ---
+        startBtn.addEventListener("click", startQuiz);
+        nextBtn.addEventListener("click", showNextQuestion);
+        restartBtn.addEventListener("click", startQuiz);
+
+        // --- Initialization ---
+        checkForSavedQuiz();
     </script>
 </body>
 </html>
