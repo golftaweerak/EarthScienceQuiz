@@ -41,11 +41,15 @@
     </a>
   </div>
 
-  <!-- Dark Mode Toggle Button -->
-  <div class="absolute top-4 right-4 md:top-6 md:right-6">
-    <button id="dark-mode-toggle"
+  <!-- Control Buttons -->
+  <div class="absolute top-4 right-4 md:top-6 md:right-6 flex items-center space-x-2">
+    <button id="sound-toggle-btn" title="เปิด/ปิดเสียง"
       class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-      <!-- Icon will be inserted by JS -->
+      <!-- Sound Icon will be inserted by JS -->
+    </button>
+    <button id="dark-mode-toggle" title="สลับโหมดมืด/สว่าง"
+      class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+      <!-- Dark Mode Icon will be inserted by JS -->
     </button>
   </div>
 
@@ -69,8 +73,8 @@
     <div id="quiz-screen" class="hidden">
       <!-- Progress Bar -->
       <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
-        <div id="progress-bar"
-          class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out" style="width: 0%">
+        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
+          style="width: 0%">
         </div>
       </div>
       <div class="flex justify-between items-center mb-4">
@@ -132,6 +136,33 @@
   <script>
     initializeQuiz(quizData, 'quizState-junior2');
   </script>
+  <!-- Resume Quiz Modal -->
+  <div id="resume-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-sm w-full text-center transform transition-all"
+      role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+        <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+        </svg>
+      </div>
+      <h3 id="modal-title" class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">พบข้อมูลที่บันทึกไว้</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">คุณต้องการทำแบบทดสอบต่อจากครั้งก่อนหรือไม่?</p>
+      <div class="flex flex-col sm:flex-row-reverse gap-3">
+        <button id="resume-confirm-btn"
+          class="w-full sm:w-auto flex-1 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+          ทำต่อ
+        </button>
+        <button id="resume-reject-btn"
+          class="w-full sm:w-auto flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition duration-300">
+          เริ่มใหม่
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

@@ -30,12 +30,23 @@ function initializeQuiz(quizData, storageKey) {
     const reviewScreen = document.getElementById("review-screen"); // New
     const reviewContainer = document.getElementById("review-container"); // New
 
+    // New Modal Elements for resuming quiz
+    const resumeModal = document.getElementById("resume-modal");
+    const resumeConfirmBtn = document.getElementById("resume-confirm-btn");
+    const resumeRejectBtn = document.getElementById("resume-reject-btn");
+    const soundToggleBtn = document.getElementById("sound-toggle-btn");
+
     const STORAGE_KEY = storageKey;
 
     // --- Audio Elements ---
     // หมายเหตุ: คุณต้องเตรียมไฟล์เสียงเหล่านี้ไว้ใน path ที่ระบุ
     const correctSound = new Audio('../assets/audio/correct.mp3');
     const incorrectSound = new Audio('../assets/audio/incorrect.mp3');
+
+    // --- Sound State & Icons ---
+    let isSoundEnabled = true;
+    const soundOnIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`;
+    const soundOffIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd" /><path stroke-linecap="round" stroke-linejoin="round" d="M17 14l-2-2m0 0l-2-2m2 2l-2 2m2-2l2-2" /></svg>`;
 
     // --- Quiz State ---
     let currentQuestionIndex = 0;
@@ -157,10 +168,10 @@ function initializeQuiz(quizData, storageKey) {
             score++;
             scoreCounterEl.textContent = `คะแนน: ${score}`;
             selectedBtn.classList.add("correct");
-            correctSound.play();
+            if (isSoundEnabled) correctSound.play().catch(e => console.error("Error playing sound:", e));
         } else {
             selectedBtn.classList.add("incorrect");
-            incorrectSound.play();
+            if (isSoundEnabled) incorrectSound.play().catch(e => console.error("Error playing sound:", e));
         }
 
         // Show feedback and disable all options
@@ -185,6 +196,7 @@ function initializeQuiz(quizData, storageKey) {
             feedbackEl.classList.add("bg-red-100", "dark:bg-red-900/50", "border", "border-red-300", "dark:border-red-700");
         }
         feedbackEl.classList.remove("hidden");
+        renderAllMath(); // เพิ่มบรรทัดนี้เพื่อสั่งให้แปลงสมการในคำอธิบาย
     }
 
     function showNextQuestion() {
@@ -334,16 +346,51 @@ function initializeQuiz(quizData, storageKey) {
             try {
                 const savedState = JSON.parse(savedStateJSON);
                 if (typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions)) {
-                    if (confirm("พบข้อมูลการทำแบบทดสอบครั้งก่อน คุณต้องการทำต่อหรือไม่? (หากไม่ต้องการ ข้อมูลเดิมจะถูกลบ)")) {
-                        resumeQuiz(savedState);
+                    // Use custom modal if it exists, otherwise fallback to confirm()
+                    if (resumeModal && resumeConfirmBtn && resumeRejectBtn) {
+                        resumeModal.classList.remove('hidden');
+
+                        resumeConfirmBtn.onclick = () => {
+                            resumeQuiz(savedState);
+                            resumeModal.classList.add('hidden');
+                        };
+
+                        resumeRejectBtn.onclick = () => {
+                            localStorage.removeItem(STORAGE_KEY);
+                            resumeModal.classList.add('hidden');
+                        };
                     } else {
-                        localStorage.removeItem(STORAGE_KEY);
+                        if (confirm("พบข้อมูลการทำแบบทดสอบครั้งก่อน คุณต้องการทำต่อหรือไม่? (หากไม่ต้องการ ข้อมูลเดิมจะถูกลบ)")) {
+                            resumeQuiz(savedState);
+                        } else {
+                            localStorage.removeItem(STORAGE_KEY);
+                        }
                     }
                 }
             } catch (e) {
+                console.error("Error parsing saved quiz state:", e);
                 localStorage.removeItem(STORAGE_KEY);
             }
         }
+    }
+
+    // --- Sound Functions ---
+    function updateSoundButton() {
+        if (!soundToggleBtn) return;
+        soundToggleBtn.innerHTML = isSoundEnabled ? soundOnIcon : soundOffIcon;
+    }
+
+    function toggleSound() {
+        isSoundEnabled = !isSoundEnabled;
+        localStorage.setItem('quizSoundEnabled', isSoundEnabled);
+        updateSoundButton();
+    }
+
+    function initializeSound() {
+        const savedSoundSetting = localStorage.getItem('quizSoundEnabled');
+        // Default to true if not set, otherwise use the saved setting
+        isSoundEnabled = savedSoundSetting !== 'false';
+        updateSoundButton();
     }
 
     // --- Event Listeners ---
@@ -353,7 +400,11 @@ function initializeQuiz(quizData, storageKey) {
     restartBtn.addEventListener("click", startQuiz);
     reviewBtn.addEventListener("click", showReview); // New
     backToResultBtn.addEventListener("click", backToResult); // New
+    if (soundToggleBtn) {
+        soundToggleBtn.addEventListener('click', toggleSound);
+    }
 
     // --- Initialization ---
+    initializeSound();
     checkForSavedQuiz();
 }
