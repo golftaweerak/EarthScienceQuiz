@@ -44,26 +44,31 @@
     </style>
   </head>
 
-  <body class="bg-gray-100 text-gray-800">
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    <div class="absolute top-4 right-4 md:top-6 md:right-6">
+        <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <!-- Icon will be inserted by JS -->
+        </button>
+    </div>
     <div
       id="quiz-container"
-      class="quiz-container bg-white p-6 sm:p-8 rounded-xl shadow-lg"
+      class="quiz-container bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg"
     >
       <div id="start-screen">
         <h1
-          class="text-2xl sm:text-3xl font-bold text-center text-gray-700 mb-4"
+          class="text-2xl sm:text-3xl font-bold text-center text-gray-700 dark:text-gray-100 mb-4"
         >
           แบบทดสอบเตรียมความพร้อม สอวน.
         </h1>
-        <p class="text-center text-gray-600 mb-6">
+        <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
           วิทยาศาสตร์โลกและอวกาศ (ชุดที่ 2) - 150 ข้อ
         </p>
-        <p class="text-center text-gray-500 mb-8">
+        <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
           คลิก "เริ่มทำแบบทดสอบ" เพื่อเริ่มต้น
         </p>
         <button
           id="start-btn"
-          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
+          class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
         >
           เริ่มทำแบบทดสอบ
         </button>
@@ -73,14 +78,14 @@
         <div class="flex justify-between items-center mb-4">
           <div
             id="question-counter"
-            class="text-lg font-bold text-blue-600"
+            class="text-lg font-bold text-blue-600 dark:text-blue-400"
           ></div>
-          <div id="score-counter" class="text-lg font-bold">คะแนน: 0</div>
+          <div id="score-counter" class="text-lg font-bold dark:text-gray-300">คะแนน: 0</div>
         </div>
         <div class="mb-6">
           <div
             id="question"
-            class="text-xl font-semibold mb-6 min-h-[80px]"
+            class="text-xl font-semibold mb-6 min-h-[80px] dark:text-gray-100"
           ></div>
           <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
@@ -89,24 +94,25 @@
         </div>
         <button
           id="next-btn"
-          class="hidden w-full mt-6 bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
+          class="hidden w-full mt-6 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
         >
           ข้อต่อไป
         </button>
       </div>
 
       <div id="result-screen" class="hidden text-center">
-        <h2 class="text-2xl sm:text-3xl font-bold mb-4">สรุปผลการทดสอบ</h2>
-        <p id="final-score" class="text-4xl font-bold text-blue-600 mb-4"></p>
-        <p id="final-message" class="text-lg text-gray-600 mb-8"></p>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-4 dark:text-gray-100">สรุปผลการทดสอบ</h2>
+        <p id="final-score" class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4"></p>
+        <p id="final-message" class="text-lg text-gray-600 dark:text-gray-300 mb-8"></p>
         <button
           id="restart-btn"
-          class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
+          class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
         >
           ทำแบบทดสอบอีกครั้ง
         </button>
       </div>
     </div>
+    <script src="../dark-mode.js"></script>
     <script>
       const quizData = [
         // ส่วนที่ 1: ธรณีวิทยา
@@ -2064,10 +2070,14 @@
             "w-full",
             "p-4",
             "border-2",
+            "border-gray-300",
+            "dark:border-gray-600",
             "rounded-lg",
             "text-left",
             "hover:bg-gray-200",
-            "hover:border-blue-500"
+            "dark:hover:bg-gray-700",
+            "hover:border-blue-500",
+            "dark:hover:border-blue-500"
           );
           button.addEventListener("click", selectAnswer);
           optionsEl.appendChild(button);
@@ -2094,16 +2104,24 @@
           score++;
           scoreCounterEl.textContent = `คะแนน: ${score}`;
           selectedBtn.classList.add("correct");
-          feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-green-800">ถูกต้อง!</h3><p class="text-green-700 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
+          feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-200">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-300 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
           feedbackEl.classList.add(
             "bg-green-100",
+            "dark:bg-green-900/50",
             "border",
-            "border-green-300"
+            "border-green-300",
+            "dark:border-green-700"
           );
         } else {
           selectedBtn.classList.add("incorrect");
-          feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-red-800">ผิดครับ!</h3><p class="text-red-700 mt-1">คำตอบที่ถูกต้องคือ: <strong>${shuffledQuestions[currentQuestionIndex].answer}</strong></p><p class="text-red-700 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
-          feedbackEl.classList.add("bg-red-100", "border", "border-red-300");
+          feedbackContentEl.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-200">ผิดครับ!</h3><p class="text-red-700 dark:text-red-300 mt-1">คำตอบที่ถูกต้องคือ: <strong>${shuffledQuestions[currentQuestionIndex].answer}</strong></p><p class="text-red-700 dark:text-red-300 mt-2">${shuffledQuestions[currentQuestionIndex].explanation}</p>`;
+          feedbackEl.classList.add(
+            "bg-red-100",
+            "dark:bg-red-900/50",
+            "border",
+            "border-red-300",
+            "dark:border-red-700"
+          );
         }
 
         Array.from(optionsEl.children).forEach((button) => {
@@ -2156,5 +2174,3 @@
     </script>
   </body>
 </html>
-
-<!--<br><img src='i11-13.png' alt='แผนภาพโครงสร้างโลก' class='mt-4 rounded-lg mx-auto max-w-md'>", options: ["เปลือกโลก (Crust)", "เนื้อโลก (Mantle)", "แก่นโลกชั้นนอก (Outer Core)", "แก่นโลกชั้นใน (Inner Core)"], answer: "แก่นโลกชั้นนอก (Outer Core)", explanation: "แก่นโลกชั้นนอกประกอบด้วยเหล็กและนิกเกิลในสถานะของเหลว การหมุนเวียนของโลหะเหลวนี้จากการพาความร้อนและการหมุนของโลก ทำให้เกิดปรากฏการณ์ไดนาโม (Dynamo effect) ซึ่งสร้างสนามแม่เหล็กโลกขึ้นมา" },-->
