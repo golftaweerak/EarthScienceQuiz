@@ -17,10 +17,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
     xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous" />
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
     xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
     crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
     crossorigin="anonymous"></script>
   <!-- Shared Styles -->
@@ -35,17 +35,28 @@
   <div class="max-w-3xl mx-auto">
     <!-- Header with buttons -->
     <header class="flex justify-between items-center mb-4">
-      <!-- Home Button -->
-      <a href="../index.html" title="กลับหน้าหลัก"
-        class="inline-block p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-          stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      </a>
+      <!-- Quiz Menu Dropdown -->
+      <div class="relative" id="quiz-menu-container">
+        <button id="quiz-menu-btn" title="เลือกแบบทดสอบ"
+          class="inline-flex items-center p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div id="quiz-menu-dropdown"
+          class="hidden absolute left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700">
+          <div class="p-2 max-h-96 overflow-y-auto">
+            <!-- Menu items will be inserted here by JS -->
+          </div>
+        </div>
+      </div>
+      <!-- Centered Logo -->
+      <div class="flex-grow text-center">
+        <img src="../Clipped_image_20230501_070502.png" alt="SABA" class="mx-auto h-10 w-auto">
+      </div>
       <!-- Control Buttons -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 justify-end">
         <button id="sound-toggle-btn" title="เปิด/ปิดเสียง"
           class="p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
           <!-- Sound Icon will be inserted by JS -->
@@ -58,105 +69,110 @@
     </header>
 
     <main id="quiz-container" class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
-    <div id="start-screen">
-      <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-700 dark:text-gray-100 mb-4">
-        แบบทดสอบเตรียมความพร้อม สอวน. ดาราศาสตร์
-      </h1>
-      <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
-        ม.ปลาย ชุดที่ 2 (120 ข้อ)
-      </p>
-      <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
-        คลิก "เริ่มทำแบบทดสอบ" เพื่อเริ่มต้น
-      </p>
-      <button id="start-btn"
-        class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-        เริ่มทำแบบทดสอบ
-      </button>
-    </div>
-
-    <div id="quiz-screen" class="hidden">
-      <!-- Progress Bar -->
-      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
-        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
-          style="width: 0%">
-        </div>
-      </div>
-      <div class="flex justify-between items-center mb-4">
-        <div id="question-counter" class="text-lg font-bold text-blue-600 dark:text-blue-400"></div>
-        <div id="score-counter" class="text-lg font-bold dark:text-gray-300">
-          คะแนน: 0
-        </div>
-      </div>
-      <div class="mb-6">
-        <div id="question" class="text-xl font-semibold mb-6 min-h-[80px] dark:text-gray-100"></div>
-        <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-      </div>
-      <div id="feedback" class="hidden mt-6 p-4 rounded-lg">
-        <div class="feedback-content"></div>
-      </div>
-      <div class="flex mt-6 space-x-4">
-        <button id="prev-btn"
-          class="hidden flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-          ข้อก่อนหน้า
-        </button>
-        <button id="next-btn"
-          class="hidden flex-1 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-          ข้อต่อไป
-        </button>
-      </div>
-    </div>
-
-    <div id="result-screen" class="hidden text-center">
-      <div id="result-icon-container" class="mx-auto mb-4 w-16 h-16">
-        <!-- Icon will be inserted by JS -->
-      </div>
-      <h2 id="result-title" class="text-2xl sm:text-3xl font-bold mb-2 dark:text-gray-100">
-        <!-- Title will be inserted by JS -->
-      </h2>
-      <p id="final-message" class="text-lg text-gray-600 dark:text-gray-400 mb-6">
-        <!-- Message will be inserted by JS -->
-      </p>
-
-      <div class="relative w-48 h-48 mx-auto mb-6">
-        <svg class="w-full h-full" viewBox="0 0 36 36">
-          <path class="text-gray-200 dark:text-gray-700" stroke-width="3" fill="none"
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-          <path id="progress-circle" class="text-blue-500 transition-all duration-1000" stroke-width="3"
-            stroke-dasharray="0, 100" stroke-linecap="round" fill="none"
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-        </svg>
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <p id="final-percentage" class="text-4xl font-bold text-blue-600 dark:text-blue-400"></p>
-          <p id="final-score" class="text-sm text-gray-500 dark:text-gray-400"></p>
-        </div>
-      </div>
-
-      <div class="space-y-4 max-w-xs mx-auto">
-        <button id="review-btn"
-          class="hidden w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-          ทบทวนข้อที่ผิด
-        </button>
-        <button id="restart-btn"
+      <div id="start-screen">
+        <h1 class="text-2xl sm:text-3xl font-bold text-center text-gray-700 dark:text-gray-100 mb-4">
+          แบบทดสอบเตรียมความพร้อม สอวน. วิชาดาราศาสตร์
+        </h1>
+        <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
+          ม.ปลาย ชุดที่ 2 (120 ข้อ)
+        </p>
+        <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
+          คลิก "เริ่มทำแบบทดสอบ" เพื่อเริ่มต้น
+        </p>
+        <button id="start-btn"
           class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-          ทำแบบทดสอบอีกครั้ง
+          เริ่มทำแบบทดสอบ
         </button>
       </div>
-    </div>
 
-    <div id="review-screen" class="hidden">
-      <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center dark:text-gray-100">ทบทวนข้อที่ตอบผิด</h2>
-      <div id="review-container" class="space-y-4"></div>
-      <button id="back-to-result-btn"
-        class="w-full mt-8 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-        กลับไปหน้าสรุปผล
-      </button>
-    </div>
+      <div id="quiz-screen" class="hidden">
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+          <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
+            style="width: 0%">
+          </div>
+        </div>
+        <div class="flex justify-between items-center mb-4">
+          <div id="question-counter" class="text-lg font-bold text-blue-600 dark:text-blue-400"></div>
+          <div id="score-counter" class="text-lg font-bold dark:text-gray-300">
+            คะแนน: 0
+          </div>
+        </div>
+        <div class="mb-6">
+          <div id="question" class="text-xl font-semibold mb-6 min-h-[80px] dark:text-gray-100"></div>
+          <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+        <div id="feedback" class="hidden mt-6 p-4 rounded-lg">
+          <div class="feedback-content"></div>
+        </div>
+        <div class="flex mt-6 space-x-4">
+          <button id="prev-btn"
+            class="hidden flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+            ข้อก่อนหน้า
+          </button>
+          <button id="next-btn"
+            class="hidden flex-1 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+            ข้อต่อไป
+          </button>
+        </div>
+      </div>
+
+      <div id="result-screen" class="hidden text-center">
+        <div id="result-icon-container" class="mx-auto mb-4 w-16 h-16">
+          <!-- Icon will be inserted by JS -->
+        </div>
+        <h2 id="result-title" class="text-2xl sm:text-3xl font-bold mb-2 dark:text-gray-100">
+          <!-- Title will be inserted by JS -->
+        </h2>
+        <p id="final-message" class="text-lg text-gray-600 dark:text-gray-400 mb-6">
+          <!-- Message will be inserted by JS -->
+        </p>
+
+        <div class="relative w-48 h-48 mx-auto mb-6">
+          <svg class="w-full h-full" viewBox="0 0 36 36">
+            <path class="text-gray-200 dark:text-gray-700" stroke-width="3" fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path id="progress-circle" class="text-blue-500 transition-all duration-1000" stroke-width="3"
+              stroke-dasharray="0, 100" stroke-linecap="round" fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <p id="final-percentage" class="text-4xl font-bold text-blue-600 dark:text-blue-400"></p>
+            <p id="final-score" class="text-sm text-gray-500 dark:text-gray-400"></p>
+          </div>
+        </div>
+
+        <div class="space-y-4 max-w-xs mx-auto">
+          <button id="review-btn"
+            class="hidden w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+            ทบทวนข้อที่ผิด
+          </button>
+          <button id="restart-btn"
+            class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+            ทำแบบทดสอบอีกครั้ง
+          </button>
+        </div>
+      </div>
+
+      <div id="review-screen" class="hidden">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-center dark:text-gray-100">ทบทวนข้อที่ตอบผิด</h2>
+        <div id="review-container" class="space-y-4"></div>
+        <button id="back-to-result-btn"
+          class="w-full mt-8 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
+          กลับไปหน้าสรุปผล
+        </button>
+      </div>
     </main>
+    <footer class="text-center mt-12 text-sm text-gray-500 dark:text-gray-400 font-kanit">
+      <p class="mt-2">© 2025 Prommanusorn Phetchaburi School. All rights reserved.</p>
+    </footer>
   </div>
 
   <script src="../dark-mode.js" defer></script>
+  <script src="../data/quizzes-list.js" defer></script> <!-- Load the list of all quizzes -->
   <script src="../data/senior2-data.js" defer></script>
   <script src="../scripts/quiz-logic.js" defer></script>
+  <script src="../scripts/dropdown-menu.js" defer></script> <!-- New shared script for the menu -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initializeQuiz(quizData, "quizState-senior2");
@@ -189,4 +205,5 @@
       </div>
     </div>
   </div>
+
 </html>
