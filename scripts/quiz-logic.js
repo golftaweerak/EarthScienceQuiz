@@ -20,6 +20,11 @@ function initializeQuiz(quizData, storageKey) {
 
     const finalScoreEl = document.getElementById("final-score");
     const finalMessageEl = document.getElementById("final-message");
+    // New elements for enhanced result screen
+    const resultIconContainer = document.getElementById("result-icon-container");
+    const resultTitle = document.getElementById("result-title");
+    const progressCircle = document.getElementById("progress-circle");
+    const finalPercentage = document.getElementById("final-percentage");
     
     const reviewScreen = document.getElementById("review-screen"); // New
     const reviewContainer = document.getElementById("review-container"); // New
@@ -190,19 +195,52 @@ function initializeQuiz(quizData, storageKey) {
         quizScreen.classList.add("hidden");
         resultScreen.classList.remove("hidden");
 
+        // --- New Result Screen Logic ---
         const percentage = Math.round((score / shuffledQuestions.length) * 100);
-        finalScoreEl.textContent = `${score} / ${shuffledQuestions.length} (${percentage}%)`;
+        
+        finalScoreEl.textContent = `คะแนน: ${score} จาก ${shuffledQuestions.length}`;
+        finalPercentage.textContent = `${percentage}%`;
 
-        let message = "";
-        if (percentage >= 90) {
-            message = "ยอดเยี่ยมมาก! คุณคืออนาคตนักดาราศาสตร์โอลิมปิก!";
-        } else if (percentage >= 75) {
-            message = "เก่งมาก! ความรู้แน่นจริงๆ";
-        } else if (percentage >= 50) {
-            message = "ทำได้ดี! ทบทวนอีกนิดหน่อยจะสมบูรณ์แบบเลย";
-        } else {
-            message = "ไม่เป็นไรนะ สู้ๆ แล้วลองพยายามอีกครั้ง!";
+        // Animate progress circle
+        if (progressCircle) {
+            // Use a timeout to ensure the transition is applied after the element is visible
+            setTimeout(() => {
+                progressCircle.style.strokeDasharray = `${percentage}, 100`;
+            }, 100);
         }
+
+        let title = "";
+        let message = "";
+        let icon = "";
+        let iconColorClass = "";
+
+        const trophyIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`;
+        const starIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>`;
+        const thumbsUpIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.085c-.5 0-.975.335-1.175.808l-2 5m7 5h2.833l3.5-7A2 2 0 0017.263 5h-4.017c-.163 0-.326.02-.485.06L7 6" /></svg>`;
+        const brainIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.562L16.25 22l-.648-1.437a3.375 3.375 0 00-2.456-2.456L12 18.25l1.438-.648a3.375 3.375 0 002.456-2.456L16.25 14l.648 1.437a3.375 3.375 0 002.456 2.456L20.75 18.25l-1.438.648a3.375 3.375 0 00-2.456 2.456z" /></svg>`;
+
+        if (percentage >= 90) {
+            title = "ยอดเยี่ยมมาก!";
+            message = "คุณคืออนาคตนักดาราศาสตร์โอลิมปิก!";
+            icon = trophyIcon;
+            iconColorClass = "text-yellow-400";
+        } else if (percentage >= 75) {
+            title = "เก่งมาก!";
+            message = "เก่งมาก! ความรู้แน่นจริงๆ";
+            icon = starIcon;
+            iconColorClass = "text-blue-500";
+        } else if (percentage >= 50) {
+            title = "ทำได้ดี!";
+            message = "ทำได้ดี! ทบทวนอีกนิดหน่อยจะสมบูรณ์แบบเลย";
+            icon = thumbsUpIcon;
+            iconColorClass = "text-green-500";
+        } else {
+            title = "พยายามได้ดีมาก!";
+            message = "ไม่เป็นไรนะ สู้ๆ แล้วลองพยายามอีกครั้ง!";
+            icon = brainIcon;
+            iconColorClass = "text-gray-500";
+        }
+        
         finalMessageEl.textContent = message;
 
         // New: Show or hide the review button
