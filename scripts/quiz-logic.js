@@ -16,6 +16,7 @@ function initializeQuiz(quizData, storageKey) {
     const questionEl = document.getElementById("question");
     const optionsEl = document.getElementById("options");
     const feedbackEl = document.getElementById("feedback");
+    const progressBar = document.getElementById("progress-bar");
     const feedbackContentEl = feedbackEl.querySelector(".feedback-content");
 
     const finalScoreEl = document.getElementById("final-score");
@@ -30,6 +31,11 @@ function initializeQuiz(quizData, storageKey) {
     const reviewContainer = document.getElementById("review-container"); // New
 
     const STORAGE_KEY = storageKey;
+
+    // --- Audio Elements ---
+    // หมายเหตุ: คุณต้องเตรียมไฟล์เสียงเหล่านี้ไว้ใน path ที่ระบุ
+    const correctSound = new Audio('../assets/audio/correct.mp3');
+    const incorrectSound = new Audio('../assets/audio/incorrect.mp3');
 
     // --- Quiz State ---
     let currentQuestionIndex = 0;
@@ -66,6 +72,13 @@ function initializeQuiz(quizData, storageKey) {
                 ]
             });
         }
+    }
+
+    function updateProgressBar() {
+        if (!progressBar) return; // ป้องกัน error หากไม่มี element นี้ในหน้า
+        // คำนวณ % ความคืบหน้าจากข้อปัจจุบัน
+        const progressPercentage = ((currentQuestionIndex + 1) / shuffledQuestions.length) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
     }
 
     function showQuestion() {
@@ -111,6 +124,8 @@ function initializeQuiz(quizData, storageKey) {
             prevBtn.classList.remove("hidden");
         }
 
+        updateProgressBar();
+
         renderAllMath();
     }
 
@@ -142,8 +157,10 @@ function initializeQuiz(quizData, storageKey) {
             score++;
             scoreCounterEl.textContent = `คะแนน: ${score}`;
             selectedBtn.classList.add("correct");
+            correctSound.play();
         } else {
             selectedBtn.classList.add("incorrect");
+            incorrectSound.play();
         }
 
         // Show feedback and disable all options

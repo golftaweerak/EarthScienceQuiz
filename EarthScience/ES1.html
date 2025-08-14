@@ -15,32 +15,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
-    <style>
-        body {
-            font-family: "Sarabun", sans-serif;
-        }
-
-        .quiz-container {
-            max-width: 800px;
-            margin: 2rem auto;
-        }
-
-        .option-btn {
-            transition: all 0.3s ease;
-        }
-
-        .correct {
-            background-color: #22c55e !important;
-            color: white !important;
-            border-color: #16a34a !important;
-        }
-
-        .incorrect {
-            background-color: #ef4444 !important;
-            color: white !important;
-            border-color: #dc2626 !important;
-        }
-    </style>
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/quiz.css">
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
@@ -80,6 +57,12 @@
         </div>
 
         <div id="quiz-screen" class="hidden">
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
+                <div id="progress-bar"
+                    class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out" style="width: 0%">
+                </div>
+            </div>
             <div class="flex justify-between items-center mb-4">
                 <div id="question-counter" class="text-lg font-bold text-blue-600 dark:text-blue-400"></div>
                 <div id="score-counter" class="text-lg font-bold dark:text-gray-300">
