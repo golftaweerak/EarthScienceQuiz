@@ -198,8 +198,9 @@ function initializeQuiz(quizData, storageKey) {
         // --- New Result Screen Logic ---
         const percentage = Math.round((score / shuffledQuestions.length) * 100);
         
-        finalScoreEl.textContent = `คะแนน: ${score} จาก ${shuffledQuestions.length}`;
-        finalPercentage.textContent = `${percentage}%`;
+        // Safely update result elements if they exist to prevent errors
+        if (finalScoreEl) finalScoreEl.textContent = `คะแนน: ${score} จาก ${shuffledQuestions.length}`;
+        if (finalPercentage) finalPercentage.textContent = `${percentage}%`;
 
         // Animate progress circle
         if (progressCircle) {
@@ -241,7 +242,14 @@ function initializeQuiz(quizData, storageKey) {
             iconColorClass = "text-gray-500";
         }
         
-        finalMessageEl.textContent = message;
+        // Update the DOM with the determined title, message, and icon
+        if (resultTitle) resultTitle.textContent = title;
+        if (finalMessageEl) finalMessageEl.textContent = message;
+        if (resultIconContainer) {
+            resultIconContainer.innerHTML = icon;
+            // Reset classes and apply the new color class
+            resultIconContainer.className = `mx-auto mb-4 w-12 h-12 ${iconColorClass}`;
+        }
 
         // New: Show or hide the review button
         const incorrectAnswers = userAnswers.filter(answer => !answer.isCorrect);
