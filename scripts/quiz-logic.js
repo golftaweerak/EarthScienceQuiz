@@ -185,6 +185,7 @@ function initializeQuiz(quizData, storageKey) {
         });
 
         nextBtn.classList.remove("hidden");
+        renderAllMath();
     }
 
     function showFeedback(isCorrect, explanation, correctAnswer) {
@@ -196,7 +197,6 @@ function initializeQuiz(quizData, storageKey) {
             feedbackEl.classList.add("bg-red-100", "dark:bg-red-900/50", "border", "border-red-300", "dark:border-red-700");
         }
         feedbackEl.classList.remove("hidden");
-        renderAllMath(); // เพิ่มบรรทัดนี้เพื่อสั่งให้แปลงสมการในคำอธิบาย
     }
 
     function showNextQuestion() {
