@@ -1,8 +1,16 @@
 const quizList = [
-  {
+    {
     title: "ดาราศาสตร์ รวม ชุด 1 (50 ข้อ)",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./Astronomy/astro1.html",
+    icon: "./space.png",
+    borderColor: "border-red-500",
+    altText: "ไอคอนดาราศาสตร์",
+  },
+  {
+    title: "ดาราศาสตร์ รวม ชุด 2 (60 ข้อ)",
+    description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
+    url: "./Astronomy/astro2.html",
     icon: "./space.png",
     borderColor: "border-red-500",
     altText: "ไอคอนดาราศาสตร์",
