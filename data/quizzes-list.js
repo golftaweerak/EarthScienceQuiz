@@ -1,6 +1,7 @@
 const quizList = [
     {
-    title: "ดาราศาสตร์ รวม ชุด 1 (50 ข้อ)",
+    title: "ดาราศาสตร์ รวม ชุด 1",
+    amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./Astronomy/astro1.html",
     icon: "./assets/icons/space.png",
@@ -9,7 +10,8 @@ const quizList = [
     category: 'AstronomyReview'
   },
   {
-    title: "ดาราศาสตร์ รวม ชุด 2 (60 ข้อ)",
+    title: "ดาราศาสตร์ รวม ชุด 2",
+    amount: "60 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./Astronomy/astro2.html",
     icon: "./assets/icons/space.png",
@@ -18,7 +20,8 @@ const quizList = [
     category: 'AstronomyReview'
   },
   {
-    title: "ดาราศาสตร์ ม.ต้น ชุด 1 (120 ข้อ)",
+    title: "ดาราศาสตร์ ม.ต้น ชุด 1",
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./Junior/junior1.html",
@@ -28,7 +31,8 @@ const quizList = [
     category: 'Astronomy'
   },
   {
-    title: "ดาราศาสตร์ ม.ต้น ชุด 2 (120 ข้อ)",
+    title: "ดาราศาสตร์ ม.ต้น ชุด 2",
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./Junior/junior2.html",
@@ -38,7 +42,8 @@ const quizList = [
     category: 'Astronomy'
   },
   {
-    title: "ดาราศาสตร์ ม.ปลาย ชุด 1 (120 ข้อ)",
+    title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./Senior/senior1.html",
@@ -48,7 +53,8 @@ const quizList = [
     category: 'Astronomy'
   },
   {
-    title: "ดาราศาสตร์ ม.ปลาย ชุด 2 (120 ข้อ)",
+    title: "ดาราศาสตร์ ม.ปลาย ชุด 2",
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./Senior/senior2.html",
@@ -59,7 +65,8 @@ const quizList = [
   },
 
   {
-    title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1 (150 ข้อ)",
+    title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
+    amount: "150 ข้อ",
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./EarthScience/ES1.html",
@@ -69,7 +76,8 @@ const quizList = [
     category: 'EarthScience'
   },
   {
-    title: "วิทยาศาสตร์โลกและอวกาศ ชุด 2 (150 ข้อ)",
+    title: "วิทยาศาสตร์โลกและอวกาศ ชุด 2",
+    amount: "150 ข้อ",
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./EarthScience/ES2.html",
