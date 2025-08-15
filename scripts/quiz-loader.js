@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const quizInfo = quizList.find(q => q.storageKey.endsWith(quizId));
+    const quizInfo = quizList.find(q => q.id === quizId);
 
     if (!quizInfo) {
         handleQuizError("ไม่พบข้อมูลแบบทดสอบ", `ไม่พบแบบทดสอบสำหรับ ID: ${quizId}`);

@@ -1,5 +1,6 @@
 const quizList = [
   {
+    id: "astro1",
     title: "ทบทวน ดาราศาสตร์ ชุด 1",
     amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
@@ -11,6 +12,7 @@ const quizList = [
     category: "AstronomyReview",
   },
   {
+    id: "astro2",
     title: "ทบทวน ดาราศาสตร์ ชุด 2",
     amount: "60 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
@@ -22,6 +24,7 @@ const quizList = [
     category: "AstronomyReview",
   },
   {
+    id: "ESr1",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 1",
     amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
@@ -33,6 +36,7 @@ const quizList = [
     category: "AstronomyReview",
   },
   {
+    id: "junior1",
     title: "ดาราศาสตร์ ม.ต้น ชุด 1",
     amount: "120 ข้อ",
     description:
@@ -45,6 +49,7 @@ const quizList = [
     category: "Astronomy",
   },
   {
+    id: "junior2",
     title: "ดาราศาสตร์ ม.ต้น ชุด 2",
     amount: "120 ข้อ",
     description:
@@ -57,6 +62,7 @@ const quizList = [
     category: "Astronomy",
   },
   {
+    id: "senior1",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
     amount: "120 ข้อ",
     description:
@@ -69,6 +75,7 @@ const quizList = [
     category: "Astronomy",
   },
   {
+    id: "senior2",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 2",
     amount: "120 ข้อ",
     description:
@@ -82,6 +89,7 @@ const quizList = [
   },
 
   {
+    id: "ES1",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
     amount: "150 ข้อ",
     description:
@@ -94,6 +102,7 @@ const quizList = [
     category: "EarthScience",
   },
   {
+    id: "ES2",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 2",
     amount: "150 ข้อ",
     description:
@@ -106,6 +115,7 @@ const quizList = [
     category: "EarthScience",
   },
   {
+    id: "ES3",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 3",
     amount: "150 ข้อ",
     description:
