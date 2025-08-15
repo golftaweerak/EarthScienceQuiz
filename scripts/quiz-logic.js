@@ -92,6 +92,7 @@ const QuizApp = (function () {
       timerMode: "none",
       timeLeft: 0,
       timerId: null,
+      initialTime: 0, // Add to track the starting time for color coding
     };
 
     // --- Initialization ---
@@ -124,7 +125,11 @@ const QuizApp = (function () {
   }
 
   function showQuestion() {
-    stopTimer(); // Stop any previous timer
+    // Only stop the timer if it's a per-question timer.
+    // The overall timer should continue running across questions.
+    if (state.timerMode === "perQuestion") {
+      stopTimer();
+    }
     resetState();
     const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
     elements.questionCounter.textContent = `ข้อที่ ${state.currentQuestionIndex + 1} / ${
@@ -134,9 +139,21 @@ const QuizApp = (function () {
 
     const previousAnswer = state.userAnswers[state.currentQuestionIndex];
 
-    currentQuestion.options.forEach((option) => {
+    // --- New: Shuffle options to prevent memorizing order ---
+    // Create a copy to avoid modifying the original question data in the state
+    const shuffledOptions = [...currentQuestion.options];
+    // Fisher-Yates (aka Knuth) Shuffle algorithm for an unbiased shuffle
+    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+    }
+
+    // Use the shuffled array to create the buttons
+    shuffledOptions.forEach((option) => {
       const button = document.createElement("button");
       button.innerHTML = option;
+      // Store the original, raw option value to prevent issues with HTML/KaTeX rendering
+      button.dataset.optionValue = option;
       button.classList.add(
         "option-btn",
         "w-full",
@@ -207,17 +224,21 @@ const QuizApp = (function () {
   }
 
   function selectAnswer(e) {
-    stopTimer(); // Stop the timer as soon as an answer is selected
+    // Only stop the timer if it's a per-question timer.
+    // The overall timer should keep running.
+    if (state.timerMode === "perQuestion") {
+      stopTimer();
+    }
     const selectedBtn = e.currentTarget;
-    const correct =
-      selectedBtn.textContent.trim() ===
-      state.shuffledQuestions[state.currentQuestionIndex].answer.trim();
+    const selectedValue = selectedBtn.dataset.optionValue.trim();
+    const correctAnswer = state.shuffledQuestions[state.currentQuestionIndex].answer.trim();
+    const correct = selectedValue === correctAnswer;
 
     // Store the user's answer. This is the only time an answer is recorded for a question.
     state.userAnswers[state.currentQuestionIndex] = {
       question: state.shuffledQuestions[state.currentQuestionIndex].question,
-      selectedAnswer: selectedBtn.textContent.trim(),
-      correctAnswer: state.shuffledQuestions[state.currentQuestionIndex].answer.trim(),
+      selectedAnswer: selectedValue,
+      correctAnswer: correctAnswer,
       isCorrect: correct,
       explanation: state.shuffledQuestions[state.currentQuestionIndex].explanation,
     };
@@ -242,14 +263,11 @@ const QuizApp = (function () {
     showFeedback(
       correct,
       state.shuffledQuestions[state.currentQuestionIndex].explanation,
-      state.shuffledQuestions[state.currentQuestionIndex].answer.trim()
+      correctAnswer
     );
 
     Array.from(elements.options.children).forEach((button) => {
-      if (
-        button.textContent.trim() ===
-        state.shuffledQuestions[state.currentQuestionIndex].answer.trim()
-      ) {
+      if (button.dataset.optionValue.trim() === correctAnswer) {
         button.classList.add("correct");
       }
       button.disabled = true;
@@ -304,9 +322,9 @@ const QuizApp = (function () {
 
   function showResults() {
     stopTimer(); // Ensure timer is stopped on the result screen
-    localStorage.removeItem(state.storageKey);
     elements.quizScreen.classList.add("hidden");
     elements.resultScreen.classList.remove("hidden");
+    saveQuizState(); // Save the final state, including the score
 
     // --- New Result Screen Logic ---
     const percentage = Math.round((state.score / state.shuffledQuestions.length) * 100);
@@ -359,9 +377,12 @@ const QuizApp = (function () {
     stopTimer();
     localStorage.removeItem(state.storageKey);
 
-    // Read selected timer mode from the UI
-    const selectedMode = document.querySelector('input[name="timer-mode"]:checked').value;
-    state.timerMode = selectedMode;
+    // Only read timer mode if the controls are visible (i.e., on the start screen).
+    // On restart, it will reuse the previously selected mode.
+    const timerModeSelector = document.querySelector('input[name="timer-mode"]:checked');
+    if (timerModeSelector) {
+      state.timerMode = timerModeSelector.value;
+    }
 
     elements.startScreen.classList.add("hidden");
     elements.quizScreen.classList.remove("hidden");
@@ -370,21 +391,21 @@ const QuizApp = (function () {
 
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
-      state.timeLeft = state.quizData.length * config.timerDefaults.overallMultiplier;
+      state.initialTime = state.quizData.length * config.timerDefaults.overallMultiplier;
+      state.timeLeft = state.initialTime;
       startTimer();
     } else if (state.timerMode === "perQuestion") {
-      state.timeLeft = config.timerDefaults.perQuestion;
-      // Timer will be started in showQuestion()
+      // Timer will be started in showQuestion(), which calls startTimer() to set initial values.
     }
 
     state.score = 0;
     state.currentQuestionIndex = 0;
     state.shuffledQuestions = state.quizData.sort(() => Math.random() - 0.5);
+    state.userAnswers = []; // Reset answers before starting
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
 
     showQuestion();
     saveQuizState();
-    state.userAnswers = [];
   }
 
   // --- New Review Functions ---
@@ -439,6 +460,10 @@ const QuizApp = (function () {
       score: state.score,
       shuffledQuestions: state.shuffledQuestions,
       userAnswers: state.userAnswers,
+      // Add timer state for resuming
+      timerMode: state.timerMode,
+      timeLeft: state.timeLeft,
+      initialTime: state.initialTime,
     };
     localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
   }
@@ -448,11 +473,21 @@ const QuizApp = (function () {
     state.score = savedState.score;
     state.shuffledQuestions = savedState.shuffledQuestions;
     state.userAnswers = savedState.userAnswers || []; // Resume answers
+    // Restore timer state
+    state.timerMode = savedState.timerMode || "none";
+    state.timeLeft = savedState.timeLeft || 0;
+    state.initialTime = savedState.initialTime || 0;
+
     elements.startScreen.classList.add("hidden");
     elements.quizScreen.classList.remove("hidden");
     elements.resultScreen.classList.add("hidden");
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
     showQuestion();
+
+    // If resuming a quiz with an overall timer, restart the countdown
+    if (state.timerMode === "overall" && state.timeLeft > 0) {
+      startTimer();
+    }
   }
 
   function checkForSavedQuiz() {
@@ -509,7 +544,31 @@ const QuizApp = (function () {
     if (!elements.timerDisplay || !elements.timerValue) return;
     const minutes = Math.floor(state.timeLeft / 60);
     const seconds = state.timeLeft % 60;
-    elements.timerValue.textContent = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    elements.timerValue.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+
+    // --- New: Update color based on time left ---
+    if (state.timerMode === "none" || state.initialTime <= 0) return;
+
+    const percentage = (state.timeLeft / state.initialTime) * 100;
+    const timerClasses = elements.timerDisplay.classList;
+
+    // Remove all potential color classes to reset
+    timerClasses.remove(
+      "text-green-600", "dark:text-green-500",
+      "text-orange-500", "dark:text-orange-400",
+      "text-red-600", "dark:text-red-400"
+    );
+
+    // Add the appropriate color class based on the percentage of time remaining
+    if (percentage > 50) {
+      timerClasses.add("text-green-600", "dark:text-green-500"); // Plenty of time
+    } else if (percentage > 25) {
+      timerClasses.add("text-orange-500", "dark:text-orange-400"); // Getting low
+    } else {
+      timerClasses.add("text-red-600", "dark:text-red-400"); // Critically low
+    }
   }
 
   function tick() {
@@ -528,6 +587,7 @@ const QuizApp = (function () {
     }
     if (state.timerMode === "perQuestion") {
       state.timeLeft = config.timerDefaults.perQuestion;
+      state.initialTime = config.timerDefaults.perQuestion;
     }
 
     elements.timerDisplay.classList.remove("hidden");

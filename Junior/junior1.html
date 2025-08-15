@@ -34,37 +34,44 @@
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 p-4">
   <div class="max-w-3xl mx-auto">
     <!-- Header with buttons -->
-    <header class="flex justify-between items-center mb-4">
-      <!-- Quiz Menu Dropdown -->
-      <div class="relative" id="quiz-menu-container">
-        <button id="quiz-menu-btn" title="เลือกแบบทดสอบ"
-          class="inline-flex items-center p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <div id="quiz-menu-dropdown"
-          class="hidden absolute left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700">
-          <div class="p-2 max-h-96 overflow-y-auto">
-            <!-- Menu items will be inserted here by JS -->
+    <header class="flex items-center mb-4">
+      <!-- Left Side: Menu -->
+      <div class="flex-1 flex justify-start">
+        <div class="relative" id="quiz-menu-container">
+          <button id="quiz-menu-btn" title="เลือกแบบทดสอบ"
+            class="inline-flex items-center p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div id="quiz-menu-dropdown"
+            class="hidden absolute left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700">
+            <div class="p-2 max-h-96 overflow-y-auto">
+              <!-- Menu items will be inserted here by JS -->
+            </div>
           </div>
         </div>
       </div>
-      <!-- Centered Logo -->
-      <div class="flex-grow text-center">
-        <img src="../Clipped_image_20230501_070502.png" alt="SABA" class="mx-auto h-10 w-auto">
+      <!-- Center: Logo -->
+      <div class="flex-shrink-0 flex items-center space-x-3">
+        <img src="../Clipped_image_20230501_070502.png" alt="SABA" class="h-10 w-auto">
+        <span id="quiz-title-header" class="font-kanit text-lg font-bold text-gray-700 dark:text-gray-300 hidden sm:block truncate">
+          <!-- Title will be inserted by JS -->
+        </span>
       </div>
-      <!-- Control Buttons -->
-      <div class="flex items-center space-x-2 justify-end">
-        <button id="sound-toggle-btn" title="เปิด/ปิดเสียง"
-          class="p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-          <!-- Sound Icon will be inserted by JS -->
-        </button>
-        <button id="dark-mode-toggle" title="สลับโหมดมืด/สว่าง"
-          class="p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-          <!-- Dark Mode Icon will be inserted by JS -->
-        </button>
+      <!-- Right Side: Controls -->
+      <div class="flex-1 flex justify-end">
+        <div class="flex items-center space-x-2">
+          <button id="sound-toggle-btn" title="เปิด/ปิดเสียง"
+            class="p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <!-- Sound Icon will be inserted by JS -->
+          </button>
+          <button id="dark-mode-toggle" title="สลับโหมดมืด/สว่าง"
+            class="p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <!-- Dark Mode Icon will be inserted by JS -->
+          </button>
+        </div>
       </div>
     </header>
 
@@ -113,6 +120,7 @@
       </div>
 
       <div id="quiz-screen" class="hidden">
+        <!-- Quiz Title -->
         <!-- Progress Bar -->
         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-4">
           <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
@@ -151,7 +159,7 @@
       </div>
 
       <div id="result-screen" class="hidden text-center">
-        <div id="result-icon-container" class="mx-auto mb-4 w-16 h-16">
+        <div id="result-icon-container" class="mx-auto mb-4 w-12 h-12">
           <!-- Icon will be inserted by JS -->
         </div>
         <h2 id="result-title" class="text-2xl sm:text-3xl font-bold mb-2 dark:text-gray-100">
@@ -203,6 +211,7 @@
     </footer>
   </div>
 
+  <script src="../scripts/page-transitions.js" defer></script>
   <script src="../dark-mode.js" defer></script>
   <script src="../data/quizzes-list.js" defer></script> <!-- Load the list of all quizzes -->
   <script src="../data/junior1-data.js" defer></script>
@@ -210,7 +219,33 @@
   <script src="../scripts/dropdown-menu.js" defer></script> <!-- New shared script for the menu -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      QuizApp.init(quizData, 'quizState-junior1');
+      const storageKey = 'quizState-junior1';
+      QuizApp.init(quizData, storageKey);
+
+      // --- New: Set Quiz Title in Header ---
+      // Find the quiz details from the global quizList using the unique storageKey
+      const quizInfo = quizList.find(quiz => quiz.storageKey === storageKey);
+      const titleElement = document.getElementById('quiz-title-header');
+      if (quizInfo && titleElement) {
+        titleElement.textContent = quizInfo.title;
+      }
+
+      // --- New: Add active indicator to dropdown menu ---
+      // A small delay ensures the elements are available after dropdown-menu.js runs.
+      setTimeout(() => {
+        const dropdownContent = document.querySelector('#quiz-menu-dropdown .p-2');
+        if (!dropdownContent) return;
+
+        const links = dropdownContent.getElementsByTagName('a');
+        for (const link of links) {
+          const quizFromLink = quizList.find(q => link.href.endsWith(q.url.substring(1)));
+          if (quizFromLink && quizFromLink.storageKey === storageKey) {
+            link.classList.add('font-bold', 'bg-blue-50', 'dark:bg-gray-700/50');
+            link.innerHTML = `<div class="flex justify-between items-center w-full"><span>${link.textContent}</span><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></div>`;
+            break; // Found, no need to continue
+          }
+        }
+      }, 100);
     });
   </script>
   <!-- Resume Quiz Modal -->
