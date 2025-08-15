@@ -18,36 +18,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
-    <style>
-        /* Always show scrollbar to prevent layout shift when content height changes */
-        html {
-            overflow-y: scroll;
-        }
-
-        body.dark {
-            background-color: #020617;
-            /* A very dark blue, tailwind slate-950 */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%231e293b' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .card-animation {
-            animation: fadeInUp 0.5s ease-out forwards;
-            opacity: 0;
-            /* Start hidden */
-        }
-    </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -94,7 +64,13 @@
                 <div class="section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out">
                     <div class="overflow-hidden">
                         <div id="astronomy-review-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
-                            <!-- Astronomy Review quiz cards will be inserted here -->
+                            <div class="loading-placeholder col-span-1 md:col-span-2 text-center p-8 text-gray-500 dark:text-gray-400">
+                                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p>กำลังโหลดแบบทดสอบ...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,7 +78,7 @@
 
             <!-- Astronomy Section -->
             <section id="astronomy-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
-                <div class="section-toggle flex justify-between items-center cursor-pointer p-4">
+                <button type="button" class="section-toggle w-full flex justify-between items-center cursor-pointer p-4">
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
                         <img src="./assets/icons/astronomy.png" alt="Astronomy Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
                         ดาราศาสตร์ (Astronomy)
@@ -110,11 +86,17 @@
                     <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
-                </div>
+                </button>
                 <div class="section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out">
                     <div class="overflow-hidden">
                         <div id="astronomy-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
-                            <!-- Astronomy quiz cards will be inserted here -->
+                            <div class="loading-placeholder col-span-1 md:col-span-2 text-center p-8 text-gray-500 dark:text-gray-400">
+                                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p>กำลังโหลดแบบทดสอบ...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -122,7 +104,7 @@
 
             <!-- Earth Science Section -->
             <section id="earth-science-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
-                <div class="section-toggle flex justify-between items-center cursor-pointer p-4">
+                <button type="button" class="section-toggle w-full flex justify-between items-center cursor-pointer p-4">
                     <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
                         <img src="./assets/icons/earth.png" alt="Earth Science Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
                         วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)
@@ -130,18 +112,34 @@
                     <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
-                </div>
+                </button>
                 <div class="section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out">
                     <div class="overflow-hidden">
                         <div id="earth-science-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
-                            <!-- Earth Science quiz cards will be inserted here -->
+                            <div class="loading-placeholder col-span-1 md:col-span-2 text-center p-8 text-gray-500 dark:text-gray-400">
+                                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <p>กำลังโหลดแบบทดสอบ...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
 
-        <footer class="text-center mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+        <!-- Random Quiz Button (Moved) -->
+        <div class="my-12 text-center">
+            <button id="random-quiz-btn" class="font-kanit inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                สุ่มแบบทดสอบ
+            </button>
+        </div>
+
+        <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
             <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
 
             <div class="inline-flex items-center space-x-3 font-kanit mb-4">
@@ -158,16 +156,16 @@
                 © <span id="copyright-year">2025</span> Prommanusorn Phetchaburi School. All rights reserved.
             </p>
             <!-- Visitor Counter -->
-            <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                <p>จำนวนครั้งที่เข้าชม: <span id="visitor-count" class="font-semibold">...</span></p>
-            </div>
+            
         </footer>
 
     </div>
 
+    
+    <script src="./data/quizzes-list.js"></script>
     <script src="./scripts/main.js"></script>
     <script src="./dark-mode.js"></script>
-    <script src="./data/quizzes-list.js"></script>
+
 
 </body>
 
