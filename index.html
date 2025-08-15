@@ -74,37 +74,58 @@
             </div>
         </header>
 
-        <main class="max-w-4xl mx-auto space-y-12">
+        <main class="max-w-4xl mx-auto space-y-6">
             <!-- Astronomy-review Section -->
-            <section id="astronomy-review-section">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center font-kanit">
-                    <img src="./assets/icons/astronomy.png" alt="Review Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
-                    ทบทวนดาราศาสตร์ (Astronomy Review)
-                </h2>
-                <div id="astronomy-review-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Astronomy Review quiz cards will be inserted here -->
+            <section id="astronomy-review-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden transition-all duration-300">
+                <div class="section-toggle flex justify-between items-center cursor-pointer p-4">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
+                        <img src="./assets/icons/astronomy.png" alt="Review Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
+                        ทบทวนดาราศาสตร์ (Astronomy Review)
+                    </h2>
+                    <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div class="section-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                    <div id="astronomy-review-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
+                        <!-- Astronomy Review quiz cards will be inserted here -->
+                    </div>
                 </div>
             </section>
 
             <!-- Astronomy Section -->
-            <section id="astronomy-section">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center font-kanit">
-                    <img src="./assets/icons/astronomy.png" alt="Review Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
-                    ดาราศาสตร์ (Astronomy)
-                </h2>
-                <div id="astronomy-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Astronomy quiz cards will be inserted here -->
+            <section id="astronomy-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden transition-all duration-300">
+                <div class="section-toggle flex justify-between items-center cursor-pointer p-4">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
+                        <img src="./assets/icons/astronomy.png" alt="Astronomy Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
+                        ดาราศาสตร์ (Astronomy)
+                    </h2>
+                    <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div class="section-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                    <div id="astronomy-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
+                        <!-- Astronomy quiz cards will be inserted here -->
+                    </div>
                 </div>
             </section>
 
             <!-- Earth Science Section -->
-            <section id="earth-science-section">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center font-kanit">
-                    <img src="./assets/icons/earth.png" alt="Earth Science Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
-                    วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)
-                </h2>
-                <div id="earth-science-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Earth Science quiz cards will be inserted here -->
+            <section id="earth-science-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden transition-all duration-300">
+                <div class="section-toggle flex justify-between items-center cursor-pointer p-4">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
+                        <img src="./assets/icons/earth.png" alt="Earth Science Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
+                        วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)
+                    </h2>
+                    <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div class="section-content max-h-0 overflow-hidden transition-all duration-500 ease-in-out">
+                    <div id="earth-science-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
+                        <!-- Earth Science quiz cards will be inserted here -->
+                    </div>
                 </div>
             </section>
         </main>
@@ -215,7 +236,35 @@
         if (astronomyReviewContainer.children.length === 0) {
           document.getElementById('astronomy-review-section').classList.add('hidden');
         }
-      });
+
+        // --- Accordion Logic ---
+        const accordions = document.querySelectorAll('.section-accordion');
+
+        accordions.forEach((accordion, index) => {
+            const toggle = accordion.querySelector('.section-toggle');
+            const content = accordion.querySelector('.section-content');
+            const icon = accordion.querySelector('.chevron-icon');
+
+            // Open the first accordion by default if it's not hidden
+            if (index === 0 && !accordion.classList.contains('hidden')) {
+                accordion.classList.add('open');
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+            }
+
+            toggle.addEventListener('click', () => {
+                accordion.classList.toggle('open');
+
+                if (accordion.classList.contains('open')) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    content.style.maxHeight = '0px';
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+    });
     </script>
 
 </body>
