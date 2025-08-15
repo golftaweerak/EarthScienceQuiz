@@ -28,8 +28,39 @@ document.addEventListener('DOMContentLoaded', () => {
     dataScript.src = `../data/${quizId}-data.js`;
 
     dataScript.onload = () => {
-        // 4. Once the data script is loaded, the `quizData` variable will be available
-        if (typeof quizData === 'undefined') {
+        // 4. Once the data script is loaded, process the data.
+        // The loader now supports three formats for backward compatibility and flexibility:
+        // - `quizItems`: A mixed array of standalone questions and scenario objects. (New recommended format)
+        // - `quizScenarios`: An array of only scenario objects.
+        // - `quizData`: A flat array of only standalone questions. (Old format)
+        let processedQuizData;
+
+        if (typeof quizItems !== 'undefined') {
+            // New unified format: process a mix of questions and scenarios
+            processedQuizData = quizItems.flatMap(item => {
+                if (item.type === 'scenario') {
+                    // It's a scenario, prepend description to its questions
+                    return item.questions.map(question => ({
+                        ...question,
+                        question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${item.title}</p><p class="mt-2 text-gray-700 dark:text-gray-300">${item.description.replace(/\n/g, '<br>')}</p></div>${question.question}`
+                    }));
+                }
+                // It's a standalone question, return it as is
+                return item; 
+            });
+        } else if (typeof quizScenarios !== 'undefined') {
+            // Scenario-only format (like the refactored ES3)
+            processedQuizData = quizScenarios.flatMap(scenario => 
+                scenario.questions.map(question => ({
+                    ...question,
+                    question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${scenario.title}</p><p class="mt-2 text-gray-700 dark:text-gray-300">${scenario.description.replace(/\n/g, '<br>')}</p></div>${question.question}`
+                }))
+            );
+        } else if (typeof quizData !== 'undefined') {
+            // Old flat format, use it directly
+            processedQuizData = quizData;
+        } else {
+            // Neither format was found
             handleQuizError("เกิดข้อผิดพลาดในการโหลดข้อมูลคำถาม", `ไม่สามารถโหลดข้อมูลจาก ${dataScript.src} ได้`);
             return;
         }
@@ -41,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('quiz-title-header').textContent = quizInfo.title;
 
         // 6. Initialize the quiz logic with the loaded data
-        QuizApp.init(quizData, quizInfo.storageKey);
+        QuizApp.init(processedQuizData, quizInfo.storageKey);
 
         // 7. Highlight the active quiz in the dropdown menu
         highlightActiveQuiz(quizInfo.storageKey);

@@ -1,6 +1,6 @@
 const quizList = [
-    {
-    title: "ดาราศาสตร์ ชุด 1",
+  {
+    title: "ทบทวน ดาราศาสตร์ ชุด 1",
     amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=astro1",
@@ -8,10 +8,10 @@ const quizList = [
     icon: "./assets/icons/space.png",
     borderColor: "border-red-500",
     altText: "ไอคอนดาราศาสตร์",
-    category: 'AstronomyReview'
+    category: "AstronomyReview",
   },
   {
-    title: "ดาราศาสตร์ ชุด 2",
+    title: "ทบทวน ดาราศาสตร์ ชุด 2",
     amount: "60 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=astro2",
@@ -19,10 +19,10 @@ const quizList = [
     icon: "./assets/icons/space.png",
     borderColor: "border-red-500",
     altText: "ไอคอนดาราศาสตร์",
-    category: 'AstronomyReview'
+    category: "AstronomyReview",
   },
   {
-    title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
+    title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 1",
     amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=ESr1",
@@ -30,7 +30,7 @@ const quizList = [
     icon: "./assets/icons/earth1.png",
     borderColor: "border-red-500",
     altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
-    category: 'AstronomyReview'
+    category: "AstronomyReview",
   },
   {
     title: "ดาราศาสตร์ ม.ต้น ชุด 1",
@@ -42,7 +42,7 @@ const quizList = [
     icon: "./assets/icons/astronomy1.png",
     borderColor: "border-pink-500",
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมต้น",
-    category: 'Astronomy'
+    category: "Astronomy",
   },
   {
     title: "ดาราศาสตร์ ม.ต้น ชุด 2",
@@ -54,7 +54,7 @@ const quizList = [
     icon: "./assets/icons/astronomy1.png",
     borderColor: "border-pink-500",
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมต้น",
-    category: 'Astronomy'
+    category: "Astronomy",
   },
   {
     title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
@@ -66,7 +66,7 @@ const quizList = [
     icon: "./assets/icons/black-hole.png",
     borderColor: "border-blue-500",
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
-    category: 'Astronomy'
+    category: "Astronomy",
   },
   {
     title: "ดาราศาสตร์ ม.ปลาย ชุด 2",
@@ -78,7 +78,7 @@ const quizList = [
     icon: "./assets/icons/black-hole.png",
     borderColor: "border-blue-500",
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
-    category: 'Astronomy'
+    category: "Astronomy",
   },
 
   {
@@ -91,7 +91,7 @@ const quizList = [
     icon: "./assets/icons/geology.png",
     borderColor: "border-green-500",
     altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
-    category: 'EarthScience'
+    category: "EarthScience",
   },
   {
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 2",
@@ -103,6 +103,18 @@ const quizList = [
     icon: "./assets/icons/geology.png",
     borderColor: "border-green-500",
     altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
-    category: 'EarthScience'
+    category: "EarthScience",
+  },
+  {
+    title: "วิทยาศาสตร์โลกและอวกาศ ชุด 3",
+    amount: "150 ข้อ",
+    description:
+      "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
+    url: "./quiz/index.html?id=ES3",
+    storageKey: "quizState-ES3",
+    icon: "./assets/icons/geology.png",
+    borderColor: "border-green-500",
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
+    category: "EarthScience",
   },
 ];
