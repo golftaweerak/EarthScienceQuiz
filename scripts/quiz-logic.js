@@ -52,6 +52,7 @@ function initializeQuiz(quizData, storageKey) {
     let currentQuestionIndex = 0;
     let score = 0;
     let shuffledQuestions = [];
+    let shuffledOptions = [];
     let userAnswers = []; // New: To store user's answers
 
     // --- Functions ---
@@ -65,6 +66,7 @@ function initializeQuiz(quizData, storageKey) {
         score = 0;
         currentQuestionIndex = 0;
         shuffledQuestions = quizData.sort(() => Math.random() - 0.5);
+        shuffledOptions = shuffledQuestions.map(q => q.options.sort(() => Math.random() - 0.5));
         scoreCounterEl.textContent = `คะแนน: ${score}`;
 
         showQuestion();

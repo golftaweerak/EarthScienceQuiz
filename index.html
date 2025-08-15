@@ -31,7 +31,7 @@
         <header class="text-center mb-8 md:mb-12 font-kanit">
             
             <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-100">แบบฝึกหัดเตรียมความพร้อม สอวน.</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">วิชาดาราศาสตร์ และวิชาวิทยาศาสตร์โลกอวกาศ</p>
+            <p class="text-lg text-gray-600 dark:text-gray-400 mt-2">วิชาดาราศาสตร์ วิชาวิทยาศาสตร์โลกและอวกาศ</p>
         </header>
 
         <main id="quiz-list-container" class="max-w-2xl mx-auto grid grid-cols-1 gap-6">
@@ -65,7 +65,7 @@
             card.innerHTML = `
                 <div class="flex items-center">
                     <div class="bg-white ${quiz.borderColor} border-4 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl mr-4 flex-shrink-0">
-                        <img src="${quiz.icon}" alt="${quiz.altText}" class="h-8 w-8 object-contain rounded-full">
+                        <img src="${quiz.icon}" alt="${quiz.altText}" class="h-8 w-8 object-contain rounded-square">
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">${quiz.title}</h2>

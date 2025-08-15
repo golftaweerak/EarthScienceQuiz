@@ -30,7 +30,7 @@ const quizList = [
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./Senior/senior1.html",
-    icon: "./astronomy.png",
+    icon: "./black-hole.png",
     borderColor: "border-blue-500",
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
   },
@@ -39,7 +39,7 @@ const quizList = [
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./Senior/senior2.html",
-    icon: "./astronomy.png",
+    icon: "./black-hole.png",
     borderColor: "border-blue-500",
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
   },
