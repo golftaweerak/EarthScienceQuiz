@@ -1,6 +1,6 @@
 const quizList = [
     {
-    title: "ดาราศาสตร์ รวม ชุด 1",
+    title: "ทบทวนดาราศาสตร์ ชุด 1",
     amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./Astronomy/astro1.html",
@@ -11,7 +11,7 @@ const quizList = [
     category: 'AstronomyReview'
   },
   {
-    title: "ดาราศาสตร์ รวม ชุด 2",
+    title: "ทบทวนดาราศาสตร์ ชุด 2",
     amount: "60 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./Astronomy/astro2.html",
@@ -19,6 +19,17 @@ const quizList = [
     icon: "./assets/icons/space.png",
     borderColor: "border-red-500",
     altText: "ไอคอนดาราศาสตร์",
+    category: 'AstronomyReview'
+  },
+  {
+    title: "ทบทวนวิทยาศาสตร์โลกและอวกาศ ชุด 1",
+    amount: "50 ข้อ",
+    description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
+    url: "./EarthScience/ESr1.html",
+    storageKey: "quizState-ESr1",
+    icon: "./assets/icons/earth1.png",
+    borderColor: "border-red-500",
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: 'AstronomyReview'
   },
   {
