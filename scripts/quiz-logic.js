@@ -71,6 +71,7 @@ const QuizApp = (function () {
       reviewContainer: document.getElementById("review-container"),
       // Modal & Sound
       resumeModal: document.getElementById("resume-modal"),
+      modalContent: document.querySelector("#resume-modal .modal-content"),
       resumeConfirmBtn: document.getElementById("resume-confirm-btn"),
       resumeRejectBtn: document.getElementById("resume-reject-btn"),
       soundToggleBtn: document.getElementById("sound-toggle-btn"),
@@ -102,6 +103,30 @@ const QuizApp = (function () {
   }
 
   // --- UI / Rendering Functions ---
+
+  /**
+   * Handles smooth transitions between different screens (e.g., start, quiz, results).
+   * @param {HTMLElement} fromScreen The screen to hide.
+   * @param {HTMLElement} toScreen The screen to show.
+   */
+  function switchScreen(fromScreen, toScreen) {
+    const transitionDuration = 300; // ms, should match CSS animation duration
+
+    if (fromScreen) {
+      fromScreen.classList.add('anim-fade-out');
+      setTimeout(() => {
+        fromScreen.classList.add('hidden');
+        fromScreen.classList.remove('anim-fade-out');
+        if (toScreen) {
+          toScreen.classList.remove('hidden');
+          toScreen.classList.add('anim-fade-in');
+        }
+      }, transitionDuration);
+    } else if (toScreen) { // For the very first screen
+      toScreen.classList.remove('hidden');
+      toScreen.classList.add('anim-fade-in');
+    }
+  }
 
   function renderAllMath() {
     if (typeof renderMathInElement === "function") {
@@ -230,6 +255,7 @@ const QuizApp = (function () {
       stopTimer();
     }
     const selectedBtn = e.currentTarget;
+    selectedBtn.classList.add("anim-option-pop");
     const selectedValue = selectedBtn.dataset.optionValue.trim();
     const correctAnswer = state.shuffledQuestions[state.currentQuestionIndex].answer.trim();
     const correct = selectedValue === correctAnswer;
@@ -298,6 +324,7 @@ const QuizApp = (function () {
       );
     }
     elements.feedback.classList.remove("hidden");
+    elements.feedback.classList.add("anim-feedback-in");
   }
 
   function showNextQuestion() {
@@ -322,8 +349,7 @@ const QuizApp = (function () {
 
   function showResults() {
     stopTimer(); // Ensure timer is stopped on the result screen
-    elements.quizScreen.classList.add("hidden");
-    elements.resultScreen.classList.remove("hidden");
+    switchScreen(elements.quizScreen, elements.resultScreen);
     saveQuizState(); // Save the final state, including the score
 
     // --- New Result Screen Logic ---
@@ -384,11 +410,7 @@ const QuizApp = (function () {
       state.timerMode = timerModeSelector.value;
     }
 
-    elements.startScreen.classList.add("hidden");
-    elements.quizScreen.classList.remove("hidden");
-    elements.resultScreen.classList.add("hidden");
-    elements.reviewScreen.classList.add("hidden");
-
+    switchScreen(elements.startScreen, elements.quizScreen);
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
       state.initialTime = state.quizData.length * config.timerDefaults.overallMultiplier;
@@ -410,8 +432,7 @@ const QuizApp = (function () {
 
   // --- New Review Functions ---
   function showReview() {
-    elements.resultScreen.classList.add("hidden");
-    elements.reviewScreen.classList.remove("hidden");
+    switchScreen(elements.resultScreen, elements.reviewScreen);
     elements.reviewContainer.innerHTML = ""; // Clear previous review
 
     const incorrectAnswers = state.userAnswers.filter((answer) => !answer.isCorrect);
@@ -447,8 +468,7 @@ const QuizApp = (function () {
   }
 
   function backToResult() {
-    elements.reviewScreen.classList.add("hidden");
-    elements.resultScreen.classList.remove("hidden");
+    switchScreen(elements.reviewScreen, elements.resultScreen);
   }
 
   // --- State Management (LocalStorage) ---
@@ -477,10 +497,8 @@ const QuizApp = (function () {
     state.timerMode = savedState.timerMode || "none";
     state.timeLeft = savedState.timeLeft || 0;
     state.initialTime = savedState.initialTime || 0;
-
-    elements.startScreen.classList.add("hidden");
-    elements.quizScreen.classList.remove("hidden");
-    elements.resultScreen.classList.add("hidden");
+    
+    switchScreen(elements.startScreen, elements.quizScreen);
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
     showQuestion();
 
@@ -500,17 +518,19 @@ const QuizApp = (function () {
           Array.isArray(savedState.shuffledQuestions)
         ) {
           // Use custom modal if it exists, otherwise fallback to confirm()
-          if (elements.resumeModal && elements.resumeConfirmBtn && elements.resumeRejectBtn) {
+          if (elements.resumeModal && elements.modalContent) {
             elements.resumeModal.classList.remove("hidden");
+            elements.resumeModal.classList.add("anim-backdrop-fade-in");
+            elements.modalContent.classList.add("anim-modal-pop-in");
 
             elements.resumeConfirmBtn.onclick = () => {
               resumeQuiz(savedState);
-              elements.resumeModal.classList.add("hidden");
+              hideModal();
             };
 
             elements.resumeRejectBtn.onclick = () => {
               localStorage.removeItem(state.storageKey);
-              elements.resumeModal.classList.add("hidden");
+              hideModal();
             };
           } else {
             if (
@@ -529,6 +549,18 @@ const QuizApp = (function () {
         localStorage.removeItem(state.storageKey);
       }
     }
+  }
+
+  function hideModal() {
+    if (!elements.resumeModal || !elements.modalContent) return;
+    elements.resumeModal.classList.remove('anim-backdrop-fade-in');
+    elements.resumeModal.classList.add('anim-backdrop-fade-out');
+    elements.modalContent.classList.add('anim-modal-pop-out');
+    setTimeout(() => {
+      elements.resumeModal.classList.add('hidden');
+      elements.resumeModal.classList.remove('anim-backdrop-fade-out');
+      elements.modalContent.classList.remove('anim-modal-pop-in', 'anim-modal-pop-out');
+    }, 300); // Match longest animation duration
   }
 
   // --- Timer Functions ---
@@ -568,6 +600,13 @@ const QuizApp = (function () {
       timerClasses.add("text-orange-500", "dark:text-orange-400"); // Getting low
     } else {
       timerClasses.add("text-red-600", "dark:text-red-400"); // Critically low
+    }
+
+    // Add a pulsing animation when time is very low
+    if (state.timeLeft <= 10 && state.timeLeft > 0) {
+      timerClasses.add("anim-pulse-warning");
+    } else {
+      timerClasses.remove("anim-pulse-warning");
     }
   }
 

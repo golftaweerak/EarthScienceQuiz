@@ -1,0 +1,114 @@
+/* --- Screen & Modal Transitions --- */
+
+@keyframes screenFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes screenFadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+.anim-fade-in {
+    animation: screenFadeIn 0.4s ease-out forwards;
+}
+
+.anim-fade-out {
+    animation: screenFadeOut 0.3s ease-in forwards;
+}
+
+/* --- Enhanced Modal Animations --- */
+
+@keyframes backdrop-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.anim-backdrop-fade-in {
+    animation: backdrop-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes backdrop-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+.anim-backdrop-fade-out {
+    animation: backdrop-fade-out 0.3s ease-in forwards;
+}
+
+@keyframes modal-pop-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+.anim-modal-pop-in {
+    animation: modal-pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes modal-pop-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+.anim-modal-pop-out {
+    animation: modal-pop-out 0.25s ease-in forwards;
+}
+
+/* --- Dropdown Menu Animations --- */
+@keyframes dropdown-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes dropdown-out {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+}
+
+.anim-dropdown-in { animation: dropdown-in 0.2s ease-out forwards; }
+.anim-dropdown-out { animation: dropdown-out 0.15s ease-in forwards; }
+
+/* --- Feedback Box Animation --- */
+@keyframes feedback-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.anim-feedback-in { animation: feedback-slide-in 0.4s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; }
+
+/* --- Timer Pulse Animation --- */
+@keyframes pulse-warning {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+.anim-pulse-warning {
+    animation: pulse-warning 1.5s infinite ease-in-out;
+}
+
+/* --- Option Button Selection Animation --- */
+@keyframes option-select-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+.anim-option-pop { animation: option-select-pop 0.3s ease-out; }

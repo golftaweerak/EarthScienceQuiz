@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Clear and populate dropdown with categories
         menuContainer.innerHTML = `
-            <a href="../index.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-bold">หน้าหลัก</a>
+            <a href="../index.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-bold transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg">หน้าหลัก</a>
             <hr class="my-1 border-gray-200 dark:border-gray-600">
         `;
 
@@ -49,14 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const link = document.createElement('a');
                     link.href = `index.html?id=${quizIdFromUrl}`;
-                    link.className = 'flex items-center justify-between w-full text-left px-4 py-2 text-sm rounded-md transition-colors duration-150';
+                    link.className = 'flex items-center justify-between w-full text-left px-4 py-2 text-sm rounded-md transition-all duration-200 transform';
 
                     // Apply active/inactive styling
                     if (isCurrentQuiz) {
-                        link.classList.add('bg-blue-100', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'font-bold');
+                        link.classList.add('bg-blue-100', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'font-bold', 'hover:shadow-lg', 'hover:-translate-y-0.5');
                         link.setAttribute('aria-current', 'page');
                     } else {
-                        link.classList.add('text-gray-700', 'dark:text-gray-200', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                        link.classList.add('text-gray-700', 'dark:text-gray-200', 'hover:bg-gray-100', 'dark:hover:bg-gray-700', 'hover:shadow-lg', 'hover:-translate-y-0.5');
                     }
 
                     // Create title and status elements
@@ -102,15 +102,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Menu Toggle Logic ---
+    // Add transform-origin for better animation
+    if (menuDropdown) {
+        menuDropdown.style.transformOrigin = 'top left';
+    }
+
     menuButton.addEventListener('click', (event) => {
         event.stopPropagation();
-        menuDropdown.classList.toggle('hidden');
+        const isHidden = menuDropdown.classList.contains('hidden');
+        if (isHidden) {
+            menuDropdown.classList.remove('hidden');
+            menuDropdown.classList.remove('anim-dropdown-out');
+            menuDropdown.classList.add('anim-dropdown-in');
+        } else {
+            menuDropdown.classList.remove('anim-dropdown-in');
+            menuDropdown.classList.add('anim-dropdown-out');
+            setTimeout(() => menuDropdown.classList.add('hidden'), 150); // Match animation duration
+        }
     });
 
     // Close menu when clicking outside
     document.addEventListener('click', (event) => {
         if (!menuDropdown.classList.contains('hidden') && !menuDropdown.contains(event.target) && !menuButton.contains(event.target)) {
-            menuDropdown.classList.add('hidden');
+            menuDropdown.classList.remove('anim-dropdown-in');
+            menuDropdown.classList.add('anim-dropdown-out');
+            setTimeout(() => menuDropdown.classList.add('hidden'), 150);
         }
     });
 });
