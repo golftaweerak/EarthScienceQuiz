@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เตรียมความพร้อม สอวน.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable class-based dark mode
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./styles/main.css">
+    <style>
+        body.dark {
+            background-color: #020617;
+            /* A very dark blue, tailwind slate-950 */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%231e293b' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-animation {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            /* Start hidden */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+
+        <div class="absolute top-4 right-4 md:top-6 md:right-6">
+            <button id="dark-mode-toggle"
+                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                <!-- Icon will be inserted by JS -->
+            </button>
+        </div>
+
+        <header class="text-center mb-8 md:mb-12 font-kanit">
+            <h1
+                class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
+                แบบฝึกหัดเตรียมความพร้อม สอวน.
+            </h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400 mt-2"><img src="astronomy.png" alt="Icon"
+                    class="inline-block h-8 w-8 mr-2 bg-white rounded-full p-1"><span>วิชาดาราศาสตร์</span> และ
+                <span><img src="earth.png" alt="Icon"
+                        class="inline-block h-8 w-8 mr-2 bg-white rounded-full p-1">วิชาวิทยาศาสตร์โลกและอวกาศ</span>
+            </p>
+        </header>
+
+        <main class="max-w-4xl mx-auto space-y-12">
+            <!-- Astronomy-review Section -->
+            <section id="astronomy-review-section">
+                <h2
+                    class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center font-kanit">
+                    <img src="./assets/icons/astronomy.png" alt="Review Icon" class="h-14 w-14 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
+                    ทบทวนดาราศาสตร์ (Astronomy Review)
+                </h2>
+                <div id="astronomy-review-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Astronomy Review quiz cards will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Astronomy Section -->
+            <section id="astronomy-section">
+                <h2
+                    class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center font-kanit">
+                    <img src="./assets/icons/astronomy.png" alt="Review Icon" class="h-14 w-14 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
+                    ดาราศาสตร์ (Astronomy)
+                </h2>
+                <div id="astronomy-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Astronomy quiz cards will be inserted here -->
+                </div>
+            </section>
+
+            <!-- Earth Science Section -->
+            <section id="earth-science-section">
+                <h2
+                    class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center font-kanit">
+                    <img src="./assets/icons/earth.png" alt="Earth Science Icon" class="h-14 w-14 mr-3 bg-white p-1/2 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
+                    วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)
+                </h2>
+                <div id="earth-science-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Earth Science quiz cards will be inserted here -->
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 py-8 border-t border-gray-200 dark:border-gray-700">
+            <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
+
+            <div class="inline-flex items-center space-x-3 font-kanit mb-4">
+                <img src="./assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full">
+                <div class="text-left text-gray-600 dark:text-gray-400 font-kanit">
+                    <p>
+                        พัฒนาโดย <a href="about.html"
+                            class="text-blue-600 dark:text-blue-400 hover:underline">นายทวีรักษ์ ทูลพุทธา</a>
+                    </p>
+                    <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">© 2025 Prommanusorn Phetchaburi School. All rights reserved.</p>
+        </footer>
+
+    </div>
+
+    <script src="./dark-mode.js"></script>
+    <script src="./data/quizzes-list.js"></script>
+    <script>
+        const astronomyContainer = document.getElementById('astronomy-quizzes');
+        const earthScienceContainer = document.getElementById('earth-science-quizzes');
+        const astronomyReviewContainer = document.getElementById('astronomy-review-quizzes');
+
+        quizList.forEach((quiz, index) => {
+            const card = document.createElement('a');
+            card.href = quiz.url;
+            card.className = 'group block bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg dark:hover:shadow-blue-500/20 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 card-animation';
+            card.style.animationDelay = `${index * 50}ms`;
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center min-w-0">
+                        <div class="bg-white ${quiz.borderColor} border-4 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-xl mr-4 flex-shrink-0">
+                            <img src="${quiz.icon}" alt="${quiz.altText}" class="h-8 w-8 object-contain">
+                        </div>
+                        <div class="overflow-hidden">
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">${quiz.title}</h2><p class="text-gray-600 dark:text-gray-400 ">จำนวน ${quiz.amount}</p>
+
+                            <p class="text-gray-600 dark:text-gray-400 ">${quiz.description}</p>
+                        </div>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300 dark:text-gray-600 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+            `;
+
+            // Check the category and append to the correct container
+            if (quiz.category === 'Astronomy') {
+                astronomyContainer.appendChild(card);
+            } else if (quiz.category === 'EarthScience') {
+                earthScienceContainer.appendChild(card);
+            } else if (quiz.category === 'AstronomyReview') {
+                astronomyReviewContainer.appendChild(card);
+            }
+        });
+
+        // Hide sections if they are empty
+        if (astronomyContainer.children.length === 0) {
+            document.getElementById('astronomy-section').classList.add('hidden');
+        }
+        if (earthScienceContainer.children.length === 0) {
+            document.getElementById('earth-science-section').classList.add('hidden');
+        }
+        if (astronomyReviewContainer.children.length === 0) {
+            document.getElementById('astronomy-review-section').classList.add('hidden');
+        }   
+    </script>
+
+</body>
+
+</html>

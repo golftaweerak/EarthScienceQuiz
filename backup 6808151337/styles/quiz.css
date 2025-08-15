@@ -1,0 +1,20 @@
+.option-btn {
+    transition: all 0.3s ease;
+}
+
+.correct {
+    background-color: #22c55e !important;
+    color: white !important;
+    border-color: #16a34a !important;
+}
+
+.incorrect {
+    background-color: #ef4444 !important;
+    color: white !important;
+    border-color: #dc2626 !important;
+}
+
+.feedback-content {
+    max-height: 200px;
+    overflow-y: auto;
+}
