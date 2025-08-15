@@ -149,7 +149,9 @@
                     <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
                 </div>
             </div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">© 2025 Prommanusorn Phetchaburi School. All rights reserved.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                © <span id="copyright-year">2025</span> Prommanusorn Phetchaburi School. All rights reserved.
+            </p>
         </footer>
 
     </div>
@@ -265,7 +267,10 @@
                  content.classList.toggle('grid-rows-[0fr]', !isOpen);
                  icon.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
              });
-         });
+        });
+
+        // Set current year in footer
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
      });
     </script>
 

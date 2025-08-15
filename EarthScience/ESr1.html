@@ -199,7 +199,8 @@
     <footer class="text-center mt-12 text-sm text-gray-500 dark:text-gray-400 font-kanit">
       <div class="inline-flex items-center space-x-3">
         <img src="../assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full">
-        <p class="mt-2">© 2025 Prommanusorn Phetchaburi School. All rights reserved.</p>
+        <p class="mt-2">© <span id="copyright-year">2025</span> Prommanusorn Phetchaburi School. All rights reserved.</p>
+      </div>
     </footer>
   </div>
   <script src="../dark-mode.js" defer></script>
@@ -211,6 +212,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       // เริ่มต้นการทำงานของควิซโดยส่งข้อมูลคำถาม (quizData) และคีย์สำหรับบันทึกสถานะ (storageKey) ที่ไม่ซ้ำกัน
       QuizApp.init(quizData, 'quizState-ESr1');
+      document.getElementById('copyright-year').textContent = new Date().getFullYear();
     });
   </script>
   <!-- Resume Quiz Modal -->
