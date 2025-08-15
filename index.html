@@ -18,6 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/animations.css">
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -31,18 +32,18 @@
             </button>
         </div>
 
-        <header class="text-center mb-8 md:mb-12 font-kanit">
+        <header class="text-center mb-8 md:mb-12 font-kanit fade-in-up">
             <h1
                 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
                 แบบฝึกหัดเตรียมความพร้อม สอวน.
             </h1>
             <div class="flex justify-center mt-2">
                 <p class="flex flex-col md:flex-row items-center justify-center gap-x-3 gap-y-1 text-base text-gray-600 dark:text-gray-400">
-                    <span class="inline-flex items-center">
+                    <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
                         <img src="./assets/icons/astronomy.png" alt="Icon" class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาดาราศาสตร์
                     </span>
                     <span class="hidden md:inline">และ</span>
-                    <span class="inline-flex items-center">
+                    <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
                         <img src="./assets/icons/earth.png" alt="Icon" class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาวิทยาศาสตร์โลกและอวกาศ
                     </span>
                 </p>

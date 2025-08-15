@@ -41,6 +41,8 @@ html {
 body.dark {
   background-color: #020617; /* A very dark blue, tailwind slate-950 */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%231e293b' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+  /* Add a subtle moving background effect */
+  animation: move-bg 10s linear infinite;
 }
 
 /* Animation for quiz cards appearing */
@@ -58,4 +60,40 @@ body.dark {
 .card-animation {
   animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0; /* Start hidden */
+}
+
+/* --- Enhanced Glow Effects --- */
+
+/* Override Tailwind's hover shadow for a more pronounced glow effect on quiz cards */
+.dark .section-accordion a.group:hover {
+    /* A more prominent blue glow for dark mode */
+    box-shadow: 0 0 25px -5px rgba(96, 165, 250, 0.6); /* tailwind blue-400 with more opacity */
+}
+
+/* Add a subtle glow for light mode too */
+.section-accordion a.group:hover {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 15px -5px rgba(59, 130, 246, 0.3);
+}
+
+/* Enhanced glow for the Random Quiz button */
+.dark #random-quiz-btn:hover {
+    box-shadow: 0 0 25px -5px rgba(129, 140, 248, 0.7); /* tailwind indigo-400 with more opacity */
+}
+
+/* --- Shine Effect on Card Hover --- */
+/* Prerequisites are added via Tailwind classes: `relative` and `overflow-hidden` */
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  transform: translateX(-100%) skewX(-25deg);
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.shine-effect:hover::after {
+  transform: translateX(300%) skewX(-25deg);
 }

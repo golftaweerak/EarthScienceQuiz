@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function createQuizCard(quiz, index) {
         const card = document.createElement('a');
         card.href = quiz.url;
-        card.className = 'group block bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg dark:hover:shadow-blue-500/20 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 card-animation hover:-translate-y-1';
+        card.className = 'group block relative overflow-hidden shine-effect bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg dark:hover:shadow-blue-500/20 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 card-animation hover:-translate-y-1';
         card.style.animationDelay = `${index * 50}ms`;
         card.innerHTML = createQuizCardHTML(quiz);
 
@@ -177,15 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToTopButton = document.createElement('button');
     backToTopButton.id = 'back-to-top';
     backToTopButton.title = 'กลับไปด้านบน';
-    backToTopButton.className = 'hidden fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900';
+    backToTopButton.className = 'fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 opacity-0 translate-y-4 pointer-events-none';
     backToTopButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" /></svg>`;
     document.body.appendChild(backToTopButton);
 
     window.addEventListener('scroll', () => {
         if (window.scrollY > 300) {
-            backToTopButton.classList.remove('hidden');
+            backToTopButton.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
         } else {
-            backToTopButton.classList.add('hidden');
+            backToTopButton.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
         }
     });
 
