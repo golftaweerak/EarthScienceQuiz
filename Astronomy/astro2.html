@@ -4,19 +4,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>แบบฝึกหัด สอวน. วิชาดาราศาสตร์ (รวม) ชุดที่ 1</title>
+  <title>แบบฝึกหัด สอวน.วิชาดาราศาสตร์ ชุดที่ 2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     // Enable class-based dark mode
     tailwind.config = {
-      darkMode: "class",
-    };
+      darkMode: 'class',
+    }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-    xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous" />
+    xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
     xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
     crossorigin="anonymous"></script>
@@ -53,7 +53,7 @@
       </div>
       <!-- Centered Logo -->
       <div class="flex-grow text-center">
-        <img src="../Clipped_image_20230501_070502.png" alt="SABA" class="mx-auto h-12 w-auto">
+        <img src="../Clipped_image_20230501_070502.png" alt="SABA" class="mx-auto h-10 w-auto">
       </div>
       <!-- Control Buttons -->
       <div class="flex items-center space-x-2 justify-end">
@@ -74,14 +74,41 @@
           แบบฝึกหัด สอวน. วิชาดาราศาสตร์
         </h1>
         <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
-          รวม ชุดที่ 2 (60 ข้อ)
+          ชุดที่ 2 (60 ข้อ)
         </p>
         <p class="text-center text-gray-500 dark:text-gray-400 mb-8">
           คลิก "เริ่มทำแบบฝึกหัด" เพื่อเริ่มต้น
         </p>
+        <!-- Timer Options -->
+        <div id="timer-options" class="mb-8 text-left max-w-md mx-auto">
+          <label class="block text-lg font-bold text-gray-700 dark:text-gray-300 mb-3 text-center">ตัวเลือกการจับเวลา:</label>
+          <div class="space-y-3">
+            <label for="timer-none" class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+              <input type="radio" id="timer-none" name="timer-mode" value="none" class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
+              <span class="ml-3 text-gray-700 dark:text-gray-200">
+                <span class="font-bold">ไม่จับเวลา</span>
+                <span class="block text-sm text-gray-500 dark:text-gray-400">ทำแบบทดสอบไปเรื่อยๆ ไม่ต้องกังวลเรื่องเวลา</span>
+              </span>
+            </label>
+            <label for="timer-overall" class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+              <input type="radio" id="timer-overall" name="timer-mode" value="overall" class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+              <span class="ml-3 text-gray-700 dark:text-gray-200">
+                <span class="font-bold">จับเวลาทั้งชุด</span>
+                <span class="block text-sm text-gray-500 dark:text-gray-400">มีเวลาจำกัดสำหรับทำแบบทดสอบทั้งชุด</span>
+              </span>
+            </label>
+            <label for="timer-per-question" class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+              <input type="radio" id="timer-per-question" name="timer-mode" value="perQuestion" class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+              <span class="ml-3 text-gray-700 dark:text-gray-200">
+                <span class="font-bold">จับเวลาเป็นข้อ</span>
+                <span class="block text-sm text-gray-500 dark:text-gray-400">มีเวลาจำกัดสำหรับตอบคำถามแต่ละข้อ</span>
+              </span>
+            </label>
+          </div>
+        </div>
         <button id="start-btn"
           class="w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300">
-          เริ่มทำแบบฝึกหัด
+          เริ่มทำแบบทดสอบ
         </button>
       </div>
 
@@ -92,9 +119,15 @@
             style="width: 0%">
           </div>
         </div>
-        <div class="flex justify-between items-center mb-4">
-          <div id="question-counter" class="text-lg font-bold text-blue-600 dark:text-blue-400"></div>
-          <div id="score-counter" class="text-lg font-bold dark:text-gray-300">
+        <div class="flex justify-between items-center mb-4 text-lg font-bold">
+          <div id="question-counter" class="text-blue-600 dark:text-blue-400 w-1/3 text-left"></div>
+          <div id="timer-display" class="hidden w-1/3 flex items-center justify-center text-red-600 dark:text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span id="timer-value">00:00</span>
+          </div>
+          <div id="score-counter" class="dark:text-gray-300 w-1/3 text-right">
             คะแนน: 0
           </div>
         </div>
@@ -163,10 +196,9 @@
         </button>
       </div>
     </main>
-
     <footer class="text-center mt-12 text-sm text-gray-500 dark:text-gray-400 font-kanit">
       <div class="inline-flex items-center space-x-3">
-        <img src="../1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full">
+        <img src="../assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full">
         <p class="mt-2">© 2025 Prommanusorn Phetchaburi School. All rights reserved.</p>
     </footer>
   </div>
@@ -178,7 +210,7 @@
   <script src="../scripts/dropdown-menu.js" defer></script> <!-- New shared script for the menu -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      QuizApp.init(quizData, "quizState-astro2");
+      QuizApp.init(quizData, 'quizState-astro2');
     });
   </script>
   <!-- Resume Quiz Modal -->
@@ -208,5 +240,6 @@
       </div>
     </div>
   </div>
+</body>
 
 </html>
