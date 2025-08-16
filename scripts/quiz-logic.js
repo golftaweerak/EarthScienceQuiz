@@ -109,14 +109,25 @@ const QuizApp = (function () {
    */
   function setupDynamicUI() {
     // Create and inject 'Back to Home' button on the result screen
-    if (elements.restartBtn && elements.restartBtn.parentElement && !document.getElementById('back-to-home-btn')) {
-        const homeBtn = document.createElement('a');
-        homeBtn.id = 'back-to-home-btn';
-        homeBtn.href = '../index.html'; // Link to the main page
-        homeBtn.textContent = 'กลับหน้าแรก';
-        // Use styles consistent with other buttons in the project.
-        homeBtn.className = 'w-full max-w-xs text-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300';
-        elements.restartBtn.parentElement.appendChild(homeBtn);
+    if (
+      elements.restartBtn &&
+      elements.restartBtn.parentElement &&
+      !document.getElementById("back-to-home-btn")
+    ) {
+      const parentContainer = elements.restartBtn.parentElement;
+      // Ensure the container for the result-screen buttons is a flex column
+      // with a gap. This prevents the new 'Home' button from overlapping with
+      // the 'Restart' button.
+      parentContainer.classList.add("flex", "flex-col", "items-center", "gap-4", "w-full");
+
+      const homeBtn = document.createElement("a");
+      homeBtn.id = "back-to-home-btn";
+      homeBtn.href = "../index.html"; // Link to the main page
+      homeBtn.textContent = "กลับหน้าแรก";
+      // Use styles consistent with other buttons in the project.
+      homeBtn.className =
+        "w-full max-w-xs text-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300";
+      parentContainer.appendChild(homeBtn);
     }
   }
 
@@ -131,18 +142,19 @@ const QuizApp = (function () {
     const transitionDuration = 300; // ms, should match CSS animation duration
 
     if (fromScreen) {
-      fromScreen.classList.add('anim-fade-out');
+      fromScreen.classList.add("anim-fade-out");
       setTimeout(() => {
-        fromScreen.classList.add('hidden');
-        fromScreen.classList.remove('anim-fade-out');
+        fromScreen.classList.add("hidden");
+        fromScreen.classList.remove("anim-fade-out");
         if (toScreen) {
-          toScreen.classList.remove('hidden');
-          toScreen.classList.add('anim-fade-in');
+          toScreen.classList.remove("hidden");
+          toScreen.classList.add("anim-fade-in");
         }
       }, transitionDuration);
-    } else if (toScreen) { // For the very first screen
-      toScreen.classList.remove('hidden');
-      toScreen.classList.add('anim-fade-in');
+    } else if (toScreen) {
+      // For the very first screen
+      toScreen.classList.remove("hidden");
+      toScreen.classList.add("anim-fade-in");
     }
   }
 
@@ -176,11 +188,11 @@ const QuizApp = (function () {
     resetState();
     const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
     // Replace newline characters with <br> for proper HTML rendering
-    const questionHtml = currentQuestion.question.replace(/\n/g, '<br>');
+    const questionHtml = currentQuestion.question.replace(/\n/g, "<br>");
 
-    elements.questionCounter.textContent = `ข้อที่ ${state.currentQuestionIndex + 1} / ${
-      state.shuffledQuestions.length
-    }`;
+    elements.questionCounter.textContent = `ข้อที่ ${
+      state.currentQuestionIndex + 1
+    } / ${state.shuffledQuestions.length}`;
     elements.question.innerHTML = questionHtml;
 
     const previousAnswer = state.userAnswers[state.currentQuestionIndex];
@@ -191,13 +203,16 @@ const QuizApp = (function () {
     // Fisher-Yates (aka Knuth) Shuffle algorithm for an unbiased shuffle
     for (let i = shuffledOptions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+      [shuffledOptions[i], shuffledOptions[j]] = [
+        shuffledOptions[j],
+        shuffledOptions[i],
+      ];
     }
 
     // Use the shuffled array to create the buttons
     shuffledOptions.forEach((option) => {
       const button = document.createElement("button");
-      button.innerHTML = option.replace(/\n/g, '<br>');
+      button.innerHTML = option.replace(/\n/g, "<br>");
       // Store the original, raw option value to prevent issues with HTML/KaTeX rendering
       button.dataset.optionValue = option;
       button.classList.add(
@@ -279,8 +294,9 @@ const QuizApp = (function () {
     selectedBtn.classList.add("anim-option-pop");
     const selectedValue = selectedBtn.dataset.optionValue.trim();
     // Safely get and trim the correct answer to prevent errors if it's not a string (e.g., null, undefined, number)
-    const correctAnswerValue = state.shuffledQuestions[state.currentQuestionIndex].answer;
-    const correctAnswer = (correctAnswerValue || '').toString().trim();
+    const correctAnswerValue =
+      state.shuffledQuestions[state.currentQuestionIndex].answer;
+    const correctAnswer = (correctAnswerValue || "").toString().trim();
     const correct = selectedValue === correctAnswer;
 
     // Store the user's answer. This is the only time an answer is recorded for a question.
@@ -289,7 +305,8 @@ const QuizApp = (function () {
       selectedAnswer: selectedValue,
       correctAnswer: correctAnswer,
       isCorrect: correct,
-      explanation: state.shuffledQuestions[state.currentQuestionIndex].explanation,
+      explanation:
+        state.shuffledQuestions[state.currentQuestionIndex].explanation,
     };
 
     if (correct) {
@@ -327,7 +344,9 @@ const QuizApp = (function () {
   }
 
   function showFeedback(isCorrect, explanation, correctAnswer) {
-    const explanationHtml = explanation ? explanation.replace(/\n/g, '<br>') : '';
+    const explanationHtml = explanation
+      ? explanation.replace(/\n/g, "<br>")
+      : "";
 
     if (isCorrect) {
       elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-300">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-400 mt-2">${explanationHtml}</p>`;
@@ -372,141 +391,240 @@ const QuizApp = (function () {
     }
   }
 
+  // --- NEW: Function to display the final results screen ---
   function showResults() {
-    stopTimer(); // Ensure timer is stopped on the result screen
-    switchScreen(elements.quizScreen, elements.resultScreen);
-    saveQuizState(); // Save the final state, including the score
+    stopTimer(); // Stop any running timers.
 
-    // --- Refactored Result Screen Logic ---
+    // Calculate final statistics
     const totalQuestions = state.shuffledQuestions.length;
     const correctAnswers = state.score;
     const incorrectAnswersCount = totalQuestions - correctAnswers;
-    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    const percentage =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100)
+        : 0;
 
-    // Remove any existing stats container to prevent duplicates on restart
-    const existingStats = document.getElementById('result-stats-container');
-    if (existingStats) {
-        existingStats.remove();
+    // Get the appropriate message and icon based on the score
+    const resultInfo = getResultInfo(percentage);
+
+    // Prepare stats object for the layout builder
+    const stats = {
+      totalQuestions,
+      correctAnswers,
+      incorrectAnswersCount,
+      percentage,
+    };
+
+    // Clean up old results and build the new layout
+    cleanupResultsScreen();
+    buildResultsLayout(resultInfo, stats);
+
+    // Switch to the result screen
+    // Determine the current screen to transition from
+    let fromScreen = null;
+    if (!elements.quizScreen.classList.contains("hidden")) {
+      fromScreen = elements.quizScreen;
+    } else if (!elements.startScreen.classList.contains("hidden")) {
+      // This can happen if 'view_results' is triggered from the start screen
+      fromScreen = elements.startScreen;
     }
+    switchScreen(fromScreen, elements.resultScreen);
 
-    // Create the new stats container
-    const statsContainer = document.createElement('div');
-    statsContainer.id = 'result-stats-container';
-    statsContainer.className = 'w-full max-w-md mx-auto grid grid-cols-3 gap-4 my-8 text-center';
+    // Save the final state. This is important for the 'view results' feature.
+    saveQuizState();
+  }
 
-    let statsHTML = `
-        <!-- Correct Answers -->
-        <div class="flex flex-col items-center p-3 rounded-lg bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-800/60">
-            <p class="text-2xl font-bold text-green-600 dark:text-green-400">${correctAnswers}</p>
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">คำตอบถูก</p>
+  // --- Result Screen Helpers ---
+
+  /**
+   * Determines the appropriate result message object based on the score percentage.
+   * @param {number} percentage The user's score percentage.
+   * @returns {object} The result message object from the config.
+   */
+  function getResultInfo(percentage) {
+    if (percentage >= 90) {
+      return config.resultMessages.perfect;
+    } else if (percentage >= 75) {
+      return config.resultMessages.great;
+    } else if (percentage >= 50) {
+      return config.resultMessages.good;
+    }
+    return config.resultMessages.effort;
+  }
+
+  /**
+   * Cleans up the result screen by hiding static elements and removing old dynamic layouts.
+   * This prevents element duplication when restarting a quiz.
+   */
+  function cleanupResultsScreen() {
+    // Hide original static elements that are replaced by the dynamic layout.
+    if (elements.finalScore) elements.finalScore.classList.add("hidden");
+    if (elements.resultIconContainer) elements.resultIconContainer.parentElement.classList.add("hidden");
+    if (elements.progressCircle) elements.progressCircle.parentElement.parentElement.parentElement.classList.add("hidden");
+    
+    // Remove any previously generated layouts to prevent duplication.
+    document.getElementById("modern-results-layout")?.remove();
+  }
+
+  /**
+   * Creates a compact, icon-based stat item for the results screen.
+   * @param {string|number} value The main value to display.
+   * @param {string} label The text label for the stat.
+   * @param {string} icon SVG string for the icon.
+   * @param {string} theme The color theme ('green', 'red', 'blue', 'gray').
+   * @returns {HTMLElement} The stat item element.
+   */
+  function createStatItem(value, label, icon, theme) {
+    const themeClasses = {
+      green: {
+        bg: "bg-green-100 dark:bg-green-900/40",
+        text: "text-green-700 dark:text-green-300",
+      },
+      red: {
+        bg: "bg-red-100 dark:bg-red-900/40",
+        text: "text-red-700 dark:text-red-300",
+      },
+      blue: {
+        bg: "bg-blue-100 dark:bg-blue-900/40",
+        text: "text-blue-700 dark:text-blue-300",
+      },
+      gray: {
+        bg: "bg-gray-100 dark:bg-gray-700/60",
+        text: "text-gray-700 dark:text-gray-300",
+      },
+    };
+    const classes = themeClasses[theme] || themeClasses.gray;
+
+    const item = document.createElement("div");
+    item.className = "flex items-center gap-3";
+    item.innerHTML = `
+        <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${classes.bg} ${classes.text}">
+            ${icon}
         </div>
-        <!-- Incorrect Answers -->
-        <div class="flex flex-col items-center p-3 rounded-lg bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-800/60">
-            <p class="text-2xl font-bold text-red-600 dark:text-red-400">${incorrectAnswersCount}</p>
-            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">คำตอบผิด</p>
+        <div>
+            <p class="text-lg font-bold text-gray-800 dark:text-gray-200">${value}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">${label}</p>
         </div>
     `;
+    return item;
+  }
 
-    // Conditionally add Time Taken or Total Questions
-    if (state.timerMode === 'overall' && state.initialTime > 0) {
-        const timeTakenSeconds = state.initialTime - state.timeLeft;
-        const minutes = Math.floor(timeTakenSeconds / 60);
-        const seconds = timeTakenSeconds % 60;
-        const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        statsHTML += `
-            <div class="flex flex-col items-center p-3 rounded-lg bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800/60">
-                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${formattedTime}</p>
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">เวลาที่ใช้</p>
-            </div>
-        `;
-    } else {
-        statsHTML += `
-            <div class="flex flex-col items-center p-3 rounded-lg bg-gray-100 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-700">
-                <p class="text-2xl font-bold text-gray-600 dark:text-gray-300">${totalQuestions}</p>
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">ข้อทั้งหมด</p>
-            </div>
-        `;
-    }
+  /**
+   * Builds the entire modern, responsive layout for the result screen.
+   * @param {object} resultInfo The object containing the title, message, and icon for the result.
+   * @param {object} stats An object with all calculated statistics (scores, percentage, time).
+   */
+  function buildResultsLayout(resultInfo, stats) {
+    const layoutContainer = document.createElement("div");
+    layoutContainer.id = "modern-results-layout";
+    // A compact, centered layout that adapts for different screen sizes.
+    layoutContainer.className =
+      "w-full max-w-2xl mx-auto flex flex-col items-center gap-8 mt-8 mb-6 px-4";
 
-    statsContainer.innerHTML = statsHTML;
+    // --- 1. Message Area (Icon, Title, Message) ---
+    const messageContainer = document.createElement("div");
+    messageContainer.className = "text-center";
+    messageContainer.innerHTML = `
+        <div class="w-16 h-16 mx-auto mb-3 ${resultInfo.colorClass}">${resultInfo.icon}</div>
+        <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100">${resultInfo.title}</h2>
+        <p class="mt-2 text-lg text-gray-600 dark:text-gray-300">${resultInfo.message}</p>
+    `;
+    layoutContainer.appendChild(messageContainer);
 
-    // --- NEW LAYOUT LOGIC ---
-    // The goal is to group all quantitative results under one header for a cleaner layout.
-    // The desired order is: Header -> Progress Circle -> Stat Cards.
+    // --- 2. Data Container (for Circle + Stats) ---
+    // This container will be a flex row on medium screens and up, and a column on smaller screens.
+    const dataContainer = document.createElement("div");
+    dataContainer.className = "w-full flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8";
 
-    // Find the wrapper for the progress circle. We assume it's the parent of the parent of the circle SVG element.
-    const progressCircleWrapper = elements.progressCircle ? elements.progressCircle.parentElement.parentElement : null;
+    // --- 2a. Progress Circle ---
+    const progressContainer = document.createElement("div");
+    progressContainer.className = "relative w-40 h-40 flex-shrink-0";
+    progressContainer.innerHTML = `
+        <svg class="w-full h-full" viewBox="0 0 36 36">
+            <path class="text-gray-200 dark:text-gray-700"
+                stroke="currentColor" stroke-width="2.5" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="text-blue-500"
+                stroke="currentColor" stroke-width="2.5" fill="none"
+                stroke-linecap="round"
+                stroke-dasharray="0, 100"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl font-bold text-gray-700 dark:text-gray-200">${stats.percentage}%</span>
+        </div>
+    `;
+    dataContainer.appendChild(progressContainer);
 
-    if (elements.finalScore && progressCircleWrapper) {
-        // 1. Repurpose the 'finalScore' element as the main header for the results.
-        elements.finalScore.textContent = 'สรุปผลคะแนน';
-        // Make it a more prominent header and adjust margins for better spacing.
-        elements.finalScore.className = 'text-center text-2xl font-bold text-gray-800 dark:text-gray-200 mt-8 mb-4';
-
-        // 2. Move the header to be *before* the progress circle's wrapper.
-        progressCircleWrapper.before(elements.finalScore);
-
-        // 3. Insert the detailed stats cards *after* the progress circle's wrapper.
-        progressCircleWrapper.after(statsContainer);
-    } else {
-        // Fallback for safety, in case the DOM structure is not as expected.
-        if (elements.finalScore) {
-            elements.finalScore.textContent = `สรุปผลคะแนน`;
-            elements.finalScore.className = 'text-center text-lg font-bold text-gray-700 dark:text-gray-300 mt-8 mb-0';
-            elements.finalScore.after(statsContainer);
+    // Animate the circle
+    setTimeout(() => {
+        const circlePath = progressContainer.querySelector('path.text-blue-500');
+        if (circlePath) {
+            circlePath.style.transition = 'stroke-dasharray 1s ease-out';
+            circlePath.style.strokeDasharray = `${stats.percentage}, 100`;
         }
-    }
+    }, 100);
 
-    if (elements.finalPercentage) elements.finalPercentage.textContent = `${percentage}%`;
+    // --- 2b. Stats List ---
+    const statsContainer = document.createElement("div");
+    // Center items on mobile, align to start on medium screens and up.
+    statsContainer.className = "flex flex-col items-center md:items-start gap-4 w-full md:w-auto";
 
-    // Animate progress circle
-    if (elements.progressCircle) {
-      // Use a timeout to ensure the transition is applied after the element is visible
-      setTimeout(() => {
-        elements.progressCircle.style.strokeDasharray = `${percentage}, 100`;
-      }, 100);
-    }
+    // Define icons for stats
+    const icons = {
+        correct: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`,
+        incorrect: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`,
+        time: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>`,
+        total: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 100 2h16a1 1 0 100-2H2zM5 15a1 1 0 110 2h10a1 1 0 110-2H5z" /></svg>`,
+    };
 
-    let resultInfo;
-    if (percentage >= 90) {
-      resultInfo = config.resultMessages.perfect;
-    } else if (percentage >= 75) {
-      resultInfo = config.resultMessages.great;
-    } else if (percentage >= 50) {
-      resultInfo = config.resultMessages.good;
+    // Programmatically create and append stat items
+    statsContainer.appendChild(createStatItem(stats.correctAnswers, "คำตอบถูก", icons.correct, "green"));
+    statsContainer.appendChild(createStatItem(stats.incorrectAnswersCount, "คำตอบผิด", icons.incorrect, "red"));
+
+    if (state.timerMode === "overall" && state.initialTime > 0) {
+      const timeTakenSeconds = state.initialTime - state.timeLeft;
+      const minutes = Math.floor(timeTakenSeconds / 60);
+      const seconds = timeTakenSeconds % 60;
+      const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      statsContainer.appendChild(createStatItem(formattedTime, "เวลาที่ใช้", icons.time, "blue"));
     } else {
-      resultInfo = config.resultMessages.effort;
+      statsContainer.appendChild(createStatItem(stats.totalQuestions, "ข้อทั้งหมด", icons.total, "gray"));
     }
 
-    // Update the DOM with the determined title, message, and icon from config
-    if (elements.resultTitle) elements.resultTitle.textContent = resultInfo.title;
-    if (elements.finalMessage) elements.finalMessage.textContent = resultInfo.message;
-    if (elements.resultIconContainer) {
-      elements.resultIconContainer.innerHTML = resultInfo.icon;
-      // Reset classes and apply the new color class
-      elements.resultIconContainer.className = `mx-auto mb-4 w-12 h-12 ${resultInfo.colorClass}`;
-    }
+    dataContainer.appendChild(statsContainer);
+    layoutContainer.appendChild(dataContainer);
 
-    // New: Show or hide the review button
-    // Add a check for `answer` to prevent errors if some questions were not answered (e.g., time ran out)
-    const incorrectAnswers = state.userAnswers.filter((answer) => answer && !answer.isCorrect);
+    // --- 5. Assemble and Inject ---
+    // Prepend to the result screen so it appears before the buttons
+    elements.resultScreen.prepend(layoutContainer);
+
+    // --- 6. Final UI Updates ---
+    // Show or hide the review button based on incorrect answers
+    const incorrectAnswers = getIncorrectAnswers();
     if (incorrectAnswers.length > 0) {
       elements.reviewBtn.classList.remove("hidden");
     } else {
       elements.reviewBtn.classList.add("hidden");
     }
-  }
 
+    renderAllMath();
+  }
+  function getIncorrectAnswers() {
+    // Add a check for `answer` to prevent errors if some questions were not answered
+    return state.userAnswers.filter((answer) => answer && !answer.isCorrect);
+  }
   // --- Core Quiz Logic ---
 
   function startQuiz() {
     stopTimer();
-    localStorage.removeItem(state.storageKey);
+    clearSavedState();
 
     // Only read timer mode if the controls are visible (i.e., on the start screen).
     // On restart, it will reuse the previously selected mode.
-    const timerModeSelector = document.querySelector('input[name="timer-mode"]:checked');
+    const timerModeSelector = document.querySelector(
+      'input[name="timer-mode"]:checked'
+    );
     if (timerModeSelector) {
       state.timerMode = timerModeSelector.value;
     }
@@ -520,13 +638,24 @@ const QuizApp = (function () {
       fromScreen = elements.resultScreen;
     }
 
-    state.shuffledQuestions = state.quizData.sort(() => Math.random() - 0.5);
+    // Use the more robust Fisher-Yates shuffle for unbiased randomness,
+    // consistent with how options are shuffled.
+    const questionsToShuffle = [...state.quizData];
+    for (let i = questionsToShuffle.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [questionsToShuffle[i], questionsToShuffle[j]] = [
+        questionsToShuffle[j],
+        questionsToShuffle[i],
+      ];
+    }
+    state.shuffledQuestions = questionsToShuffle;
 
     switchScreen(fromScreen, elements.quizScreen);
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
       // Use shuffledQuestions.length for consistency, as it's the actual set of questions being used.
-      state.initialTime = state.shuffledQuestions.length * config.timerDefaults.overallMultiplier;
+      state.initialTime =
+        state.shuffledQuestions.length * config.timerDefaults.overallMultiplier;
       state.timeLeft = state.initialTime;
       startTimer();
     } else if (state.timerMode === "perQuestion") {
@@ -547,21 +676,25 @@ const QuizApp = (function () {
     switchScreen(elements.resultScreen, elements.reviewScreen);
     elements.reviewContainer.innerHTML = ""; // Clear previous review
 
-    // Add a check for `answer` to prevent errors if some questions were not answered
-    const incorrectAnswers = state.userAnswers.filter((answer) => answer && !answer.isCorrect);
+    const incorrectAnswers = getIncorrectAnswers();
 
     incorrectAnswers.forEach((answer, index) => {
       const reviewItem = document.createElement("div");
       // A more distinct card for each review item
-      reviewItem.className = "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
+      reviewItem.className =
+        "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
 
-      const questionHtml = answer.question.replace(/\n/g, '<br>');
-      const explanationHtml = answer.explanation ? answer.explanation.replace(/\n/g, '<br>') : '';
+      const questionHtml = answer.question.replace(/\n/g, "<br>");
+      const explanationHtml = answer.explanation
+        ? answer.explanation.replace(/\n/g, "<br>")
+        : "";
 
       // Using template literals for a cleaner, more structured layout
       reviewItem.innerHTML = `
           <div class="flex items-start gap-4">
-              <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${index + 1}</span>
+              <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${
+                index + 1
+              }</span>
               <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200">${questionHtml}</div>
           </div>
 
@@ -573,7 +706,9 @@ const QuizApp = (function () {
                   </svg>
                   <div>
                       <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
-                      <p class="text-red-700 dark:text-red-400 font-mono">${answer.selectedAnswer}</p>
+                      <p class="text-red-700 dark:text-red-400 font-mono">${
+                        answer.selectedAnswer
+                      }</p>
                   </div>
               </div>
 
@@ -584,12 +719,16 @@ const QuizApp = (function () {
                   </svg>
                   <div>
                       <p class="text-sm font-medium text-green-800 dark:text-green-300">คำตอบที่ถูกต้อง</p>
-                      <p class="text-green-700 dark:text-green-400 font-mono">${answer.correctAnswer}</p>
+                      <p class="text-green-700 dark:text-green-400 font-mono">${
+                        answer.correctAnswer
+                      }</p>
                   </div>
               </div>
           </div>
 
-          ${explanationHtml ? `
+          ${
+            explanationHtml
+              ? `
           <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div class="flex items-start gap-3">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
@@ -601,7 +740,9 @@ const QuizApp = (function () {
                   </div>
               </div>
           </div>
-          ` : ''}
+          `
+              : ""
+          }
       `;
       elements.reviewContainer.appendChild(reviewItem);
     });
@@ -613,33 +754,76 @@ const QuizApp = (function () {
     switchScreen(elements.reviewScreen, elements.resultScreen);
   }
 
+  // --- NEW: Generic Modal Functions (for consistency with main.js) ---
+
+  /**
+   * Shows a modal with consistent animations.
+   * @param {HTMLElement} modalElement The modal element to show.
+   */
+  function showModal(modalElement) {
+    if (!modalElement) return;
+    const content = modalElement.querySelector(".modal-content");
+    modalElement.classList.remove("hidden");
+    modalElement.classList.add("anim-backdrop-fade-in");
+    if (content) content.classList.add("anim-modal-pop-in");
+  }
+
+  /**
+   * Hides a modal with consistent animations.
+   * @param {HTMLElement} modalElement The modal element to hide.
+   * @param {Function} [onHiddenCallback] Optional callback to run after the hide animation completes.
+   */
+  function hideModal(modalElement, onHiddenCallback) {
+    if (!modalElement) return;
+    const content = modalElement.querySelector(".modal-content");
+    modalElement.classList.remove("anim-backdrop-fade-in");
+    modalElement.classList.add("anim-backdrop-fade-out");
+    if (content) {
+      content.classList.remove("anim-modal-pop-in");
+      content.classList.add("anim-modal-pop-out");
+    }
+
+    setTimeout(() => {
+      modalElement.classList.add("hidden");
+      modalElement.classList.remove("anim-backdrop-fade-out");
+      if (content) content.classList.remove("anim-modal-pop-out");
+
+      if (typeof onHiddenCallback === "function") {
+        onHiddenCallback();
+      }
+    }, 300);
+  }
+
   // --- State Management (LocalStorage) ---
+
+  function loadStateFromSave(savedState) {
+    state.currentQuestionIndex = savedState.currentQuestionIndex;
+    state.score = savedState.score;
+    state.shuffledQuestions = savedState.shuffledQuestions;
+    state.userAnswers = savedState.userAnswers || [];
+    state.timerMode = savedState.timerMode || "none";
+    state.timeLeft = savedState.timeLeft || 0;
+    state.initialTime = savedState.initialTime || 0;
+  }
 
   function saveQuizState() {
     // Only save the necessary parts of the state to avoid saving large objects like audio elements
     const stateToSave = {
-      currentQuestionIndex: state.currentQuestionIndex,
-      score: state.score,
-      shuffledQuestions: state.shuffledQuestions,
-      userAnswers: state.userAnswers,
-      // Add timer state for resuming
-      timerMode: state.timerMode,
-      timeLeft: state.timeLeft,
-      initialTime: state.initialTime,
+      ...state, // Save most of the state
+      correctSound: undefined, // Exclude non-serializable properties
+      incorrectSound: undefined,
+      timerId: undefined,
     };
     localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
   }
 
+  function clearSavedState() {
+    localStorage.removeItem(state.storageKey);
+  }
+
   function resumeQuiz(savedState) {
-    state.currentQuestionIndex = savedState.currentQuestionIndex;
-    state.score = savedState.score;
-    state.shuffledQuestions = savedState.shuffledQuestions;
-    state.userAnswers = savedState.userAnswers || []; // Resume answers
-    // Restore timer state
-    state.timerMode = savedState.timerMode || "none";
-    state.timeLeft = savedState.timeLeft || 0;
-    state.initialTime = savedState.initialTime || 0;
-    
+    loadStateFromSave(savedState);
+
     switchScreen(elements.startScreen, elements.quizScreen);
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
     showQuestion();
@@ -653,7 +837,7 @@ const QuizApp = (function () {
   function checkForSavedQuiz() {
     // --- NEW: Check for 'view_results' action from URL first ---
     const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
+    const action = urlParams.get("action");
 
     const savedStateJSON = localStorage.getItem(state.storageKey);
     if (!savedStateJSON) {
@@ -668,59 +852,38 @@ const QuizApp = (function () {
         !Array.isArray(savedState.shuffledQuestions)
       ) {
         // Invalid state, remove it and exit.
-        localStorage.removeItem(state.storageKey);
+        clearSavedState();
         return;
       }
 
       // Priority 1: Handle 'view_results' action
-      if (action === 'view_results') {
-        // Load the state from the saved data
-        state.currentQuestionIndex = savedState.currentQuestionIndex;
-        state.score = savedState.score;
-        state.shuffledQuestions = savedState.shuffledQuestions;
-        state.userAnswers = savedState.userAnswers || [];
-        state.timerMode = savedState.timerMode || "none";
-        state.timeLeft = savedState.timeLeft || 0;
-        state.initialTime = savedState.initialTime || 0;
+      if (action === "view_results") {
+        loadStateFromSave(savedState);
 
         // Hide the start screen and directly show the results screen
-        elements.startScreen.classList.add('hidden');
+        elements.startScreen.classList.add("hidden");
         showResults();
         // Important: Stop further execution to prevent the resume modal from showing
         return;
       }
 
       // Priority 2: Handle standard quiz resume (if not viewing results)
-      if (elements.resumeModal && elements.modalContent) {
-        elements.resumeModal.classList.remove("hidden");
-        elements.resumeModal.classList.add("anim-backdrop-fade-in");
-        elements.modalContent.classList.add("anim-modal-pop-in");
+      if (elements.resumeModal) {
+        showModal(elements.resumeModal);
 
         elements.resumeConfirmBtn.onclick = () => {
           resumeQuiz(savedState);
-          hideModal();
+          hideModal(elements.resumeModal);
         };
         elements.resumeRejectBtn.onclick = () => {
-          localStorage.removeItem(state.storageKey);
-          hideModal();
+          clearSavedState();
+          hideModal(elements.resumeModal);
         };
       }
     } catch (e) {
       console.error("Error parsing saved quiz state:", e);
-      localStorage.removeItem(state.storageKey);
+      clearSavedState();
     }
-  }
-
-  function hideModal() {
-    if (!elements.resumeModal || !elements.modalContent) return;
-    elements.resumeModal.classList.remove('anim-backdrop-fade-in');
-    elements.resumeModal.classList.add('anim-backdrop-fade-out');
-    elements.modalContent.classList.add('anim-modal-pop-out');
-    setTimeout(() => {
-      elements.resumeModal.classList.add('hidden');
-      elements.resumeModal.classList.remove('anim-backdrop-fade-out');
-      elements.modalContent.classList.remove('anim-modal-pop-in', 'anim-modal-pop-out');
-    }, 300); // Match longest animation duration
   }
 
   // --- Timer Functions ---
@@ -736,9 +899,9 @@ const QuizApp = (function () {
     if (!elements.timerDisplay || !elements.timerValue) return;
     const minutes = Math.floor(state.timeLeft / 60);
     const seconds = state.timeLeft % 60;
-    elements.timerValue.textContent = `${minutes.toString().padStart(2, "0")}:${seconds
+    elements.timerValue.textContent = `${minutes
       .toString()
-      .padStart(2, "0")}`;
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
     // --- New: Update color based on time left ---
     if (state.timerMode === "none" || state.initialTime <= 0) return;
@@ -748,9 +911,12 @@ const QuizApp = (function () {
 
     // Remove all potential color classes to reset
     timerClasses.remove(
-      "text-green-600", "dark:text-green-500",
-      "text-orange-500", "dark:text-orange-400",
-      "text-red-600", "dark:text-red-400"
+      "text-green-600",
+      "dark:text-green-500",
+      "text-orange-500",
+      "dark:text-orange-400",
+      "text-red-600",
+      "dark:text-red-400"
     );
 
     // Add the appropriate color class based on the percentage of time remaining
@@ -796,10 +962,11 @@ const QuizApp = (function () {
 
   function handleTimeUp() {
     if (state.timerMode === "perQuestion") {
-      const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+      const currentQuestion =
+        state.shuffledQuestions[state.currentQuestionIndex];
       // Safely get and trim the correct answer
       const correctAnswerValue = currentQuestion.answer;
-      const correctAnswer = (correctAnswerValue || '').toString().trim();
+      const correctAnswer = (correctAnswerValue || "").toString().trim();
 
       // Record the answer as incorrect due to time out
       state.userAnswers[state.currentQuestionIndex] = {
@@ -811,9 +978,12 @@ const QuizApp = (function () {
       };
 
       // Gracefully handle a missing explanation when time is up
-      const feedbackExplanation = "หมดเวลา! " + (currentQuestion.explanation || '');
+      const feedbackExplanation =
+        "หมดเวลา! " + (currentQuestion.explanation || "");
       showFeedback(false, feedbackExplanation, correctAnswer);
-      Array.from(elements.options.children).forEach(button => button.disabled = true);
+      Array.from(elements.options.children).forEach(
+        (button) => (button.disabled = true)
+      );
       elements.nextBtn.classList.remove("hidden");
       saveQuizState();
     } else if (state.timerMode === "overall") {
@@ -826,7 +996,9 @@ const QuizApp = (function () {
   // --- Sound Functions ---
   function updateSoundButton() {
     if (!elements.soundToggleBtn) return;
-    elements.soundToggleBtn.innerHTML = state.isSoundEnabled ? config.soundOnIcon : config.soundOffIcon;
+    elements.soundToggleBtn.innerHTML = state.isSoundEnabled
+      ? config.soundOnIcon
+      : config.soundOffIcon;
   }
 
   function toggleSound() {

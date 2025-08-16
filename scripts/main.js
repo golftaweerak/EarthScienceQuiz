@@ -342,30 +342,45 @@ document.addEventListener('DOMContentLoaded', () => {
         yearSpan.textContent = new Date().getFullYear();
     }
 
-    // --- NEW: Completed Quiz Modal Functionality ---
-    function showCompletedQuizModal() {
-        if (!completedQuizModal || !completedModalContent) return;
-        completedQuizModal.classList.remove('hidden');
-        completedQuizModal.classList.add('anim-backdrop-fade-in');
-        completedModalContent.classList.add('anim-modal-pop-in');
+    // --- 9. Generic Modal Functionality ---
+    // Centralized functions to show and hide any modal with consistent animations.
+    function showModal(modalElement) {
+        if (!modalElement) return;
+        const content = modalElement.querySelector('.modal-content');
+        modalElement.classList.remove('hidden');
+        modalElement.classList.add('anim-backdrop-fade-in');
+        if (content) content.classList.add('anim-modal-pop-in');
     }
 
-    function hideCompletedQuizModal() {
-        if (!completedQuizModal || !completedModalContent) return;
-        completedQuizModal.classList.remove('anim-backdrop-fade-in');
-        completedQuizModal.classList.add('anim-backdrop-fade-out');
-        completedModalContent.classList.remove('anim-modal-pop-in');
-        completedModalContent.classList.add('anim-modal-pop-out');
+    function hideModal(modalElement, onHiddenCallback) {
+        if (!modalElement) return;
+        const content = modalElement.querySelector('.modal-content');
+        modalElement.classList.remove('anim-backdrop-fade-in');
+        modalElement.classList.add('anim-backdrop-fade-out');
+        if (content) {
+            content.classList.remove('anim-modal-pop-in');
+            content.classList.add('anim-modal-pop-out');
+        }
         
         setTimeout(() => {
-            completedQuizModal.classList.add('hidden');
-            completedQuizModal.classList.remove('anim-backdrop-fade-out');
-            completedModalContent.classList.remove('anim-modal-pop-out');
-            // Reset active quiz info
-            activeQuizUrl = '';
-            activeStorageKey = '';
+            modalElement.classList.add('hidden');
+            modalElement.classList.remove('anim-backdrop-fade-out');
+            if (content) content.classList.remove('anim-modal-pop-out');
+            
+            // Execute a callback after the modal is fully hidden
+            if (typeof onHiddenCallback === 'function') {
+                onHiddenCallback();
+            }
         }, 300);
     }
+
+    // --- 10. Specific Modal Implementations ---
+    // Completed Quiz Modal
+    const showCompletedQuizModal = () => showModal(completedQuizModal);
+    const hideCompletedQuizModal = () => hideModal(completedQuizModal, () => {
+        activeQuizUrl = '';
+        activeStorageKey = '';
+    });
 
     if (viewResultsBtn) {
         viewResultsBtn.addEventListener('click', () => {
@@ -389,34 +404,15 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelCompletedBtn.addEventListener('click', hideCompletedQuizModal);
     }
 
-    // --- 9. Modal Functionality ---
-    function showResetModal(onConfirm) {
-        if (!resetConfirmModal || !modalContent) return;
-
+    // Reset Confirmation Modal
+    const showResetModal = (onConfirm) => {
         // Store the callback function to be executed on confirmation
         confirmCallback = onConfirm;
-
-        resetConfirmModal.classList.remove('hidden');
-        resetConfirmModal.classList.add('anim-backdrop-fade-in');
-        modalContent.classList.add('anim-modal-pop-in');
-    }
-
-    function hideResetModal() {
-        if (!resetConfirmModal || !modalContent) return;
-
-        resetConfirmModal.classList.remove('anim-backdrop-fade-in');
-        resetConfirmModal.classList.add('anim-backdrop-fade-out');
-        modalContent.classList.remove('anim-modal-pop-in');
-        modalContent.classList.add('anim-modal-pop-out');
-        
-        setTimeout(() => {
-            resetConfirmModal.classList.add('hidden');
-            resetConfirmModal.classList.remove('anim-backdrop-fade-out');
-            modalContent.classList.remove('anim-modal-pop-out');
-            // Clean up the callback to prevent it from being called accidentally later
-            confirmCallback = null;
-        }, 300); // Match animation duration from animations.css
-    }
+        showModal(resetConfirmModal);
+    };
+    const hideResetModal = () => hideModal(resetConfirmModal, () => {
+        confirmCallback = null; // Clean up callback
+    });
 
     // Add event listeners for modal buttons once, when the script loads
     if (resetConfirmBtn && resetCancelBtn) {
