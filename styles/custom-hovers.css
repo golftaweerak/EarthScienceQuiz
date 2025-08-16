@@ -1,0 +1,25 @@
+/*
+  Custom Hover Effects for Quiz Cards
+
+  This file provides a robust solution for applying colored shadows on hover,
+  bypassing the limitations of the Tailwind CSS JIT compiler.
+
+  How it works:
+  - This version directly sets the `box-shadow` property on hover. This is the most
+    reliable method as it doesn't depend on manipulating Tailwind's internal
+    CSS variables, which can be inconsistent with the CDN JIT compiler.
+  - The shadow shape is based on Tailwind's `shadow-xl` for consistency.
+*/
+
+.quiz-card.border-red-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(239 68 68 / 0.15), 0 8px 10px -6px rgb(239 68 68 / 0.1);
+}
+.quiz-card.border-pink-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(236 72 153 / 0.15), 0 8px 10px -6px rgb(236 72 153 / 0.1);
+}
+.quiz-card.border-blue-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(59 130 246 / 0.15), 0 8px 10px -6px rgb(59 130 246 / 0.1);
+}
+.quiz-card.border-green-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(34 197 94 / 0.15), 0 8px 10px -6px rgb(34 197 94 / 0.1);
+}

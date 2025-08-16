@@ -97,9 +97,27 @@ const QuizApp = (function () {
     };
 
     // --- Initialization ---
+    setupDynamicUI();
     bindEventListeners();
     initializeSound();
     checkForSavedQuiz();
+  }
+
+  /**
+   * Sets up UI elements that are dynamically added to the DOM.
+   * This improves separation of concerns by keeping DOM manipulation out of the main init function.
+   */
+  function setupDynamicUI() {
+    // Create and inject 'Back to Home' button on the result screen
+    if (elements.restartBtn && elements.restartBtn.parentElement && !document.getElementById('back-to-home-btn')) {
+        const homeBtn = document.createElement('a');
+        homeBtn.id = 'back-to-home-btn';
+        homeBtn.href = '../index.html'; // Link to the main page
+        homeBtn.textContent = 'กลับหน้าแรก';
+        // Use styles consistent with other buttons in the project.
+        homeBtn.className = 'w-full max-w-xs text-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300';
+        elements.restartBtn.parentElement.appendChild(homeBtn);
+    }
   }
 
   // --- UI / Rendering Functions ---
@@ -157,10 +175,13 @@ const QuizApp = (function () {
     }
     resetState();
     const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    // Replace newline characters with <br> for proper HTML rendering
+    const questionHtml = currentQuestion.question.replace(/\n/g, '<br>');
+
     elements.questionCounter.textContent = `ข้อที่ ${state.currentQuestionIndex + 1} / ${
       state.shuffledQuestions.length
     }`;
-    elements.question.innerHTML = currentQuestion.question;
+    elements.question.innerHTML = questionHtml;
 
     const previousAnswer = state.userAnswers[state.currentQuestionIndex];
 
@@ -176,7 +197,7 @@ const QuizApp = (function () {
     // Use the shuffled array to create the buttons
     shuffledOptions.forEach((option) => {
       const button = document.createElement("button");
-      button.innerHTML = option;
+      button.innerHTML = option.replace(/\n/g, '<br>');
       // Store the original, raw option value to prevent issues with HTML/KaTeX rendering
       button.dataset.optionValue = option;
       button.classList.add(
@@ -257,7 +278,9 @@ const QuizApp = (function () {
     const selectedBtn = e.currentTarget;
     selectedBtn.classList.add("anim-option-pop");
     const selectedValue = selectedBtn.dataset.optionValue.trim();
-    const correctAnswer = state.shuffledQuestions[state.currentQuestionIndex].answer.trim();
+    // Safely get and trim the correct answer to prevent errors if it's not a string (e.g., null, undefined, number)
+    const correctAnswerValue = state.shuffledQuestions[state.currentQuestionIndex].answer;
+    const correctAnswer = (correctAnswerValue || '').toString().trim();
     const correct = selectedValue === correctAnswer;
 
     // Store the user's answer. This is the only time an answer is recorded for a question.
@@ -304,8 +327,10 @@ const QuizApp = (function () {
   }
 
   function showFeedback(isCorrect, explanation, correctAnswer) {
+    const explanationHtml = explanation ? explanation.replace(/\n/g, '<br>') : '';
+
     if (isCorrect) {
-      elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-300">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-400 mt-2">${explanation}</p>`;
+      elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-300">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-400 mt-2">${explanationHtml}</p>`;
       elements.feedback.classList.add(
         "bg-green-100",
         "dark:bg-green-900/50",
@@ -314,7 +339,7 @@ const QuizApp = (function () {
         "dark:border-green-700"
       );
     } else {
-      elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-300">ผิดครับ!</h3><p class="text-red-700 dark:text-red-400 mt-1">คำตอบที่ถูกต้องคือ: <strong>${correctAnswer}</strong></p><p class="text-red-700 dark:text-red-400 mt-2">${explanation}</p>`;
+      elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-300">ผิดครับ!</h3><p class="text-red-700 dark:text-red-400 mt-1">คำตอบที่ถูกต้องคือ: <strong>${correctAnswer}</strong></p><p class="text-red-700 dark:text-red-400 mt-2">${explanationHtml}</p>`;
       elements.feedback.classList.add(
         "bg-red-100",
         "dark:bg-red-900/50",
@@ -352,12 +377,87 @@ const QuizApp = (function () {
     switchScreen(elements.quizScreen, elements.resultScreen);
     saveQuizState(); // Save the final state, including the score
 
-    // --- New Result Screen Logic ---
-    const percentage = Math.round((state.score / state.shuffledQuestions.length) * 100);
+    // --- Refactored Result Screen Logic ---
+    const totalQuestions = state.shuffledQuestions.length;
+    const correctAnswers = state.score;
+    const incorrectAnswersCount = totalQuestions - correctAnswers;
+    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
-    // Safely update result elements if they exist to prevent errors
-    if (elements.finalScore)
-      elements.finalScore.textContent = `คะแนน: ${state.score} จาก ${state.shuffledQuestions.length}`;
+    // Remove any existing stats container to prevent duplicates on restart
+    const existingStats = document.getElementById('result-stats-container');
+    if (existingStats) {
+        existingStats.remove();
+    }
+
+    // Create the new stats container
+    const statsContainer = document.createElement('div');
+    statsContainer.id = 'result-stats-container';
+    statsContainer.className = 'w-full max-w-md mx-auto grid grid-cols-3 gap-4 my-8 text-center';
+
+    let statsHTML = `
+        <!-- Correct Answers -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-800/60">
+            <p class="text-2xl font-bold text-green-600 dark:text-green-400">${correctAnswers}</p>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">คำตอบถูก</p>
+        </div>
+        <!-- Incorrect Answers -->
+        <div class="flex flex-col items-center p-3 rounded-lg bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-800/60">
+            <p class="text-2xl font-bold text-red-600 dark:text-red-400">${incorrectAnswersCount}</p>
+            <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">คำตอบผิด</p>
+        </div>
+    `;
+
+    // Conditionally add Time Taken or Total Questions
+    if (state.timerMode === 'overall' && state.initialTime > 0) {
+        const timeTakenSeconds = state.initialTime - state.timeLeft;
+        const minutes = Math.floor(timeTakenSeconds / 60);
+        const seconds = timeTakenSeconds % 60;
+        const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        statsHTML += `
+            <div class="flex flex-col items-center p-3 rounded-lg bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800/60">
+                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">${formattedTime}</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">เวลาที่ใช้</p>
+            </div>
+        `;
+    } else {
+        statsHTML += `
+            <div class="flex flex-col items-center p-3 rounded-lg bg-gray-100 dark:bg-gray-700/60 border border-gray-200 dark:border-gray-700">
+                <p class="text-2xl font-bold text-gray-600 dark:text-gray-300">${totalQuestions}</p>
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">ข้อทั้งหมด</p>
+            </div>
+        `;
+    }
+
+    statsContainer.innerHTML = statsHTML;
+
+    // --- NEW LAYOUT LOGIC ---
+    // The goal is to group all quantitative results under one header for a cleaner layout.
+    // The desired order is: Header -> Progress Circle -> Stat Cards.
+
+    // Find the wrapper for the progress circle. We assume it's the parent of the parent of the circle SVG element.
+    const progressCircleWrapper = elements.progressCircle ? elements.progressCircle.parentElement.parentElement : null;
+
+    if (elements.finalScore && progressCircleWrapper) {
+        // 1. Repurpose the 'finalScore' element as the main header for the results.
+        elements.finalScore.textContent = 'สรุปผลคะแนน';
+        // Make it a more prominent header and adjust margins for better spacing.
+        elements.finalScore.className = 'text-center text-2xl font-bold text-gray-800 dark:text-gray-200 mt-8 mb-4';
+
+        // 2. Move the header to be *before* the progress circle's wrapper.
+        progressCircleWrapper.before(elements.finalScore);
+
+        // 3. Insert the detailed stats cards *after* the progress circle's wrapper.
+        progressCircleWrapper.after(statsContainer);
+    } else {
+        // Fallback for safety, in case the DOM structure is not as expected.
+        if (elements.finalScore) {
+            elements.finalScore.textContent = `สรุปผลคะแนน`;
+            elements.finalScore.className = 'text-center text-lg font-bold text-gray-700 dark:text-gray-300 mt-8 mb-0';
+            elements.finalScore.after(statsContainer);
+        }
+    }
+
     if (elements.finalPercentage) elements.finalPercentage.textContent = `${percentage}%`;
 
     // Animate progress circle
@@ -389,7 +489,8 @@ const QuizApp = (function () {
     }
 
     // New: Show or hide the review button
-    const incorrectAnswers = state.userAnswers.filter((answer) => !answer.isCorrect);
+    // Add a check for `answer` to prevent errors if some questions were not answered (e.g., time ran out)
+    const incorrectAnswers = state.userAnswers.filter((answer) => answer && !answer.isCorrect);
     if (incorrectAnswers.length > 0) {
       elements.reviewBtn.classList.remove("hidden");
     } else {
@@ -410,10 +511,22 @@ const QuizApp = (function () {
       state.timerMode = timerModeSelector.value;
     }
 
-    switchScreen(elements.startScreen, elements.quizScreen);
+    // --- New: Determine which screen to transition from ---
+    // This fixes the bug where restarting from the result screen didn't hide it.
+    let fromScreen = null;
+    if (!elements.startScreen.classList.contains("hidden")) {
+      fromScreen = elements.startScreen;
+    } else if (!elements.resultScreen.classList.contains("hidden")) {
+      fromScreen = elements.resultScreen;
+    }
+
+    state.shuffledQuestions = state.quizData.sort(() => Math.random() - 0.5);
+
+    switchScreen(fromScreen, elements.quizScreen);
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
-      state.initialTime = state.quizData.length * config.timerDefaults.overallMultiplier;
+      // Use shuffledQuestions.length for consistency, as it's the actual set of questions being used.
+      state.initialTime = state.shuffledQuestions.length * config.timerDefaults.overallMultiplier;
       state.timeLeft = state.initialTime;
       startTimer();
     } else if (state.timerMode === "perQuestion") {
@@ -422,8 +535,7 @@ const QuizApp = (function () {
 
     state.score = 0;
     state.currentQuestionIndex = 0;
-    state.shuffledQuestions = state.quizData.sort(() => Math.random() - 0.5);
-    state.userAnswers = []; // Reset answers before starting
+    state.userAnswers = new Array(state.shuffledQuestions.length).fill(null); // Pre-allocate array for answers
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
 
     showQuestion();
@@ -435,32 +547,62 @@ const QuizApp = (function () {
     switchScreen(elements.resultScreen, elements.reviewScreen);
     elements.reviewContainer.innerHTML = ""; // Clear previous review
 
-    const incorrectAnswers = state.userAnswers.filter((answer) => !answer.isCorrect);
+    // Add a check for `answer` to prevent errors if some questions were not answered
+    const incorrectAnswers = state.userAnswers.filter((answer) => answer && !answer.isCorrect);
 
     incorrectAnswers.forEach((answer, index) => {
       const reviewItem = document.createElement("div");
-      reviewItem.classList.add(
-        "p-4",
-        "border",
-        "border-gray-300",
-        "dark:border-gray-600",
-        "rounded-lg",
-        "mb-4"
-      );
+      // A more distinct card for each review item
+      reviewItem.className = "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
+
+      const questionHtml = answer.question.replace(/\n/g, '<br>');
+      const explanationHtml = answer.explanation ? answer.explanation.replace(/\n/g, '<br>') : '';
+
+      // Using template literals for a cleaner, more structured layout
       reviewItem.innerHTML = `
-                <p class="font-semibold mb-2">${index + 1}. ${
-        answer.question
-      }</p>
-                <p class="text-red-600 dark:text-red-400">คำตอบของคุณ: <span class="font-mono">${
-                  answer.selectedAnswer
-                }</span></p>
-                <p class="text-green-600 dark:text-green-400">คำตอบที่ถูกต้อง: <span class="font-mono">${
-                  answer.correctAnswer
-                }</span></p>
-                <p class="text-gray-600 dark:text-gray-400 mt-2 text-sm"><em>คำอธิบาย: ${
-                  answer.explanation
-                }</em></p>
-            `;
+          <div class="flex items-start gap-4">
+              <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${index + 1}</span>
+              <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200">${questionHtml}</div>
+          </div>
+
+          <div class="mt-4 space-y-3">
+              <!-- User's incorrect answer -->
+              <div class="flex items-start gap-3 p-3 rounded-md bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700/60">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                  </svg>
+                  <div>
+                      <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
+                      <p class="text-red-700 dark:text-red-400 font-mono">${answer.selectedAnswer}</p>
+                  </div>
+              </div>
+
+              <!-- Correct answer -->
+              <div class="flex items-start gap-3 p-3 rounded-md bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  <div>
+                      <p class="text-sm font-medium text-green-800 dark:text-green-300">คำตอบที่ถูกต้อง</p>
+                      <p class="text-green-700 dark:text-green-400 font-mono">${answer.correctAnswer}</p>
+                  </div>
+              </div>
+          </div>
+
+          ${explanationHtml ? `
+          <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div class="flex items-start gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" />
+                  </svg>
+                  <div>
+                      <p class="text-sm font-medium text-blue-800 dark:text-blue-300">คำอธิบาย</p>
+                      <p class="text-gray-600 dark:text-gray-400 mt-1">${explanationHtml}</p>
+                  </div>
+              </div>
+          </div>
+          ` : ''}
+      `;
       elements.reviewContainer.appendChild(reviewItem);
     });
 
@@ -509,45 +651,63 @@ const QuizApp = (function () {
   }
 
   function checkForSavedQuiz() {
+    // --- NEW: Check for 'view_results' action from URL first ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+
     const savedStateJSON = localStorage.getItem(state.storageKey);
-    if (savedStateJSON) {
-      try {
-        const savedState = JSON.parse(savedStateJSON);
-        if (
-          typeof savedState.currentQuestionIndex === "number" &&
-          Array.isArray(savedState.shuffledQuestions)
-        ) {
-          // Use custom modal if it exists, otherwise fallback to confirm()
-          if (elements.resumeModal && elements.modalContent) {
-            elements.resumeModal.classList.remove("hidden");
-            elements.resumeModal.classList.add("anim-backdrop-fade-in");
-            elements.modalContent.classList.add("anim-modal-pop-in");
+    if (!savedStateJSON) {
+      // If there's no saved state, we can't view results or resume, so just exit.
+      return;
+    }
 
-            elements.resumeConfirmBtn.onclick = () => {
-              resumeQuiz(savedState);
-              hideModal();
-            };
-
-            elements.resumeRejectBtn.onclick = () => {
-              localStorage.removeItem(state.storageKey);
-              hideModal();
-            };
-          } else {
-            if (
-              confirm(
-                "พบข้อมูลการทำแบบทดสอบครั้งก่อน คุณต้องการทำต่อหรือไม่? (หากไม่ต้องการ ข้อมูลเดิมจะถูกลบ)"
-              )
-            ) {
-              resumeQuiz(savedState);
-            } else {
-              localStorage.removeItem(state.storageKey);
-            }
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing saved quiz state:", e);
+    try {
+      const savedState = JSON.parse(savedStateJSON);
+      if (
+        typeof savedState.currentQuestionIndex !== "number" ||
+        !Array.isArray(savedState.shuffledQuestions)
+      ) {
+        // Invalid state, remove it and exit.
         localStorage.removeItem(state.storageKey);
+        return;
       }
+
+      // Priority 1: Handle 'view_results' action
+      if (action === 'view_results') {
+        // Load the state from the saved data
+        state.currentQuestionIndex = savedState.currentQuestionIndex;
+        state.score = savedState.score;
+        state.shuffledQuestions = savedState.shuffledQuestions;
+        state.userAnswers = savedState.userAnswers || [];
+        state.timerMode = savedState.timerMode || "none";
+        state.timeLeft = savedState.timeLeft || 0;
+        state.initialTime = savedState.initialTime || 0;
+
+        // Hide the start screen and directly show the results screen
+        elements.startScreen.classList.add('hidden');
+        showResults();
+        // Important: Stop further execution to prevent the resume modal from showing
+        return;
+      }
+
+      // Priority 2: Handle standard quiz resume (if not viewing results)
+      if (elements.resumeModal && elements.modalContent) {
+        elements.resumeModal.classList.remove("hidden");
+        elements.resumeModal.classList.add("anim-backdrop-fade-in");
+        elements.modalContent.classList.add("anim-modal-pop-in");
+
+        elements.resumeConfirmBtn.onclick = () => {
+          resumeQuiz(savedState);
+          hideModal();
+        };
+        elements.resumeRejectBtn.onclick = () => {
+          localStorage.removeItem(state.storageKey);
+          hideModal();
+        };
+      }
+    } catch (e) {
+      console.error("Error parsing saved quiz state:", e);
+      localStorage.removeItem(state.storageKey);
     }
   }
 
@@ -637,7 +797,9 @@ const QuizApp = (function () {
   function handleTimeUp() {
     if (state.timerMode === "perQuestion") {
       const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-      const correctAnswer = currentQuestion.answer.trim();
+      // Safely get and trim the correct answer
+      const correctAnswerValue = currentQuestion.answer;
+      const correctAnswer = (correctAnswerValue || '').toString().trim();
 
       // Record the answer as incorrect due to time out
       state.userAnswers[state.currentQuestionIndex] = {
@@ -648,7 +810,9 @@ const QuizApp = (function () {
         explanation: currentQuestion.explanation,
       };
 
-      showFeedback(false, "หมดเวลา! " + currentQuestion.explanation, correctAnswer);
+      // Gracefully handle a missing explanation when time is up
+      const feedbackExplanation = "หมดเวลา! " + (currentQuestion.explanation || '');
+      showFeedback(false, feedbackExplanation, correctAnswer);
       Array.from(elements.options.children).forEach(button => button.disabled = true);
       elements.nextBtn.classList.remove("hidden");
       saveQuizState();

@@ -10,7 +10,7 @@
     <script>
         // Enable class-based dark mode
         tailwind.config = {
-            darkMode: 'class',
+            darkMode: 'class'
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,6 +19,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
     <link rel="stylesheet" href="./styles/animations.css">
+    <link rel="stylesheet" href="./styles/custom-hovers.css">
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
@@ -49,85 +50,9 @@
                 </p>
             </div>
         </header>
-
-        <main class="max-w-4xl mx-auto space-y-6">
-            <!-- Astronomy-review Section -->
-            <section id="astronomy-review-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
-                <div class="section-toggle flex justify-between items-center cursor-pointer p-4">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
-                        <img src="./assets/icons/study.png" alt="Review Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
-                        ทบทวน (Review)
-                    </h2>
-                    <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-                <div class="section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out">
-                    <div class="overflow-hidden">
-                        <div id="astronomy-review-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
-                            <div class="loading-placeholder col-span-1 md:col-span-2 text-center p-8 text-gray-500 dark:text-gray-400">
-                                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <p>กำลังโหลดแบบทดสอบ...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Astronomy Section -->
-            <section id="astronomy-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
-                <button type="button" class="section-toggle w-full flex justify-between items-center cursor-pointer p-4">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
-                        <img src="./assets/icons/astronomy.png" alt="Astronomy Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
-                        ดาราศาสตร์ (Astronomy)
-                    </h2>
-                    <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div class="section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out">
-                    <div class="overflow-hidden">
-                        <div id="astronomy-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
-                            <div class="loading-placeholder col-span-1 md:col-span-2 text-center p-8 text-gray-500 dark:text-gray-400">
-                                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <p>กำลังโหลดแบบทดสอบ...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Earth Science Section -->
-            <section id="earth-science-section" class="section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden">
-                <button type="button" class="section-toggle w-full flex justify-between items-center cursor-pointer p-4">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit">
-                        <img src="./assets/icons/earth.png" alt="Earth Science Icon" class="h-12 w-12 mr-3 bg-white p-1 border-2 border-black rounded-full flex items-center justify-center flex-shrink-0">
-                        วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)
-                    </h2>
-                    <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-                <div class="section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out">
-                    <div class="overflow-hidden">
-                        <div id="earth-science-quizzes" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 pt-0">
-                            <div class="loading-placeholder col-span-1 md:col-span-2 text-center p-8 text-gray-500 dark:text-gray-400">
-                                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <p>กำลังโหลดแบบทดสอบ...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+        
+        <main id="quiz-categories-container" class="max-w-4xl mx-auto space-y-6">
+            <!-- Quiz categories will be dynamically inserted here by main.js -->
         </main>
 
         <!-- Random Quiz Button (Moved) -->
@@ -143,9 +68,9 @@
         <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
             <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
 
-            <div class="inline-flex items-center space-x-3 font-kanit mb-4">
-                <img src="./assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full">
-                <div class="text-left text-gray-600 dark:text-gray-400 font-kanit">
+            <div class="flex justify-center items-center space-x-4 font-kanit mb-4">
+                <img src="./assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full flex-shrink-0">
+                <div class="text-left text-gray-700 dark:text-gray-200 font-kanit">
                     <p>
                         พัฒนาโดย <a href="about.html"
                             class="text-blue-600 dark:text-blue-400 hover:underline">นายทวีรักษ์ ทูลพุทธา</a>
@@ -153,7 +78,7 @@
                     <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
                 </div>
             </div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-6">
                 © <span id="copyright-year">2025</span> Prommanusorn Phetchaburi School. All rights reserved.
             </p>
             <!-- Visitor Counter -->
@@ -162,11 +87,60 @@
 
     </div>
 
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
+                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">ยืนยันการล้างข้อมูล</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?
+                <br>
+                <strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>
+            </p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="reset-cancel-btn" class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                    ยกเลิก
+                </button>
+                <button id="reset-confirm-btn" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-bold">
+                    ยืนยัน
+                </button>
+            </div>
+        </div>
+    </div>
     
+    <!-- Completed Quiz Action Modal -->
+    <div id="completed-quiz-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">ทำแบบทดสอบนี้เสร็จแล้ว</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                <button id="completed-view-results-btn" class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">
+                    ดูผลคะแนน
+                </button>
+                <button id="completed-start-over-btn" class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">
+                    เริ่มใหม่
+                </button>
+                <button id="completed-cancel-btn" class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="./data/quizzes-list.js"></script>
     <script src="./scripts/main.js"></script>
     <script src="./dark-mode.js"></script>
-
 
 </body>
 
