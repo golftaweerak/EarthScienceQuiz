@@ -1,11 +1,71 @@
 document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.getElementById('quiz-menu-btn');
     const menuDropdown = document.getElementById('quiz-menu-dropdown');
-
+    
     // Only run if the core menu elements exist on the page
     if (!menuButton || !menuDropdown) {
         return;
     }
+
+    /**
+     * Retrieves the progress state of a quiz from localStorage.
+     * This function is aligned with the one in main.js for consistency.
+     * @param {string} storageKey - The key for the quiz in localStorage.
+     * @param {number} totalQuestions - The total number of questions in the quiz.
+     * @returns {object} An object containing progress details.
+     */
+    function getQuizProgress(storageKey, totalQuestions) {
+        const defaultState = {
+            score: 0,
+            percentage: 0,
+            progressTextColor: "text-gray-500 dark:text-gray-400",
+            isFinished: false,
+            hasProgress: false,
+        };
+
+        if (totalQuestions <= 0) return defaultState;
+
+        try {
+            const savedStateJSON = localStorage.getItem(storageKey);
+            if (!savedStateJSON) return defaultState;
+
+            const savedState = JSON.parse(savedStateJSON);
+            if (!savedState || typeof savedState.currentQuestionIndex !== "number") return defaultState;
+
+            const answeredCount = savedState.currentQuestionIndex;
+            const score = savedState.score || 0;
+            const isFinished = answeredCount >= totalQuestions;
+            const percentage = Math.round((answeredCount / totalQuestions) * 100);
+
+            if (isFinished) {
+                return {
+                    score,
+                    percentage,
+                    progressTextColor: "text-green-600 dark:text-green-400",
+                    isFinished: true,
+                    hasProgress: true,
+                };
+            } else {
+                return {
+                    score,
+                    percentage,
+                    progressTextColor: "text-blue-600 dark:text-blue-400",
+                    isFinished: false,
+                    hasProgress: true,
+                };
+            }
+        } catch (e) {
+            console.error(`Could not parse saved state for ${storageKey}:`, e);
+            return defaultState;
+        }
+    }
+
+    // Define Category Details for consistent display (aligned with main.js)
+    const categoryDetails = {
+        AstronomyReview: { title: "ทบทวน (Review)", order: 1 },
+        Astronomy: { title: "ดาราศาสตร์ (Astronomy)", order: 2 },
+        EarthScience: { title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)", order: 3 },
+    };
 
     // --- Modal Setup ---
     // Use the new ModalHandler for the "Completed Quiz" modal.
@@ -22,121 +82,156 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuContainer && typeof quizList !== 'undefined') {
         // Get the current quiz ID from the URL
         const currentQuizId = new URLSearchParams(window.location.search).get('id');
-
+        
         // --- Dynamic Pathing Logic ---
         // Determine correct paths based on the current page location
         const isQuizPage = window.location.pathname.includes('/quiz/');
         const homePath = isQuizPage ? '../index.html' : './index.html';
+        const aboutPath = isQuizPage ? '../about.html' : './about.html';
+        const previewPath = isQuizPage ? '../preview.html' : './preview.html';
+        const assetPathPrefix = isQuizPage ? '../' : './';
         const quizPathPrefix = isQuizPage ? './' : './quiz/';
         const getQuizUrl = (id) => `${quizPathPrefix}index.html?id=${id}`;
 
-
         // --- Category and Grouping Logic ---
-        const categoryDisplayNames = {
-            'AstronomyReview': 'ทบทวน (Review)',
-            'Astronomy': 'ดาราศาสตร์ (Astronomy)',
-            'EarthScience': 'วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)'
-        };
-        const categoryOrder = ['AstronomyReview', 'Astronomy', 'EarthScience'];
-        
         const groupedQuizzes = quizList.reduce((acc, quiz) => {
-            const category = quiz.category;
+            const category = quiz.category || "Uncategorized";
             if (!acc[category]) {
                 acc[category] = [];
             }
             acc[category].push(quiz);
             return acc;
         }, {});
+        
+        const sortedCategories = Object.keys(groupedQuizzes).sort((a, b) => {
+            const orderA = categoryDetails[a]?.order || 99;
+            const orderB = categoryDetails[b]?.order || 99;
+            return orderA - orderB;
+        });
 
-        // Clear and populate dropdown with categories
-        menuContainer.innerHTML = `
-            <a href="${homePath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-bold transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg">หน้าหลัก</a>
-            <hr class="my-1 border-gray-200 dark:border-gray-600">
+        // --- Build Menu HTML ---
+        let menuHTML = `
+            <a href="${homePath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+            <a href="${previewPath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+            <a href="${aboutPath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+            <hr class="my-2 border-gray-200 dark:border-gray-600">
+            <div id="menu-quiz-list" class="space-y-px">
         `;
 
-        categoryOrder.forEach(categoryKey => {
-            if (groupedQuizzes[categoryKey]) {
-                const header = document.createElement('div');
-                header.className = 'px-4 pt-2 pb-1 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider';
-                header.textContent = categoryDisplayNames[categoryKey] || categoryKey;
-                menuContainer.appendChild(header);
+        sortedCategories.forEach(categoryKey => {
+            const quizzes = groupedQuizzes[categoryKey];
+            const details = categoryDetails[categoryKey];
+            if (!details || !quizzes || quizzes.length === 0) return;
 
-                groupedQuizzes[categoryKey].forEach(quiz => {
-                    const quizIdFromUrl = new URLSearchParams(quiz.url.split('?')[1]).get('id');
-                    const isCurrentQuiz = quizIdFromUrl === currentQuizId;
+            menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>`;
 
-                    const link = document.createElement('a');
-                    link.href = getQuizUrl(quizIdFromUrl);
-                    link.className = 'flex items-center justify-between w-full text-left px-4 py-2 text-sm rounded-md transition-all duration-200 transform';
+            quizzes.forEach(quiz => {
+                const quizIdFromUrl = new URLSearchParams(quiz.url.split('?')[1]).get('id');
+                const isCurrentQuiz = quizIdFromUrl === currentQuizId;
+                const linkUrl = getQuizUrl(quizIdFromUrl);
 
-                    // Apply active/inactive styling
-                    if (isCurrentQuiz) {
-                        link.classList.add('bg-blue-100', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'font-bold', 'hover:shadow-lg', 'hover:-translate-y-0.5');
-                        link.setAttribute('aria-current', 'page');
-                    } else {
-                        link.classList.add('text-gray-700', 'dark:text-gray-200', 'hover:bg-gray-100', 'dark:hover:bg-gray-700', 'hover:shadow-lg', 'hover:-translate-y-0.5');
-                    }
+                const totalQuestions = parseInt(quiz.amount, 10) || 0;
+                const progress = getQuizProgress(quiz.storageKey, totalQuestions);
 
-                    // Create title and status elements
-                    const titleSpan = document.createElement('span');
-                    titleSpan.className = 'truncate pr-2';
-                    titleSpan.textContent = quiz.title;
-                    link.appendChild(titleSpan);
+                // Determine vertical alignment: center if finished, top-align otherwise.
+                const alignmentClass = progress.hasProgress ? 'items-center' : 'items-start';
 
-                    const statusSpan = document.createElement('span');
-                    statusSpan.className = 'text-xs ml-2 flex-shrink-0 font-mono flex items-center gap-1';
-                    link.appendChild(statusSpan);
+                const progressDetailsHTML = progress.hasProgress
+                    ? `<div>
+                           <span class="text-xs font-medium ${progress.progressTextColor}">คะแนน: ${progress.score}/${totalQuestions} (${progress.percentage}%)</span>
+                       </div>`
+                    : "";
 
-                    // --- Progress Status Logic ---
-                    let isQuizCompleted = false; // Use a block-scoped variable for each link
-                    const savedStateJSON = localStorage.getItem(quiz.storageKey);
-                    if (savedStateJSON) {
-                        try {
-                            const savedState = JSON.parse(savedStateJSON);
-                            if (savedState && typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions) && savedState.shuffledQuestions.length > 0) {
-                                const totalQuestions = savedState.shuffledQuestions.length;
-                                const questionsDone = savedState.currentQuestionIndex;
-                                isQuizCompleted = questionsDone >= totalQuestions;
+                const activeClasses = isCurrentQuiz ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700';
 
-                                if (isQuizCompleted && typeof savedState.score === 'number') {
-                                    // Completed state
-                                    statusSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> <span>${savedState.score}/${totalQuestions}</span>`;
-                                    statusSpan.classList.add('text-green-600', 'dark:text-green-500');
-                                } else if (questionsDone > 0) {
-                                    // In-progress state
-                                    const progress = Math.round((questionsDone / totalQuestions) * 100);
-                                    statusSpan.textContent = `${progress}%`;
-                                    statusSpan.classList.add('text-blue-600', 'dark:text-blue-400');
-                                }
-                            }
-                        } catch (e) {
-                            console.error(`Error parsing saved state for ${quiz.storageKey}:`, e);
-                        }
-                    }
+                menuHTML += `
+                    <a href="${linkUrl}" data-storage-key="${quiz.storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item block px-4 py-2 text-sm rounded-md ${activeClasses}">
+                        <div class="flex ${alignmentClass} gap-3">
+                            <div class="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white">
+                                <img src="${assetPathPrefix}${quiz.icon}" alt="${quiz.title} icon" class="h-4 w-4">
+                            </div>
+                            <div class="min-w-0">
+                                <span>${quiz.title}</span>
+                                ${progressDetailsHTML}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+        });
 
-                    // Add click listener to handle completed quizzes
-                    link.addEventListener('click', (event) => {
-                        // If a quiz is marked as completed, we intercept the click.
-                        if (isQuizCompleted) {
-                            event.preventDefault();
+        // Add Custom Quizzes
+        const savedQuizzesJSON = localStorage.getItem("customQuizzesList");
+        const savedQuizzes = savedQuizzesJSON ? JSON.parse(savedQuizzesJSON) : [];
 
-                            // If the "Completed Quiz" modal exists on the current page, show it.
-                            if (completedModal.modal) { // Check if the modal element exists
-                                activeQuizUrl = link.href;
-                                activeStorageKey = quiz.storageKey;
-                                completedModal.open(event.currentTarget); // Pass the link as the trigger
-                            } else {
-                                // If the modal doesn't exist (e.g., we are on a different quiz page),
-                                // navigate directly to view the results of the clicked quiz.
-                                const separator = link.href.includes('?') ? '&' : '?';
-                                window.location.href = `${link.href}${separator}action=view_results`;
-                            }
-                        }
-                    });
+        if (savedQuizzes.length > 0) {
+            menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
+            menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
 
-                    menuContainer.appendChild(link);
-                });
+            savedQuizzes.forEach((quiz) => {
+                const totalQuestions = quiz.questions.length;
+                const progress = getQuizProgress(quiz.storageKey, totalQuestions);
+                const linkUrl = getQuizUrl(quiz.customId);
+                const isCurrentQuiz = quiz.customId === currentQuizId;
+
+                // Determine vertical alignment: center if finished, top-align otherwise.
+                const alignmentClass = progress.hasProgress ? 'items-center' : 'items-start';
+
+                const progressDetailsHTML = progress.hasProgress
+                    ? `<div><span class="text-xs font-medium ${progress.progressTextColor}">คะแนน: ${progress.score}/${totalQuestions} (${progress.percentage}%)</span></div>`
+                    : "";
+                
+                const activeClasses = isCurrentQuiz ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700';
+
+                menuHTML += `
+                    <a href="${linkUrl}" data-storage-key="${quiz.storageKey}" data-total-questions="${quiz.questions.length}" class="quiz-menu-item block px-4 py-2 text-sm rounded-md ${activeClasses}">
+                        <div class="flex ${alignmentClass} gap-3">
+                            <div class="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white">
+                                <img src="${assetPathPrefix}assets/icons/study.png" alt="ไอคอนแบบทดสอบที่สร้างเอง" class="h-4 w-4">
+                            </div>
+                            <div class="min-w-0">
+                                <span>${quiz.title}</span>
+                                ${progressDetailsHTML}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+        }
+
+        menuHTML += `</div>`; // Close menu-quiz-list
+        menuContainer.innerHTML = menuHTML;
+
+        // Add a single event listener to the container for all quiz items (Event Delegation).
+        // This is more efficient than adding a listener to every single link and works
+        // correctly with dynamically generated HTML.
+        menuContainer.addEventListener('click', (event) => {
+            // Find the main link element, even if a child (like the icon or title) was clicked.
+            const quizLink = event.target.closest('.quiz-menu-item');
+
+            // If the click was not on a quiz item, do nothing.
+            if (!quizLink) {
+                return;
             }
+
+            const storageKey = quizLink.dataset.storageKey;
+            const totalQuestions = parseInt(quizLink.dataset.totalQuestions, 10) || 0;
+
+            // If the link doesn't have the necessary data, let it navigate normally.
+            if (!storageKey || totalQuestions === 0) {
+                return;
+            }
+
+            const progress = getQuizProgress(storageKey, totalQuestions);
+
+            // If the quiz is completed, prevent navigation and show the modal instead.
+            if (progress.isFinished) {
+                event.preventDefault();
+                activeQuizUrl = quizLink.href;
+                activeStorageKey = storageKey;
+                completedModal.open(quizLink); // Pass the link as the trigger for focus restoration.
+            }
+            // If the quiz is not finished, the default 'a' tag behavior (navigation) will proceed.
         });
     }
 

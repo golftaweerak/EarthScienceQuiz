@@ -138,6 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (isFinished) {
         return {
+          score,
           percentage,
           progressText: "ทำเสร็จแล้ว!",
           progressTextColor: "text-green-600 dark:text-green-400",
@@ -148,6 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
       } else {
         return {
+          score,
           percentage,
           progressText: "ความคืบหน้า",
           progressTextColor: "text-blue-600 dark:text-blue-400",
@@ -401,6 +403,152 @@ document.addEventListener("DOMContentLoaded", () => {
     container.appendChild(section);
   });
 
+  /**
+   * Populates the main navigation dropdown menu with a list of all available quizzes,
+   * grouped by category, for quick access.
+   */
+  function populateMenuWithQuizzes() {
+    const menuQuizListContainer = document.getElementById("menu-quiz-list");
+    if (!menuQuizListContainer) return;
+
+    let menuHTML = "";
+
+    // Use the same sorted categories as the main page for consistency.
+    sortedCategories.forEach((categoryKey) => {
+      const quizzes = groupedQuizzes[categoryKey];
+      const details = categoryDetails[categoryKey];
+
+      if (!details || !quizzes || quizzes.length === 0) {
+        return;
+      }
+
+      // Add a non-clickable category header to the menu.
+      menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>`;
+
+      // Add each quiz as a link.
+      quizzes.forEach((quiz) => {
+        const totalQuestions = parseInt(quiz.amount, 10) || 0;
+        const progress = getQuizProgress(quiz.storageKey, totalQuestions);
+
+        // Determine vertical alignment: center if finished, top-align otherwise.
+        const alignmentClass = progress.hasProgress ? 'items-center' : 'items-start';
+
+        // Create text for score and percentage if there's progress.
+        const progressDetailsHTML = progress.hasProgress
+          ? `<div>
+                <span class="text-xs font-medium ${progress.progressTextColor}">คะแนน: ${progress.score}/${totalQuestions} (${progress.percentage}%)</span>
+             </div>`
+          : "";
+
+        menuHTML += `
+          <a href="${quiz.url}" data-storage-key="${quiz.storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+              <div class="flex ${alignmentClass} gap-3">
+                  <div class="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white">
+                      <img src="${quiz.icon}" alt="${quiz.title} icon" class="h-4 w-4">
+                  </div>
+                  <div class="min-w-0">
+                      <span>${quiz.title}</span>
+                      ${progressDetailsHTML}
+                  </div>
+              </div>
+          </a>
+        `;
+      });
+    });
+
+    menuQuizListContainer.innerHTML = menuHTML;
+  }
+
+  /**
+   * Populates the main navigation dropdown menu with a list of saved custom quizzes
+   * from localStorage for quick access.
+   */
+  function populateMenuWithCustomQuizzes() {
+    const menuQuizListContainer = document.getElementById("menu-quiz-list");
+    if (!menuQuizListContainer) return;
+
+    const savedQuizzesJSON = localStorage.getItem("customQuizzesList");
+    const savedQuizzes = savedQuizzesJSON ? JSON.parse(savedQuizzesJSON) : [];
+
+    if (savedQuizzes.length === 0) {
+      return; // No custom quizzes to show.
+    }
+
+    let customMenuHTML = "";
+
+    // Add a separator and a header for the custom quizzes section.
+    customMenuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
+    customMenuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
+
+    savedQuizzes.forEach((quiz) => {
+      const totalQuestions = quiz.questions.length;
+      const progress = getQuizProgress(quiz.storageKey, totalQuestions);
+
+      // Determine vertical alignment: center if finished, top-align otherwise.
+      const alignmentClass = progress.hasProgress ? 'items-center' : 'items-start';
+
+      const progressDetailsHTML = progress.hasProgress
+        ? `<div>
+                <span class="text-xs font-medium ${progress.progressTextColor}">คะแนน: ${progress.score}/${totalQuestions} (${progress.percentage}%)</span>
+             </div>`
+        : "";
+
+      customMenuHTML += `
+          <a href="./quiz/index.html?id=${quiz.customId}" data-storage-key="${quiz.storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+              <div class="flex ${alignmentClass} gap-3">
+                  <div class="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white">
+                      <img src="./assets/icons/study.png" alt="ไอคอนแบบทดสอบที่สร้างเอง" class="h-4 w-4">
+                  </div>
+                  <div class="min-w-0">
+                      <span>${quiz.title}</span>
+                      ${progressDetailsHTML}
+                  </div>
+              </div>
+          </a>
+        `;
+    });
+
+    // Append this HTML to the existing menu content.
+    menuQuizListContainer.innerHTML += customMenuHTML;
+  }
+
+  // Populate the main menu with the quiz list for easy navigation.
+  populateMenuWithQuizzes();
+  populateMenuWithCustomQuizzes();
+
+  // Add event listener for the main menu to handle clicks on completed quizzes.
+  // This uses event delegation, which is efficient and works for dynamically added content.
+  const menuQuizListContainerForEvents = document.getElementById("menu-quiz-list");
+  if (menuQuizListContainerForEvents) {
+    menuQuizListContainerForEvents.addEventListener('click', (event) => {
+        // Find the link that was clicked, even if a child element was the target.
+        const quizLink = event.target.closest('.quiz-menu-item');
+
+        // If the click wasn't on a quiz item, do nothing.
+        if (!quizLink) {
+            return;
+        }
+
+        const storageKey = quizLink.dataset.storageKey;
+        const totalQuestions = parseInt(quizLink.dataset.totalQuestions, 10) || 0;
+
+        // If the link is missing necessary data, let it navigate normally.
+        if (!storageKey || totalQuestions === 0) {
+            return;
+        }
+
+        const progress = getQuizProgress(storageKey, totalQuestions);
+
+        // If the quiz is finished, prevent navigation and show the "Completed" modal.
+        if (progress.isFinished) {
+            event.preventDefault();
+            activeQuizUrl = quizLink.href;
+            activeStorageKey = storageKey;
+            completedModal.open(quizLink); // Pass the link for focus restoration.
+        }
+    });
+  }
+
   // --- 6. Accordion Functionality ---
   const toggleAccordion = (toggleElement, forceState) => {
     // forceState can be 'open', 'close', or undefined (toggle)
@@ -545,7 +693,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (progress.isFinished) {
         progressText = `<span class="text-xs font-medium text-green-600 dark:text-green-400">ทำเสร็จแล้ว (${progress.progressDetails})</span>`;
       } else if (progress.hasProgress) {
-        progressText = `<span class="text-xs font-medium text-blue-600 dark:text-blue-400">ทำต่อ (${progress.percentage}%)</span>`;
+        progressText = `<span class="text-xs font-medium text-blue-600 dark:text-blue-400">ทำต่อ (${progress.progressDetails})</span>`;
       }
 
       quizItemEl.innerHTML = `

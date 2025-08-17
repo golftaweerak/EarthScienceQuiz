@@ -49,6 +49,7 @@ const QuizApp = (function () {
       quizScreen: document.getElementById("quiz-screen"),
       resultScreen: document.getElementById("result-screen"),
       reviewScreen: document.getElementById("review-screen"),
+      quizNav: document.getElementById("quiz-nav"),
       startBtn: document.getElementById("start-btn"),
       nextBtn: document.getElementById("next-btn"),
       prevBtn: document.getElementById("prev-btn"),
@@ -96,44 +97,9 @@ const QuizApp = (function () {
     };
 
     // --- Initialization ---
-    setupDynamicUI();
     bindEventListeners();
     initializeSound();
     checkForSavedQuiz();
-  }
-
-  /**
-   * Sets up UI elements that are dynamically added to the DOM.
-   * This improves separation of concerns by keeping DOM manipulation out of the main init function.
-   */
-  function setupDynamicUI() {
-    // Create and inject 'Back to Home' button on the result screen
-    if (
-      elements.restartBtn &&
-      elements.restartBtn.parentElement &&
-      !document.getElementById("back-to-home-btn")
-    ) {
-      const parentContainer = elements.restartBtn.parentElement;
-      // Ensure the container for the result-screen buttons is a flex column
-      // with a gap. This prevents the new 'Home' button from overlapping with
-      // the 'Restart' button.
-      parentContainer.classList.add(
-        "flex",
-        "flex-col",
-        "items-center",
-        "gap-4",
-        "w-full"
-      );
-
-      const homeBtn = document.createElement("a");
-      homeBtn.id = "back-to-home-btn";
-      homeBtn.href = "../index.html"; // Link to the main page
-      homeBtn.textContent = "กลับหน้าแรก";
-      // Use styles consistent with other buttons in the project.
-      homeBtn.className =
-        "w-full max-w-xs text-center bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300";
-      parentContainer.appendChild(homeBtn);
-    }
   }
 
   // --- UI / Rendering Functions ---
@@ -187,6 +153,7 @@ const QuizApp = (function () {
     const progressPercentage =
       ((state.currentQuestionIndex + 1) / state.shuffledQuestions.length) * 100;
     elements.progressBar.style.width = `${progressPercentage}%`;
+    if (elements.quizNav) elements.quizNav.classList.remove("hidden");
   }
 
   function showQuestion() {
@@ -429,14 +396,8 @@ const QuizApp = (function () {
     buildResultsLayout(resultInfo, stats);
 
     // Switch to the result screen
-    // Determine the current screen to transition from
-    let fromScreen = null;
-    if (!elements.quizScreen.classList.contains("hidden")) {
-      fromScreen = elements.quizScreen;
-    } else if (!elements.startScreen.classList.contains("hidden")) {
-      // This can happen if 'view_results' is triggered from the start screen
-      fromScreen = elements.startScreen;
-    }
+    const allScreens = [elements.startScreen, elements.quizScreen, elements.reviewScreen];
+    const fromScreen = allScreens.find(screen => screen && !screen.classList.contains('hidden'));
     switchScreen(fromScreen, elements.resultScreen);
 
     // Save the final state. This is important for the 'view results' feature.
@@ -650,14 +611,8 @@ const QuizApp = (function () {
       state.timerMode = timerModeSelector.value;
     }
 
-    // --- New: Determine which screen to transition from ---
-    // This fixes the bug where restarting from the result screen didn't hide it.
-    let fromScreen = null;
-    if (!elements.startScreen.classList.contains("hidden")) {
-      fromScreen = elements.startScreen;
-    } else if (!elements.resultScreen.classList.contains("hidden")) {
-      fromScreen = elements.resultScreen;
-    }
+    const allScreens = [elements.startScreen, elements.resultScreen, elements.reviewScreen];
+    const fromScreen = allScreens.find(screen => screen && !screen.classList.contains('hidden'));
 
     // Use the more robust Fisher-Yates shuffle for unbiased randomness,
     // consistent with how options are shuffled.
@@ -789,11 +744,15 @@ const QuizApp = (function () {
 
   function saveQuizState() {
     // Only save the necessary parts of the state to avoid saving large objects like audio elements
+    // This is more explicit and safer than spreading the whole state object.
     const stateToSave = {
-      ...state, // Save most of the state
-      correctSound: undefined, // Exclude non-serializable properties
-      incorrectSound: undefined,
-      timerId: undefined,
+      currentQuestionIndex: state.currentQuestionIndex,
+      score: state.score,
+      shuffledQuestions: state.shuffledQuestions,
+      userAnswers: state.userAnswers,
+      timerMode: state.timerMode,
+      timeLeft: state.timeLeft,
+      initialTime: state.initialTime,
     };
     localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
   }

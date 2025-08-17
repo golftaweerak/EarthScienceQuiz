@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="./styles/main.css">
     <link rel="stylesheet" href="./styles/animations.css">
     <link rel="stylesheet" href="./styles/custom-hovers.css">
+    <link rel="stylesheet" href="./styles/custom-scrollbar.css">
     <style>
         html {
             scroll-behavior: smooth;
@@ -44,7 +45,7 @@
                         </svg>
                     </button>
                     <div id="main-menu-dropdown"
-                        class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                        class="hidden absolute left-0 mt-2 w-72 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu">
                         <div class="p-2">
                             <a href="index.html"
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
@@ -52,6 +53,8 @@
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
                             <a href="about.html"
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                            <hr class="my-2 border-gray-200 dark:border-gray-600">
+                            <div id="menu-quiz-list" class="space-y-px"></div>
                         </div>
                     </div>
                 </nav>
@@ -128,7 +131,7 @@
         </div>
 
         <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
-            <img src="./assets/images/saba.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
+            <img src="./assets/images/saba.png" alt="SABA Logo" class="h-12 mx-auto mb-4 ">
 
             <div class="flex justify-center items-center space-x-4 font-kanit mb-4">
                 <img src="./assets/icons/promma-logo.png" alt="promma logo"
@@ -302,7 +305,7 @@
                     </button>
                 </div>
 
-                <div id="custom-quiz-list" class="max-h-96 overflow-y-auto pr-2 space-y-3 mb-6">
+                <div id="custom-quiz-list" class="max-h-96 overflow-y-auto pr-2 space-y-3 mb-6" aria-live="polite">
                     <!-- List of saved custom quizzes will be inserted here by JS -->
                     <p id="no-custom-quizzes-msg" class="text-center text-gray-500 dark:text-gray-400 py-8">
                         ยังไม่มีแบบทดสอบที่สร้างเอง</p>
