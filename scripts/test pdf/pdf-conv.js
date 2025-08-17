@@ -189,6 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await new Promise(resolve => requestAnimationFrame(resolve));
             console.log("Paint cycle complete. Starting PDF generation.");
 
+            // FINAL SAFEGUARD: Add a small, fixed delay. This can help ensure that
+            // complex, script-injected styles (like from Tailwind's JIT) are fully rendered.
+            await new Promise(resolve => setTimeout(resolve, 300));
+            console.log("Final safeguard delay complete.");
+
             // Sanitize filename
             const filename = `${currentQuizTitle.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
 

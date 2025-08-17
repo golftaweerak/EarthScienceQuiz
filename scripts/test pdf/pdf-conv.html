@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สร้างแบบทดสอบ PDF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable class-based dark mode, consistent with other pages
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <!-- เพิ่ม Google Fonts เพื่อรองรับภาษาไทยให้สมบูรณ์ (เหมือนกับหน้าอื่นๆ) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,10 +30,44 @@
         onload="console.log('KaTeX auto-render for PDF testbed loaded.')">
     </script>
     <link rel="stylesheet" href="../../styles/pdf-generation.css">
+    <link rel="stylesheet" href="../../styles/main.css">
 </head>
-<body>
-    <header class="test-header">
-        <label for="quiz-selector">เลือกชุดข้อสอบสำหรับทดสอบ PDF:</label>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+
+    <!-- Dropdown Menu (Left) -->
+    <div class="absolute top-4 left-4 md:top-6 md:left-6 no-print">
+        <div class="relative">
+            <button id="main-menu-btn" title="เมนู"
+                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <div id="main-menu-dropdown"
+                class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                <div class="p-2">
+                    <a href="../../index.html"
+                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                    <a href="../../preview.html"
+                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                    <a href="../../about.html"
+                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dark Mode Toggle (Right) -->
+    <div class="absolute top-4 right-4 md:top-6 md:right-6 no-print">
+        <button id="dark-mode-toggle"
+            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <!-- Icon will be inserted by JS -->
+        </button>
+    </div>
+
+    <header class="test-header mt-20 md:mt-24">
+        <label for="quiz-selector">เลือกชุดข้อสอบ:</label>
         <select id="quiz-selector">
             <option value="">-- กรุณาเลือก --</option>
         </select>
@@ -37,5 +78,7 @@
     </div>
     <script src="../../data/quizzes-list.js"></script>
     <script src="pdf-conv.js"></script>
+    <script src="../../dark-mode.js"></script>
+    <script src="../../scripts/main-menu.js" defer></script>
 </body>
 </html>

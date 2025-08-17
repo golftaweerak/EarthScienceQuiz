@@ -44,6 +44,7 @@ body {
     flex-wrap: wrap;
     align-items: center;
     gap: 1rem;
+    color: var(--text-color); /* Force dark text color for readability */
 }
 
 .test-header label {
@@ -101,6 +102,7 @@ body {
     border-radius: 16px;
     box-shadow: 0 8px 32px var(--shadow-color);
     border: 1px solid var(--border-color);
+    color: var(--text-color); /* Ensure text is always dark for PDF readability */
 }
 
 /* NEW: Styles for placeholder text */
@@ -209,7 +211,7 @@ img {
         padding: 0;
     }
     
-    .test-header, hr {
+    .test-header, hr, .no-print {
         display: none;
     }
 
