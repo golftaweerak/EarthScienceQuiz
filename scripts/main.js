@@ -15,6 +15,70 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeStorageKey = ''; // To store the storage key for the modal actions
     let confirmCallback = null; // To store the action to perform on confirmation
 
+    // --- Helper Functions for Progress Display ---
+
+    /**
+     * Retrieves the progress state of a quiz from localStorage.
+     * @param {string} storageKey - The key for the quiz in localStorage.
+     * @param {number} totalQuestions - The total number of questions in the quiz.
+     * @returns {object} An object containing progress details.
+     */
+    function getQuizProgress(storageKey, totalQuestions) {
+        const defaultState = {
+            percentage: 0,
+            progressText: 'ยังไม่เริ่ม',
+            progressTextColor: 'text-gray-500 dark:text-gray-400',
+            progressBarColor: 'bg-gray-300 dark:bg-gray-600',
+            progressDetails: `0/${totalQuestions} ข้อ`,
+            isFinished: false,
+            hasProgress: false,
+        };
+
+        if (totalQuestions <= 0) {
+            return { ...defaultState, noQuestions: true };
+        }
+
+        try {
+            const savedStateJSON = localStorage.getItem(storageKey);
+            if (!savedStateJSON) return defaultState;
+
+            const savedState = JSON.parse(savedStateJSON);
+            if (!savedState || typeof savedState.currentQuestionIndex !== 'number') return defaultState;
+
+            const answeredCount = savedState.currentQuestionIndex;
+            const score = savedState.score || 0;
+            const isFinished = answeredCount >= totalQuestions;
+            const percentage = Math.round((answeredCount / totalQuestions) * 100);
+
+            if (isFinished) {
+                return { percentage, progressText: 'ทำเสร็จแล้ว!', progressTextColor: 'text-green-600 dark:text-green-400', progressBarColor: 'bg-green-500', progressDetails: `คะแนน: ${score}/${totalQuestions}`, isFinished: true, hasProgress: true };
+            } else {
+                return { percentage, progressText: 'ความคืบหน้า', progressTextColor: 'text-blue-600 dark:text-blue-400', progressBarColor: 'bg-blue-500', progressDetails: `คะแนน: ${score} | ${answeredCount}/${totalQuestions} ข้อ`, isFinished: false, hasProgress: true };
+            }
+        } catch (e) {
+            console.error(`Could not parse saved state for ${storageKey}:`, e);
+            return defaultState;
+        }
+    }
+
+    /**
+     * Creates the HTML for the progress bar section of a quiz card.
+     * @param {object} progress - The progress object from getQuizProgress.
+     * @param {string} storageKey - The localStorage key for the quiz.
+     * @returns {string} The HTML string for the progress section.
+     */
+    function createProgressHTML(progress, storageKey) {
+        if (progress.noQuestions) return '';
+
+        const resetButtonHTML = progress.hasProgress ? `
+            <button data-storage-key="${storageKey}" class="reset-progress-btn text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                ล้างข้อมูล
+            </button>` : '';
+
+        return `<div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-sm ${progress.progressTextColor}">${progress.progressText}</span><span class="text-sm text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progress.progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1"><span>${progress.progressDetails}</span>${resetButtonHTML}</div></div>`;
+    }
+
     // --- 1. Define Category Details for display ---
     const categoryDetails = {
         AstronomyReview: {
@@ -123,84 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             card.style.animationDelay = `${index * 75}ms`; // Staggered animation delay
             
-            // --- Progress Bar Logic ---
-            // This section determines the quiz state (Not Started, In Progress, Completed)
-            // and prepares variables to generate a unified progress bar for all cards.
-
+            // --- Progress Bar Logic (Refactored) ---
+            // Use the helper functions to get progress state and generate HTML.
             const totalQuestions = parseInt(quiz.amount, 10) || 0;
-            let percentage = 0;
-            let progressText = 'ยังไม่เริ่ม';
-            let progressTextColor = 'text-gray-500 dark:text-gray-400';
-            let progressBarColor = 'bg-gray-300 dark:bg-gray-600'; // Neutral color for 0% or "Not Started"
-            let progressDetails = `0/${totalQuestions} ข้อ`; // Default detail text
-            let resetButtonHTML = '';
-            let isFinished = false; // Flag to track if the quiz is completed
-            let progressHTML = '';
-
-            if (totalQuestions > 0) {
-                try {
-                    const savedStateJSON = localStorage.getItem(quiz.storageKey);
-                    if (savedStateJSON) {
-                        const savedState = JSON.parse(savedStateJSON);
-
-                        if (savedState && typeof savedState.currentQuestionIndex === 'number') {
-                            const answeredCount = savedState.currentQuestionIndex;
-                            const score = savedState.score || 0;
-                            isFinished = answeredCount >= totalQuestions; // Update the flag
-
-                            percentage = Math.round((answeredCount / totalQuestions) * 100);
-
-                            // Generate the reset button since there is progress
-                            resetButtonHTML = `
-                                <button data-storage-key="${quiz.storageKey}" class="reset-progress-btn text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                                    ล้างข้อมูล
-                                </button>
-                            `;
-
-                            if (isFinished) {
-                                // State: Completed
-                                progressText = 'ทำเสร็จแล้ว!';
-                                progressTextColor = 'text-green-600 dark:text-green-400';
-                                progressBarColor = 'bg-green-500';
-                                progressDetails = `คะแนน: ${score}/${totalQuestions}`;
-                            } else {
-                                // State: In Progress
-                                progressText = 'ความคืบหน้า';
-                                progressTextColor = 'text-blue-600 dark:text-blue-400';
-                                progressBarColor = 'bg-blue-500';
-                                progressDetails = `คะแนน: ${score} | ${answeredCount}/${totalQuestions} ข้อ`;
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.error(`Could not parse saved state for ${quiz.id}:`, e);
-                    // Reset to default "Not Started" state in case of parsing error
-                    percentage = 0;
-                    progressText = 'ยังไม่เริ่ม';
-                    progressTextColor = 'text-gray-500 dark:text-gray-400';
-                    progressBarColor = 'bg-gray-300 dark:bg-gray-600';
-                    progressDetails = `0/${totalQuestions} ข้อ`;
-                    resetButtonHTML = '';
-                }
-
-                // Generate the final HTML for the progress section
-                progressHTML = `
-                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80">
-                        <div class="flex justify-between items-center mb-1 font-medium">
-                            <span class="text-sm ${progressTextColor}">${progressText}</span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">${percentage}%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
-                            <div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
-                        </div>
-                        <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            <span>${progressDetails}</span>
-                            ${resetButtonHTML}
-                        </div>
-                    </div>
-                `;
-            }
+            const progress = getQuizProgress(quiz.storageKey, totalQuestions);
+            const progressHTML = createProgressHTML(progress, quiz.storageKey);
 
             // Polished Layout: Added group-hover effects for icon and title, and a colored shadow.
             card.innerHTML = `
@@ -228,7 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // --- NEW: Add event listener to the card itself ---
             card.addEventListener('click', (event) => {
-                if (isFinished) {
+                // BUG FIX: Re-check the status on click to ensure it's up-to-date,
+                // especially after a user resets progress without reloading the page.
+                const currentProgress = getQuizProgress(quiz.storageKey, totalQuestions);
+
+                if (currentProgress.isFinished) {
                     // If the quiz is completed, prevent default navigation and show the modal
                     event.preventDefault();
                     activeQuizUrl = quiz.url;
@@ -253,34 +248,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         localStorage.removeItem(key);
 
                         // Instead of removing the progress section, we'll update it to the "Not Started" state.
+                        // REFACTOR: Reuse helper functions to generate the new "Not Started" state HTML.
                         const progressWrapper = card.querySelector('.progress-footer-wrapper');
                         if (!progressWrapper) return;
 
                         const totalQuestions = parseInt(quiz.amount, 10) || 0;
-
-                        // Re-create the HTML for the "Not Started" state.
-                        const notStartedProgressHTML = `
-                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80">
-                                <div class="flex justify-between items-center mb-1 font-medium">
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">ยังไม่เริ่ม</span>
-                                    <span class="text-sm text-gray-500 dark:text-gray-400">0%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
-                                    <div class="bg-gray-300 dark:bg-gray-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                                <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    <span>0/${totalQuestions} ข้อ</span>
-                                    <span></span>
-                                </div>
-                            </div>
-                        `;
+                        const newProgress = getQuizProgress(key, totalQuestions); // This will be the default state
+                        const newProgressHTML = createProgressHTML(newProgress, key);
 
                         // Animate out, update content, and animate in for a smooth transition.
                         progressWrapper.style.transition = 'opacity 0.2s ease-out';
                         progressWrapper.style.opacity = '0';
 
                         setTimeout(() => {
-                            progressWrapper.innerHTML = notStartedProgressHTML;
+                            progressWrapper.innerHTML = newProgressHTML;
                             progressWrapper.style.transition = 'opacity 0.3s ease-in';
                             progressWrapper.style.opacity = '1';
                         }, 200); // Wait for the fade-out to complete.
@@ -342,45 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
         yearSpan.textContent = new Date().getFullYear();
     }
 
-    // --- 9. Generic Modal Functionality ---
-    // Centralized functions to show and hide any modal with consistent animations.
-    function showModal(modalElement) {
-        if (!modalElement) return;
-        const content = modalElement.querySelector('.modal-content');
-        modalElement.classList.remove('hidden');
-        modalElement.classList.add('anim-backdrop-fade-in');
-        if (content) content.classList.add('anim-modal-pop-in');
-    }
-
-    function hideModal(modalElement, onHiddenCallback) {
-        if (!modalElement) return;
-        const content = modalElement.querySelector('.modal-content');
-        modalElement.classList.remove('anim-backdrop-fade-in');
-        modalElement.classList.add('anim-backdrop-fade-out');
-        if (content) {
-            content.classList.remove('anim-modal-pop-in');
-            content.classList.add('anim-modal-pop-out');
-        }
-        
-        setTimeout(() => {
-            modalElement.classList.add('hidden');
-            modalElement.classList.remove('anim-backdrop-fade-out');
-            if (content) content.classList.remove('anim-modal-pop-out');
-            
-            // Execute a callback after the modal is fully hidden
-            if (typeof onHiddenCallback === 'function') {
-                onHiddenCallback();
-            }
-        }, 300);
-    }
-
     // --- 10. Specific Modal Implementations ---
     // Completed Quiz Modal
-    const showCompletedQuizModal = () => showModal(completedQuizModal);
-    const hideCompletedQuizModal = () => hideModal(completedQuizModal, () => {
+    const showCompletedQuizModal = () => {
+        if (window.AppUtils) window.AppUtils.showModal(completedQuizModal);
+    };
+    const hideCompletedQuizModal = () => {
+        if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal, () => {
         activeQuizUrl = '';
         activeStorageKey = '';
-    });
+    })};
 
     if (viewResultsBtn) {
         viewResultsBtn.addEventListener('click', () => {
@@ -408,11 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const showResetModal = (onConfirm) => {
         // Store the callback function to be executed on confirmation
         confirmCallback = onConfirm;
-        showModal(resetConfirmModal);
+        if (window.AppUtils) window.AppUtils.showModal(resetConfirmModal);
     };
-    const hideResetModal = () => hideModal(resetConfirmModal, () => {
+    const hideResetModal = () => {
+        if (window.AppUtils) window.AppUtils.hideModal(resetConfirmModal, () => {
         confirmCallback = null; // Clean up callback
-    });
+    })};
 
     // Add event listeners for modal buttons once, when the script loads
     if (resetConfirmBtn && resetCancelBtn) {

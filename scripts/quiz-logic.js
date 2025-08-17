@@ -118,7 +118,13 @@ const QuizApp = (function () {
       // Ensure the container for the result-screen buttons is a flex column
       // with a gap. This prevents the new 'Home' button from overlapping with
       // the 'Restart' button.
-      parentContainer.classList.add("flex", "flex-col", "items-center", "gap-4", "w-full");
+      parentContainer.classList.add(
+        "flex",
+        "flex-col",
+        "items-center",
+        "gap-4",
+        "w-full"
+      );
 
       const homeBtn = document.createElement("a");
       homeBtn.id = "back-to-home-btn";
@@ -158,15 +164,20 @@ const QuizApp = (function () {
     }
   }
 
-  function renderAllMath() {
-    if (typeof renderMathInElement === "function") {
-      renderMathInElement(document.body, {
+  /**
+   * Renders mathematical formulas in a specific element using KaTeX.
+   * @param {HTMLElement} element The element to render math in.
+   */
+  function renderMath(element) {
+    if (typeof renderMathInElement === "function" && element) {
+      renderMathInElement(element, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
           { left: "$", right: "$", display: false },
           { left: "\\(", right: "\\)", display: false },
           { left: "\\[", right: "\\]", display: true },
         ],
+        throwOnError: false,
       });
     }
   }
@@ -187,8 +198,8 @@ const QuizApp = (function () {
     }
     resetState();
     const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-    // Replace newline characters with <br> for proper HTML rendering
-    const questionHtml = currentQuestion.question.replace(/\n/g, "<br>");
+    // Safely replace newlines, guarding against undefined/null questions
+    const questionHtml = (currentQuestion.question || "").replace(/\n/g, "<br>");
 
     elements.questionCounter.textContent = `ข้อที่ ${
       state.currentQuestionIndex + 1
@@ -199,7 +210,7 @@ const QuizApp = (function () {
 
     // --- New: Shuffle options to prevent memorizing order ---
     // Create a copy to avoid modifying the original question data in the state
-    const shuffledOptions = [...currentQuestion.options];
+    const shuffledOptions = [...(currentQuestion.options || [])];
     // Fisher-Yates (aka Knuth) Shuffle algorithm for an unbiased shuffle
     for (let i = shuffledOptions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -270,7 +281,7 @@ const QuizApp = (function () {
       startTimer();
     }
 
-    renderAllMath();
+    renderMath(elements.quizScreen); // Render math only within the quiz screen
   }
 
   function resetState() {
@@ -305,8 +316,7 @@ const QuizApp = (function () {
       selectedAnswer: selectedValue,
       correctAnswer: correctAnswer,
       isCorrect: correct,
-      explanation:
-        state.shuffledQuestions[state.currentQuestionIndex].explanation,
+      explanation: state.shuffledQuestions[state.currentQuestionIndex].explanation || "",
     };
 
     if (correct) {
@@ -340,7 +350,7 @@ const QuizApp = (function () {
     });
 
     elements.nextBtn.classList.remove("hidden");
-    renderAllMath();
+    renderMath(elements.feedback); // Render math only in the new feedback element
   }
 
   function showFeedback(isCorrect, explanation, correctAnswer) {
@@ -459,9 +469,13 @@ const QuizApp = (function () {
   function cleanupResultsScreen() {
     // Hide original static elements that are replaced by the dynamic layout.
     if (elements.finalScore) elements.finalScore.classList.add("hidden");
-    if (elements.resultIconContainer) elements.resultIconContainer.parentElement.classList.add("hidden");
-    if (elements.progressCircle) elements.progressCircle.parentElement.parentElement.parentElement.classList.add("hidden");
-    
+    if (elements.resultIconContainer)
+      elements.resultIconContainer.parentElement.classList.add("hidden");
+    if (elements.progressCircle)
+      elements.progressCircle.parentElement.parentElement.parentElement.classList.add(
+        "hidden"
+      );
+
     // Remove any previously generated layouts to prevent duplication.
     document.getElementById("modern-results-layout")?.remove();
   }
@@ -534,7 +548,8 @@ const QuizApp = (function () {
     // --- 2. Data Container (for Circle + Stats) ---
     // This container will be a flex row on medium screens and up, and a column on smaller screens.
     const dataContainer = document.createElement("div");
-    dataContainer.className = "w-full flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8";
+    dataContainer.className =
+      "w-full flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8";
 
     // --- 2a. Progress Circle ---
     const progressContainer = document.createElement("div");
@@ -558,38 +573,54 @@ const QuizApp = (function () {
 
     // Animate the circle
     setTimeout(() => {
-        const circlePath = progressContainer.querySelector('path.text-blue-500');
-        if (circlePath) {
-            circlePath.style.transition = 'stroke-dasharray 1s ease-out';
-            circlePath.style.strokeDasharray = `${stats.percentage}, 100`;
-        }
+      const circlePath = progressContainer.querySelector("path.text-blue-500");
+      if (circlePath) {
+        circlePath.style.transition = "stroke-dasharray 1s ease-out";
+        circlePath.style.strokeDasharray = `${stats.percentage}, 100`;
+      }
     }, 100);
 
     // --- 2b. Stats List ---
     const statsContainer = document.createElement("div");
     // Center items on mobile, align to start on medium screens and up.
-    statsContainer.className = "flex flex-col items-center md:items-start gap-4 w-full md:w-auto";
+    statsContainer.className =
+      "flex flex-col items-center md:items-start gap-4 w-full md:w-auto";
 
     // Define icons for stats
     const icons = {
-        correct: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`,
-        incorrect: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`,
-        time: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>`,
-        total: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 100 2h16a1 1 0 100-2H2zM5 15a1 1 0 110 2h10a1 1 0 110-2H5z" /></svg>`,
+      correct: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`,
+      incorrect: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`,
+      time: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>`,
+      total: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 100 2h16a1 1 0 100-2H2zM5 15a1 1 0 110 2h10a1 1 0 110-2H5z" /></svg>`,
     };
 
     // Programmatically create and append stat items
-    statsContainer.appendChild(createStatItem(stats.correctAnswers, "คำตอบถูก", icons.correct, "green"));
-    statsContainer.appendChild(createStatItem(stats.incorrectAnswersCount, "คำตอบผิด", icons.incorrect, "red"));
+    statsContainer.appendChild(
+      createStatItem(stats.correctAnswers, "คำตอบถูก", icons.correct, "green")
+    );
+    statsContainer.appendChild(
+      createStatItem(
+        stats.incorrectAnswersCount,
+        "คำตอบผิด",
+        icons.incorrect,
+        "red"
+      )
+    );
 
     if (state.timerMode === "overall" && state.initialTime > 0) {
       const timeTakenSeconds = state.initialTime - state.timeLeft;
       const minutes = Math.floor(timeTakenSeconds / 60);
       const seconds = timeTakenSeconds % 60;
-      const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-      statsContainer.appendChild(createStatItem(formattedTime, "เวลาที่ใช้", icons.time, "blue"));
+      const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
+      statsContainer.appendChild(
+        createStatItem(formattedTime, "เวลาที่ใช้", icons.time, "blue")
+      );
     } else {
-      statsContainer.appendChild(createStatItem(stats.totalQuestions, "ข้อทั้งหมด", icons.total, "gray"));
+      statsContainer.appendChild(
+        createStatItem(stats.totalQuestions, "ข้อทั้งหมด", icons.total, "gray")
+      );
     }
 
     dataContainer.appendChild(statsContainer);
@@ -608,7 +639,7 @@ const QuizApp = (function () {
       elements.reviewBtn.classList.add("hidden");
     }
 
-    renderAllMath();
+    renderMath(layoutContainer); // Render math only in the new results layout
   }
   function getIncorrectAnswers() {
     // Add a check for `answer` to prevent errors if some questions were not answered
@@ -684,7 +715,7 @@ const QuizApp = (function () {
       reviewItem.className =
         "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
 
-      const questionHtml = answer.question.replace(/\n/g, "<br>");
+      const questionHtml = (answer.question || "").replace(/\n/g, "<br>");
       const explanationHtml = answer.explanation
         ? answer.explanation.replace(/\n/g, "<br>")
         : "";
@@ -707,7 +738,7 @@ const QuizApp = (function () {
                   <div>
                       <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
                       <p class="text-red-700 dark:text-red-400 font-mono">${
-                        answer.selectedAnswer
+                        answer.selectedAnswer || ""
                       }</p>
                   </div>
               </div>
@@ -720,7 +751,7 @@ const QuizApp = (function () {
                   <div>
                       <p class="text-sm font-medium text-green-800 dark:text-green-300">คำตอบที่ถูกต้อง</p>
                       <p class="text-green-700 dark:text-green-400 font-mono">${
-                        answer.correctAnswer
+                        answer.correctAnswer || ""
                       }</p>
                   </div>
               </div>
@@ -747,51 +778,11 @@ const QuizApp = (function () {
       elements.reviewContainer.appendChild(reviewItem);
     });
 
-    renderAllMath();
+    renderMath(elements.reviewContainer); // Render math only in the review container
   }
 
   function backToResult() {
     switchScreen(elements.reviewScreen, elements.resultScreen);
-  }
-
-  // --- NEW: Generic Modal Functions (for consistency with main.js) ---
-
-  /**
-   * Shows a modal with consistent animations.
-   * @param {HTMLElement} modalElement The modal element to show.
-   */
-  function showModal(modalElement) {
-    if (!modalElement) return;
-    const content = modalElement.querySelector(".modal-content");
-    modalElement.classList.remove("hidden");
-    modalElement.classList.add("anim-backdrop-fade-in");
-    if (content) content.classList.add("anim-modal-pop-in");
-  }
-
-  /**
-   * Hides a modal with consistent animations.
-   * @param {HTMLElement} modalElement The modal element to hide.
-   * @param {Function} [onHiddenCallback] Optional callback to run after the hide animation completes.
-   */
-  function hideModal(modalElement, onHiddenCallback) {
-    if (!modalElement) return;
-    const content = modalElement.querySelector(".modal-content");
-    modalElement.classList.remove("anim-backdrop-fade-in");
-    modalElement.classList.add("anim-backdrop-fade-out");
-    if (content) {
-      content.classList.remove("anim-modal-pop-in");
-      content.classList.add("anim-modal-pop-out");
-    }
-
-    setTimeout(() => {
-      modalElement.classList.add("hidden");
-      modalElement.classList.remove("anim-backdrop-fade-out");
-      if (content) content.classList.remove("anim-modal-pop-out");
-
-      if (typeof onHiddenCallback === "function") {
-        onHiddenCallback();
-      }
-    }, 300);
   }
 
   // --- State Management (LocalStorage) ---
@@ -869,15 +860,15 @@ const QuizApp = (function () {
 
       // Priority 2: Handle standard quiz resume (if not viewing results)
       if (elements.resumeModal) {
-        showModal(elements.resumeModal);
+        if (window.AppUtils) window.AppUtils.showModal(elements.resumeModal);
 
         elements.resumeConfirmBtn.onclick = () => {
           resumeQuiz(savedState);
-          hideModal(elements.resumeModal);
+          if (window.AppUtils) window.AppUtils.hideModal(elements.resumeModal);
         };
         elements.resumeRejectBtn.onclick = () => {
           clearSavedState();
-          hideModal(elements.resumeModal);
+          if (window.AppUtils) window.AppUtils.hideModal(elements.resumeModal);
         };
       }
     } catch (e) {
@@ -962,8 +953,13 @@ const QuizApp = (function () {
 
   function handleTimeUp() {
     if (state.timerMode === "perQuestion") {
-      const currentQuestion =
-        state.shuffledQuestions[state.currentQuestionIndex];
+      // Ensure we don't proceed if the question index is out of bounds
+      if (state.currentQuestionIndex >= state.shuffledQuestions.length) {
+        showResults(); // The quiz is over, just show results
+        return;
+      }
+      const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+
       // Safely get and trim the correct answer
       const correctAnswerValue = currentQuestion.answer;
       const correctAnswer = (correctAnswerValue || "").toString().trim();
@@ -1020,7 +1016,14 @@ const QuizApp = (function () {
     elements.startBtn.addEventListener("click", startQuiz);
     elements.nextBtn.addEventListener("click", showNextQuestion);
     elements.prevBtn.addEventListener("click", showPreviousQuestion);
-    elements.restartBtn.addEventListener("click", startQuiz);
+    // เปลี่ยนให้ปุ่ม "ทำแบบทดสอบอีกครั้ง" กลับไปที่หน้าเริ่มต้น
+    // เพื่อให้ผู้ใช้สามารถเลือกโหมดจับเวลาใหม่และเริ่มควิซใหม่ได้
+    elements.restartBtn.addEventListener("click", () => {
+      clearSavedState(); // Clear progress from localStorage for a true fresh start
+      switchScreen(elements.resultScreen, elements.startScreen);
+      // The modern results layout is dynamically added, so we should remove it to prevent it from showing up behind the start screen on a slow transition.
+      document.getElementById("modern-results-layout")?.remove();
+    });
     elements.reviewBtn.addEventListener("click", showReview);
     elements.backToResultBtn.addEventListener("click", backToResult);
     if (elements.soundToggleBtn) {

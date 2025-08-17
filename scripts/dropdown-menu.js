@@ -1,9 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.getElementById('quiz-menu-btn');
     const menuDropdown = document.getElementById('quiz-menu-dropdown');
+    const completedQuizModal = document.getElementById('completed-quiz-modal');
+    const viewResultsBtn = document.getElementById('completed-view-results-btn');
+    const startOverBtn = document.getElementById('completed-start-over-btn');
+    const cancelCompletedBtn = document.getElementById('completed-cancel-btn');
+
+    let activeQuizUrl = '';
+    let activeStorageKey = '';
 
     // Only run if the menu elements exist on the page
-    if (!menuButton || !menuDropdown) {
+    if (!menuButton || !menuDropdown || !completedQuizModal) {
         return;
     }
 
@@ -14,6 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Get the current quiz ID from the URL
         const currentQuizId = new URLSearchParams(window.location.search).get('id');
 
+        // --- Dynamic Pathing Logic ---
+        // Determine correct paths based on the current page location
+        const isQuizPage = window.location.pathname.includes('/quiz/');
+        const homePath = isQuizPage ? '../index.html' : './index.html';
+        const quizPathPrefix = isQuizPage ? './' : './quiz/';
+        const getQuizUrl = (id) => `${quizPathPrefix}index.html?id=${id}`;
+
+
+        // --- Category and Grouping Logic ---
         const categoryDisplayNames = {
             'AstronomyReview': 'ทบทวน (Review)',
             'Astronomy': 'ดาราศาสตร์ (Astronomy)',
@@ -32,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Clear and populate dropdown with categories
         menuContainer.innerHTML = `
-            <a href="../index.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-bold transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg">หน้าหลัก</a>
+            <a href="${homePath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md font-bold transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg">หน้าหลัก</a>
             <hr class="my-1 border-gray-200 dark:border-gray-600">
         `;
 
@@ -48,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isCurrentQuiz = quizIdFromUrl === currentQuizId;
 
                     const link = document.createElement('a');
-                    link.href = `index.html?id=${quizIdFromUrl}`;
+                    link.href = getQuizUrl(quizIdFromUrl);
                     link.className = 'flex items-center justify-between w-full text-left px-4 py-2 text-sm rounded-md transition-all duration-200 transform';
 
                     // Apply active/inactive styling
@@ -70,16 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     link.appendChild(statusSpan);
 
                     // --- Progress Status Logic ---
+                    let isQuizCompleted = false; // Use a block-scoped variable for each link
                     const savedStateJSON = localStorage.getItem(quiz.storageKey);
                     if (savedStateJSON) {
                         try {
                             const savedState = JSON.parse(savedStateJSON);
                             if (savedState && typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions) && savedState.shuffledQuestions.length > 0) {
                                 const totalQuestions = savedState.shuffledQuestions.length;
-                                const questionsDone = savedState.currentQuestionIndex;
-                                const isCompleted = questionsDone >= totalQuestions;
+                                const questionsDone = savedState.currentQuestionIndex; isQuizCompleted = questionsDone >= totalQuestions;
 
-                                if (isCompleted && typeof savedState.score === 'number') {
+                                if (isQuizCompleted && typeof savedState.score === 'number') {
                                     // Completed state
                                     statusSpan.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> <span>${savedState.score}/${totalQuestions}</span>`;
                                     statusSpan.classList.add('text-green-600', 'dark:text-green-500');
@@ -94,6 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             console.error(`Error parsing saved state for ${quiz.storageKey}:`, e);
                         }
                     }
+
+                    // Add click listener to handle completed quizzes
+                    link.addEventListener('click', (event) => {
+                        if (isQuizCompleted) {
+                            event.preventDefault();
+                            activeQuizUrl = link.href;
+                            activeStorageKey = quiz.storageKey;
+                            if (window.AppUtils) window.AppUtils.showModal(completedQuizModal);
+                        }
+                    });
 
                     menuContainer.appendChild(link);
                 });
@@ -129,4 +155,53 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => menuDropdown.classList.add('hidden'), 150);
         }
     });
+
+    // --- Modal Helper Functions ---
+    function showModal(modalElement) {
+        if (!modalElement) return;
+        const content = modalElement.querySelector('.modal-content');
+        modalElement.classList.remove('hidden');
+        modalElement.classList.add('anim-backdrop-fade-in');
+        if (content) content.classList.add('anim-modal-pop-in');
+    }
+
+    function hideModal(modalElement, onHiddenCallback) {
+        if (!modalElement) return;
+        const content = modalElement.querySelector('.modal-content');
+        modalElement.classList.remove('anim-backdrop-fade-in');
+        modalElement.classList.add('anim-backdrop-fade-out');
+        if (content) {
+            content.classList.remove('anim-modal-pop-in');
+            content.classList.add('anim-modal-pop-out');
+        }
+
+        setTimeout(() => {
+            modalElement.classList.add('hidden');
+            modalElement.classList.remove('anim-backdrop-fade-out');
+            if (content) content.classList.remove('anim-modal-pop-out');
+
+            if (typeof onHiddenCallback === 'function') {
+                onHiddenCallback();
+            }
+        }, 300);
+    }
+
+    // --- Completed Quiz Modal Logic ---
+    if (viewResultsBtn) {
+        viewResultsBtn.addEventListener('click', () => {
+            if (activeQuizUrl) {
+                const separator = activeQuizUrl.includes('?') ? '&' : '?';
+                window.location.href = `${activeQuizUrl}${separator}action=view_results`;
+            }
+            hideModal(completedQuizModal);
+        });
+    }
+    if (startOverBtn) {
+        startOverBtn.addEventListener('click', () => {
+            if (activeStorageKey) localStorage.removeItem(activeStorageKey);
+            if (activeQuizUrl) window.location.href = activeQuizUrl;
+            hideModal(completedQuizModal);
+        });
+    }
+    if (cancelCompletedBtn) cancelCompletedBtn.addEventListener('click', () => hideModal(completedQuizModal));
 });

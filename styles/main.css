@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   font-family: "Sarabun", sans-serif;
 }
@@ -6,32 +12,6 @@ body {
   font-family: "Kanit", sans-serif;
 }
 
-/* --- Page Transition --- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-body {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-body.fade-out {
-  animation: fadeOut 0.3s ease-in-out forwards;
-}
 /* Always show scrollbar to prevent layout shift when content height changes */
 html {
   overflow-y: scroll;
@@ -45,43 +25,9 @@ body.dark {
   animation: move-bg 10s linear infinite;
 }
 
-/* Animation for quiz cards appearing */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.card-animation {
-  animation: fadeInUp 0.5s ease-out forwards;
-  opacity: 0; /* Start hidden */
-}
-
-/* --- Enhanced Glow Effects --- */
-
-/* Override Tailwind's hover shadow for a more pronounced glow effect on quiz cards */
-.dark .section-accordion a.group:hover {
-    /* A more prominent blue glow for dark mode */
-    box-shadow: 0 0 25px -5px rgba(96, 165, 250, 0.6); /* tailwind blue-400 with more opacity */
-}
-
-/* Add a subtle glow for light mode too */
-.section-accordion a.group:hover {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 15px -5px rgba(59, 130, 246, 0.3);
-}
-
-/* Enhanced glow for the Random Quiz button */
-.dark #random-quiz-btn:hover {
-    box-shadow: 0 0 25px -5px rgba(129, 140, 248, 0.7); /* tailwind indigo-400 with more opacity */
-}
-
 /* --- Shine Effect on Card Hover --- */
 /* Prerequisites are added via Tailwind classes: `relative` and `overflow-hidden` */
+/* Use CSS variables for reusability. Defaults to a white shine. */
 .shine-effect::after {
   content: '';
   position: absolute;
@@ -89,7 +35,8 @@ body.dark {
   transform: translateX(-100%) skewX(-25deg);
   width: 40%;
   height: 100%;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0) 100%);
+  --shine-color: 255, 255, 255; /* Default: white */
+  background: linear-gradient(to right, rgba(var(--shine-color), 0) 0%, rgba(var(--shine-color), 0.15) 50%, rgba(var(--shine-color), 0) 100%);
   pointer-events: none;
   transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -98,26 +45,12 @@ body.dark {
   transform: translateX(300%) skewX(-25deg);
 }
 
-/* Styles specific to preview.html */
-h1, h2, code {
-    font-family: 'Kanit', sans-serif;
-}
-code {
-    background-color: #e5e7eb; /* bg-gray-200 */
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.25rem;
-    font-size: 0.9em;
-    color: #1f2937; /* text-gray-800 */
-}
-.dark code {
-    background-color: #374151; /* bg-gray-700 */
-    color: #d1d5db; /* text-gray-300 */
-}
-/* Animation for modal pop-in */
-.anim-modal-pop-in {
-    animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-@keyframes pop-in {
-    0% { opacity: 0; transform: scale(0.95); }
-    100% { opacity: 1; transform: scale(1); }
+@layer components {
+  .btn-icon {
+    @apply p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900;
+  }
+
+  .btn-primary {
+    @apply w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-slate-950;
+  }
 }

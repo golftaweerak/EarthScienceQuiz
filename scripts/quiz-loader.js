@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Get the quiz ID from the URL query parameter
+    // Set current year in footer
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('id');
 
