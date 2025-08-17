@@ -324,10 +324,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Attach listeners to the main category buttons in the header to open the corresponding accordion
     document.querySelectorAll('header[aria-label="เลือกหมวดวิชา"] a').forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (event) => {
+            // Prevent the default anchor link behavior to handle it with JS for consistency.
+            // This can resolve issues on some touch devices where both JS and default behavior conflict.
+            event.preventDefault();
+
             const targetId = button.getAttribute('href').substring(1);
             const targetSection = document.getElementById(targetId);
+
             if (targetSection) {
+                // Manually scroll to the section. The `scroll-behavior: smooth` in CSS will handle the animation.
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
                 const toggleHeader = targetSection.querySelector('.section-toggle');
                 if (toggleHeader) {
                     // When clicking the header button, we want to ensure the section opens.
