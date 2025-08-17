@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Modal elements might not exist on every page, so we get them but don't fail if they are missing.
-    const completedQuizModal = document.getElementById('completed-quiz-modal');
+    // --- Modal Setup ---
+    // Use the new ModalHandler for the "Completed Quiz" modal.
+    const completedModal = new ModalHandler('completed-quiz-modal');
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
-    const cancelCompletedBtn = document.getElementById('completed-cancel-btn');
 
     let activeQuizUrl = ''; // To store the URL for the modal actions
     let activeStorageKey = ''; // To store the storage key for the modal actions
@@ -121,10 +121,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             event.preventDefault();
 
                             // If the "Completed Quiz" modal exists on the current page, show it.
-                            if (completedQuizModal && window.AppUtils) {
+                            if (completedModal.modal) { // Check if the modal element exists
                                 activeQuizUrl = link.href;
                                 activeStorageKey = quiz.storageKey;
-                                window.AppUtils.showModal(completedQuizModal);
+                                completedModal.open(event.currentTarget); // Pass the link as the trigger
                             } else {
                                 // If the modal doesn't exist (e.g., we are on a different quiz page),
                                 // navigate directly to view the results of the clicked quiz.
@@ -176,17 +176,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const separator = activeQuizUrl.includes('?') ? '&' : '?';
                 window.location.href = `${activeQuizUrl}${separator}action=view_results`;
             }
-            if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
+            completedModal.close();
         });
     }
     if (startOverBtn) {
         startOverBtn.addEventListener('click', () => {
             if (activeStorageKey) localStorage.removeItem(activeStorageKey);
             if (activeQuizUrl) window.location.href = activeQuizUrl;
-            if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
+            completedModal.close();
         });
     }
-    if (cancelCompletedBtn) cancelCompletedBtn.addEventListener('click', () => {
-        if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
-    });
+    // The cancel button is now handled automatically by ModalHandler via the `data-modal-close` attribute.
 });

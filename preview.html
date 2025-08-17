@@ -124,7 +124,6 @@
     <!-- Scenario Details Modal -->
     <div id="scenario-modal"
         class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div id="scenario-modal-backdrop" class="absolute inset-0"></div>
         <div id="scenario-modal-content"
             class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
             <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
@@ -132,7 +131,7 @@
             <div id="scenario-modal-description"
                 class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
             </div>
-            <button id="scenario-modal-close" aria-label="ปิด"
+            <button id="scenario-modal-close" data-modal-close aria-label="ปิด"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
                 <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor">
@@ -152,6 +151,7 @@
     </button>
     <!-- Load data first, as preview.js depends on it -->
     <script src="./data/quizzes-list.js"></script>
+    <script src="./scripts/modal-handler.js"></script>
     <script src="./scripts/preview.js"></script>
     <script src="./scripts/dark-mode.js"></script>
     <script src="./scripts/main-menu.js" defer></script>

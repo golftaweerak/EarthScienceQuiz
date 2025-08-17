@@ -262,6 +262,7 @@
         <button id="completed-start-over-btn"
           class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">เริ่มใหม่</button>
         <button id="completed-cancel-btn"
+          data-modal-close
           class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">ยกเลิก</button>
       </div>
     </div>
@@ -270,7 +271,8 @@
   <script src="../scripts/page-transitions.js" defer></script>
   <script src="../scripts/dark-mode.js" defer></script>
   <script src="../data/quizzes-list.js" defer></script>
-  <script src="../scripts/utils.js" defer></script> <!-- ADD: Load shared modal utility functions -->
+  <script src="../scripts/modal-handler.js" defer></script> <!-- Use the new central modal handler -->
+  <script src="../scripts/utils.js" defer></script> <!-- Kept for now, can be removed if no longer used -->
   <script src="../scripts/quiz-logic.js" defer></script>
   <script src="../scripts/dropdown-menu.js" defer></script>
   <script src="../scripts/quiz-loader.js" defer></script> <!-- New script to load quiz data -->

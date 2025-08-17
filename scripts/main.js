@@ -1,17 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 0. Cache Modal Elements ---
-    const resetConfirmModal = document.getElementById('reset-confirm-modal');
-    const modalContent = resetConfirmModal ? resetConfirmModal.querySelector('.modal-content') : null;
-    const resetConfirmBtn = document.getElementById('reset-confirm-btn');
-    const resetCancelBtn = document.getElementById('reset-cancel-btn');
+    // --- 0. Initialize Modals and Cache Elements ---
 
-    // NEW: Cache completed quiz modal elements
-    const completedQuizModal = document.getElementById('completed-quiz-modal');
-    const completedModalContent = completedQuizModal ? completedQuizModal.querySelector('.modal-content') : null;
+    // Use the new ModalHandler for accessible, reusable modals.
+    const resetModal = new ModalHandler('reset-confirm-modal');
+    const completedModal = new ModalHandler('completed-quiz-modal');
+
+    // Cache buttons that trigger actions other than just closing the modal.
+    const resetConfirmBtn = document.getElementById('reset-confirm-btn');
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
-    const cancelCompletedBtn = document.getElementById('completed-cancel-btn');
-    let activeQuizUrl = ''; // To store the URL for the modal actions
+    // Cancel buttons are now handled automatically by the ModalHandler via the `data-modal-close` attribute.
+
+    // State variables to hold context for the active modal.
+    let activeQuizUrl = ''; // To store the quiz URL for the 'completed' modal actions.
     let activeStorageKey = ''; // To store the storage key for the modal actions
     let confirmCallback = null; // To store the action to perform on confirmation
 
@@ -228,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     event.preventDefault();
                     activeQuizUrl = quiz.url;
                     activeStorageKey = quiz.storageKey;
-                    showCompletedQuizModal();
+                    completedModal.open(event.currentTarget); // Open modal and pass the card as the trigger for focus restoration.
                 }
                 // Otherwise, the default 'a' tag behavior (navigation) will proceed.
             });
@@ -268,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
 
                     // Show the custom modal instead of the native confirm dialog
-                    showResetModal(onConfirm);
+                    showResetModal(onConfirm, event.currentTarget);
                 });
             }
         });
@@ -323,59 +324,40 @@ document.addEventListener('DOMContentLoaded', () => {
         yearSpan.textContent = new Date().getFullYear();
     }
 
-    // --- 10. Specific Modal Implementations ---
-    // Completed Quiz Modal
-    const showCompletedQuizModal = () => {
-        if (window.AppUtils) window.AppUtils.showModal(completedQuizModal);
-    };
-    const hideCompletedQuizModal = () => {
-        if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal, () => {
-        activeQuizUrl = '';
-        activeStorageKey = '';
-    })};
+    // --- 10. Modal Action Logic ---
 
+    // --- Completed Quiz Modal Actions ---
     if (viewResultsBtn) {
         viewResultsBtn.addEventListener('click', () => {
             if (activeQuizUrl) {
-                // BUG FIX: Correctly append the 'action' parameter.
-                // The original URL already contains a '?', so subsequent parameters must use '&'.
                 const separator = activeQuizUrl.includes('?') ? '&' : '?';
                 window.location.href = `${activeQuizUrl}${separator}action=view_results`;
             }
-            hideCompletedQuizModal();
+            completedModal.close();
         });
     }
     if (startOverBtn) {
         startOverBtn.addEventListener('click', () => {
             if (activeStorageKey) localStorage.removeItem(activeStorageKey);
             if (activeQuizUrl) window.location.href = activeQuizUrl;
-            hideCompletedQuizModal();
+            completedModal.close();
         });
     }
-    if (cancelCompletedBtn) {
-        cancelCompletedBtn.addEventListener('click', hideCompletedQuizModal);
-    }
 
-    // Reset Confirmation Modal
-    const showResetModal = (onConfirm) => {
-        // Store the callback function to be executed on confirmation
+    // --- Reset Confirmation Modal Logic ---
+    const showResetModal = (onConfirm, triggerElement) => {
         confirmCallback = onConfirm;
-        if (window.AppUtils) window.AppUtils.showModal(resetConfirmModal);
+        resetModal.open(triggerElement); // Pass the trigger element for focus restoration.
     };
-    const hideResetModal = () => {
-        if (window.AppUtils) window.AppUtils.hideModal(resetConfirmModal, () => {
-        confirmCallback = null; // Clean up callback
-    })};
 
     // Add event listeners for modal buttons once, when the script loads
-    if (resetConfirmBtn && resetCancelBtn) {
+    if (resetConfirmBtn) {
         resetConfirmBtn.addEventListener('click', () => {
             if (typeof confirmCallback === 'function') {
                 confirmCallback();
             }
-            hideResetModal();
+            resetModal.close();
+            confirmCallback = null; // Clean up callback after use.
         });
-
-        resetCancelBtn.addEventListener('click', hideResetModal);
     }
 });
