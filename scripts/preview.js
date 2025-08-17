@@ -372,7 +372,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('preview-container');
     const quizSelector = document.getElementById('quiz-selector');
     const searchInput = document.getElementById('search-input');
-    const downloadPdfBtn = document.getElementById('download-pdf-btn');
 
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
@@ -466,7 +465,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderQuizData();
             } else {
                 // No quiz selected, perform global search
-                downloadPdfBtn.disabled = true;
                 handleGlobalSearch();
             }
         }, CONFIG.SEARCH_DEBOUNCE_MS);
@@ -478,14 +476,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedScript) {
             url.searchParams.set('script', selectedScript);
             window.history.pushState({}, '', url);
-            downloadPdfBtn.disabled = false;
             loadAndRenderQuiz(selectedScript);
         } else {
             url.searchParams.delete('script');
             window.history.pushState({}, '', url);
             currentQuizData = [];
             searchInput.value = '';
-            downloadPdfBtn.disabled = true;
             handleGlobalSearch();
         }
     });
@@ -495,23 +491,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (scriptNameFromUrl) {
         quizSelector.value = scriptNameFromUrl;
         loadAndRenderQuiz(scriptNameFromUrl);
-        downloadPdfBtn.disabled = false;
     } else {
         quizSelector.value = '';
-        downloadPdfBtn.disabled = true;
         handleGlobalSearch();
-    }
-
-    // --- PDF Generation Functionality (New Redirect Strategy) ---
-    if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', function() {
-            const selectedScript = quizSelector.value;
-            if (selectedScript) {
-                // Open pdf-conv.html in a new tab with the selected script as a parameter
-                const pdfUrl = `scripts/test pdf/pdf-conv.html?script=${selectedScript}`;
-                window.open(pdfUrl, '_blank');
-            }
-        });
     }
 
     // --- Modal Functionality ---
