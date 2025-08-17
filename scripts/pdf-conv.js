@@ -205,13 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await html2pdf().from(pdfElement).set(opt).save();
 
             // Cleanup
-            btn.textContent = 'สร้าง PDF สำเร็จ!';
+            btn.textContent = originalButtonText;
+            btn.disabled = false;
             document.body.removeChild(pdfElement);
-
-            // Automatically close the window after a short delay
-            setTimeout(() => {
-                window.close();
-            }, 1500);
 
         } catch (err) {
             console.error("PDF generation failed:", err);
@@ -239,37 +235,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     populateQuizSelector();
 
-    // --- Auto-load and Auto-generate PDF from URL parameter ---
-    async function autoLoadAndGenerateFromUrl() {
+    // --- Auto-load from URL parameter ---
+    async function autoLoadFromUrl() {
         const params = new URLSearchParams(window.location.search);
         const scriptNameFromUrl = params.get('script');
 
         if (scriptNameFromUrl) {
-            // Hide manual controls and show a user-friendly status message
-            const header = document.querySelector('.test-header');
-            if (header) header.style.display = 'none';
-            container.innerHTML = `<p class="placeholder">กำลังเตรียมข้อมูลสำหรับสร้าง PDF, กรุณารอสักครู่...</p>`;
-
             // Find the option in the selector that matches the script name
             const optionToSelect = Array.from(quizSelector.options).find(opt => opt.value === scriptNameFromUrl);
             
             if (optionToSelect) {
                 // Set the dropdown to the correct value and trigger the loading process
                 optionToSelect.selected = true;
-                const success = await loadAndRenderQuiz(scriptNameFromUrl);
-
-                if (success) {
-                    console.log("Content loaded, automatically triggering PDF generation.");
-                    await triggerPdfGeneration();
-                } else {
-                    // If loading fails, show the controls again for manual selection
-                    if (header) header.style.display = 'flex';
-                }
+                await loadAndRenderQuiz(scriptNameFromUrl);
             } else {
                 container.innerHTML = `<p class="placeholder error">ไม่พบชุดข้อสอบที่ตรงกับ URL ที่ระบุ (${scriptNameFromUrl})</p>`;
-                if (header) header.style.display = 'flex';
             }
         }
     }
-    autoLoadAndGenerateFromUrl(); // Call the new function after populating the selector
+    autoLoadFromUrl(); // Call the new function after populating the selector
 });
