@@ -146,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const section = document.createElement('section');
+        // Add an ID for anchor linking from the header buttons
+        section.id = `category-${categoryKey}`;
         section.className = 'section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden';
         
         const toggleHeader = document.createElement('div');
@@ -282,26 +284,55 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- 6. Accordion Functionality ---
-    document.querySelectorAll('.section-toggle').forEach(toggle => {
-        toggle.addEventListener('click', () => {
-            const content = toggle.nextElementSibling;
-            const icon = toggle.querySelector('.chevron-icon');
-            const iconContainer = toggle.querySelector('.section-icon-container');
-            
-            // Check if the content is currently collapsed
-            const isCollapsed = content.classList.contains('grid-rows-[0fr]');
-            
-            // Toggle classes to expand/collapse
-            content.classList.toggle('grid-rows-[1fr]', isCollapsed);
-            content.classList.toggle('grid-rows-[0fr]', !isCollapsed);
-            
-            // Rotate icon
-            icon.classList.toggle('rotate-180', isCollapsed);
+    const toggleAccordion = (toggleElement, forceState) => { // forceState can be 'open', 'close', or undefined (toggle)
+        const content = toggleElement.nextElementSibling;
+        const icon = toggleElement.querySelector('.chevron-icon');
+        const iconContainer = toggleElement.querySelector('.section-icon-container');
+        if (!content || !icon) return;
 
-            // Add a "lift" effect to the main icon when the section is opened
-            if (iconContainer) {
-                iconContainer.classList.toggle('scale-105', isCollapsed);
-                iconContainer.classList.toggle('shadow-lg', isCollapsed);
+        const isCollapsed = content.classList.contains('grid-rows-[0fr]');
+
+        let shouldBeOpen;
+        if (forceState === 'open') {
+            shouldBeOpen = true;
+        } else if (forceState === 'close') {
+            shouldBeOpen = false;
+        } else {
+            shouldBeOpen = isCollapsed; // Toggle
+        }
+
+        // If the state is already what we want it to be, do nothing.
+        if (shouldBeOpen === !isCollapsed) {
+            return;
+        }
+
+        content.classList.toggle('grid-rows-[1fr]', shouldBeOpen);
+        content.classList.toggle('grid-rows-[0fr]', !shouldBeOpen);
+        
+        icon.classList.toggle('rotate-180', shouldBeOpen);
+
+        if (iconContainer) {
+            iconContainer.classList.toggle('scale-105', shouldBeOpen);
+            iconContainer.classList.toggle('shadow-lg', shouldBeOpen);
+        }
+    };
+
+    // Attach listener to the accordion headers themselves for toggling
+    document.querySelectorAll('.section-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => toggleAccordion(toggle));
+    });
+
+    // Attach listeners to the main category buttons in the header to open the corresponding accordion
+    document.querySelectorAll('header[aria-label="เลือกหมวดวิชา"] a').forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('href').substring(1);
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                const toggleHeader = targetSection.querySelector('.section-toggle');
+                if (toggleHeader) {
+                    // When clicking the header button, we want to ensure the section opens.
+                    toggleAccordion(toggleHeader, 'open');
+                }
             }
         });
     });
