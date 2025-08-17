@@ -7,6 +7,19 @@ const CONFIG = {
     DEFAULT_ZOOM: 100,
 };
 
+// Centralized category display names to match index.html
+const categoryDetails = {
+    AstronomyReview: {
+        title: "ทบทวน (Review)",
+    },
+    Astronomy: {
+        title: "ดาราศาสตร์ (Astronomy)",
+    },
+    EarthScience: {
+        title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
+    },
+};
+
 let currentQuizData = []; // Store the full data for the selected quiz
 let allQuizzesCache = null; // Cache for all quiz data to avoid re-fetching
 
@@ -76,8 +89,8 @@ function highlightText(text, keyword) {
 
 // Helper function to create a single question element. This promotes reusability.
 function createQuestionElement(item, displayIndex, keyword) {
-    // Determine if the view should hide answers and explanations (for user-facing page)
-    const isUserView = window.location.pathname.endsWith('/preview.html');
+    // Check the state of the "Show Answers" toggle
+    const showAnswers = document.getElementById('show-answers-toggle')?.checked;
 
     // Replace newline characters with <br> tags for proper HTML rendering
     const questionHtml = item.question ? highlightText(item.question.replace(/\n/g, '<br>'), keyword) : '';
@@ -126,7 +139,7 @@ function createQuestionElement(item, displayIndex, keyword) {
             // Also replace newlines in choices, just in case
             choiceItem.innerHTML = ` ${highlightText(choice.replace(/\n/g, '<br>'), keyword)}`; // Add space for alignment and highlight
             // Highlight the correct answer
-            if (!isUserView && choice === item.answer) {
+            if (showAnswers && choice === item.answer) {
                 choiceItem.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
             }
             choicesList.appendChild(choiceItem);
@@ -134,7 +147,7 @@ function createQuestionElement(item, displayIndex, keyword) {
         questionDiv.appendChild(choicesList);
     }
     // Add explanation section
-    if (!isUserView && explanationHtml) {
+    if (showAnswers && explanationHtml) {
         const explanationDiv = document.createElement('div');
         // Restore the visually appealing Flexbox layout.
         explanationDiv.className = 'mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm leading-relaxed flex flex-row items-baseline';
@@ -166,8 +179,12 @@ function renderQuizData() {
     const container = document.getElementById('preview-container');
     const searchInput = document.getElementById('search-input');
     const filterKeyword = searchInput.value.toLowerCase().trim();
+    const countContainer = document.getElementById('question-count-container');
 
     container.innerHTML = '';
+    if (countContainer) {
+        countContainer.innerHTML = '';
+    }
 
     if (currentQuizData.length > 0) {
         const filteredData = filterKeyword ? currentQuizData.filter(item => {
@@ -186,6 +203,18 @@ function renderQuizData() {
                    scenarioDescriptionText.includes(filterKeyword) ||
                    sourceQuizTitleText.includes(filterKeyword);
         }) : currentQuizData;
+
+        // Update the question count display
+        if (countContainer) {
+            const totalCount = currentQuizData.length;
+            const foundCount = filteredData.length;
+
+            if (filterKeyword) {
+                countContainer.innerHTML = `พบ <span class="font-bold text-blue-600 dark:text-blue-400">${foundCount}</span> ข้อ จากทั้งหมด <span class="font-bold">${totalCount}</span> ข้อ`;
+            } else {
+                countContainer.innerHTML = `แสดงทั้งหมด <span class="font-bold">${totalCount}</span> ข้อ`;
+            }
+        }
 
         if (filteredData.length === 0) {
             container.innerHTML = `<div class="bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300 p-4 rounded-r-lg" role="alert">
@@ -335,12 +364,17 @@ async function handleGlobalSearch() {
     const searchInput = document.getElementById('search-input');
     const container = document.getElementById('preview-container');
     const keyword = searchInput.value.trim();
+    const countContainer = document.getElementById('question-count-container');
 
-    if (keyword.length < 3) {
+    if (countContainer) {
+        countContainer.innerHTML = '';
+    }
+
+    if (keyword.length < CONFIG.MIN_SEARCH_LENGTH) {
         currentQuizData = []; // Clear previous results when search term is too short
         container.innerHTML = `<div class="bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-r-lg" role="alert">
                                    <p class="font-bold">ค้นหาในทุกชุดข้อสอบ</p>
-                                   <p>กรุณาพิมพ์อย่างน้อย 3 ตัวอักษรเพื่อเริ่มการค้นหา</p>
+                                   <p>กรุณาพิมพ์อย่างน้อย ${CONFIG.MIN_SEARCH_LENGTH} ตัวอักษรเพื่อเริ่มการค้นหา</p>
                                </div>`;
         return;
     }
@@ -355,6 +389,9 @@ svg" fill="none" viewBox="0 0 24 24">
                             </div>`;
     try {
         const allData = await fetchAllQuizData();
+        if (countContainer) {
+            countContainer.innerHTML = `กำลังค้นหาจากข้อสอบทั้งหมด <span class="font-bold">${allData.length}</span> ข้อ...`;
+        }
         currentQuizData = allData;
         renderQuizData(); // renderQuizData will use the keyword from the input to filter
     } catch (error) {
@@ -372,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('preview-container');
     const quizSelector = document.getElementById('quiz-selector');
     const searchInput = document.getElementById('search-input');
+    const showAnswersToggle = document.getElementById('show-answers-toggle');
 
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
@@ -393,20 +431,66 @@ document.addEventListener('DOMContentLoaded', () => {
     zoomResetBtn.addEventListener('click', () => { currentZoomLevel = CONFIG.DEFAULT_ZOOM; applyZoom(); });
     applyZoom(); // Set initial state
 
-    // Populate dropdown from quizList and derive the correct data filename
+    // --- Show/Hide Answers Toggle Functionality ---
+    if (showAnswersToggle) {
+        // Set default state: ON for preview-data.html, OFF for preview.html
+        const isReviewerView = window.location.pathname.endsWith('/preview-data.html');
+        showAnswersToggle.checked = isReviewerView;
+
+        // Add event listener to re-render the quiz when the toggle state changes
+        showAnswersToggle.addEventListener('change', () => {
+            // Re-render the currently displayed data with the new answer visibility
+            renderQuizData();
+        });
+    }
+
+    // Populate dropdown from quizList with categories
     if (typeof quizList !== 'undefined' && Array.isArray(quizList)) {
-        quizList.forEach(quiz => {
-            const option = document.createElement('option');
-            // The data file is named based on the quiz id, e.g., "senior1-data.js"
-            option.value = `${quiz.id}-data.js`;
-            option.textContent = quiz.title;
-            quizSelector.appendChild(option);
+        // Group quizzes by category
+        const groupedQuizzes = quizList.reduce((acc, quiz) => {
+            const category = quiz.category || 'อื่น ๆ'; // Use a default category if none is specified
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(quiz);
+            return acc;
+        }, {});
+
+        // Create optgroups and options, ensuring a consistent order by sorting category keys
+        const categoryOrder = ['AstronomyReview']; // Define which category should come first.
+
+        Object.keys(groupedQuizzes).sort((a, b) => {
+            const aIsFirst = categoryOrder.includes(a);
+            const bIsFirst = categoryOrder.includes(b);
+
+            if (aIsFirst && !bIsFirst) {
+                return -1; // a comes before b
+            }
+            if (!aIsFirst && bIsFirst) {
+                return 1; // b comes before a
+            }
+            return a.localeCompare(b); // Otherwise, sort alphabetically
+        }).forEach(categoryKey => {
+            const optgroup = document.createElement('optgroup');
+            // Use the display title from categoryDetails, or the key itself as a fallback
+            optgroup.label = categoryDetails[categoryKey]?.title || categoryKey;
+            
+            groupedQuizzes[categoryKey].forEach(quiz => {
+                const option = document.createElement('option');
+                option.value = `${quiz.id}-data.js`;
+                option.textContent = quiz.title;
+                optgroup.appendChild(option);
+            });
+
+            quizSelector.appendChild(optgroup);
         });
     }
 
     async function loadAndRenderQuiz(scriptName) {
         searchInput.value = ''; // Clear search on new quiz selection
         currentQuizData = []; // Clear old data
+        const countContainer = document.getElementById('question-count-container');
+        if (countContainer) countContainer.innerHTML = '';
 
         if (!scriptName) {
             scriptNameEl.textContent = 'ไม่ได้ระบุไฟล์สคริปต์';
@@ -418,7 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const scriptPath = `data/${scriptName}`;
-        scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
+        //scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
         container.innerHTML = `<div class="text-center p-8 text-gray-500 dark:text-gray-400">
                                     <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
