@@ -668,6 +668,64 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
+   * Updates the title of a specific custom quiz in localStorage.
+   * @param {string} customId The unique ID of the quiz to update.
+   * @param {string} newTitle The new title for the quiz.
+   */
+  function updateCustomQuizTitle(customId, newTitle) {
+    const savedQuizzesJSON = localStorage.getItem("customQuizzesList");
+    let savedQuizzes = savedQuizzesJSON ? JSON.parse(savedQuizzesJSON) : [];
+
+    const quizIndex = savedQuizzes.findIndex((q) => q.customId === customId);
+
+    if (quizIndex > -1) {
+      savedQuizzes[quizIndex].title = newTitle.trim(); // Trim whitespace
+      localStorage.setItem("customQuizzesList", JSON.stringify(savedQuizzes));
+    }
+  }
+
+  /**
+   * Toggles the UI between view and edit mode for a custom quiz item.
+   * @param {HTMLElement} quizItemEl The list item element to toggle.
+   * @param {boolean} [isEditing] Force a specific state (true for edit, false for view).
+   */
+  function toggleEditMode(quizItemEl, isEditing) {
+    const titleDisplay = quizItemEl.querySelector("[data-title-display]");
+    const editContainer = quizItemEl.querySelector("[data-edit-container]");
+    const viewControls = quizItemEl.querySelector("[data-view-controls]");
+    const editControls = quizItemEl.querySelector("[data-edit-controls]");
+
+    if (!titleDisplay || !editContainer || !viewControls || !editControls)
+      return;
+
+    const shouldBeEditing =
+      isEditing === undefined ? editContainer.classList.contains("hidden") : isEditing;
+
+    if (shouldBeEditing) {
+      // Switch to Edit Mode
+      const currentTitle = titleDisplay.querySelector("p.font-bold").textContent;
+      editContainer.innerHTML = `<input type="text" value="${currentTitle}" class="w-full p-1 border border-blue-400 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500">`;
+
+      titleDisplay.classList.add("hidden");
+      editContainer.classList.remove("hidden");
+      viewControls.classList.add("hidden");
+      editControls.classList.remove("hidden");
+
+      // Focus the input and select its content
+      const input = editContainer.querySelector("input");
+      input.focus();
+      input.select();
+    } else {
+      // Switch to View Mode
+      titleDisplay.classList.remove("hidden");
+      editContainer.classList.add("hidden");
+      editContainer.innerHTML = ""; // Clear the input
+      viewControls.classList.remove("hidden");
+      editControls.classList.add("hidden");
+    }
+  }
+
+  /**
    * Renders the list of saved custom quizzes in the hub modal.
    */
   function renderCustomQuizList() {
@@ -685,8 +743,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     savedQuizzes.forEach((quiz) => {
       const quizItemEl = document.createElement("div");
+      quizItemEl.dataset.quizId = quiz.customId;
       quizItemEl.className =
-        "flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600";
+        "custom-quiz-item flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600";
 
       const progress = getQuizProgress(quiz.storageKey, quiz.questions.length);
       let progressText = "";
@@ -697,58 +756,90 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       quizItemEl.innerHTML = `
-                <div class="flex-grow">
-                    <p class="font-bold text-gray-800 dark:text-gray-100">${
-                      quiz.title
-                    }</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">${
-                      quiz.description
-                    }</p>
-                    ${
-                      progressText
-                        ? `<div class="mt-1">${progressText}</div>`
-                        : ""
-                    }
+                <div class="flex-grow min-w-0">
+                    <div data-title-display>
+                        <p class="font-bold text-gray-800 dark:text-gray-100 truncate">${quiz.title}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 truncate">${quiz.description}</p>
+                    </div>
+                    <div data-edit-container class="hidden">
+                        <!-- Input will be injected here by JS -->
+                    </div>
+                    ${progressText ? `<div class="mt-1">${progressText}</div>` : ""}
                 </div>
                 <div class="flex-shrink-0 flex items-center gap-2">
-                    <a href="./quiz/index.html?id=${
-                      quiz.customId
-                    }" class="start-custom-quiz-btn px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition">
-                        ${progress.hasProgress ? "ทำต่อ" : "เริ่มทำ"}
-                    </a>
-                    <button data-quiz-id="${
-                      quiz.customId
-                    }" aria-label="ลบแบบทดสอบ" class="delete-custom-quiz-btn p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                    <!-- View Mode Controls -->
+                    <div data-view-controls class="flex items-center gap-2">
+                        <a href="./quiz/index.html?id=${quiz.customId}" class="start-custom-quiz-btn px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition">
+                            ${progress.hasProgress ? "ทำต่อ" : "เริ่มทำ"}
+                        </a>
+                        <button data-action="edit" aria-label="แก้ไขชื่อ" class="p-2 text-gray-500 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 dark:hover:text-yellow-400 rounded-full transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button data-action="delete" aria-label="ลบแบบทดสอบ" class="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                    <!-- Edit Mode Controls -->
+                    <div data-edit-controls class="hidden flex items-center gap-2">
+                        <button data-action="save" aria-label="บันทึก" class="p-2 text-gray-500 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/50 dark:hover:text-green-400 rounded-full transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
                 </div>
             `;
       customQuizListContainer.appendChild(quizItemEl);
     });
+  }
 
-    // Add event listeners to the newly created delete buttons.
-    // This direct binding is more robust in this case than event delegation.
-    customQuizListContainer
-      .querySelectorAll(".delete-custom-quiz-btn")
-      .forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation(); // Prevent any other click events from firing.
-          const customId = e.currentTarget.dataset.quizId;
-          // Use the generic confirmation modal
+  // Use event delegation on the list container for all actions (delete, edit, save, cancel)
+  // This is more efficient than adding a listener to every button on every item.
+  if (customQuizListContainer) {
+    customQuizListContainer.addEventListener("click", (e) => {
+      const button = e.target.closest("button[data-action]");
+      if (!button) return;
+
+      e.stopPropagation(); // Prevent card link navigation
+
+      const quizItemEl = e.target.closest(".custom-quiz-item");
+      if (!quizItemEl) return;
+
+      const customId = quizItemEl.dataset.quizId;
+      const action = button.dataset.action;
+
+      switch (action) {
+        case "delete": {
           const onConfirmDelete = () => deleteCustomQuiz(customId);
           const title = "ยืนยันการลบ";
           const description =
             'คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบนี้? <br><strong class="text-red-600 dark:text-red-500">ข้อมูลความคืบหน้าจะถูกลบไปด้วย และไม่สามารถย้อนกลับได้</strong>';
-          showConfirmModal(
-            title,
-            description,
-            onConfirmDelete,
-            e.currentTarget
-          );
-        });
-      });
+          showConfirmModal(title, description, onConfirmDelete, button);
+          break;
+        }
+        case "edit": {
+          toggleEditMode(quizItemEl, true);
+          break;
+        }
+        case "cancel": {
+          toggleEditMode(quizItemEl, false);
+          break;
+        }
+        case "save": {
+          const input = quizItemEl.querySelector("input[type='text']");
+          if (input && input.value.trim()) {
+            const newTitle = input.value.trim();
+            updateCustomQuizTitle(customId, newTitle);
+            // Update the title in the DOM directly without a full re-render
+            const titleDisplayP = quizItemEl.querySelector("[data-title-display] p.font-bold");
+            if (titleDisplayP) titleDisplayP.textContent = newTitle;
+            toggleEditMode(quizItemEl, false);
+          }
+          break;
+        }
+      }
+    });
   }
 
   // --- NEW: Centralized logic for Custom Quiz UI generation and handling ---
