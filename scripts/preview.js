@@ -563,6 +563,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfContent.getBoundingClientRect();
                 await new Promise(resolve => requestAnimationFrame(resolve));
 
+                // --- Final Precautionary Delay ---
+                // Even after fonts are ready and a paint is requested, some complex renders
+                // might need an extra moment. This small delay acts as a final safeguard
+                // against capturing a partially rendered state, which causes blank PDFs.
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+
                 // 7. Set options and generate PDF
                 const filename = `${pdfTitle.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
                 const opt = {
