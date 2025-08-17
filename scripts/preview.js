@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectedScript = quizSelector.value;
             if (selectedScript) {
                 // Open pdf-conv.html in a new tab with the selected script as a parameter
-                const pdfUrl = `pdf-conv.html?script=${selectedScript}`;
+                const pdfUrl = `scripts/test pdf/pdf-conv.html?script=${selectedScript}`;
                 window.open(pdfUrl, '_blank');
             }
         });
