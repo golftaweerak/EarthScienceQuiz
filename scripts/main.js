@@ -24,28 +24,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Custom Quiz Creation ---
     let allQuestionsCache = null; // Cache for all quiz questions
+    let questionsBySubCategory = {}; // Cache for questions sorted by sub-category { Astronomy: [], Geology: [], ... }
 
     // This function is adapted from preview.js. For a larger project,
     // this would be moved to a shared utility module.
     async function fetchAllQuizData() {
-        if (allQuestionsCache) {
-            return allQuestionsCache;
+        // If cache is populated, return it immediately.
+        if (allQuestionsCache && Object.keys(questionsBySubCategory).length > 0) {
+            return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategory };
         }
+
         const promises = quizList.map(async (quiz) => {
             const scriptPath = `./data/${quiz.id}-data.js`;
             try {
                 const response = await fetch(scriptPath);
                 if (!response.ok) return [];
                 const scriptText = await response.text();
+                // This is a safe way to execute the script text and get the data variable.
                 const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
+                
                 if (data && Array.isArray(data)) {
                     // Flatten scenarios into individual questions, prepending the scenario context.
-                    return data.flatMap(item => {
+                    // Also, ensure each question has a subCategory property.
+                    const processedData = data.flatMap(item => {
                         if (item.type === 'scenario' && Array.isArray(item.questions)) {
-                            return item.questions.map(q => ({ ...q, question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${item.title}</p><p class="mt-2 text-gray-700 dark:text-gray-300">${item.description.replace(/\n/g, '<br>')}</p></div>${q.question}` }));
+                            return item.questions.map(q => ({
+                                ...q,
+                                question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${item.title}</p><p class="mt-2 text-gray-700 dark:text-gray-300">${item.description.replace(/\n/g, '<br>')}</p></div>${q.question}`,
+                                // Prioritize subCategory from question, then scenario.
+                                subCategory: q.subCategory || item.subCategory
+                            }));
                         }
-                        return item;
+                        // Standalone question
+                        return { ...item, subCategory: item.subCategory };
                     });
+                    // Filter out any questions that ended up without a subCategory
+                    return processedData.filter(q => q.subCategory);
                 }
                 return [];
             } catch (error) {
@@ -53,9 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return [];
             }
         });
+
         const results = await Promise.all(promises);
         allQuestionsCache = results.flat();
-        return allQuestionsCache;
+
+        // Group questions by sub-category
+        questionsBySubCategory = allQuestionsCache.reduce((acc, question) => {
+            const category = question.subCategory;
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(question);
+            return acc;
+        }, {});
+
+        return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategory };
     }
 
     // --- Helper Functions for Progress Display ---
@@ -404,10 +430,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 9. Custom Quiz Creation Functionality ---
     const createCustomQuizBtn = document.getElementById('create-custom-quiz-btn');
     const customQuizStartBtn = document.getElementById('custom-quiz-start-btn');
-    const slider = document.getElementById('question-count-slider');
-    const countInput = document.getElementById('question-count-input');
-    const countValueDisplay = document.getElementById('question-count-value');
-    const maxValueDisplay = document.getElementById('question-max-value');
+    const categorySelectionContainer = document.getElementById('custom-quiz-category-selection');
+    const totalQuestionCountDisplay = document.getElementById('total-question-count');
     const openCreateQuizModalBtn = document.getElementById('open-create-quiz-modal-btn');
     const customQuizListContainer = document.getElementById('custom-quiz-list');
     const noCustomQuizzesMsg = document.getElementById('no-custom-quizzes-msg');
@@ -521,23 +545,49 @@ document.addEventListener('DOMContentLoaded', () => {
             openCreateQuizModalBtn.disabled = true;
 
             try {
-                const allQuestions = await fetchAllQuizData();
-                const maxQuestions = allQuestions.length;
+                const { byCategory } = await fetchAllQuizData();
+                
+                // Setup UI for each category
+                Object.keys(byCategory).forEach(category => {
+                    const maxCount = byCategory[category].length;
+                    const slider = document.querySelector(`[data-slider="${category}"]`);
+                    const input = document.querySelector(`[data-input="${category}"]`);
+                    const maxDisplay = document.querySelector(`[data-max-display="${category}"]`);
+                    
+                    if (slider && input && maxDisplay) {
+                        slider.max = maxCount;
+                        input.max = maxCount;
+                        maxDisplay.textContent = maxCount;
+                        
+                        // Reset to 0
+                        slider.value = 0;
+                        input.value = 0;
+                        updateCategoryCount(category, 0);
+                    }
+                });
 
-                slider.max = maxQuestions;
-                countInput.max = maxQuestions;
-                maxValueDisplay.textContent = maxQuestions;
-
-                if (parseInt(slider.value) > maxQuestions) {
-                    slider.value = maxQuestions;
-                    countInput.value = maxQuestions;
-                    countValueDisplay.textContent = maxQuestions;
+                // Specifically handle the "General" category
+                const { allQuestions } = await fetchAllQuizData(); // We need the total count
+                const generalMaxCount = allQuestions.length;
+                const generalSlider = document.querySelector(`[data-slider="General"]`);
+                const generalInput = document.querySelector(`[data-input="General"]`);
+                const generalMaxDisplay = document.querySelector(`[data-max-display="General"]`);
+                if (generalSlider && generalInput && generalMaxDisplay) {
+                    generalSlider.max = generalMaxCount;
+                    generalInput.max = generalMaxCount;
+                    generalMaxDisplay.textContent = generalMaxCount;
+                    // Reset to 0
+                    generalSlider.value = 0;
+                    generalInput.value = 0;
+                    updateCategoryCount('General', 0);
                 }
+                updateTotalCount(); // Update total count to 0 initially
 
                 customQuizHubModal.close();
                 customQuizModal.open(e.currentTarget);
             } catch (error) {
                 console.error("Failed to prepare custom quiz modal:", error);
+                alert('เกิดข้อผิดพลาดในการโหลดคลังข้อสอบ กรุณาลองใหม่อีกครั้ง');
             } finally {
                 openCreateQuizModalBtn.innerHTML = originalText;
                 openCreateQuizModalBtn.disabled = false;
@@ -545,45 +595,134 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sync slider and input field in the creation modal
-    slider.addEventListener('input', (e) => {
-        countValueDisplay.textContent = e.target.value;
-        countInput.value = e.target.value;
-    });
+    // --- NEW: Logic for category sliders and inputs ---
+    if (categorySelectionContainer) {
+        const categories = ['Astronomy', 'Geology', 'Meteorology', 'General'];
 
-    countInput.addEventListener('input', (e) => {
-        let value = parseInt(e.target.value, 10);
-        const min = parseInt(e.target.min, 10);
-        const max = parseInt(e.target.max, 10);
-        if (isNaN(value)) return;
-        if (value > max) value = max;
-        if (value < min) value = min;
-        e.target.value = value;
-        countValueDisplay.textContent = value;
-        slider.value = value;
-    });
+        function updateCategoryCount(category, value) {
+            const valueDisplay = document.querySelector(`[data-value-display="${category}"]`);
+            if (valueDisplay) {
+                valueDisplay.textContent = value;
+            }
+        }
+
+        function updateTotalCount() {
+            let total = 0;
+            categories.forEach(category => {
+                const input = document.querySelector(`[data-input="${category}"]`);
+                if (input) {
+                    total += parseInt(input.value, 10) || 0;
+                }
+            });
+            if (totalQuestionCountDisplay) {
+                totalQuestionCountDisplay.textContent = total;
+            }
+        }
+
+        categories.forEach(category => {
+            const slider = document.querySelector(`[data-slider="${category}"]`);
+            const input = document.querySelector(`[data-input="${category}"]`);
+
+            if (slider) {
+                slider.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (input) input.value = value;
+                    updateCategoryCount(category, value);
+                    updateTotalCount();
+                });
+            }
+
+            if (input) {
+                input.addEventListener('input', (e) => {
+                    let value = parseInt(e.target.value, 10);
+                    const min = parseInt(e.target.min, 10);
+                    const max = parseInt(e.target.max, 10);
+                    if (isNaN(value)) value = min;
+                    if (value > max) value = max;
+                    if (value < min) value = min;
+                    e.target.value = value;
+                    if (slider) slider.value = value;
+                    updateCategoryCount(category, value);
+                    updateTotalCount();
+                });
+            }
+        });
+    }
 
     // Handle start button click from the creation modal
     customQuizStartBtn.addEventListener('click', () => {
-        if (!allQuestionsCache || allQuestionsCache.length === 0) {
+        if (!allQuestionsCache || Object.keys(questionsBySubCategory).length === 0) {
             alert('เกิดข้อผิดพลาด: ไม่พบคลังข้อสอบ');
             return;
         }
-        const questionCount = parseInt(countInput.value, 10);
+
+        const specificCategories = ['Astronomy', 'Geology', 'Meteorology'];
+        const allCategories = [...specificCategories, 'General'];
+        const requestedCounts = {};
+        let totalCount = 0;
+
+        allCategories.forEach(category => {
+            const input = document.querySelector(`[data-input="${category}"]`);
+            if (input) {
+                const count = parseInt(input.value, 10) || 0;
+                requestedCounts[category] = count;
+                totalCount += count;
+            }
+        });
+
+        if (totalCount === 0) {
+            alert('กรุณาเลือกจำนวนข้ออย่างน้อย 1 ข้อ');
+            return;
+        }
+
+        // Use a Set to keep track of selected question objects to avoid duplicates
+        const selectedQuestionObjects = new Set();
+        let finalQuestions = [];
+
+        // 1. Select questions from specific categories first.
+        // This ensures the user gets the exact number of questions they want from each specific topic.
+        specificCategories.forEach(category => {
+            const count = requestedCounts[category];
+            if (count > 0 && questionsBySubCategory[category]) {
+                const shuffled = [...questionsBySubCategory[category]].sort(() => 0.5 - Math.random());
+                let addedCount = 0;
+                for (const q of shuffled) {
+                    if (addedCount >= count) break;
+                    if (!selectedQuestionObjects.has(q)) {
+                        finalQuestions.push(q);
+                        selectedQuestionObjects.add(q);
+                        addedCount++;
+                    }
+                }
+            }
+        });
+
+        // 2. Select questions for the "General" category from the remaining, unselected pool.
+        // This prevents selecting the same question twice.
+        const generalCount = requestedCounts['General'];
+        if (generalCount > 0) {
+            const remainingQuestions = allQuestionsCache.filter(q => !selectedQuestionObjects.has(q));
+            const shuffledRemaining = remainingQuestions.sort(() => 0.5 - Math.random());
+            finalQuestions.push(...shuffledRemaining.slice(0, generalCount));
+        }
+
+        // Shuffle the final combined list to mix categories
+        for (let i = finalQuestions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [finalQuestions[i], finalQuestions[j]] = [finalQuestions[j], finalQuestions[i]];
+        }
         const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked').value;
-        const shuffled = [...allQuestionsCache].sort(() => 0.5 - Math.random());
-        const selectedQuestions = shuffled.slice(0, questionCount);
 
         const customId = `custom_${Date.now()}`;
         const newQuiz = {
             customId: customId,
             id: customId,
             title: `แบบทดสอบ #${customId.slice(-4)}`,
-            description: `ชุดข้อสอบแบบสุ่มจำนวน ${questionCount} ข้อ`,
+            description: `ชุดข้อสอบแบบกำหนดเองจำนวน ${finalQuestions.length} ข้อ`,
             storageKey: `quizState-${customId}`,
-            questions: selectedQuestions,
+            questions: finalQuestions,
             timerMode: timerMode,
-            amount: questionCount.toString()
+            amount: finalQuestions.length.toString()
         };
 
         const savedQuizzesJSON = localStorage.getItem('customQuizzesList');

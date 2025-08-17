@@ -128,10 +128,10 @@
         </div>
 
         <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
-            <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
+            <img src="./assets/images/saba.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
 
             <div class="flex justify-center items-center space-x-4 font-kanit mb-4">
-                <img src="./assets/icons/1076370247_normal.png" alt="promma logo"
+                <img src="./assets/icons/promma-logo.png" alt="promma logo"
                     class="h-12 w-12 rounded-full flex-shrink-0">
                 <div class="text-left text-gray-700 dark:text-gray-200 font-kanit">
                     <p>
@@ -240,17 +240,75 @@
                     </button>
                 </div>
 
-                <!-- Question Count Setting -->
-                <div class="space-y-3 mb-6">
-                    <label for="question-count-slider" class="font-bold text-gray-700 dark:text-gray-300">จำนวนข้อ:
-                        <span id="question-count-value" class="font-mono text-blue-600 dark:text-blue-400">25</span> /
-                        <span id="question-max-value" class="font-mono">...</span>
-                    </label>
-                    <div class="flex items-center gap-4">
-                        <input id="question-count-slider" type="range" min="10" max="100" value="25"
-                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                        <input id="question-count-input" type="number" min="10" max="100" value="25"
-                            class="w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center focus:ring-blue-500 focus:border-blue-500">
+                <!-- Category Question Count Settings -->
+                <div id="custom-quiz-category-selection" class="space-y-4 mb-6">
+                    <!-- Astronomy -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <label for="count-slider-Astronomy" class="font-bold text-gray-700 dark:text-gray-300">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                                <img src="./assets/icons/astronomy.png" alt="ไอคอนดาราศาสตร์" class="h-5 w-5">
+                            </div>
+                            ดาราศาสตร์:
+                            <span data-value-display="Astronomy" class="font-mono text-blue-600 dark:text-blue-400">0</span> /
+                            <span data-max-display="Astronomy" class="font-mono">...</span> ข้อ
+                        </label>
+                        <div class="flex items-center gap-4 mt-2">
+                            <input data-slider="Astronomy" id="count-slider-Astronomy" type="range" min="0" max="100" value="0"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                            <input data-input="Astronomy" id="count-input-Astronomy" type="number" min="0" max="100" value="0"
+                                class="w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <!-- Geology -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <label for="count-slider-Geology" class="font-bold text-gray-700 dark:text-gray-300">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                                <img src="./assets/icons/geology.png" alt="ไอคอนธรณีวิทยา" class="h-5 w-5">
+                            </div>
+                            ธรณีวิทยา:
+                            <span data-value-display="Geology" class="font-kanit text-blue-600 dark:text-blue-400">0</span> /
+                            <span data-max-display="Geology" class="font-kanit">...</span> ข้อ
+                        </label>
+                        <div class="flex items-center gap-4 mt-2">
+                            <input data-slider="Geology" id="count-slider-Geology" type="range" min="0" max="100" value="0"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                            <input data-input="Geology" id="count-input-Geology" type="number" min="0" max="100" value="0"
+                                class="w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <!-- Meteorology -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <label for="count-slider-Meteorology" class="font-bold text-gray-700 dark:text-gray-300">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                                <img src="./assets/icons/meteorology.png" alt="ไอคอนอุตุนิยมวิทยา" class="h-5 w-5">
+                            </div>
+                            อุตุนิยมวิทยา:
+                            <span data-value-display="Meteorology" class="font-kanit text-blue-600 dark:text-blue-400">0</span> /
+                            <span data-max-display="Meteorology" class="font-kanit">...</span> ข้อ
+                        </label>
+                        <div class="flex items-center gap-4 mt-2">
+                            <input data-slider="Meteorology" id="count-slider-Meteorology" type="range" min="0" max="100" value="0"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                            <input data-input="Meteorology" id="count-input-Meteorology" type="number" min="0" max="100" value="0"
+                                class="w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <!-- General -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <label for="count-slider-General" class="font-bold text-gray-700 dark:text-gray-300">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                                <img src="./assets/icons/study.png" alt="ไอคอนทั่วไป" class="h-5 w-5">
+                            </div>
+                            สุ่มจากทุกหมวดหมู่:
+                            <span data-value-display="General" class="font-kanit text-blue-600 dark:text-blue-400">0</span> /
+                            <span data-max-display="General" class="font-kanit">...</span> ข้อ
+                        </label>
+                        <div class="flex items-center gap-4 mt-2">
+                            <input data-slider="General" id="count-slider-General" type="range" min="0" max="100" value="0"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                            <input data-input="General" id="count-input-General" type="number" min="0" max="100" value="0"
+                                class="w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center focus:ring-blue-500 focus:border-blue-500">
+                        </div>
                     </div>
                 </div>
 
@@ -258,6 +316,10 @@
                 <div class="space-y-3 mb-8">
                     <label class="font-bold text-gray-700 dark:text-gray-300">รูปแบบการจับเวลา:</label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- Total Count Display -->
+                        <div class="sm:col-span-3 text-center sm:text-right font-bold text-gray-800 dark:text-gray-100 mb-2">
+                            จำนวนข้อทั้งหมด: <span id="total-question-count" class="font-mono text-xl text-blue-600 dark:text-blue-400">0</span>
+                        </div>
                         <label
                             class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
                             <input type="radio" name="custom-timer-mode" value="none"
