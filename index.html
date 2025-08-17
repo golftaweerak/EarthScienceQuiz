@@ -24,60 +24,81 @@
 
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300 flex flex-col min-h-screen">
 
+    <!-- New Sticky Header -->
+    <header
+        class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md transition-colors duration-300">
+        <div class="container mx-auto flex items-center justify-between h-16 px-4">
+            <!-- Left Side: Menu -->
+            <div class="flex-1 flex justify-start">
+                <nav class="relative" aria-label="Main navigation">
+                    <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
+                        class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div id="main-menu-dropdown"
+                        class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                        <div class="p-2">
+                            <a href="index.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                            <a href="preview.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                            <a href="about.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Center: Title -->
+            <div class="flex-shrink-0">
+                <h1
+                    class="font-kanit text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
+                    เตรียมความพร้อม สอวน.</h1>
+            </div>
+
+            <!-- Right Side: Dark Mode Toggle -->
+            <div class="flex-1 flex justify-end">
+                <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
+                    class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                    <!-- Icon will be inserted by JS -->
+                </button>
+            </div>
+        </div>
+    </header>
+
     <div class="container mx-auto px-4 pb-8 md:pb-12 flex-grow">
 
-        <!-- Dropdown Menu (Left) - Added z-30 to ensure it's above other content -->
-        <div class="absolute top-4 left-4 md:top-6 md:left-6 z-30">
-            <nav class="relative" aria-label="Main navigation">
-                <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
-                    class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <div id="main-menu-dropdown"
-                    class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
-                    <div class="p-2">
-                        <a href="index.html"
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
-                        <a href="preview.html"
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
-                        <a href="about.html"
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
-                    </div>
-                </div>
-            </nav>
-        </div>
-
-        <!-- Dark Mode Toggle (Right) -->
-        <div class="absolute top-4 right-4 md:top-6 md:right-6">
-            <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
-                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                <!-- Icon will be inserted by JS -->
-            </button>
-        </div>
-
-        <!-- Content wrapper with top margin to avoid overlapping with absolute-positioned buttons, similar to about.html -->
-        <div class="mt-20 md:mt-24">
-            <header class="text-center mb-8 md:mb-12 font-kanit fade-in-up">
-                <h1
-                    class="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
-                    เตรียมความพร้อม สอวน.
-                </h1>
-                <div class="flex justify-center mt-2">
-                    <p
-                        class="flex flex-col md:flex-row items-center justify-center gap-x-3 gap-y-1 text-base text-gray-600 dark:text-gray-400">
-                        <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
+        <!-- Content wrapper with top padding to avoid overlapping with the new fixed header -->
+        <div class="pt-24 md:pt-28">
+            <header class="mb-12 font-kanit fade-in-up">
+                <!-- The main H1 title has been moved to the sticky header -->
+                <!-- New layout to better utilize space and create a visually appealing banner -->
+                <div
+                    class="bg-white dark:bg-gray-800/50 p-4 sm:p-5 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                    <div
+                        class="flex flex-col sm:flex-row items-center justify-center sm:justify-around gap-y-4 gap-x-6">
+                        <!-- Astronomy -->
+                        <div
+                            class="flex items-center text-lg font-medium text-gray-700 dark:text-gray-300 transition-transform duration-300 hover:-translate-y-1 cursor-default">
                             <img src="./assets/icons/astronomy.png" alt="ไอคอนดาราศาสตร์"
-                                class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาดาราศาสตร์
-                        </span>
-                        <span class="hidden md:inline">และ</span>
-                        <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
+                                class="inline-block h-10 w-10 mr-3 bg-white rounded-full p-1 border-2 border-indigo-300 dark:border-indigo-500">
+                            <span>วิชาดาราศาสตร์</span>
+                        </div>
+
+                        <!-- Separator for larger screens -->
+                        <div class="hidden sm:block h-10 w-px bg-gray-300 dark:bg-gray-600"></div>
+
+                        <!-- Earth Science -->
+                        <div
+                            class="flex items-center text-lg font-medium text-gray-700 dark:text-gray-300 transition-transform duration-300 hover:-translate-y-1 cursor-default">
                             <img src="./assets/icons/earth.png" alt="ไอคอนวิทยาศาสตร์โลกและอวกาศ"
-                                class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาวิทยาศาสตร์โลกและอวกาศ
-                        </span>
-                    </p>
+                                class="inline-block h-10 w-10 mr-3 bg-white rounded-full p-1 border-2 border-teal-300 dark:border-teal-500">
+                            <span>วิชาวิทยาศาสตร์โลกและอวกาศ</span>
+                        </div>
+                    </div>
                 </div>
             </header>
 
