@@ -104,15 +104,25 @@
             </main>
 
             <!-- Random Quiz Button (Moved) -->
-            <div class="my-12 text-center">
+            <div class="my-12 text-center flex flex-wrap justify-center items-center gap-4">
                 <button id="random-quiz-btn"
-                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 btn-glow-indigo">
+                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 btn-glow-indigo">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                     สุ่มแบบทดสอบ
+                </button>
+                <button id="create-custom-quiz-btn"
+                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 dark:focus:ring-offset-gray-900 btn-glow-teal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    สร้างแบบทดสอบเอง
                 </button>
             </div>
         </div>
@@ -138,10 +148,10 @@
 
         </footer>
 
-        <!-- Reset Confirmation Modal -->
-        <div id="reset-confirm-modal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
-            aria-modal="true" aria-labelledby="reset-modal-title">
+        <!-- Generic Confirmation Modal -->
+        <div id="confirm-action-modal"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="confirm-modal-title">
             <div
                 class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
                 <div
@@ -152,19 +162,18 @@
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                 </div>
-                <h3 id="reset-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
-                    ยืนยันการล้างข้อมูล</h3>
-                <p id="reset-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?
-                    <br>
-                    <strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>
+                <h3 id="confirm-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                    <!-- Title will be set by JS -->
+                </h3>
+                <p id="confirm-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <!-- Description will be set by JS -->
                 </p>
                 <div class="mt-6 flex justify-center gap-4">
-                    <button id="reset-cancel-btn" data-modal-close
+                    <button id="confirm-cancel-btn" data-modal-close
                         class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
                         ยกเลิก
                     </button>
-                    <button id="reset-confirm-btn"
+                    <button id="confirm-action-btn"
                         class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-bold">
                         ยืนยัน
                     </button>
@@ -205,6 +214,111 @@
                         ยกเลิก
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Custom Quiz Creation Modal -->
+        <div id="custom-quiz-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="custom-quiz-modal-title">
+            <div
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg m-4 p-6 text-left">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 id="custom-quiz-modal-title"
+                            class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                            สร้างแบบทดสอบเอง</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            เลือกจำนวนข้อและรูปแบบการจับเวลาที่คุณต้องการ</p>
+                    </div>
+                    <button data-modal-close aria-label="ปิด"
+                        class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Question Count Setting -->
+                <div class="space-y-3 mb-6">
+                    <label for="question-count-slider" class="font-bold text-gray-700 dark:text-gray-300">จำนวนข้อ:
+                        <span id="question-count-value" class="font-mono text-blue-600 dark:text-blue-400">25</span> /
+                        <span id="question-max-value" class="font-mono">...</span>
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <input id="question-count-slider" type="range" min="10" max="100" value="25"
+                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        <input id="question-count-input" type="number" min="10" max="100" value="25"
+                            class="w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <!-- Timer Mode Setting -->
+                <div class="space-y-3 mb-8">
+                    <label class="font-bold text-gray-700 dark:text-gray-300">รูปแบบการจับเวลา:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label
+                            class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                            <input type="radio" name="custom-timer-mode" value="none"
+                                class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
+                            <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ไม่จับเวลา</span>
+                        </label>
+                        <label
+                            class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                            <input type="radio" name="custom-timer-mode" value="overall"
+                                class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ทั้งชุด</span>
+                        </label>
+                        <label
+                            class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                            <input type="radio" name="custom-timer-mode" value="perQuestion"
+                                class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">เป็นข้อ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="custom-quiz-start-btn"
+                    class="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-bold text-lg">
+                    เริ่มทำแบบทดสอบ
+                </button>
+            </div>
+        </div>
+
+        <!-- Custom Quiz Hub Modal -->
+        <div id="custom-quiz-hub-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="custom-quiz-hub-modal-title">
+            <div
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl m-4 p-6 text-left">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 id="custom-quiz-hub-modal-title"
+                        class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                        แบบทดสอบที่สร้างเอง</h3>
+                    <button data-modal-close aria-label="ปิด"
+                        class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="custom-quiz-list" class="max-h-96 overflow-y-auto pr-2 space-y-3 mb-6">
+                    <!-- List of saved custom quizzes will be inserted here by JS -->
+                    <p id="no-custom-quizzes-msg" class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        ยังไม่มีแบบทดสอบที่สร้างเอง</p>
+                </div>
+
+                <button id="open-create-quiz-modal-btn"
+                    class="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-bold text-lg flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    สร้างแบบทดสอบใหม่
+                </button>
             </div>
         </div>
 

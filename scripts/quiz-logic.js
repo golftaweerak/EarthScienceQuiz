@@ -3,6 +3,8 @@ const QuizApp = (function () {
   let state = {};
   // elements: Caches all DOM elements for quick access
   let elements = {};
+  // handler: A dedicated handler for the resume modal
+  let resumeModalHandler;
   // config: Stores all static configuration and constants
   const config = {
     soundOnIcon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
@@ -72,6 +74,9 @@ const QuizApp = (function () {
       timerDisplay: document.getElementById("timer-display"),
       timerValue: document.getElementById("timer-value"),
     };
+
+    // --- NEW: Initialize the modal handler for the resume modal ---
+    resumeModalHandler = new ModalHandler('resume-modal');
 
     // --- State Initialization ---
     state = {
@@ -844,16 +849,20 @@ const QuizApp = (function () {
       }
 
       // Priority 2: Handle standard quiz resume (if not viewing results)
-      if (elements.resumeModal) {
-        if (window.AppUtils) window.AppUtils.showModal(elements.resumeModal);
+      if (elements.resumeModal && resumeModalHandler) {
+        resumeModalHandler.open();
 
-        elements.resumeConfirmBtn.onclick = () => {
-          resumeQuiz(savedState);
-          if (window.AppUtils) window.AppUtils.hideModal(elements.resumeModal);
-        };
+        // The 'reject' button is now handled by `data-modal-close`,
+        // but we still need to clear the state when it's clicked.
         elements.resumeRejectBtn.onclick = () => {
           clearSavedState();
-          if (window.AppUtils) window.AppUtils.hideModal(elements.resumeModal);
+          // The modal will close automatically due to data-modal-close.
+        };
+
+        // The 'confirm' button needs to resume the quiz before closing.
+        elements.resumeConfirmBtn.onclick = () => {
+          resumeQuiz(savedState);
+          resumeModalHandler.close();
         };
       }
     } catch (e) {

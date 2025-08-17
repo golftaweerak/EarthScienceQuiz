@@ -40,3 +40,8 @@
 .dark .btn-glow-indigo:hover {
     box-shadow: 0 0 25px -5px rgba(129, 140, 248, 0.7); /* tailwind indigo-400 with more opacity */
 }
+
+/* Enhanced glow for the Custom Quiz button */
+.dark .btn-glow-teal:hover {
+    box-shadow: 0 0 25px -5px rgba(45, 212, 191, 0.7); /* tailwind teal-400 with more opacity */
+}
