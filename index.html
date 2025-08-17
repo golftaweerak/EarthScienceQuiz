@@ -222,10 +222,10 @@
 
         <!-- Custom Quiz Creation Modal -->
         <div id="custom-quiz-modal"
-            class="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto p-4 bg-black bg-opacity-75 hidden" role="dialog"
+            class="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 bg-black bg-opacity-75 hidden" role="dialog"
             aria-modal="true" aria-labelledby="custom-quiz-modal-title">
             <div
-                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-auto p-6 text-left">
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-auto text-left max-h-[90vh] flex flex-col">
                 <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-700">
                     <div>
                         <h3 id="custom-quiz-modal-title"
@@ -244,7 +244,9 @@
                 </div>
 
                 <!-- Category Question Count Settings -->
-                <div id="custom-quiz-category-selection" class="space-y-4 my-6"></div>
+                <div class="flex-grow overflow-y-auto my-6 pr-2 custom-scrollbar-menu">
+                    <div id="custom-quiz-category-selection" class="space-y-4"></div>
+                </div>
 
                 <!-- Timer Mode Setting -->
                 <fieldset class="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
@@ -274,7 +276,7 @@
                 </fieldset>
 
                 <!-- Action Footer -->
-                <div class="mt-8 pt-4 -mx-6 -mb-6 px-6 pb-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="mt-auto pt-4 -mx-6 -mb-6 px-6 pb-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="font-bold text-gray-800 dark:text-gray-100 order-2 sm:order-1">
                         จำนวนข้อทั้งหมด: <span id="total-question-count" class="font-sarabun text-xl text-blue-600 dark:text-blue-400">0</span>
                     </div>
