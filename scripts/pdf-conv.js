@@ -48,16 +48,58 @@ container.innerHTML = contentHTML;
 
 
 // ส่วนที่ 2: สั่งให้สร้าง PDF เมื่อกดปุ่ม
-document.getElementById('download-btn').addEventListener('click', () => {
-    const element = document.getElementById('quiz-container');
+document.getElementById('download-btn').addEventListener('click', function() {
+    const downloadButton = this;
+    const originalButtonText = downloadButton.innerHTML;
+
+    // Disable button and show a loading state for better UX
+    downloadButton.disabled = true;
+    downloadButton.innerHTML = 'กำลังสร้าง PDF...';
+
+    const elementToPrint = document.getElementById('quiz-container');
+
+    // --- PDF Generation Improvement ---
+    // 1. Clone the element to prepare it for PDF generation without affecting the on-screen view.
+    const pdfElement = elementToPrint.cloneNode(true);
+
+    // 2. Apply "PDF-friendly" styles. Removing box-shadow is key to enabling selectable text.
+    pdfElement.style.margin = '0';
+    pdfElement.style.padding = '0';
+    pdfElement.style.boxShadow = 'none';
+    pdfElement.style.width = '100%'; // Let html2pdf manage width within the A4 page format.
+
+    // 3. Temporarily add the clone to the DOM off-screen. This helps the renderer process it correctly.
+    pdfElement.style.position = 'absolute';
+    pdfElement.style.left = '-9999px';
+    document.body.appendChild(pdfElement);
+
     const opt = {
-      margin:       10, // หน่วยเป็น mm
+      margin:       15, // Margin in mm
       filename:     'แบบทดสอบ_สอวน_ชุดที่2.pdf',
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      html2canvas:  {
+          scale: 2,
+          useCORS: true,
+          // By removing complex CSS (like box-shadow), we allow html2pdf's
+          // text-rendering engine to work, making text selectable and fixing overlaps.
+      },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      // Improve page breaks: try to avoid splitting a single question across two pages.
+      pagebreak:    { mode: 'css', avoid: '.question-block' }
     };
 
-    // เรียกใช้ html2pdf
-    html2pdf().from(element).set(opt).save();
+    // 4. Generate the PDF from the prepared clone.
+    html2pdf().from(pdfElement).set(opt).save().then(() => {
+        // 5. Clean up: remove the clone and restore the button state.
+        document.body.removeChild(pdfElement);
+        downloadButton.disabled = false;
+        downloadButton.innerHTML = originalButtonText;
+    }).catch(err => {
+        console.error("PDF generation failed:", err);
+        // Also clean up on error
+        document.body.removeChild(pdfElement);
+        downloadButton.disabled = false;
+        downloadButton.innerHTML = originalButtonText;
+        alert("ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF");
+    });
 });
