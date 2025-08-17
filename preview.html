@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +15,8 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
     <!-- KaTeX for rendering LaTeX, consistent with quiz/index.html -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -24,20 +26,24 @@
         crossorigin="anonymous"></script>
     <!-- This is the auto-render extension for KaTeX -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
-        crossorigin="anonymous"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
         onload="console.log('KaTeX auto-render loaded.')">
-    </script>
+        </script>
     <!-- Add html2pdf.js library for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 
 </head>
+
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
-    
+
     <!-- Scroll Progress Bar -->
-    <div id="scroll-progress-bar" class="fixed top-0 left-0 z-50 h-1 bg-blue-500 dark:bg-blue-400 transition-all duration-100" style="width: 0%;"></div>
-    
+    <div id="scroll-progress-bar"
+        class="fixed top-0 left-0 z-50 h-1 bg-blue-500 dark:bg-blue-400 transition-all duration-100" style="width: 0%;">
+    </div>
+
     <!-- Dropdown Menu (Left) -->
     <div class="absolute top-4 left-4 md:top-6 md:left-6">
         <div class="relative">
@@ -74,56 +80,76 @@
         <header class="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">แสดงตัวอย่างชุดข้อสอบ</h1>
+                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">แสดงตัวอย่างชุดข้อสอบ
+                    </h1>
                     <p id="script-name" class="text-md text-gray-600 dark:text-gray-400 mt-1"></p>
                 </div>
                 <div class="flex items-center gap-2"> <!-- Wrapper for buttons -->
-                    <button id="download-pdf-btn" class="inline-flex items-center bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    <button id="download-pdf-btn"
+                        class="inline-flex items-center bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-wait">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                                clip-rule="evenodd"></path>
                         </svg>
                         <span>ดาวน์โหลดเป็น PDF</span>
                     </button>
-                    <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap">
+                    <a href="index.html"
+                        class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap">
                         &larr; กลับหน้าหลัก
                     </a>
                 </div>
             </div>
             <div class="mt-6">
-                <label for="quiz-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">เลือกชุดข้อสอบเพื่อแสดงตัวอย่าง:</label>
-                <select id="quiz-selector" class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+                <label for="quiz-selector"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">เลือกชุดข้อสอบเพื่อแสดงตัวอย่าง:</label>
+                <select id="quiz-selector"
+                    class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
                     <option value="">-- กรุณาเลือก --</option>
                 </select>
             </div>
             <div class="mt-4">
-                <label for="search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ค้นหาคำถาม (Keyword):</label>
-                <input type="text" id="search-input" placeholder="เช่น บิกแบง, แรงโน้มถ่วง, ..." class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+                <label for="search-input"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ค้นหาคำถาม
+                    (Keyword):</label>
+                <input type="text" id="search-input" placeholder="เช่น บิกแบง, แรงโน้มถ่วง, ..."
+                    class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">ปรับขนาดตัวอักษร:</span>
                 <div class="flex items-center gap-2">
-                    <button id="zoom-out-btn" aria-label="ลดขนาดตัวอักษร" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">-</button>
+                    <button id="zoom-out-btn" aria-label="ลดขนาดตัวอักษร"
+                        class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">-</button>
                     <span id="zoom-level-display" class="text-sm w-12 text-center font-kanit">100%</span>
-                    <button id="zoom-in-btn" aria-label="เพิ่มขนาดตัวอักษร" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">+</button>
-                    <button id="zoom-reset-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm">รีเซ็ต</button>
+                    <button id="zoom-in-btn" aria-label="เพิ่มขนาดตัวอักษร"
+                        class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">+</button>
+                    <button id="zoom-reset-btn"
+                        class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm">รีเซ็ต</button>
                 </div>
             </div>
         </header>
-        
+
         <main id="preview-container" class="space-y-6 pb-8 sm:pb-12">
             <!-- Content will be loaded here -->
         </main>
     </div>
 
     <!-- Scenario Details Modal -->
-    <div id="scenario-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+    <div id="scenario-modal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
         <div id="scenario-modal-backdrop" class="absolute inset-0"></div>
-        <div id="scenario-modal-content" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
-            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit"></h3>
-            <div id="scenario-modal-description" class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
+        <div id="scenario-modal-content"
+            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
+            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
+            </h3>
+            <div id="scenario-modal-description"
+                class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
             </div>
-            <button id="scenario-modal-close" aria-label="ปิด" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <button id="scenario-modal-close" aria-label="ปิด"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -131,8 +157,8 @@
     </div>
 
     <!-- Scroll to Top Button -->
-    <button id="scroll-to-top-btn"
-        aria-label="เลื่อนขึ้นบนสุด" class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
+    <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
+        class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
@@ -144,4 +170,5 @@
     <script src="./dark-mode.js"></script>
     <script src="./scripts/main-menu.js" defer></script>
 </body>
+
 </html>
