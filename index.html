@@ -223,12 +223,12 @@
             aria-modal="true" aria-labelledby="custom-quiz-modal-title">
             <div
                 class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-auto p-6 text-left">
-                <div class="flex justify-between items-start mb-4">
+                <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-700">
                     <div>
                         <h3 id="custom-quiz-modal-title"
-                            class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                            class="text-xl font-bold text-gray-900 dark:text-gray-100 font-kanit">
                             สร้างแบบทดสอบเอง</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             เลือกจำนวนข้อและรูปแบบการจับเวลาที่คุณต้องการ</p>
                     </div>
                     <button data-modal-close aria-label="ปิด"
@@ -241,11 +241,13 @@
                 </div>
 
                 <!-- Category Question Count Settings -->
-                <div id="custom-quiz-category-selection" class="space-y-4 mb-6"></div>
+                <div id="custom-quiz-category-selection" class="space-y-4 my-6"></div>
 
                 <!-- Timer Mode Setting -->
-                <div class="space-y-3 mb-6">
-                    <label class="font-bold text-gray-700 dark:text-gray-300">รูปแบบการจับเวลา:</label>
+                <fieldset class="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <legend class="text-sm font-bold text-gray-700 dark:text-gray-300 px-2">
+                        รูปแบบการจับเวลา
+                    </legend>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <label
                             class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
@@ -266,10 +268,10 @@
                             <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">เป็นข้อ</span>
                         </label>
                     </div>
-                </div>
+                </fieldset>
 
                 <!-- Action Footer -->
-                <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="mt-8 pt-4 -mx-6 -mb-6 px-6 pb-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="font-bold text-gray-800 dark:text-gray-100 order-2 sm:order-1">
                         จำนวนข้อทั้งหมด: <span id="total-question-count" class="font-sarabun text-xl text-blue-600 dark:text-blue-400">0</span>
                     </div>
