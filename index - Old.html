@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เตรียมความพร้อม สอวน.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Enable class-based dark mode
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/animations.css">
+    <link rel="stylesheet" href="./styles/custom-hovers.css">
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300 flex flex-col min-h-screen">
+
+    <div class="container mx-auto px-4 pb-8 md:pb-12 flex-grow">
+
+        <!-- Dropdown Menu (Left) - Added z-30 to ensure it's above other content -->
+        <div class="absolute top-4 left-4 md:top-6 md:left-6 z-30">
+            <div class="relative">
+                <button id="main-menu-btn" title="เมนู"
+                    class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <div id="main-menu-dropdown"
+                    class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                    <div class="p-2">
+                        <a href="index.html"
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                        <a href="preview.html"
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                        <a href="about.html"
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dark Mode Toggle (Right) -->
+        <div class="absolute top-4 right-4 md:top-6 md:right-6">
+            <button id="dark-mode-toggle"
+                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                <!-- Icon will be inserted by JS -->
+            </button>
+        </div>
+
+        <!-- Content wrapper with top margin to avoid overlapping with absolute-positioned buttons, similar to about.html -->
+        <div class="mt-20 md:mt-24">
+            <header class="text-center mb-8 md:mb-12 font-kanit fade-in-up">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
+                    แบบฝึกหัดเตรียมความพร้อม สอวน.
+                </h1>
+                <div class="flex justify-center mt-2">
+                    <p
+                        class="flex flex-col md:flex-row items-center justify-center gap-x-3 gap-y-1 text-base text-gray-600 dark:text-gray-400">
+                        <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
+                            <img src="./assets/icons/astronomy.png" alt="Icon"
+                                class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาดาราศาสตร์
+                        </span>
+                        <span class="hidden md:inline">และ</span>
+                        <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
+                            <img src="./assets/icons/earth.png" alt="Icon"
+                                class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาวิทยาศาสตร์โลกและอวกาศ
+                        </span>
+                    </p>
+                </div>
+            </header>
+
+            <main id="quiz-categories-container" class="max-w-4xl mx-auto space-y-6">
+                <!-- Quiz categories will be dynamically inserted here by main.js -->
+            </main>
+
+            <!-- Random Quiz Button (Moved) -->
+            <div class="my-12 text-center">
+                <button id="random-quiz-btn"
+                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 btn-glow-indigo">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    สุ่มแบบทดสอบ
+                </button>
+            </div>
+        </div>
+
+    <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
+        <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
+
+        <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 font-kanit mb-4">
+            <img src="./assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full flex-shrink-0">
+            <div class="text-center sm:text-left text-gray-700 dark:text-gray-200 font-kanit">
+                <p>
+                    พัฒนาโดย <a href="about.html"
+                        class="text-blue-600 dark:text-blue-400 hover:underline">นายทวีรักษ์ ทูลพุทธา</a>
+                </p>
+                <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
+            </div>
+        </div>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-6">
+            © <span id="copyright-year">2024</span> Prommanusorn Phetchaburi School. All rights reserved.
+        </p>
+    </footer>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center" >
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
+                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 id="reset-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">ยืนยันการล้างข้อมูล</h3>
+            <p id="reset-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?
+                <br>
+                <strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>
+            </p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="reset-cancel-btn" class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                    ยกเลิก
+                </button>
+                <button id="reset-confirm-btn" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-bold">
+                    ยืนยัน
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Completed Quiz Action Modal -->
+    <div id="completed-quiz-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog" aria-modal="true" aria-labelledby="completed-modal-title">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 id="completed-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">ทำแบบทดสอบนี้เสร็จแล้ว</h3>
+            <p id="completed-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                <button id="completed-view-results-btn" class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">
+                    ดูผลคะแนน
+                </button>
+                <button id="completed-start-over-btn" class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">
+                    เริ่มใหม่
+                </button>
+                <button id="completed-cancel-btn" class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./data/quizzes-list.js"></script>
+    <script src="./scripts/utils.js"></script>
+    <script src="./scripts/main.js"></script>
+    <script src="./dark-mode.js"></script>
+    <script src="./scripts/main-menu.js" defer></script>
+</body>
+
+</html>
