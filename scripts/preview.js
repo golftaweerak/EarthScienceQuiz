@@ -70,7 +70,8 @@ function createQuestionElement(item, displayIndex, keyword) {
     const explanationHtml = item.explanation ? highlightText(item.explanation.replace(/\n/g, '<br>'), keyword) : '';
 
     const questionDiv = document.createElement('div');
-    questionDiv.className = 'bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700';
+    // Add 'question-card' for PDF page breaks
+    questionDiv.className = 'bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 question-card';
 
     const questionHeader = document.createElement('h2');
     // Use flex to align title and button
@@ -96,7 +97,7 @@ function createQuestionElement(item, displayIndex, keyword) {
 
     if (questionHtml) {
         const questionText = document.createElement('div');
-        questionText.className = 'text-gray-800 dark:text-gray-300 text-lg';
+        questionText.className = 'text-gray-800 dark:text-gray-300';
         questionText.innerHTML = questionHtml;
         questionDiv.appendChild(questionText);
     }
@@ -216,7 +217,8 @@ function renderQuizData() {
             if (group.isScenario) {
                 // Create the main scenario card/wrapper
                 const scenarioCard = document.createElement('div');
-                scenarioCard.className = 'mb-6 bg-blue-50 dark:bg-gray-800/60 rounded-xl border border-blue-200 dark:border-gray-700 shadow-md overflow-hidden';
+                // Add 'question-card' for PDF page breaks
+                scenarioCard.className = 'mb-6 bg-blue-50 dark:bg-gray-800/60 rounded-xl border border-blue-200 dark:border-gray-700 shadow-md overflow-hidden question-card';
 
                 // Create the clickable header for toggling
                 const scenarioHeader = document.createElement('div');
@@ -356,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('preview-container');
     const quizSelector = document.getElementById('quiz-selector');
     const searchInput = document.getElementById('search-input');
+    const downloadPdfBtn = document.getElementById('download-pdf-btn');
 
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
@@ -537,4 +540,210 @@ document.addEventListener('DOMContentLoaded', () => {
             behavior: 'smooth'
         });
     });
+
+    // New helper function to create a simplified, printable version of a question element.
+    // This avoids issues with complex live styles and interactive elements.
+    function createPrintableQuestionElement(item, displayIndex) {
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'printable-question'; // For page-break control
+        questionDiv.style.paddingTop = '5mm';
+        questionDiv.style.borderTop = '1px dotted #ccc';
+        questionDiv.style.pageBreakInside = 'avoid';
+
+        const questionHeader = document.createElement('h3');
+        questionHeader.textContent = `ข้อที่ ${displayIndex}`;
+        questionHeader.style.fontSize = '14pt';
+        questionHeader.style.fontWeight = 'bold';
+        questionHeader.style.marginBottom = '4mm';
+        questionDiv.appendChild(questionHeader);
+
+        if (item.question) {
+            const questionText = document.createElement('div');
+            questionText.innerHTML = item.question.replace(/\n/g, '<br>');
+            questionText.style.marginBottom = '4mm';
+            questionDiv.appendChild(questionText);
+        }
+
+        const choices = item.choices || item.options;
+        if (choices && Array.isArray(choices)) {
+            const choicesList = document.createElement('div');
+            choicesList.style.paddingLeft = '8mm';
+            choicesList.style.marginBottom = '4mm';
+            
+            const thaiNumerals = ['ก', 'ข', 'ค', 'ง', 'จ', 'ฉ', 'ช', 'ซ', 'ฌ', 'ญ'];
+            choices.forEach((choice, index) => {
+                const choiceItem = document.createElement('p');
+                choiceItem.innerHTML = `<strong>${thaiNumerals[index] || (index + 1)}.</strong> ${choice.replace(/\n/g, '<br>')}`;
+                choiceItem.style.margin = '0 0 2mm 0';
+                choicesList.appendChild(choiceItem);
+            });
+            questionDiv.appendChild(choicesList);
+        }
+
+        // Show answers and explanations only on the data page
+        const isDataView = window.location.pathname.includes('/preview-data.html');
+        if (isDataView) {
+            if (item.answer) {
+                const answerDiv = document.createElement('div');
+                const correctChoice = (choices || []).find(c => c === item.answer);
+                answerDiv.innerHTML = `<strong>คำตอบที่ถูกต้อง:</strong> ${correctChoice || item.answer}`;
+                answerDiv.style.color = '#006400'; // DarkGreen
+                answerDiv.style.fontWeight = 'bold';
+                answerDiv.style.marginTop = '4mm';
+                answerDiv.style.padding = '2mm';
+                answerDiv.style.backgroundColor = '#f0fff0'; // Honeydew
+                answerDiv.style.border = '1px solid #90ee90'; // LightGreen
+                answerDiv.style.borderRadius = '4px';
+                questionDiv.appendChild(answerDiv);
+            }
+            if (item.explanation) {
+                const explanationDiv = document.createElement('div');
+                explanationDiv.innerHTML = `<strong>คำอธิบาย:</strong><br>${item.explanation.replace(/\n/g, '<br>')}`;
+                explanationDiv.style.marginTop = '4mm';
+                explanationDiv.style.padding = '3mm';
+                explanationDiv.style.backgroundColor = '#f0f8ff'; // AliceBlue
+                explanationDiv.style.border = '1px solid #add8e6'; // LightBlue
+                explanationDiv.style.borderRadius = '4px';
+                explanationDiv.style.fontSize = '11pt';
+                questionDiv.appendChild(explanationDiv);
+            }
+        }
+
+        return questionDiv;
+    }
+
+    // --- PDF Download Functionality (New Robust Implementation) ---
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async () => {
+            const filterKeyword = searchInput.value.toLowerCase().trim();
+            const dataToPrint = filterKeyword ? currentQuizData.filter(item => {
+                return (item.question?.toLowerCase() || '').includes(filterKeyword) ||
+                       (item.choices?.join(' ').toLowerCase() || '').includes(filterKeyword) ||
+                       (item.options?.join(' ').toLowerCase() || '').includes(filterKeyword) ||
+                       (item.explanation?.toLowerCase() || '').includes(filterKeyword) ||
+                       (item.scenarioTitle?.toLowerCase() || '').includes(filterKeyword) ||
+                       (item.scenarioDescription?.toLowerCase() || '').includes(filterKeyword);
+            }) : currentQuizData;
+
+            if (!dataToPrint || dataToPrint.length === 0) {
+                alert('ไม่มีเนื้อหาให้ดาวน์โหลด');
+                return;
+            }
+
+            const originalBtnText = downloadPdfBtn.querySelector('span').textContent;
+            downloadPdfBtn.disabled = true;
+            downloadPdfBtn.querySelector('span').textContent = 'กำลังเตรียมข้อมูล...';
+
+            try {
+                // --- 2. Determine Filename ---
+                let filename = 'quiz-preview.pdf';
+                const selectedOption = quizSelector.options[quizSelector.selectedIndex];
+                const searchTerm = searchInput.value.trim();
+
+                if (selectedOption && selectedOption.value) {
+                    // Sanitize filename
+                    filename = `${selectedOption.textContent.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
+                } else if (searchTerm) {
+                    filename = `search_results_for_${searchTerm.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
+                }
+
+                // --- 3. Create a temporary, off-screen container for printable content ---
+                const printContainer = document.createElement('div');
+                printContainer.id = 'printable-content';
+                printContainer.style.position = 'absolute';
+                printContainer.style.left = '-9999px';
+                printContainer.style.width = '190mm'; // A4 width minus margins
+                printContainer.style.fontSize = '12pt';
+                printContainer.style.fontFamily = 'Sarabun, sans-serif';
+                printContainer.style.color = '#000';
+
+                // --- 4. Populate the container with grouped and formatted data ---
+                const renderGroups = [];
+                let currentScenarioGroup = null;
+                dataToPrint.forEach(item => {
+                    if (item.scenarioTitle) {
+                        if (currentScenarioGroup && currentScenarioGroup.title === item.scenarioTitle) {
+                            currentScenarioGroup.questions.push(item);
+                        } else {
+                            currentScenarioGroup = { isScenario: true, title: item.scenarioTitle, description: item.scenarioDescription, questions: [item] };
+                            renderGroups.push(currentScenarioGroup);
+                        }
+                    } else {
+                        currentScenarioGroup = null;
+                        renderGroups.push({ isScenario: false, questions: [item] });
+                    }
+                });
+
+                let questionDisplayCounter = 0;
+                renderGroups.forEach(group => {
+                    const groupWrapper = document.createElement('div');
+                    groupWrapper.className = 'printable-group'; // Class for page-break control
+                    groupWrapper.style.marginBottom = '10mm';
+
+                    if (group.isScenario) {
+                        const scenarioTitleEl = document.createElement('h2');
+                        scenarioTitleEl.innerHTML = group.title;
+                        scenarioTitleEl.style.fontSize = '18pt';
+                        scenarioTitleEl.style.fontWeight = 'bold';
+                        scenarioTitleEl.style.marginBottom = '5mm';
+                        scenarioTitleEl.style.borderBottom = '2px solid #333';
+                        scenarioTitleEl.style.paddingBottom = '3mm';
+                        groupWrapper.appendChild(scenarioTitleEl);
+
+                        if (group.description) {
+                            const scenarioDescEl = document.createElement('div');
+                            scenarioDescEl.innerHTML = group.description;
+                            scenarioDescEl.style.marginBottom = '8mm';
+                            scenarioDescEl.style.padding = '4mm';
+                            scenarioDescEl.style.backgroundColor = '#f3f4f6';
+                            scenarioDescEl.style.borderLeft = '3px solid #cccccc';
+                            groupWrapper.appendChild(scenarioDescEl);
+                        }
+                    }
+
+                    group.questions.forEach(questionItem => {
+                        questionDisplayCounter++;
+                        const questionElement = createPrintableQuestionElement(questionItem, questionDisplayCounter);
+                        groupWrapper.appendChild(questionElement);
+                    });
+                    printContainer.appendChild(groupWrapper);
+                });
+
+                document.body.appendChild(printContainer);
+
+                // --- 5. Render math formulas in the new container ---
+                if (window.renderMathInElement) {
+                    renderMathInElement(printContainer, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true}], throwOnError: false });
+                }
+                await new Promise(resolve => setTimeout(resolve, 200)); // Give KaTeX a moment to render
+
+                downloadPdfBtn.querySelector('span').textContent = 'กำลังสร้าง PDF...';
+
+                // --- 6. Configure and Generate PDF ---
+                const opt = {
+                    margin: 10, // mm
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'avoid-all'], before: '.printable-group' }
+                };
+
+                await html2pdf().from(printContainer).set(opt).save();
+
+            } catch (error) {
+                console.error("PDF Generation failed:", error);
+                alert("เกิดข้อผิดพลาดในการสร้างไฟล์ PDF");
+            } finally {
+                // --- 7. Cleanup ---
+                const tempContainer = document.getElementById('printable-content');
+                if (tempContainer) {
+                    tempContainer.remove();
+                }
+                downloadPdfBtn.disabled = false;
+                downloadPdfBtn.querySelector('span').textContent = originalBtnText;
+            }
+        });
+    }
+            
 });
