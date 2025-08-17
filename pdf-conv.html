@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สร้างแบบทดสอบ PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* 2. (แนะนำ) เพิ่ม CSS สำหรับจัดรูปแบบให้สวยงาม */
+        body { font-family: sans-serif; }
+        #quiz-container { width: 210mm; padding: 20px; }
+        h1 { font-size: 20px; }
+        h2 { font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px;}
+        .question-block { margin-bottom: 20px; }
+        .question-block p { margin: 0 0 10px 0; }
+        .question-block ul { list-style-type: none; padding-left: 20px; margin: 0; }
+        .question-block li { margin-bottom: 5px; }
+        img { max-width: 300px; margin-bottom: 10px;}
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <button id="download-btn">ดาวน์โหลด PDF</button>
+    <hr>
+    
+    <div id="quiz-container">
+        </div>
+
+    <script>
+        // 4. JavaScript และข้อมูล JSON จะอยู่ที่นี่
+        <script src="scripts/pdf-conv.js"></script>
+    </script>
+
+</body>
+</html>
