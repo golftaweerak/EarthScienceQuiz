@@ -1,5 +1,15 @@
+const CONFIG = {
+    SEARCH_DEBOUNCE_MS: 300,
+    MIN_SEARCH_LENGTH: 3,
+    ZOOM_STEP: 10,
+    MIN_ZOOM: 70,
+    MAX_ZOOM: 150,
+    DEFAULT_ZOOM: 100,
+};
+
 let currentQuizData = []; // Store the full data for the selected quiz
 let allQuizzesCache = null; // Cache for all quiz data to avoid re-fetching
+
 
 // Function to fetch, flatten, and cache data from all quiz files
 async function fetchAllQuizData() {
@@ -21,21 +31,7 @@ async function fetchAllQuizData() {
             const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
 
             if (data && Array.isArray(data)) {
-                let flattened = [];
-                data.forEach(item => {
-                    if (item.type === 'scenario' && Array.isArray(item.questions)) {
-                        const scenarioQuestions = item.questions.map(q => ({
-                            ...q,
-                            scenarioTitle: item.title,
-                            scenarioDescription: item.description,
-                            sourceQuizTitle: quiz.title // Add source quiz title
-                        }));
-                        flattened.push(...scenarioQuestions);
-                    } else if (item.type === 'question' || !item.type) {
-                        flattened.push({ ...item, sourceQuizTitle: quiz.title }); // Add source quiz title
-                    }
-                });
-                return flattened;
+                return data.flatMap(item => flattenQuizDataItem(item, quiz.title));
             }
             return [];
         } catch (error) {
@@ -47,6 +43,24 @@ async function fetchAllQuizData() {
     const results = await Promise.all(promises);
     allQuizzesCache = results.flat();
     return allQuizzesCache;
+}
+
+/**
+ * Helper function to flatten a single quiz item (question or scenario) into an array of questions.
+ * This centralizes the flattening logic.
+ * @param {object} item - The quiz item from the data file.
+ * @param {string} sourceTitle - The title of the source quiz.
+ * @returns {Array} An array of flattened question objects.
+ */
+function flattenQuizDataItem(item, sourceTitle) {
+    if (item.type === 'scenario' && Array.isArray(item.questions)) {
+        return item.questions.map(q => ({
+            ...q, scenarioTitle: item.title, scenarioDescription: item.description, sourceQuizTitle: sourceTitle
+        }));
+    } else if (item.type === 'question' || !item.type) {
+        return [{ ...item, sourceQuizTitle: sourceTitle }];
+    }
+    return [];
 }
 
 // Helper function to highlight keywords in a text
@@ -323,7 +337,7 @@ async function handleGlobalSearch() {
     const keyword = searchInput.value.trim();
 
     if (keyword.length < 3) {
-        currentQuizData = []; // Clear previous results
+        currentQuizData = []; // Clear previous results when search term is too short
         container.innerHTML = `<div class="bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-r-lg" role="alert">
                                    <p class="font-bold">ค้นหาในทุกชุดข้อสอบ</p>
                                    <p>กรุณาพิมพ์อย่างน้อย 3 ตัวอักษรเพื่อเริ่มการค้นหา</p>
@@ -365,22 +379,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const zoomOutBtn = document.getElementById('zoom-out-btn');
     const zoomResetBtn = document.getElementById('zoom-reset-btn');
     const zoomLevelDisplay = document.getElementById('zoom-level-display');
-    let currentZoomLevel = 100; // in percent
-    const zoomStep = 10;
-    const minZoom = 70;
-    const maxZoom = 150;
+    let currentZoomLevel = CONFIG.DEFAULT_ZOOM; // in percent
 
     function applyZoom() {
         // 100% zoom corresponds to 1rem font size for the container.
         container.style.fontSize = `${currentZoomLevel / 100}rem`;
         zoomLevelDisplay.textContent = `${currentZoomLevel}%`;
-        zoomInBtn.disabled = currentZoomLevel >= maxZoom;
-        zoomOutBtn.disabled = currentZoomLevel <= minZoom;
+        zoomInBtn.disabled = currentZoomLevel >= CONFIG.MAX_ZOOM;
+        zoomOutBtn.disabled = currentZoomLevel <= CONFIG.MIN_ZOOM;
     }
 
-    zoomInBtn.addEventListener('click', () => { if (currentZoomLevel < maxZoom) { currentZoomLevel += zoomStep; applyZoom(); } });
-    zoomOutBtn.addEventListener('click', () => { if (currentZoomLevel > minZoom) { currentZoomLevel -= zoomStep; applyZoom(); } });
-    zoomResetBtn.addEventListener('click', () => { currentZoomLevel = 100; applyZoom(); });
+    zoomInBtn.addEventListener('click', () => { if (currentZoomLevel < CONFIG.MAX_ZOOM) { currentZoomLevel += CONFIG.ZOOM_STEP; applyZoom(); } });
+    zoomOutBtn.addEventListener('click', () => { if (currentZoomLevel < CONFIG.MIN_ZOOM) { currentZoomLevel -= CONFIG.ZOOM_STEP; applyZoom(); } });
+    zoomResetBtn.addEventListener('click', () => { currentZoomLevel = CONFIG.DEFAULT_ZOOM; applyZoom(); });
     applyZoom(); // Set initial state
 
     // Populate dropdown from quizList and derive the correct data filename
@@ -429,23 +440,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
 
             if (typeof data !== 'undefined' && Array.isArray(data)) {
-                // Flatten the data structure. Some files have scenarios with nested questions.
-                let flattenedData = [];
-                data.forEach(item => {
-                    if (item.type === 'scenario' && Array.isArray(item.questions)) {
-                        // For scenarios, add each question to the list, but add scenario context to each question.
-                        const scenarioQuestions = item.questions.map(q => ({
-                            ...q,
-                            scenarioTitle: item.title,
-                            scenarioDescription: item.description
-                        }));
-                        flattenedData.push(...scenarioQuestions);
-                    } else if (item.type === 'question' || !item.type) {
-                        // For single questions or items without a type (legacy format), add them directly.
-                        flattenedData.push(item);
-                    }
-                });
-
+                const quizTitle = quizSelector.options[quizSelector.selectedIndex].text;
+                const flattenedData = data.flatMap(item => flattenQuizDataItem(item, quizTitle));
                 currentQuizData = flattenedData;
                 renderQuizData();
             } else {
@@ -470,9 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderQuizData();
             } else {
                 // No quiz selected, perform global search
+                downloadPdfBtn.disabled = true;
                 handleGlobalSearch();
             }
-        }, 300); // 300ms delay
+        }, CONFIG.SEARCH_DEBOUNCE_MS);
     });
 
     quizSelector.addEventListener('change', (event) => {
@@ -481,12 +478,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (selectedScript) {
             url.searchParams.set('script', selectedScript);
             window.history.pushState({}, '', url);
+            downloadPdfBtn.disabled = false;
             loadAndRenderQuiz(selectedScript);
         } else {
             url.searchParams.delete('script');
             window.history.pushState({}, '', url);
             currentQuizData = [];
             searchInput.value = '';
+            downloadPdfBtn.disabled = true;
             handleGlobalSearch();
         }
     });
@@ -496,102 +495,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (scriptNameFromUrl) {
         quizSelector.value = scriptNameFromUrl;
         loadAndRenderQuiz(scriptNameFromUrl);
+        downloadPdfBtn.disabled = false;
     } else {
         quizSelector.value = '';
+        downloadPdfBtn.disabled = true;
         handleGlobalSearch();
     }
 
-    // --- PDF Generation Functionality (Integrated from pdf-conv.js) ---
+    // --- PDF Generation Functionality (New Redirect Strategy) ---
     if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', async function() {
-            const btn = this;
-            const originalButtonContent = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>กำลังเตรียม...</span>`;
-
-            try {
-                // 1. Wait for all fonts (especially KaTeX fonts) to be downloaded and ready.
-                await document.fonts.ready;
-                console.log("All fonts are loaded and ready for PDF generation.");
-
-                btn.querySelector('span').textContent = 'กำลังสร้าง PDF...';
-
-                // 2. Create a clone of the content to be printed.
-                // We create a new container to hold the title and the questions.
-                const pdfContent = document.createElement('div');
-                pdfContent.className = 'font-sarabun'; // Ensure consistent font
-
-                // 3. Create and add the title
-                const titleEl = document.createElement('h1');
-                titleEl.style.fontSize = '1.8rem';
-                titleEl.style.fontWeight = '700';
-                titleEl.style.textAlign = 'center';
-                titleEl.style.marginBottom = '2rem';
-                
-                let pdfTitle = "ชุดข้อสอบ";
-                if (quizSelector.value) {
-                    pdfTitle = quizSelector.options[quizSelector.selectedIndex].text;
-                } else if (searchInput.value) {
-                    pdfTitle = `ผลการค้นหาสำหรับ: "${searchInput.value}"`;
-                }
-                titleEl.textContent = pdfTitle;
-                pdfContent.appendChild(titleEl);
-
-                // 4. Clone the actual quiz content
-                const contentToPrint = container.cloneNode(true);
-                // Remove Tailwind's responsive/spacing classes that might interfere
-                contentToPrint.classList.remove('space-y-6');
-                // Ensure all questions are visible (remove grid-rows-[0fr] from collapsed scenarios)
-                contentToPrint.querySelectorAll('.grid-rows-\\[0fr\\]').forEach(el => {
-                    el.classList.remove('grid-rows-[0fr]');
-                    el.classList.add('grid-rows-[1fr]');
-                });
-                pdfContent.appendChild(contentToPrint);
-
-                // 5. Add the clone to the DOM off-screen for rendering
-                pdfContent.style.position = 'absolute';
-                pdfContent.style.left = '-9999px';
-                pdfContent.style.width = '800px'; // A fixed width for consistent PDF layout
-                document.body.appendChild(pdfContent);
-
-                // 6. Force reflow and wait for paint
-                pdfContent.getBoundingClientRect();
-                await new Promise(resolve => requestAnimationFrame(resolve));
-
-                // --- Final Precautionary Delay ---
-                // Even after fonts are ready and a paint is requested, some complex renders
-                // might need an extra moment. This small delay acts as a final safeguard
-                // against capturing a partially rendered state, which causes blank PDFs.
-                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
-
-                // 7. Set options and generate PDF
-                const filename = `${pdfTitle.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
-                const opt = {
-                    margin: 15,
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: 'css', before: '.question-card', avoid: '.question-card' }
-                };
-
-                await html2pdf().from(pdfContent).set(opt).save();
-
-                // 8. Cleanup
-                document.body.removeChild(pdfContent);
-                btn.disabled = false;
-                btn.innerHTML = originalButtonContent;
-
-            } catch (err) {
-                console.error("PDF generation failed:", err);
-                alert(`ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF: ${err.message}`);
-                btn.disabled = false;
-                btn.innerHTML = originalButtonContent;
+        downloadPdfBtn.addEventListener('click', function() {
+            const selectedScript = quizSelector.value;
+            if (selectedScript) {
+                // Open pdf-conv.html in a new tab with the selected script as a parameter
+                const pdfUrl = `pdf-conv.html?script=${selectedScript}`;
+                window.open(pdfUrl, '_blank');
             }
         });
     }

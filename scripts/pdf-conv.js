@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. Load and Process Quiz Data ---
     async function loadAndRenderQuiz(scriptName) {
         container.innerHTML = `<p class="placeholder">กำลังโหลดข้อมูล...</p>`;
-        downloadButton.disabled = true;
+        if (downloadButton) downloadButton.disabled = true;
         currentQuizData = null;
 
         const scriptPath = `data/${scriptName}`;
@@ -133,23 +133,26 @@ document.addEventListener('DOMContentLoaded', () => {
             currentQuizTitle = quizSelector.options[quizSelector.selectedIndex].text;
             currentQuizData = flattenQuizData(data);
             renderQuizHTML(currentQuizData, currentQuizTitle);
-            downloadButton.disabled = false;
+            if (downloadButton) downloadButton.disabled = false;
+            return true; // Indicate success
 
         } catch (error) {
             console.error(`Error loading or processing ${scriptPath}:`, error);
             container.innerHTML = `<p class="placeholder error">เกิดข้อผิดพลาด: ${error.message}</p>`;
-            downloadButton.disabled = true;
+            if (downloadButton) downloadButton.disabled = true;
+            return false; // Indicate failure
         }
     }
 
     // --- 5. PDF Generation ---
-    downloadButton.addEventListener('click', async function() { // Make the handler async
+    // Extracted the logic into a named function for reusability
+    async function triggerPdfGeneration() {
         if (!currentQuizData) {
             alert('กรุณาเลือกชุดข้อสอบก่อน');
             return;
         }
 
-        const btn = this;
+        const btn = downloadButton;
         const originalButtonText = btn.textContent; // Use textContent for button text
         btn.disabled = true;
         btn.textContent = 'กำลังเตรียมฟอนต์...'; // More accurate status
@@ -202,9 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
             await html2pdf().from(pdfElement).set(opt).save();
 
             // Cleanup
+            btn.textContent = 'สร้าง PDF สำเร็จ!';
             document.body.removeChild(pdfElement);
-            btn.disabled = false;
-            btn.textContent = originalButtonText;
+
+            // Automatically close the window after a short delay
+            setTimeout(() => {
+                window.close();
+            }, 1500);
 
         } catch (err) {
             console.error("PDF generation failed:", err);
@@ -213,7 +220,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false;
             btn.textContent = originalButtonText;
         }
-    });
+    }
+
+    if (downloadButton) {
+        downloadButton.addEventListener('click', triggerPdfGeneration);
+    }
 
     // --- 6. Initial Setup ---
     quizSelector.addEventListener('change', (event) => {
@@ -227,4 +238,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     populateQuizSelector();
+
+    // --- Auto-load and Auto-generate PDF from URL parameter ---
+    async function autoLoadAndGenerateFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const scriptNameFromUrl = params.get('script');
+
+        if (scriptNameFromUrl) {
+            // Hide manual controls and show a user-friendly status message
+            const header = document.querySelector('.test-header');
+            if (header) header.style.display = 'none';
+            container.innerHTML = `<p class="placeholder">กำลังเตรียมข้อมูลสำหรับสร้าง PDF, กรุณารอสักครู่...</p>`;
+
+            // Find the option in the selector that matches the script name
+            const optionToSelect = Array.from(quizSelector.options).find(opt => opt.value === scriptNameFromUrl);
+            
+            if (optionToSelect) {
+                // Set the dropdown to the correct value and trigger the loading process
+                optionToSelect.selected = true;
+                const success = await loadAndRenderQuiz(scriptNameFromUrl);
+
+                if (success) {
+                    console.log("Content loaded, automatically triggering PDF generation.");
+                    await triggerPdfGeneration();
+                } else {
+                    // If loading fails, show the controls again for manual selection
+                    if (header) header.style.display = 'flex';
+                }
+            } else {
+                container.innerHTML = `<p class="placeholder error">ไม่พบชุดข้อสอบที่ตรงกับ URL ที่ระบุ (${scriptNameFromUrl})</p>`;
+                if (header) header.style.display = 'flex';
+            }
+        }
+    }
+    autoLoadAndGenerateFromUrl(); // Call the new function after populating the selector
 });
