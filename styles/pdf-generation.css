@@ -20,10 +20,12 @@
 /* 3. General Body and Layout Styles */
 body {
     font-family: 'Sarabun', 'Inter', sans-serif;
-    background-color: var(--background-color);
+    /* A lighter, more modern UI background to make the page pop */
+    background-color: #f0f2f5;
+    /* background-image can be removed for a cleaner look */
     color: var(--text-color);
     margin: 0;
-    padding: 2rem;
+    padding: 2rem 0; /* Add vertical padding for spacing */
     line-height: 1.7;
 }
 
@@ -34,17 +36,20 @@ body {
 /* NEW: Styles for the header controls, ensuring it's centered */
 .test-header {
     width: 100%;
-    max-width: 800px;
+    max-width: 210mm; /* Match the page width */
     margin: 0 auto 2rem auto; /* Center the header */
     padding: 1.5rem;
-    background-color: var(--container-background);
-    border-radius: 16px;
-    box-shadow: 0 4px 16px var(--shadow-color);
+    /* A cleaner toolbar that blends with the new background */
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 1rem;
     color: var(--text-color); /* Force dark text color for readability */
+    box-sizing: border-box; /* Ensure padding is included in the width calculation */
 }
 
 .test-header label {
@@ -94,14 +99,17 @@ body {
 
 /* 5. Styles for the Quiz Container (The "Document") */
 #quiz-container {
-    width: 100%;
-    max-width: 800px; /* Readable width on desktops */
-    margin: 0 auto; /* Center the container now that body is not a flex container */
-    padding: 2.5rem;
-    background-color: var(--container-background);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px var(--shadow-color);
-    border: 1px solid var(--border-color);
+    /* Style it to look like an A4 page */
+    width: 210mm;
+    min-height: 297mm; /* Visual representation of at least one page */
+    padding: 15mm; /* Match the PDF margin for visual consistency */
+    margin: 0 auto; /* Center the page on the screen */
+    background: white;
+    /* A more subtle shadow and a light border for definition */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+    border-radius: 0;
+    border: 1px solid #d1d5db; /* Light border to define the page edge */
+    box-sizing: border-box; /* Crucial for correct width calculation with padding */
     color: var(--text-color); /* Ensure text is always dark for PDF readability */
 }
 
@@ -121,11 +129,18 @@ body {
 
 /* 6. Typography Styles */
 h1 {
-    font-size: 1.8rem;
+    font-family: 'Kanit', sans-serif;
+    font-size: 2.5rem; /* A more balanced size for a block header */
     font-weight: 700;
-    color: #2c3e50;
+    color: #ffffff; /* White text on a colored background */
     text-align: center;
-    margin-bottom: 1rem;
+    letter-spacing: 1px;
+    /* Create a distinct header block that spans the page width */
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    padding: 2rem;
+    /* Pull the block to the edges of the container's padding and add margin below */
+    margin: -15mm -15mm 3rem -15mm;
+    border-bottom: none;
 }
 
 h2 {
@@ -134,7 +149,7 @@ h2 {
     color: var(--primary-color);
     border-bottom: 2px solid var(--border-color);
     padding-bottom: 0.5rem;
-    margin-top: 2.5rem;
+    margin-top: 2rem;
     margin-bottom: 1.5rem;
 }
 
@@ -144,12 +159,19 @@ p {
 
 /* 7. Question Block Styling */
 .question-block {
+    margin-top: 1rem; /* Add some top margin for spacing */
     margin-bottom: 2rem;
     padding-bottom: 2rem;
     border-bottom: 1px dashed var(--border-color);
+    page-break-inside: avoid; /* Hint for the PDF generator to not split this block */
 }
 
 .question-block:last-child {
+    border-bottom: none; /* Remove border from the last question */
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.question-block:first-of-type {
     border-bottom: none; /* Remove border from the last question */
     margin-bottom: 0;
     padding-bottom: 0;
@@ -195,10 +217,17 @@ img {
 @media (max-width: 768px) {
     body {
         padding: 1rem;
+        /* On mobile, revert to a simple background */
+        background-color: var(--background-color); /* Use the standard light theme background */
+        /* background-image: none; is implicitly handled by the line above */
     }
     #quiz-container {
-        padding: 1.5rem;
+        /* On mobile, don't simulate a page, just show content */
         width: 100%;
+        min-height: auto;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px var(--shadow-color);
+        border-radius: 16px; /* Give it back some radius on mobile */
     }
     h1 { font-size: 1.5rem; }
     h2 { font-size: 1.2rem; }
@@ -209,6 +238,7 @@ img {
     body {
         background-color: white;
         padding: 0;
+        margin: 0;
     }
     
     .test-header, hr, .no-print {
@@ -216,10 +246,13 @@ img {
     }
 
     #quiz-container {
+        /* Reset styles for printing, as the browser's print engine takes over */
         width: 100%;
+        min-height: auto;
         max-width: 100%;
         box-shadow: none;
         border: none;
         padding: 0;
+        margin: 0;
     }
 }

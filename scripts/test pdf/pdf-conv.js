@@ -155,11 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = downloadButton;
         const originalButtonText = btn.textContent; // Use textContent for button text
         btn.disabled = true;
-        btn.textContent = 'กำลังเตรียมฟอนต์...'; // More accurate status
+        btn.textContent = 'กำลังเตรียมข้อมูล...'; // More accurate status
 
         try {
-            // --- Definitive Fix for Blank PDF ---
-            // 1. Wait for all fonts (especially KaTeX fonts) to be downloaded and ready.
             await document.fonts.ready;
             console.log("All fonts are loaded and ready.");
 
@@ -173,26 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
             pdfElement.style.padding = '0';
             pdfElement.style.boxShadow = 'none';
             pdfElement.style.width = '100%';
-
-            // Add to DOM off-screen
             pdfElement.style.position = 'absolute';
             pdfElement.style.left = '-9999px';
             document.body.appendChild(pdfElement);
 
-            // 2. Force the browser to calculate the layout of the cloned element.
-            // This ensures that all styles are applied before html2canvas reads the element.
+            // Safeguards to prevent blank PDFs
             pdfElement.getBoundingClientRect();
-            console.log("Forced reflow on the cloned element.");
-
-            // 3. Give the browser a single frame to paint. This is the final step
-            // to ensure the visual representation is ready for capture.
             await new Promise(resolve => requestAnimationFrame(resolve));
-            console.log("Paint cycle complete. Starting PDF generation.");
-
-            // FINAL SAFEGUARD: Add a small, fixed delay. This can help ensure that
-            // complex, script-injected styles (like from Tailwind's JIT) are fully rendered.
             await new Promise(resolve => setTimeout(resolve, 300));
-            console.log("Final safeguard delay complete.");
 
             // Sanitize filename
             const filename = `${currentQuizTitle.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
@@ -206,13 +192,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 pagebreak: { mode: 'css', avoid: '.question-block' }
             };
 
-            // Generate the PDF.
-            await html2pdf().from(pdfElement).set(opt).save();
+            // NEW: Use promise chain to add page numbers before saving
+            const worker = html2pdf().from(pdfElement).set(opt).toPdf();
+            const pdf = await worker.get('pdf');
+            const totalPages = pdf.internal.getNumberOfPages();
+
+            for (let i = 1; i <= totalPages; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(10);
+                pdf.setTextColor(150);
+                pdf.text(
+                    `หน้า ${i} จาก ${totalPages}`,
+                    pdf.internal.pageSize.getWidth() / 2,
+                    pdf.internal.pageSize.getHeight() - 10,
+                    { align: 'center' }
+                );
+            }
+
+            await worker.save();
 
             // Cleanup
+            document.body.removeChild(pdfElement);
             btn.textContent = originalButtonText; // Restore button text
             btn.disabled = false; // Re-enable the button
-            document.body.removeChild(pdfElement);
         } catch (err) {
             console.error("PDF generation failed:", err);
             alert(`ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF: ${err.message}`);
