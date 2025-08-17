@@ -61,13 +61,7 @@ const QuizApp = (function () {
       feedback: document.getElementById("feedback"),
       feedbackContent: document.querySelector("#feedback .feedback-content"),
       progressBar: document.getElementById("progress-bar"),
-      // Result UI
-      finalScore: document.getElementById("final-score"),
-      finalMessage: document.getElementById("final-message"),
-      resultIconContainer: document.getElementById("result-icon-container"),
-      resultTitle: document.getElementById("result-title"),
-      progressCircle: document.getElementById("progress-circle"),
-      finalPercentage: document.getElementById("final-percentage"),
+      // Result & Review UI
       reviewContainer: document.getElementById("review-container"),
       // Modal & Sound
       resumeModal: document.getElementById("resume-modal"),
@@ -467,15 +461,6 @@ const QuizApp = (function () {
    * This prevents element duplication when restarting a quiz.
    */
   function cleanupResultsScreen() {
-    // Hide original static elements that are replaced by the dynamic layout.
-    if (elements.finalScore) elements.finalScore.classList.add("hidden");
-    if (elements.resultIconContainer)
-      elements.resultIconContainer.parentElement.classList.add("hidden");
-    if (elements.progressCircle)
-      elements.progressCircle.parentElement.parentElement.parentElement.classList.add(
-        "hidden"
-      );
-
     // Remove any previously generated layouts to prevent duplication.
     document.getElementById("modern-results-layout")?.remove();
   }

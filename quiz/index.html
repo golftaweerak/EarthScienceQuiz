@@ -173,29 +173,12 @@
       </div>
 
       <div id="result-screen" class="hidden text-center">
-        <div id="result-icon-container" class="mx-auto mb-4 w-12 h-12">
-          <!-- Icon will be inserted by JS -->
-        </div>
-        <h2 id="result-title" class="text-2xl sm:text-3xl font-bold mb-2 dark:text-gray-100">
-          <!-- Title will be inserted by JS -->
-        </h2>
-        <p id="final-message" class="text-lg text-gray-600 dark:text-gray-400 mb-6">
-          <!-- Message will be inserted by JS -->
-        </p>
-
-        <div class="relative w-48 h-48 mx-auto mb-6">
-          <svg class="w-full h-full" viewBox="0 0 36 36">
-            <path class="text-gray-200 dark:text-gray-700" stroke-width="3" fill="none"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-            <path id="progress-circle" class="text-blue-500 transition-all duration-1000" stroke-width="3"
-              stroke-dasharray="0, 100" stroke-linecap="round" fill="none"
-              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-          </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <p id="final-percentage" class="text-4xl font-bold text-blue-600 dark:text-blue-400"></p>
-            <p id="final-score" class="text-sm text-gray-500 dark:text-gray-400"></p>
-          </div>
-        </div>
+        <!--
+          The content of the result screen (score, message, stats) is now fully generated
+          by the buildResultsLayout() function in quiz-logic.js.
+          This placeholder div will be populated dynamically.
+          The buttons below remain as static elements.
+        -->
 
         <div class="space-y-4 max-w-xs mx-auto">
           <button id="review-btn"
@@ -287,13 +270,10 @@
   <script src="../scripts/page-transitions.js" defer></script>
   <script src="../dark-mode.js" defer></script>
   <script src="../data/quizzes-list.js" defer></script>
+  <script src="../scripts/utils.js" defer></script> <!-- ADD: Load shared modal utility functions -->
   <script src="../scripts/quiz-logic.js" defer></script>
   <script src="../scripts/dropdown-menu.js" defer></script>
   <script src="../scripts/quiz-loader.js" defer></script> <!-- New script to load quiz data -->
-  <script>
-    // Set current year in footer
-    document.getElementById('copyright-year').textContent = new Date().getFullYear();
-  </script>
 </body>
 
 </html>

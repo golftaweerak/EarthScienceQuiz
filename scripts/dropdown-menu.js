@@ -1,18 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.getElementById('quiz-menu-btn');
     const menuDropdown = document.getElementById('quiz-menu-dropdown');
+
+    // Only run if the core menu elements exist on the page
+    if (!menuButton || !menuDropdown) {
+        return;
+    }
+
+    // Modal elements might not exist on every page, so we get them but don't fail if they are missing.
     const completedQuizModal = document.getElementById('completed-quiz-modal');
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
     const cancelCompletedBtn = document.getElementById('completed-cancel-btn');
 
-    let activeQuizUrl = '';
-    let activeStorageKey = '';
-
-    // Only run if the menu elements exist on the page
-    if (!menuButton || !menuDropdown || !completedQuizModal) {
-        return;
-    }
+    let activeQuizUrl = ''; // To store the URL for the modal actions
+    let activeStorageKey = ''; // To store the storage key for the modal actions
 
     const menuContainer = menuDropdown.querySelector('.p-2');
 
@@ -93,7 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             const savedState = JSON.parse(savedStateJSON);
                             if (savedState && typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions) && savedState.shuffledQuestions.length > 0) {
                                 const totalQuestions = savedState.shuffledQuestions.length;
-                                const questionsDone = savedState.currentQuestionIndex; isQuizCompleted = questionsDone >= totalQuestions;
+                                const questionsDone = savedState.currentQuestionIndex;
+                                isQuizCompleted = questionsDone >= totalQuestions;
 
                                 if (isQuizCompleted && typeof savedState.score === 'number') {
                                     // Completed state
@@ -113,11 +116,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Add click listener to handle completed quizzes
                     link.addEventListener('click', (event) => {
+                        // If a quiz is marked as completed, we intercept the click.
                         if (isQuizCompleted) {
                             event.preventDefault();
-                            activeQuizUrl = link.href;
-                            activeStorageKey = quiz.storageKey;
-                            if (window.AppUtils) window.AppUtils.showModal(completedQuizModal);
+
+                            // If the "Completed Quiz" modal exists on the current page, show it.
+                            if (completedQuizModal && window.AppUtils) {
+                                activeQuizUrl = link.href;
+                                activeStorageKey = quiz.storageKey;
+                                window.AppUtils.showModal(completedQuizModal);
+                            } else {
+                                // If the modal doesn't exist (e.g., we are on a different quiz page),
+                                // navigate directly to view the results of the clicked quiz.
+                                const separator = link.href.includes('?') ? '&' : '?';
+                                window.location.href = `${link.href}${separator}action=view_results`;
+                            }
                         }
                     });
 
@@ -156,36 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Modal Helper Functions ---
-    function showModal(modalElement) {
-        if (!modalElement) return;
-        const content = modalElement.querySelector('.modal-content');
-        modalElement.classList.remove('hidden');
-        modalElement.classList.add('anim-backdrop-fade-in');
-        if (content) content.classList.add('anim-modal-pop-in');
-    }
-
-    function hideModal(modalElement, onHiddenCallback) {
-        if (!modalElement) return;
-        const content = modalElement.querySelector('.modal-content');
-        modalElement.classList.remove('anim-backdrop-fade-in');
-        modalElement.classList.add('anim-backdrop-fade-out');
-        if (content) {
-            content.classList.remove('anim-modal-pop-in');
-            content.classList.add('anim-modal-pop-out');
-        }
-
-        setTimeout(() => {
-            modalElement.classList.add('hidden');
-            modalElement.classList.remove('anim-backdrop-fade-out');
-            if (content) content.classList.remove('anim-modal-pop-out');
-
-            if (typeof onHiddenCallback === 'function') {
-                onHiddenCallback();
-            }
-        }, 300);
-    }
-
     // --- Completed Quiz Modal Logic ---
     if (viewResultsBtn) {
         viewResultsBtn.addEventListener('click', () => {
@@ -193,15 +176,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const separator = activeQuizUrl.includes('?') ? '&' : '?';
                 window.location.href = `${activeQuizUrl}${separator}action=view_results`;
             }
-            hideModal(completedQuizModal);
+            if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
         });
     }
     if (startOverBtn) {
         startOverBtn.addEventListener('click', () => {
             if (activeStorageKey) localStorage.removeItem(activeStorageKey);
             if (activeQuizUrl) window.location.href = activeQuizUrl;
-            hideModal(completedQuizModal);
+            if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
         });
     }
-    if (cancelCompletedBtn) cancelCompletedBtn.addEventListener('click', () => hideModal(completedQuizModal));
+    if (cancelCompletedBtn) cancelCompletedBtn.addEventListener('click', () => {
+        if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
+    });
 });

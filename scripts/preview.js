@@ -62,6 +62,9 @@ function highlightText(text, keyword) {
 
 // Helper function to create a single question element. This promotes reusability.
 function createQuestionElement(item, displayIndex, keyword) {
+    // Determine if the view should hide answers and explanations (for user-facing page)
+    const isUserView = window.location.pathname.endsWith('/preview.html');
+
     // Replace newline characters with <br> tags for proper HTML rendering
     const questionHtml = item.question ? highlightText(item.question.replace(/\n/g, '<br>'), keyword) : '';
     const explanationHtml = item.explanation ? highlightText(item.explanation.replace(/\n/g, '<br>'), keyword) : '';
@@ -108,16 +111,15 @@ function createQuestionElement(item, displayIndex, keyword) {
             // Also replace newlines in choices, just in case
             choiceItem.innerHTML = ` ${highlightText(choice.replace(/\n/g, '<br>'), keyword)}`; // Add space for alignment and highlight
             // Highlight the correct answer
-            if (choice === item.answer) {
+            if (!isUserView && choice === item.answer) {
                 choiceItem.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
             }
             choicesList.appendChild(choiceItem);
         });
         questionDiv.appendChild(choicesList);
     }
-
     // Add explanation section
-    if (explanationHtml) {
+    if (!isUserView && explanationHtml) {
         const explanationDiv = document.createElement('div');
         // Restore the visually appealing Flexbox layout.
         explanationDiv.className = 'mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm leading-relaxed flex flex-row items-baseline';
