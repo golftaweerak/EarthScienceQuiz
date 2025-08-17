@@ -1,105 +1,230 @@
-// ข้อมูล JSON ของคุณ (ใส่ไว้ในตัวแปร)
-const quizData = {
-  "title": "แบบทดสอบเตรียมความพร้อม สอวน. วิทยาศาสตร์โลกและอวกาศ | ชุด 2",
-  "description": "แบบทดสอบนี้มีทั้งหมด 3 ส่วน รวม 150 ข้อ...",
-  "sections": [
-    {
-      "title": "ส่วนที่ 1: ธรณีวิทยา (50 ข้อ)",
-      "questions": [
-        { "number": 1, "text": "ชั้นโครงสร้างโลกใดที่มีสถานะเป็นของเหลวและเป็นสาเหตุสำคัญของการเกิดสนามแม่เหล็กโลก", "options": [{ "label": "ก", "text": "เปลือกโลก (Crust)" }, { "label": "ข", "text": "เนื้อโลก (Mantle)" }, { "label": "ค", "text": "แก่นโลกชั้นนอก (Outer Core)" }, { "label": "ง", "text": "แก่นโลกชั้นใน (Inner Core)" }], "answer": "ค" },
-        { "number": 2, "text": "'ไซมา' (SIMA) เป็นชื่อเรียกของเปลือกโลกส่วนใด และประกอบด้วยธาตุหลักอะไร", "options": [{ "label": "ก", "text": "เปลือกโลกทวีป, ซิลิคอนและแมกนีเซียม" }, { "label": "ข", "text": "เปลือกโลกมหาสมุทร, ซิลิคอนและอะลูมิเนียม" }, { "label": "ค", "text": "เปลือกโลกทวีป, ซิลิคอนและอะลูมิเนียม" }, { "label": "ง", "text": "เปลือกโลกมหาสมุทร, ซิลิคอนและแมกนีเซียม" }], "answer": "ง" },
-        { "number": 11, "prompt": "พิจารณาภาพตัดขวางทางธรณีวิทยา ซึ่งแสดงชั้นหิน A, B, C, E และพนังหินอัคนี (Dike) F โดยชั้นหินไม่มีการพลิกกลับ ด้านบนสุดของชั้น A ถูกกัดกร่อนเป็นผิวไม่ต่อเนื่อง และมีชั้น D ซึ่งเป็นตะกอนแม่น้ำทับอยู่", "image": "geological_cross_section.png", "text": "เหตุการณ์ใดเกิดขึ้นหลังสุด", "options": [{ "label": "ก", "text": "การสะสมตัวของชั้นหิน B" }, { "label": "ข", "text": "การแทรกดันของพนังหินอัคนี F" }, { "label": "ค", "text": "การกัดกร่อนผิวของชั้นหิน A" }, { "label": "ง", "text": "การสะสมตัวของชั้นหิน D" }], "answer": "ง" }
-        // ... คำถามอื่นๆ
-      ]
+document.addEventListener('DOMContentLoaded', () => {
+    const quizSelector = document.getElementById('quiz-selector');
+    const container = document.getElementById('quiz-container');
+    const downloadButton = document.getElementById('download-btn');
+
+    let currentQuizData = null; // To store the loaded and flattened data
+    let currentQuizTitle = ''; // To store the title for the PDF filename
+
+    // --- 1. Populate Dropdown ---
+    function populateQuizSelector() {
+        if (typeof quizList !== 'undefined' && Array.isArray(quizList)) {
+            quizList.forEach(quiz => {
+                const option = document.createElement('option');
+                option.value = `${quiz.id}-data.js`;
+                option.textContent = quiz.title;
+                quizSelector.appendChild(option);
+            });
+        }
     }
-    // ... ส่วนอื่นๆ
-  ]
-};
 
-// ส่วนที่ 1: สร้าง HTML จากข้อมูล JSON
-const container = document.getElementById('quiz-container');
-let contentHTML = `<h1>${quizData.title}</h1>`;
+    // --- 2. Render Quiz HTML ---
+    function renderQuizHTML(data, title) {
+        if (!data || data.length === 0) {
+            container.innerHTML = `<p class="placeholder">ไม่พบข้อมูลในไฟล์ที่เลือก</p>`;
+            return;
+        }
 
-quizData.sections.forEach(section => {
-    contentHTML += `<h2>${section.title}</h2>`;
-    section.questions.forEach(q => {
-        contentHTML += `<div class="question-block">`;
-        // เพิ่มคำอธิบายและรูปภาพ ถ้ามี
-        if (q.prompt) {
-            contentHTML += `<p><em>${q.prompt}</em></p>`;
-        }
-        if (q.image) {
-            // **หมายเหตุ:** คุณต้องมีไฟล์รูปภาพตามชื่อที่ระบุใน JSON
-            contentHTML += `<img src="${q.image}" alt="ภาพประกอบข้อ ${q.number}">`;
-        }
-        // เพิ่มคำถาม
-        contentHTML += `<p><b>${q.number}.</b> ${q.text}</p>`;
-        // เพิ่มตัวเลือก
-        contentHTML += `<ul>`;
-        q.options.forEach(opt => {
-            contentHTML += `<li><b>${opt.label}.</b> ${opt.text}</li>`;
+        let contentHTML = `<h1>${title}</h1>`;
+        let questionCounter = 0;
+
+        // Group questions by scenario for rendering
+        const groupedData = [];
+        let currentScenarioGroup = null;
+        data.forEach(item => {
+            if (item.scenarioTitle) {
+                if (currentScenarioGroup && currentScenarioGroup.title === item.scenarioTitle) {
+                    currentScenarioGroup.questions.push(item);
+                } else {
+                    currentScenarioGroup = { isScenario: true, title: item.scenarioTitle, description: item.scenarioDescription, questions: [item] };
+                    groupedData.push(currentScenarioGroup);
+                }
+            } else {
+                currentScenarioGroup = null;
+                groupedData.push({ isScenario: false, questions: [item] });
+            }
         });
-        contentHTML += `</ul></div>`;
+
+        groupedData.forEach(group => {
+            if (group.isScenario) {
+                contentHTML += `<h2>${group.title}</h2>`;
+                if (group.description) {
+                    contentHTML += `<p><em>${group.description.replace(/\n/g, '<br>')}</em></p>`;
+                }
+            }
+            group.questions.forEach(q => {
+                questionCounter++;
+                contentHTML += `<div class="question-block">`;
+                const questionText = q.question || q.text || '';
+                contentHTML += `<p><b>${questionCounter}.</b> ${questionText.replace(/\n/g, '<br>')}</p>`;
+                
+                const choices = q.choices || q.options;
+                if (choices && Array.isArray(choices)) {
+                    contentHTML += `<ul>`;
+                    const thaiNumerals = ['ก', 'ข', 'ค', 'ง', 'จ'];
+                    choices.forEach((choice, index) => {
+                        // Handle both string choices and object choices {label, text}
+                        const choiceText = typeof choice === 'object' ? choice.text : choice;
+                        const choiceLabel = typeof choice === 'object' ? choice.label : thaiNumerals[index];
+                        contentHTML += `<li><b>${choiceLabel}.</b> ${choiceText}</li>`;
+                    });
+                    contentHTML += `</ul>`;
+                }
+                contentHTML += `</div>`;
+            });
+        });
+
+        container.innerHTML = contentHTML;
+
+        // NEW: Trigger KaTeX rendering on the new content
+        // This finds all math expressions and renders them.
+        if (window.renderMathInElement) {
+            renderMathInElement(container, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        }
+    }
+
+    // --- 3. Flatten Data Structure ---
+    // This function ensures that no matter the data file's structure, we get a simple array of questions.
+    function flattenQuizData(data) {
+        let flattenedData = [];
+        if (!Array.isArray(data)) return [];
+
+        data.forEach(item => {
+            if (item.type === 'scenario' && Array.isArray(item.questions)) {
+                const scenarioQuestions = item.questions.map(q => ({
+                    ...q,
+                    scenarioTitle: item.title,
+                    scenarioDescription: item.description
+                }));
+                flattenedData.push(...scenarioQuestions);
+            } else if (item.type === 'question' || !item.type) { // Handles questions and legacy format
+                flattenedData.push(item);
+            }
+        });
+        return flattenedData;
+    }
+
+    // --- 4. Load and Process Quiz Data ---
+    async function loadAndRenderQuiz(scriptName) {
+        container.innerHTML = `<p class="placeholder">กำลังโหลดข้อมูล...</p>`;
+        downloadButton.disabled = true;
+        currentQuizData = null;
+
+        const scriptPath = `data/${scriptName}`;
+        try {
+            const response = await fetch(scriptPath);
+            if (!response.ok) throw new Error(`ไม่สามารถโหลดไฟล์ได้ (${response.status})`);
+            
+            const scriptText = await response.text();
+            // Execute script text in a new function scope to get the data variable.
+            // This is robust enough to handle variables named `quizData` or `quizItems`.
+            const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
+
+            if (!data) throw new Error('ไม่พบตัวแปร quizData หรือ quizItems ในไฟล์');
+
+            currentQuizTitle = quizSelector.options[quizSelector.selectedIndex].text;
+            currentQuizData = flattenQuizData(data);
+            renderQuizHTML(currentQuizData, currentQuizTitle);
+            downloadButton.disabled = false;
+
+        } catch (error) {
+            console.error(`Error loading or processing ${scriptPath}:`, error);
+            container.innerHTML = `<p class="placeholder error">เกิดข้อผิดพลาด: ${error.message}</p>`;
+            downloadButton.disabled = true;
+        }
+    }
+
+    // --- 5. PDF Generation ---
+    downloadButton.addEventListener('click', async function() { // Make the handler async
+        if (!currentQuizData) {
+            alert('กรุณาเลือกชุดข้อสอบก่อน');
+            return;
+        }
+
+        const btn = this;
+        const originalButtonText = btn.textContent; // Use textContent for button text
+        btn.disabled = true;
+        btn.textContent = 'กำลังเตรียมฟอนต์...'; // More accurate status
+
+        try {
+            // --- Definitive Fix for Blank PDF ---
+            // 1. Wait for all fonts (especially KaTeX fonts) to be downloaded and ready.
+            await document.fonts.ready;
+            console.log("All fonts are loaded and ready.");
+
+            btn.textContent = 'กำลังสร้าง PDF...'; // Update status
+
+            const elementToPrint = document.getElementById('quiz-container');
+            const pdfElement = elementToPrint.cloneNode(true); // Work on a copy
+
+            // Apply PDF-friendly styles
+            pdfElement.style.margin = '0';
+            pdfElement.style.padding = '0';
+            pdfElement.style.boxShadow = 'none';
+            pdfElement.style.width = '100%';
+
+            // Add to DOM off-screen
+            pdfElement.style.position = 'absolute';
+            pdfElement.style.left = '-9999px';
+            document.body.appendChild(pdfElement);
+
+            // 2. Force the browser to calculate the layout of the cloned element.
+            // This ensures that all styles are applied before html2canvas reads the element.
+            pdfElement.getBoundingClientRect();
+            console.log("Forced reflow on the cloned element.");
+
+            // 3. Give the browser a single frame to paint. This is the final step
+            // to ensure the visual representation is ready for capture.
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            console.log("Paint cycle complete. Starting PDF generation.");
+
+            // Sanitize filename
+            const filename = `${currentQuizTitle.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
+
+            const opt = {
+                margin: 15,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: true, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: 'css', avoid: '.question-block' }
+            };
+
+            // Generate the PDF.
+            await html2pdf().from(pdfElement).set(opt).save();
+
+            // Cleanup
+            document.body.removeChild(pdfElement);
+            btn.disabled = false;
+            btn.textContent = originalButtonText;
+
+        } catch (err) {
+            console.error("PDF generation failed:", err);
+            alert(`ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF: ${err.message}`);
+            // Ensure button is restored on failure
+            btn.disabled = false;
+            btn.textContent = originalButtonText;
+        }
     });
-});
 
-// นำ HTML ที่สร้างเสร็จแล้วไปแสดงใน container
-container.innerHTML = contentHTML;
-
-
-// ส่วนที่ 2: สั่งให้สร้าง PDF เมื่อกดปุ่ม
-document.getElementById('download-btn').addEventListener('click', function() {
-    const downloadButton = this;
-    const originalButtonText = downloadButton.innerHTML;
-
-    // Disable button and show a loading state for better UX
-    downloadButton.disabled = true;
-    downloadButton.innerHTML = 'กำลังสร้าง PDF...';
-
-    const elementToPrint = document.getElementById('quiz-container');
-
-    // --- PDF Generation Improvement ---
-    // 1. Clone the element to prepare it for PDF generation without affecting the on-screen view.
-    const pdfElement = elementToPrint.cloneNode(true);
-
-    // 2. Apply "PDF-friendly" styles. Removing box-shadow is key to enabling selectable text.
-    pdfElement.style.margin = '0';
-    pdfElement.style.padding = '0';
-    pdfElement.style.boxShadow = 'none';
-    pdfElement.style.width = '100%'; // Let html2pdf manage width within the A4 page format.
-
-    // 3. Temporarily add the clone to the DOM off-screen. This helps the renderer process it correctly.
-    pdfElement.style.position = 'absolute';
-    pdfElement.style.left = '-9999px';
-    document.body.appendChild(pdfElement);
-
-    const opt = {
-      margin:       15, // Margin in mm
-      filename:     'แบบทดสอบ_สอวน_ชุดที่2.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  {
-          scale: 2,
-          useCORS: true,
-          // By removing complex CSS (like box-shadow), we allow html2pdf's
-          // text-rendering engine to work, making text selectable and fixing overlaps.
-      },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      // Improve page breaks: try to avoid splitting a single question across two pages.
-      pagebreak:    { mode: 'css', avoid: '.question-block' }
-    };
-
-    // 4. Generate the PDF from the prepared clone.
-    html2pdf().from(pdfElement).set(opt).save().then(() => {
-        // 5. Clean up: remove the clone and restore the button state.
-        document.body.removeChild(pdfElement);
-        downloadButton.disabled = false;
-        downloadButton.innerHTML = originalButtonText;
-    }).catch(err => {
-        console.error("PDF generation failed:", err);
-        // Also clean up on error
-        document.body.removeChild(pdfElement);
-        downloadButton.disabled = false;
-        downloadButton.innerHTML = originalButtonText;
-        alert("ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF");
+    // --- 6. Initial Setup ---
+    quizSelector.addEventListener('change', (event) => {
+        const selectedScript = event.target.value;
+        if (selectedScript) {
+            loadAndRenderQuiz(selectedScript);
+        } else {
+            container.innerHTML = `<p class="placeholder">โปรดเลือกชุดข้อสอบเพื่อแสดงตัวอย่าง...</p>`;
+            downloadButton.disabled = true;
+        }
     });
+
+    populateQuizSelector();
 });

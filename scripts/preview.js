@@ -501,6 +501,95 @@ document.addEventListener('DOMContentLoaded', () => {
         handleGlobalSearch();
     }
 
+    // --- PDF Generation Functionality (Integrated from pdf-conv.js) ---
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', async function() {
+            const btn = this;
+            const originalButtonContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>กำลังเตรียม...</span>`;
+
+            try {
+                // 1. Wait for all fonts (especially KaTeX fonts) to be downloaded and ready.
+                await document.fonts.ready;
+                console.log("All fonts are loaded and ready for PDF generation.");
+
+                btn.querySelector('span').textContent = 'กำลังสร้าง PDF...';
+
+                // 2. Create a clone of the content to be printed.
+                // We create a new container to hold the title and the questions.
+                const pdfContent = document.createElement('div');
+                pdfContent.className = 'font-sarabun'; // Ensure consistent font
+
+                // 3. Create and add the title
+                const titleEl = document.createElement('h1');
+                titleEl.style.fontSize = '1.8rem';
+                titleEl.style.fontWeight = '700';
+                titleEl.style.textAlign = 'center';
+                titleEl.style.marginBottom = '2rem';
+                
+                let pdfTitle = "ชุดข้อสอบ";
+                if (quizSelector.value) {
+                    pdfTitle = quizSelector.options[quizSelector.selectedIndex].text;
+                } else if (searchInput.value) {
+                    pdfTitle = `ผลการค้นหาสำหรับ: "${searchInput.value}"`;
+                }
+                titleEl.textContent = pdfTitle;
+                pdfContent.appendChild(titleEl);
+
+                // 4. Clone the actual quiz content
+                const contentToPrint = container.cloneNode(true);
+                // Remove Tailwind's responsive/spacing classes that might interfere
+                contentToPrint.classList.remove('space-y-6');
+                // Ensure all questions are visible (remove grid-rows-[0fr] from collapsed scenarios)
+                contentToPrint.querySelectorAll('.grid-rows-\\[0fr\\]').forEach(el => {
+                    el.classList.remove('grid-rows-[0fr]');
+                    el.classList.add('grid-rows-[1fr]');
+                });
+                pdfContent.appendChild(contentToPrint);
+
+                // 5. Add the clone to the DOM off-screen for rendering
+                pdfContent.style.position = 'absolute';
+                pdfContent.style.left = '-9999px';
+                pdfContent.style.width = '800px'; // A fixed width for consistent PDF layout
+                document.body.appendChild(pdfContent);
+
+                // 6. Force reflow and wait for paint
+                pdfContent.getBoundingClientRect();
+                await new Promise(resolve => requestAnimationFrame(resolve));
+
+                // 7. Set options and generate PDF
+                const filename = `${pdfTitle.replace(/[\\/:*?"<>|]/g, '').replace(/ /g, '_')}.pdf`;
+                const opt = {
+                    margin: 15,
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: 'css', before: '.question-card', avoid: '.question-card' }
+                };
+
+                await html2pdf().from(pdfContent).set(opt).save();
+
+                // 8. Cleanup
+                document.body.removeChild(pdfContent);
+                btn.disabled = false;
+                btn.innerHTML = originalButtonContent;
+
+            } catch (err) {
+                console.error("PDF generation failed:", err);
+                alert(`ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF: ${err.message}`);
+                btn.disabled = false;
+                btn.innerHTML = originalButtonContent;
+            }
+        });
+    }
+
     // --- Modal Functionality ---
     const modal = document.getElementById('scenario-modal');
     const modalTitle = document.getElementById('scenario-modal-title');

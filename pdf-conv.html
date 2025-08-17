@@ -9,26 +9,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Basic styling for PDF output */
-        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; padding: 20px; text-align: center; }
-        #quiz-container { width: 210mm; padding: 20px; margin: 20px auto; background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: left; }
-        h1 { font-family: 'Kanit', sans-serif; font-size: 20px; }
-        h2 { font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px;}
-        .question-block { margin-bottom: 20px; }
-        .question-block p { margin: 0 0 10px 0; }
-        .question-block ul { list-style-type: none; padding-left: 20px; margin: 0; }
-        .question-block li { margin-bottom: 5px; }
-        img { max-width: 100%; height: auto; margin-bottom: 10px;}
-        #download-btn { font-family: 'Kanit', sans-serif; padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #2563eb; color: white; border: none; border-radius: 8px; margin-bottom: 20px; }
-        #download-btn:hover { background-color: #1d4ed8; }
-    </style>
+    <!-- Link to the dedicated CSS file for better organization -->
+    <!-- KaTeX for rendering LaTeX, consistent with preview.html -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        integrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        crossorigin="anonymous"></script>
+    <!-- This is the auto-render extension for KaTeX -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"
+        onload="console.log('KaTeX auto-render for PDF testbed loaded.')">
+    </script>
+    <link rel="stylesheet" href="styles/pdf-generation.css">
 </head>
 <body>
-    <button id="download-btn">ดาวน์โหลดแบบทดสอบเป็น PDF</button>
+    <header class="test-header">
+        <label for="quiz-selector">เลือกชุดข้อสอบสำหรับทดสอบ PDF:</label>
+        <select id="quiz-selector">
+            <option value="">-- กรุณาเลือก --</option>
+        </select>
+        <button id="download-btn" disabled>ดาวน์โหลดเป็น PDF</button>
+    </header>
     <div id="quiz-container">
-        <!-- Content is dynamically loaded here -->
+        <p class="placeholder">โปรดเลือกชุดข้อสอบเพื่อแสดงตัวอย่าง...</p>
     </div>
+    <script src="data/quizzes-list.js"></script>
     <script src="scripts/pdf-conv.js"></script>
 </body>
 </html>

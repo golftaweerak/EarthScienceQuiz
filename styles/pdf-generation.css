@@ -1,0 +1,223 @@
+/* =====================================================
+  Modern CSS for Quiz Application & PDF Generation
+  =====================================================
+*/
+
+/* 1. Import Google Font (Inter) - A clean, modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Sarabun:wght@400;700&display=swap');
+
+/* 2. CSS Variables for Easy Theme Management */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2980b9;
+    --background-color: #f7f9fc;
+    --container-background: #ffffff;
+    --text-color: #333333;
+    --border-color: #e0e0e0;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+}
+
+/* 3. General Body and Layout Styles */
+body {
+    font-family: 'Sarabun', 'Inter', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 2rem;
+    line-height: 1.7;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* NEW: Styles for the header controls, ensuring it's centered */
+.test-header {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 2rem auto; /* Center the header */
+    padding: 1.5rem;
+    background-color: var(--container-background);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px var(--shadow-color);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
+.test-header label {
+    font-weight: 700;
+    color: #555;
+}
+
+.test-header select {
+    flex-grow: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: #fff;
+    min-width: 200px; /* Ensure it doesn't get too small */
+}
+
+/* 4. Download Button Style */
+#download-btn {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    padding: 14px 30px;
+    font-size: 1rem;
+    font-family: inherit;
+    font-weight: 700;
+    border-radius: 50px; /* Pill shape */
+    cursor: pointer;
+    margin-left: auto; /* Push the button to the right in the flex container */
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+}
+
+#download-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.5);
+}
+
+#download-btn:disabled {
+    background: #bdc3c7; /* Gray out when disabled */
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 5. Styles for the Quiz Container (The "Document") */
+#quiz-container {
+    width: 100%;
+    max-width: 800px; /* Readable width on desktops */
+    margin: 0 auto; /* Center the container now that body is not a flex container */
+    padding: 2.5rem;
+    background-color: var(--container-background);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--shadow-color);
+    border: 1px solid var(--border-color);
+}
+
+/* NEW: Styles for placeholder text */
+.placeholder {
+    color: #7f8c8d;
+    text-align: center;
+    font-style: italic;
+    padding: 4rem 0;
+}
+
+.placeholder.error {
+    color: #c0392b;
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* 6. Typography Styles */
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+p {
+    font-size: 1rem;
+}
+
+/* 7. Question Block Styling */
+.question-block {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.question-block:last-child {
+    border-bottom: none; /* Remove border from the last question */
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.question-block p {
+    margin: 0 0 1rem 0;
+    font-weight: 700; /* Make question text bold */
+}
+
+.question-block em {
+    color: #555;
+    font-style: normal;
+    background-color: #f7f9fc;
+    padding: 0.5rem;
+    border-radius: 8px;
+    display: block;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.question-block ul {
+    list-style-type: none;
+    padding-left: 1.5rem;
+    margin: 0;
+}
+
+.question-block li {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+/* 8. Responsive Design for Mobile */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    #quiz-container {
+        padding: 1.5rem;
+        width: 100%;
+    }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.2rem; }
+}
+
+/* 9. Print Styles - Optimize for PDF output */
+@media print {
+    body {
+        background-color: white;
+        padding: 0;
+    }
+    
+    .test-header, hr {
+        display: none;
+    }
+
+    #quiz-container {
+        width: 100%;
+        max-width: 100%;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+    }
+}
