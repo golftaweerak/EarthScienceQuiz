@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (downloadButton) downloadButton.disabled = true;
         currentQuizData = null;
 
-        const scriptPath = `data/${scriptName}`;
+        const scriptPath = `../../data/${scriptName}`;
         try {
             const response = await fetch(scriptPath);
             if (!response.ok) throw new Error(`ไม่สามารถโหลดไฟล์ได้ (${response.status})`);
