@@ -205,10 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await html2pdf().from(pdfElement).set(opt).save();
 
             // Cleanup
-            btn.textContent = originalButtonText;
-            btn.disabled = false;
+            btn.textContent = originalButtonText; // Restore button text
+            btn.disabled = false; // Re-enable the button
             document.body.removeChild(pdfElement);
-
         } catch (err) {
             console.error("PDF generation failed:", err);
             alert(`ขออภัย, เกิดข้อผิดพลาดในการสร้าง PDF: ${err.message}`);
@@ -243,11 +242,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (scriptNameFromUrl) {
             // Find the option in the selector that matches the script name
             const optionToSelect = Array.from(quizSelector.options).find(opt => opt.value === scriptNameFromUrl);
-            
             if (optionToSelect) {
                 // Set the dropdown to the correct value and trigger the loading process
                 optionToSelect.selected = true;
-                await loadAndRenderQuiz(scriptNameFromUrl);
+                await loadAndRenderQuiz(scriptNameFromUrl); // Only load and render, do not generate PDF
             } else {
                 container.innerHTML = `<p class="placeholder error">ไม่พบชุดข้อสอบที่ตรงกับ URL ที่ระบุ (${scriptNameFromUrl})</p>`;
             }
