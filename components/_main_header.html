@@ -1,0 +1,55 @@
+<!-- This is the shared header component for all pages. -->
+<header
+        class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md transition-colors duration-300">
+        <div class="container mx-auto flex items-center justify-between h-16 px-4">
+            <!-- Left Side: Menu -->
+            <div class="flex-1 flex justify-start">
+                <nav class="relative" aria-label="Main navigation">
+                    <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
+                        class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div id="main-menu-dropdown"
+                        class="hidden absolute left-0 mt-2 w-80 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu">
+                        <div class="p-2">
+                            <a href="./index.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                            <a href="./preview.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                            <a href="./about.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                            <a href="#" id="dev-tools-link" class="block px-4 py-2 text-sm text-yellow-600 dark:text-yellow-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734-2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                                    </svg>
+                                    เครื่องมือผู้พัฒนา
+                                </span>
+                            </a>
+                            <hr class="my-2 border-gray-200 dark:border-gray-600">
+                            <div id="menu-quiz-list" class="space-y-px"></div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Center: Title -->
+            <div class="flex-shrink-0">
+                <h1
+                    class="font-kanit text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
+                    เตรียมความพร้อม สอวน.</h1>
+            </div>
+
+            <!-- Right Side: Dark Mode Toggle -->
+            <div class="flex-1 flex justify-end">
+                <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
+                    class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                    <!-- Icon will be inserted by JS -->
+                </button>
+            </div>
+        </div>
+    </header>
+<!-- End of shared header component -->
