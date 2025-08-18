@@ -17,12 +17,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-    xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
+    integrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-    xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+    integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
     crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+    integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
     crossorigin="anonymous"></script>
   <!-- Shared Styles -->
   <link rel="stylesheet" href="../styles/main.css">
@@ -34,48 +34,10 @@
   <link rel="preload" href="../assets/audio/incorrect.mp3" as="audio">
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 p-4">
+<body class="pt-24 md:pt-28 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 p-4">
   <div class="max-w-3xl mx-auto">
     <!-- Header with buttons -->
-    <header class="flex items-center mb-4">
-      <!-- Left Side: Menu -->
-      <div class="flex-1 flex justify-start">
-        <div class="relative" id="quiz-menu-container">
-          <button id="quiz-menu-btn" title="เลือกแบบทดสอบ" class="btn-icon inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor" stroke-width="2" role="img" aria-labelledby="menuIconTitle">
-              <title id="menuIconTitle">เมนู</title>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div id="quiz-menu-dropdown"
-            class="hidden absolute left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700">
-            <div class="p-2 max-h-96 overflow-y-auto">
-              <!-- Menu items will be inserted here by JS -->
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Center: Logo and Title -->
-      <div class="flex-shrink-0 flex items-center space-x-3">
-        <img src="../assets/images/saba.png" alt="SABA" class="h-10 w-auto">
-        <span id="quiz-title-header"
-          class="font-kanit text-lg font-bold text-gray-700 dark:text-gray-300 hidden sm:block truncate">
-          <!-- Title will be inserted by JS -->
-        </span>
-      </div>
-      <!-- Right Side: Controls -->
-      <div class="flex-1 flex justify-end">
-        <div class="flex items-center space-x-2">
-          <button id="sound-toggle-btn" title="เปิด/ปิดเสียง" class="btn-icon">
-            <!-- Sound Icon will be inserted by JS -->
-          </button>
-          <button id="dark-mode-toggle" title="สลับโหมดมืด/สว่าง" class="btn-icon">
-            <!-- Dark Mode Icon will be inserted by JS -->
-          </button>
-        </div>
-      </div>
-    </header>
+    <div id="main_header-placeholder"></div>
 
     <main id="quiz-container" class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
       <div id="start-screen">
@@ -201,16 +163,7 @@
         </button>
       </div>
     </main>
-    <footer class="text-center mt-12 text-sm text-gray-500 dark:text-gray-400 font-kanit">
-      <div class="inline-flex items-center space-x-3 mb-4">
-        <img src="../assets/icons/promma-logo.png" alt="promma logo" class="h-12 w-12 rounded-full">
-        <div class="text-left">
-          <p>พัฒนาโดย นายทวีรักษ์ ทูลพุทธา</p>
-          <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
-        </div>
-      </div>
-      <p>© <span id="copyright-year">2025</span> Prommanusorn Phetchaburi School. All rights reserved.</p>
-    </footer>
+    <div id="footer-placeholder" class="mt-12"></div>
   </div>
 
   <!-- Resume Quiz Modal -->
@@ -232,8 +185,7 @@
           class="w-full sm:w-auto flex-1 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
           ทำต่อ
         </button>
-        <button id="resume-reject-btn"
-          data-modal-close
+        <button id="resume-reject-btn" data-modal-close
           class="w-full sm:w-auto flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition duration-300">
           เริ่มใหม่
         </button>
@@ -243,7 +195,7 @@
 
   <!-- Completed Quiz Action Modal (Consistent with index.html) -->
   <div id="completed-quiz-modal"
-    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" role="dialog"
+    class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-labelledby="completed-modal-title">
     <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
       <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
@@ -262,21 +214,13 @@
           class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">ดูผลคะแนน</button>
         <button id="completed-start-over-btn"
           class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">เริ่มใหม่</button>
-        <button id="completed-cancel-btn"
-          data-modal-close
+        <button id="completed-cancel-btn" data-modal-close
           class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">ยกเลิก</button>
       </div>
     </div>
   </div>
 
-  <script src="../scripts/page-transitions.js" defer></script>
-  <script src="../scripts/dark-mode.js" defer></script>
-  <script src="../data/quizzes-list.js" defer></script>
-  <script src="../scripts/modal-handler.js" defer></script> <!-- Use the new central modal handler -->
-  <script src="../scripts/utils.js" defer></script> <!-- Kept for now, can be removed if no longer used -->
-  <script src="../scripts/quiz-logic.js" defer></script>
-  <script src="../scripts/dropdown-menu.js" defer></script>
-  <script src="../scripts/quiz-loader.js" defer></script> <!-- New script to load quiz data -->
+  <!-- The single entry point for all quiz page functionality -->
+  <script src="../scripts/quiz-page-loader.js" type="module"></script>
 </body>
-
 </html>

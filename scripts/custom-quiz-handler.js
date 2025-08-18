@@ -7,7 +7,7 @@ import { shuffleArray } from "./utils.js";
  * Safely retrieves and parses the list of custom quizzes from localStorage.
  * @returns {Array} An array of custom quiz objects, or an empty array if none exist or data is corrupt.
  */
-function getSavedCustomQuizzes() {
+export function getSavedCustomQuizzes() {
     const savedQuizzesJSON = localStorage.getItem("customQuizzesList");
     if (!savedQuizzesJSON) return [];
     try {
@@ -89,7 +89,8 @@ export function initializeCustomQuizHandler() {
 
         if (shouldBeEditing) {
             const currentTitle = titleDisplay.querySelector("p.font-bold").textContent;
-            editContainer.innerHTML = `<input type="text" value="${currentTitle}" class="w-full p-1 border border-blue-400 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500">`;
+            // Create and inject the input field for editing the title, using consistent styling
+            editContainer.innerHTML = `<input type="text" value="${currentTitle}" class="w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">`;
             const input = editContainer.querySelector("input");
             input.focus();
             input.select();
@@ -145,17 +146,21 @@ export function initializeCustomQuizHandler() {
     function createCategoryControlHTML(category, displayName, iconSrc, maxCount) {
         const disabled = maxCount === 0;
         const finalIconSrc = iconSrc || './assets/icons/study.png';
+        // Use a grid layout for better alignment on larger screens.
+        // It stacks on mobile and becomes a 2-column layout on medium screens and up.
         return `
-            <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 ${disabled ? "opacity-50" : ""}">
+            <div class="grid grid-cols-1 md:grid-cols-2 md:items-center gap-x-6 gap-y-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 ${disabled ? "opacity-50" : ""}">
+                <!-- Left Column: Category Label -->
                 <label for="count-slider-${category}" class="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-3 ${disabled ? "cursor-not-allowed" : ""}">
                     <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white dark:bg-gray-200 flex items-center justify-center p-1">
                         <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
                     </div>
-                    <span>${displayName}: <span data-value-display="${category}" class="font-sarabun text-blue-600 dark:text-blue-400">0</span> / <span class="font-sarabun">${maxCount}</span> ข้อ</span>
+                    <div class="flex-grow"><span class="whitespace-nowrap">${displayName}:</span> <span data-value-display="${category}" class="font-sarabun text-blue-600 dark:text-blue-400">0</span> / <span class="font-sarabun">${maxCount}</span> ข้อ</div>
                 </label>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 mt-2">
+                <!-- Right Column: Slider and Number Input -->
+                <div class="flex items-center gap-4">
                     <input data-slider="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" ${disabled ? "disabled" : ""}>
-                    <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-full sm:w-24 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
+                    <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-24 flex-shrink-0 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
                 </div>
             </div>`;
     }

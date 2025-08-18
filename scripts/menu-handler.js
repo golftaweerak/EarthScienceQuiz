@@ -1,6 +1,7 @@
 import { ModalHandler } from './modal-handler.js';
 import { getQuizProgress, categoryDetails as allCategoryDetails } from './data-manager.js';
 import { quizList } from '../data/quizzes-list.js';
+import { getSavedCustomQuizzes } from './custom-quiz-handler.js';
 
 
 /**
@@ -66,11 +67,6 @@ export function initializeMenu() {
     const completedModal = new ModalHandler('completed-quiz-modal');
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
-    // --- Modal Setup for Developer Password ---
-    const devPasswordModal = new ModalHandler('dev-password-modal');
-    const devPasswordForm = document.getElementById('dev-password-form');
-    const devPasswordInput = document.getElementById('dev-password-input');
-    const devPasswordError = document.getElementById('dev-password-error');
 
     let activeQuizUrl = '';
     let activeStorageKey = '';
@@ -109,21 +105,7 @@ export function initializeMenu() {
     });
 
     // 2. Custom Quizzes
-    let savedQuizzes = [];
-    try {
-        const savedQuizzesJSON = localStorage.getItem("customQuizzesList");
-        if (savedQuizzesJSON) {
-            const parsed = JSON.parse(savedQuizzesJSON);
-            // Ensure the parsed data is an array before using it
-            if (Array.isArray(parsed)) {
-                savedQuizzes = parsed;
-            }
-        }
-    } catch (e) {
-        console.error("Could not parse customQuizzesList for menu:", e);
-        // If parsing fails, savedQuizzes remains an empty array, and the rest of the page loads normally.
-    }
-
+    const savedQuizzes = getSavedCustomQuizzes(); // Use the safe, shared function
     if (savedQuizzes.length > 0) {
         menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
         menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
@@ -139,17 +121,6 @@ export function initializeMenu() {
     menuDropdown.addEventListener('click', (event) => {
         const link = event.target.closest('a');
         if (!link) return;
-
-        // Case 1: Developer Tools Link
-        if (link.id === 'dev-tools-link') {
-            event.preventDefault();
-            if (devPasswordModal && devPasswordInput && devPasswordError) {
-                devPasswordInput.value = '';
-                devPasswordError.textContent = '';
-                devPasswordModal.open(link);
-            }
-            return; // Stop processing
-        }
 
         // Case 2: Quiz Item Link
         if (link.classList.contains('quiz-menu-item')) {
@@ -169,25 +140,7 @@ export function initializeMenu() {
         }
     });
 
-    // --- Developer Password Form Listener ---
-    if (devPasswordForm) {
-        devPasswordForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const password = devPasswordInput.value;
-            if (password === "promma_dev") {
-                devPasswordModal.close();
-                window.location.href = './preview-data.html';
-            } else {
-                if (devPasswordError) devPasswordError.textContent = "รหัสผ่านไม่ถูกต้อง";
-                // Shake animation for feedback
-                const modalContent = devPasswordModal.modal.querySelector('.modal-content');
-                if (modalContent) {
-                    modalContent.classList.add('anim-shake');
-                    setTimeout(() => modalContent.classList.remove('anim-shake'), 500);
-                }
-            }
-        });
-    }
+             
 
     // --- Modal Button Listeners ---
     if (viewResultsBtn) {

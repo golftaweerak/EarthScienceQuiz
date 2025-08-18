@@ -25,6 +25,12 @@ export const categoryDetails = {
         order: 3,
         color: "border-teal-500",
     },
+    GeneralKnowledge: {
+        title: "ความรู้ทั่วไป (General)",
+        icon: "./assets/icons/general.png", // หมายเหตุ: คุณอาจต้องสร้างไฟล์ไอคอนนี้ หรือใช้ study.png แทน
+        order: 4,
+        color: "border-amber-500",
+    },
     // Sub-categories used for custom quiz creation
     Geology: {
         displayName: "ธรณีวิทยา",
