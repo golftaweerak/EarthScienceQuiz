@@ -9,9 +9,9 @@ import { quizList } from '../data/quizzes-list.js'; // Import quizList to make i
 async function initializeGlobal() {
     // Load shared HTML components into their placeholders
     await Promise.all([
-        loadComponent('#main_header-placeholder', '/components/_main_header.html'),
-        loadComponent('#header-placeholder', '/components/_header.html'), // This might not exist on all pages, but loadComponent handles it gracefully.
-        loadComponent('#footer-placeholder', '/components/_footer.html'),
+        loadComponent('#main_header-placeholder', './components/_main_header.html'),
+        loadComponent('#header-placeholder', './components/_header.html'), // This might not exist on all pages, but loadComponent handles it gracefully.
+        loadComponent('#footer-placeholder', './components/_footer.html'),
     ]);
 
     // Once components are loaded, initialize common scripts

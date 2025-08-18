@@ -9,34 +9,34 @@ export const categoryDetails = {
     // Main categories for the index page accordion
     AstronomyReview: {
         title: "ทบทวน (Review)",
-        icon: "/assets/icons/study.png",
+        icon: "./assets/icons/study.png",
         order: 1,
         color: "border-sky-500",
     },
     Astronomy: {
         title: "ดาราศาสตร์ (Astronomy)",
-        icon: "/assets/icons/astronomy.png",
+        icon: "./assets/icons/astronomy.png",
         order: 2,
         color: "border-indigo-500",
     },
     EarthScience: {
         title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
-        icon: "/assets/icons/earth.png",
+        icon: "./assets/icons/earth.png",
         order: 3,
         color: "border-teal-500",
     },
     // Sub-categories used for custom quiz creation
     Geology: {
         displayName: "ธรณีวิทยา",
-        icon: "/assets/icons/geology.png",
+        icon: "./assets/icons/geology.png",
     },
     Meteorology: {
         displayName: "อุตุนิยมวิทยา",
-        icon: "/assets/icons/meteorology.png",
+        icon: "./assets/icons/meteorology.png",
     },
     General: {
         displayName: "สุ่มจากทุกหมวดหมู่",
-        icon: "/assets/icons/study.png",
+        icon: "./assets/icons/study.png",
     },
 };
 
@@ -95,7 +95,7 @@ export async function fetchAllQuizData() {
     }
 
     const promises = quizList.map(async (quiz) => {
-        const scriptPath = `/data/${quiz.id}-data.js`;
+        const scriptPath = `./data/${quiz.id}-data.js`;
         try {
             const response = await fetch(scriptPath);
             if (!response.ok) return [];

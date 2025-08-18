@@ -15,8 +15,8 @@ function createMenuItemHTML(quiz, getQuizUrl) {
 
     const storageKey = quiz.storageKey || `quizState-${quiz.id}`;
     const quizId = quiz.id || quiz.customId;
-    const linkUrl = getQuizUrl(quizId);
-    const iconUrl = quiz.icon || '/assets/icons/study.png'; // All icon paths are now root-relative
+    const linkUrl = getQuizUrl(quizId); // This will be relative
+    const iconUrl = quiz.icon || './assets/icons/study.png';
     const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบ';
 
     const progress = getQuizProgress(storageKey, totalQuestions);
@@ -76,7 +76,7 @@ export function initializeMenu() {
     let activeStorageKey = '';
 
     // --- Pathing Logic: Use root-relative paths for consistency ---
-    const getQuizUrl = (id) => `/quiz/index.html?id=${id}`;
+    const getQuizUrl = (id) => `./quiz/index.html?id=${id}`;
 
     // --- Grouping and Sorting Logic ---
     const groupedQuizzes = quizList.reduce((acc, quiz) => {
@@ -176,7 +176,7 @@ export function initializeMenu() {
             const password = devPasswordInput.value;
             if (password === "promma_dev") {
                 devPasswordModal.close();
-                window.location.href = '/preview-data.html';
+                window.location.href = './preview-data.html';
             } else {
                 if (devPasswordError) devPasswordError.textContent = "รหัสผ่านไม่ถูกต้อง";
                 // Shake animation for feedback

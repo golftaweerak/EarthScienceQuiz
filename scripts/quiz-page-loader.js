@@ -10,8 +10,8 @@ import { quizList } from '../data/quizzes-list.js'; // Import quizList to make i
 async function main() {
     // Load shared components first
     await Promise.all([
-            loadComponent('#main_header-placeholder', '/components/_main_header.html'),
-            loadComponent('#footer-placeholder', '/components/_footer.html')
+            loadComponent('#main_header-placeholder', '../components/_main_header.html'),
+            loadComponent('#footer-placeholder', '../components/_footer.html')
     ]);
 
     // Initialize common UI components like header, menu, and footer scripts

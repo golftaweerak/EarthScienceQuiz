@@ -113,7 +113,7 @@ export function initializeCustomQuizHandler() {
                 progressText = `<span class="text-xs font-medium text-blue-600 dark:text-blue-400">ทำต่อ (${progress.answeredCount}/${progress.totalQuestions})</span>`;
             }
             const buttonText = progress.hasProgress ? "ทำต่อ" : "เริ่มทำ";
-            const quizUrl = `/quiz/index.html?id=${quiz.customId}`;
+            const quizUrl = `./quiz/index.html?id=${quiz.customId}`;
 
             const quizItemEl = document.createElement("div");
             quizItemEl.dataset.quizId = quiz.customId;
@@ -144,7 +144,7 @@ export function initializeCustomQuizHandler() {
 
     function createCategoryControlHTML(category, displayName, iconSrc, maxCount) {
         const disabled = maxCount === 0;
-        const finalIconSrc = iconSrc || '/assets/icons/study.png';
+        const finalIconSrc = iconSrc || './assets/icons/study.png';
         return `
             <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 ${disabled ? "opacity-50" : ""}">
                 <label for="count-slider-${category}" class="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-3 ${disabled ? "cursor-not-allowed" : ""}">
@@ -287,7 +287,7 @@ export function initializeCustomQuizHandler() {
         const savedQuizzes = getSavedCustomQuizzes();
         savedQuizzes.unshift(customQuiz); // Add new quiz to the top
         localStorage.setItem("customQuizzesList", JSON.stringify(savedQuizzes));
-        window.location.href = `/quiz/index.html?id=${customQuiz.customId}`;
+        window.location.href = `./quiz/index.html?id=${customQuiz.customId}`;
         
     });
 

@@ -39,7 +39,7 @@ async function fetchAllQuizData() {
     console.log("Fetching all quiz data for the first time...");
 
     const promises = quizList.map(async (quiz) => {
-        const scriptPath = `/data/${quiz.id}-data.js`;
+        const scriptPath = `./data/${quiz.id}-data.js`;
         try {
             const response = await fetch(scriptPath);
             if (!response.ok) {
@@ -540,7 +540,7 @@ export function initializePreviewPage() {
             return;
         }
 
-        const scriptPath = `/data/${scriptName}`;
+        const scriptPath = `./data/${scriptName}`;
         //scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
         container.innerHTML = `<div class="text-center p-8 text-gray-500 dark:text-gray-400">
                                     <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

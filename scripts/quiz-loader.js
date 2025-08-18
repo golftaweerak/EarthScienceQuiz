@@ -67,7 +67,7 @@ export function initializeQuiz() {
 
     // Dynamically load the specific quiz data script.
     const dataScript = document.createElement('script');
-    dataScript.src = `/data/${quizId}-data.js`;
+    dataScript.src = `../data/${quizId}-data.js`;
 
     dataScript.onload = () => {
         // 4. Once the data script is loaded, process the data.
@@ -154,7 +154,7 @@ function handleQuizError(title, message) {
         startScreen.innerHTML = `
             <h1 class="text-2xl sm:text-3xl font-bold text-center text-red-500 dark:text-red-400 mb-4">${title}</h1>
             <p class="text-center text-gray-600 dark:text-gray-400 mb-8">${message}</p>
-            <a href="/index.html" class="w-full max-w-xs mx-auto block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300 text-center">
+            <a href="../index.html" class="w-full max-w-xs mx-auto block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300 text-center">
                 กลับไปหน้าหลัก
             </a>
         `;

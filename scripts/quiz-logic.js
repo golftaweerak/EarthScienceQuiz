@@ -92,9 +92,9 @@ export function init(quizData, storageKey) {
         score: 0,
         shuffledQuestions: [],
         userAnswers: [],
-        isSoundEnabled: true,
-        correctSound: new Audio("/assets/audio/correct.mp3"),
-        incorrectSound: new Audio("/assets/audio/incorrect.mp3"),
+        isSoundEnabled: true, // This will be initialized properly later
+        correctSound: new Audio("../assets/audio/correct.mp3"),
+        incorrectSound: new Audio("../assets/audio/incorrect.mp3"),
         timerMode: "none",
         timeLeft: 0,
         timerId: null,
