@@ -100,7 +100,14 @@ export async function fetchAllQuizData() {
             const response = await fetch(scriptPath);
             if (!response.ok) return [];
             const scriptText = await response.text();
-            const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
+            // A safer way to get the data without using new Function() directly on the whole script.
+            // This approach is less prone to side effects from other code in the data files.
+            let data;
+            // Temporarily assign to window to extract the variable, then clean up.
+            window.tempQuizData = undefined;
+            window.tempQuizItems = undefined;
+            new Function(`${scriptText}; window.tempQuizData = typeof quizData !== 'undefined' ? quizData : undefined; window.tempQuizItems = typeof quizItems !== 'undefined' ? quizItems : undefined;`)();
+            data = window.tempQuizItems || window.tempQuizData;
 
             if (!data || !Array.isArray(data)) return [];
 
