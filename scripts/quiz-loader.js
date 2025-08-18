@@ -1,59 +1,10 @@
-/**
- * Populates the common elements of the quiz page (titles, descriptions).
- * @param {string} title The main title for the quiz.
- * @param {string} description The description for the quiz.
- */
-function populatePage(title, description) {
-    document.title = title;
-    const startScreenTitle = document.getElementById('start-screen-title');
-    const startScreenDesc = document.getElementById('start-screen-description');
-    
-    if (startScreenTitle) startScreenTitle.textContent = title;
-    if (startScreenDesc) startScreenDesc.textContent = description;
-
-    document.getElementById('quiz-title-header').textContent = title;
-}
-
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Get the quiz ID from the URL query parameter
     // Set current year in footer
     document.getElementById('copyright-year').textContent = new Date().getFullYear();
 
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('id');
-
-    // --- NEW: Handle Custom Quiz ---
-    if (quizId && quizId.startsWith('custom_')) {
-        const allCustomQuizzesJSON = localStorage.getItem('customQuizzesList');
-        if (allCustomQuizzesJSON) {
-            try {
-                const allCustomQuizzes = JSON.parse(allCustomQuizzesJSON);
-                const customQuizData = allCustomQuizzes.find(q => q.customId === quizId);
-
-                if (!customQuizData) {
-                    handleQuizError("ไม่พบข้อมูลแบบทดสอบ", `ไม่พบข้อมูลแบบทดสอบที่สร้างเองสำหรับ ID: ${quizId}`);
-                    return;
-                }
-
-                populatePage(customQuizData.title, customQuizData.description);
-
-                // Hide the timer options and pre-select the chosen mode for the custom quiz
-                const timerOptions = document.getElementById('timer-options');
-                if (timerOptions) {
-                    timerOptions.classList.add('hidden');
-                    const selectedTimerInput = document.querySelector(`input[name="timer-mode"][value="${customQuizData.timerMode}"]`);
-                    if (selectedTimerInput) selectedTimerInput.checked = true;
-                }
-
-                QuizApp.init(customQuizData.questions, customQuizData.storageKey);
-                return; // Stop further execution
-            } catch (error) {
-                handleQuizError("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลแบบทดสอบที่สร้างเองได้");
-                return;
-            }
-        }
-        handleQuizError("ไม่พบข้อมูลแบบทดสอบ", "ไม่พบข้อมูลแบบทดสอบที่สร้างเอง กรุณากลับไปหน้าหลักแล้วลองใหม่อีกครั้ง");
-        return;
-    }
 
     if (!quizId) {
         handleQuizError("ไม่พบ ID ของแบบทดสอบ", "กรุณาตรวจสอบ URL หรือกลับไปที่หน้าหลักเพื่อเลือกแบบทดสอบ");
@@ -118,10 +69,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 5. Populate the page with quiz-specific info
-        populatePage(quizInfo.title, quizInfo.description);
+        document.title = quizInfo.title;
+        const startScreenTitle = document.getElementById('start-screen-title');
+        const startScreenDesc = document.getElementById('start-screen-description');
+        
+        if (startScreenTitle) startScreenTitle.textContent = quizInfo.title;
+        if (startScreenDesc) startScreenDesc.textContent = quizInfo.description;
+
+        document.getElementById('quiz-title-header').textContent = quizInfo.title;
 
         // --- NEW: Create a more detailed summary on the start screen ---
-        const startScreenDesc = document.getElementById('start-screen-description');
         const numQuestions = parseInt(quizInfo.amount) || 0;
         if (numQuestions > 0 && startScreenDesc) {
             const secondsPerQuestion = 75; // Based on overallMultiplier in quiz-logic.js

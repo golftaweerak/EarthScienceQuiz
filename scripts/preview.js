@@ -115,8 +115,8 @@ function createQuestionElement(item, displayIndex, keyword) {
         viewScenarioBtn.textContent = 'ดูข้อมูลสถานการณ์';
         viewScenarioBtn.type = 'button';
         viewScenarioBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent triggering other click events on the header.
-            window.showScenarioModal(item.scenarioTitle, item.scenarioDescription, e.currentTarget);
+            e.stopPropagation(); // Prevent triggering other click events on the header
+            window.showScenarioModal(item.scenarioTitle, item.scenarioDescription);
         });
         questionHeader.appendChild(viewScenarioBtn);
     }
@@ -411,11 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const showAnswersToggle = document.getElementById('show-answers-toggle');
 
-    // --- Modal Setup ---
-    const scenarioModal = new ModalHandler('scenario-modal');
-    const modalTitle = document.getElementById('scenario-modal-title');
-    const modalDescription = document.getElementById('scenario-modal-description');
-
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
     const zoomOutBtn = document.getElementById('zoom-out-btn');
@@ -432,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     zoomInBtn.addEventListener('click', () => { if (currentZoomLevel < CONFIG.MAX_ZOOM) { currentZoomLevel += CONFIG.ZOOM_STEP; applyZoom(); } });
-    zoomOutBtn.addEventListener('click', () => { if (currentZoomLevel > CONFIG.MIN_ZOOM) { currentZoomLevel -= CONFIG.ZOOM_STEP; applyZoom(); } });
+    zoomOutBtn.addEventListener('click', () => { if (currentZoomLevel < CONFIG.MIN_ZOOM) { currentZoomLevel -= CONFIG.ZOOM_STEP; applyZoom(); } });
     zoomResetBtn.addEventListener('click', () => { currentZoomLevel = CONFIG.DEFAULT_ZOOM; applyZoom(); });
     applyZoom(); // Set initial state
 
@@ -585,13 +580,26 @@ document.addEventListener('DOMContentLoaded', () => {
         handleGlobalSearch();
     }
 
-    // --- Global Scenario Modal Function ---
-    // Make it globally accessible for createQuestionElement to use.
-    window.showScenarioModal = (title, description, triggerElement) => {
+    // --- Modal Functionality ---
+    const modal = document.getElementById('scenario-modal');
+    const modalTitle = document.getElementById('scenario-modal-title');
+    const modalDescription = document.getElementById('scenario-modal-description');
+    const modalCloseBtn = document.getElementById('scenario-modal-close');
+    const modalBackdrop = document.getElementById('scenario-modal-backdrop');
+
+    function showScenarioModal(title, description) {
         modalTitle.innerHTML = title || 'ข้อมูลสถานการณ์';
         modalDescription.innerHTML = description || 'ไม่มีคำอธิบาย';
-        scenarioModal.open(triggerElement);
-    };
+        modal.classList.remove('hidden');
+    }
+
+    function hideScenarioModal() {
+        modal.classList.add('hidden');
+    }
+
+    window.showScenarioModal = showScenarioModal; // Make it globally accessible
+    modalCloseBtn.addEventListener('click', hideScenarioModal);
+    modalBackdrop.addEventListener('click', hideScenarioModal);
 
     // --- Scroll to Top Button Functionality ---
     const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
