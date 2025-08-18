@@ -16,42 +16,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300 font-sarabun">
+<body class="pt-24 md:pt-28 bg-gray-100 dark:bg-gray-900 transition-colors duration-300 font-sarabun">
 
-    <div class="container mx-auto px-4 py-8 md:py-16">
+    <!-- Load shared header -->
+    <div id="main_header-placeholder"></div>
 
-        <!-- Dropdown Menu (Left) -->
-        <div class="absolute top-4 left-4 md:top-6 md:left-6">
-            <div class="relative">
-                <button id="main-menu-btn" title="เมนู"
-                    class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <div id="main-menu-dropdown"
-                    class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
-                    <div class="p-2">
-                        <a href="index.html"
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
-                        <a href="preview.html"
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
-                        <a href="about.html"
-                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dark Mode Toggle (Right) -->
-        <div class="absolute top-4 right-4 md:top-6 md:right-6">
-            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                <!-- Icon will be inserted by JS -->
-            </button>
-        </div>
-
-        <div class="max-w-2xl mx-auto mt-16 bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 pb-8 md:pb-12">
+        <main class="max-w-2xl mx-auto bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
             <header class="text-center mb-8">
                 <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2 font-kanit">
                     เกี่ยวกับผู้จัดทำ
@@ -75,16 +46,15 @@
                 </p>
             </section>
             <div class="mt-10 text-center">
-                <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
+                <a href="./index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
                     &larr; กลับหน้าหลัก
                 </a>
             </div>
-        </div>
-
+        </main>
+        <!-- Load shared footer -->
+        <div id="footer-placeholder" class="mt-12"></div>
     </div>
 
-    <script src="./scripts/page-transitions.js" defer></script>
-    <script src="./scripts/dark-mode.js" defer></script>
-    <script src="./scripts/main-menu.js" defer></script>
+    <script src="./scripts/global-loader.js" type="module"></script>
 </body>
 </html>
