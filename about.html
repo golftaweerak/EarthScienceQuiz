@@ -16,13 +16,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
 </head>
-<body class="pt-24 md:pt-28 bg-gray-100 dark:bg-gray-900 transition-colors duration-300 font-sarabun">
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300 font-sarabun">
 
-    <!-- Load shared header -->
-    <div id="main_header-placeholder"></div>
+    <div class="container mx-auto px-4 py-8 md:py-16">
 
-    <div class="container mx-auto px-4 pb-8 md:pb-12">
-        <main class="max-w-2xl mx-auto bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+        <!-- Dropdown Menu (Left) -->
+        <div class="absolute top-4 left-4 md:top-6 md:left-6">
+            <div class="relative">
+                <button id="main-menu-btn" title="เมนู"
+                    class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                <div id="main-menu-dropdown"
+                    class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                    <div class="p-2">
+                        <a href="index.html"
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                        <a href="preview.html"
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                        <a href="about.html"
+                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dark Mode Toggle (Right) -->
+        <div class="absolute top-4 right-4 md:top-6 md:right-6">
+            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                <!-- Icon will be inserted by JS -->
+            </button>
+        </div>
+
+        <div class="max-w-2xl mx-auto mt-16 bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
             <header class="text-center mb-8">
                 <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2 font-kanit">
                     เกี่ยวกับผู้จัดทำ
@@ -45,65 +74,17 @@
                     เว็บไซต์นี้จัดทำขึ้นเพื่อเป็นแหล่งรวบรวมแบบทดสอบสำหรับเตรียมความพร้อมในการสอบคัดเลือกเข้าค่าย สอวน. ในสาขาวิชาดาราศาสตร์และวิทยาศาสตร์โลกและอวกาศ โดยมุ่งหวังให้นักเรียนได้ฝึกฝนทำโจทย์ที่หลากหลายและมีคุณภาพ เพื่อเพิ่มความมั่นใจและพัฒนาศักยภาพของตนเอง
                 </p>
             </section>
-
-            <!-- Developer Tools Section -->
-            <section class="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div class="flex justify-center">
-                    <a href="#" id="dev-tools-link"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734-2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        เครื่องมือผู้พัฒนา
-                    </a>
-                </div>
-            </section>
-
             <div class="mt-10 text-center">
-                <a href="./index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
+                <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition duration-300">
                     &larr; กลับหน้าหลัก
                 </a>
             </div>
-        </main>
-        <!-- Load shared footer -->
-        <div id="footer-placeholder" class="mt-12"></div>
-    </div>
-
-    <!-- Developer Password Modal (Moved here from index.html) -->
-    <div id="dev-password-modal"
-        class="fixed inset-0 z-[65] flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
-        aria-modal="true" aria-labelledby="dev-password-modal-title">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm m-4 p-6 text-left">
-            <div class="flex justify-between items-start mb-4">
-                <h3 id="dev-password-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
-                    เข้าสู่เครื่องมือผู้พัฒนา</h3>
-                <button data-modal-close aria-label="ปิด"
-                    class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <form id="dev-password-form">
-                <label for="dev-password-input"
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">กรุณาใส่รหัสผ่าน:</label>
-                <input type="password" id="dev-password-input" name="password"
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required>
-                <p id="dev-password-error" class="text-red-500 text-sm mt-2 h-4"></p>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" data-modal-close
-                        class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">ยกเลิก</button>
-                    <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm font-bold">ยืนยัน</button>
-                </div>
-            </form>
         </div>
+
     </div>
 
-    <script src="./scripts/global-loader.js" type="module"></script>
+    <script src="./scripts/page-transitions.js" defer></script>
+    <script src="./scripts/dark-mode.js" defer></script>
+    <script src="./scripts/main-menu.js" defer></script>
 </body>
 </html>

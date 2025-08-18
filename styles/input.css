@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import existing custom styles */
+@import './main.css';
+@import './animations.css';
+@import './custom-hovers.css';
+@import './custom-scrollbar.css';

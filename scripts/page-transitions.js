@@ -5,10 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     links.forEach(link => {
         // --- Condition Checks to determine if a link should have the transition ---
 
-        // 1. Exclude links that are not on the same origin (external links).
-        // This check is robust and also correctly handles being opened via file:// protocol,
-        // where link.origin might not be standard.
-        if (link.hostname && link.hostname !== window.location.hostname) {
+        // 1. Exclude links that are not on the same origin (external links)
+        // 'origin' is more robust than 'hostname' as it includes protocol and port.
+        if (link.origin !== window.location.origin) {
             return;
         }
 

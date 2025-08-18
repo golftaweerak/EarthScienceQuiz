@@ -4,13 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  /* Ensure dropdown options are readable in dark mode on supported browsers */
-  option {
-    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200;
-  }
-}
-
 body {
   font-family: "Sarabun", sans-serif;
 }
@@ -65,74 +58,7 @@ body.dark {
   .btn-primary {
     @apply w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-slate-950;
   }
-
-  .animate-pulse-glow-indigo {
-    animation: pulse-glow-indigo 3s infinite ease-in-out;
-  }
-
-  .animate-pulse-glow-teal {
-    animation: pulse-glow-teal 3s infinite ease-in-out;
-  }
-
   html {
     scroll-behavior: smooth;
-  }
-  
-  .gen-label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
-  }
-  .gen-input {
-    @apply w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 dark:placeholder-gray-400;
-  }
-  .gen-output {
-    @apply w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-mono text-sm resize-none custom-scrollbar;
-  }
-  .gen-copy-btn {
-    @apply absolute top-2 right-2 px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-xs hover:bg-gray-300 dark:hover:bg-gray-500 transition;
-  }
-  .gen-radio {
-    @apply h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:focus:ring-blue-600 dark:ring-offset-gray-800;
-  }
-
-  /* Customize autofill styles for better dark mode compatibility in Webkit browsers */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
-  input:-webkit-autofill:active {
-    /* The box-shadow trick is used to change the background color of the autofill. */
-    -webkit-box-shadow: 0 0 0px 1000px theme('colors.white') inset !important;
-    /* This is a common hack to override the browser's default autofill background */
-    transition: background-color 600000s 0s, color 600000s 0s;
-    /* Set text color for light mode */
-    -webkit-text-fill-color: theme('colors.black') !important;
-  }
-
-  .dark input:-webkit-autofill,
-  .dark input:-webkit-autofill:hover,
-  .dark input:-webkit-autofill:focus,
-  .dark input:-webkit-autofill:active {
-    /* The box-shadow trick is used to change the background color of the autofill. */
-    /* Use dark theme colors for autofill and add transition hack to ensure they apply */
-    -webkit-box-shadow: 0 0 0px 1000px theme('colors.gray.950') inset !important;
-    -webkit-text-fill-color: theme('colors.gray.100') !important;
-    transition: background-color 600000s 0s, color 600000s 0s;
-  }
-}
-
-@keyframes pulse-glow-indigo {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
-  }
-}
-
-@keyframes pulse-glow-teal {
-  0%, 100% {
-    box-shadow: 0 0 12px rgba(20, 184, 166, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
   }
 }

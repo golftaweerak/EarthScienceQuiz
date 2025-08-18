@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,301 +14,140 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
     <!-- KaTeX for rendering LaTeX, consistent with quiz/index.html -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-        integrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
+        xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
         crossorigin="anonymous"></script>
     <!-- This is the auto-render extension for KaTeX -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+        xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"
         onload="console.log('KaTeX auto-render loaded.')">
     </script>
-    <!-- Add mammoth.js for DOCX import -->
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
 
 </head>
-
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
-
-    <!-- Shared Sticky Header -->
-    <div id="main_header-placeholder"></div>
-
-    <div class="container mx-auto px-4 sm:px-8 pt-24 md:pt-28">
-        <!-- Developer Tool Banner -->
-        <div class="max-w-4xl mx-auto mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg"
-            role="alert">
-            <p class="font-bold">Developer Tool: Quiz Data Hub</p>
-            <p class="text-sm">หน้านี้ใช้สำหรับตรวจสอบการแสดงผลของข้อมูลข้อสอบโดยตรงจากไฟล์ `.js`</p>
-        </div>
-
-        <div class="max-w-4xl mx-auto">
-            <!-- Tabs -->
-            <div class="border-b border-gray-200 dark:border-gray-700">
-                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button id="tab-preview" role="tab" aria-controls="panel-preview" aria-selected="true"
-                        class="tab-btn border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                        แสดงตัวอย่าง (Preview)
-                    </button>
-                    <button id="tab-generator" role="tab" aria-controls="panel-generator" aria-selected="false"
-                        class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                        เครื่องมือสร้างข้อมูล (Generator)
-                    </button>
-                </nav>
-            </div>
-
-            <!-- Preview Panel -->
-            <div id="panel-preview" role="tabpanel" aria-labelledby="tab-preview">
-                <header class="mt-6 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">
-                                แสดงตัวอย่างชุดข้อสอบ</h1>
-                        </div>
-                    </div>
-                    <div class="mt-6">
-                        
-                        <select id="quiz-selector"
-                            class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
-                            <option value="">-- ค้นหาจากทุกชุดข้อสอบ --</option>
-                        </select>
-                    </div>
-                    <div class="mt-4">
-                        
-                        <input type="text" id="search-input" placeholder="ค้นหาคำถาม (Keyword)"
-                            class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400">
-                    </div>
-                    <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">ปรับขนาดตัวอักษร:</span>
-                        <div class="flex items-center gap-2">
-                            <button id="zoom-out-btn" aria-label="ลดขนาดตัวอักษร"
-                                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">-</button>
-                            <span id="zoom-level-display" class="text-sm w-12 text-center font-kanit">100%</span>
-                            <button id="zoom-in-btn" aria-label="เพิ่มขนาดตัวอักษร"
-                                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">+</button>
-                            <button id="zoom-reset-btn"
-                                class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm">รีเซ็ต</button>
-                        </div>
-                    </div>
-                    <!-- Show/Hide Answers Toggle -->
-                    <div class="mt-4 flex items-center gap-x-4">
-                        <label for="show-answers-toggle" class="flex items-center cursor-pointer select-none">
-                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">แสดงเฉลย:</span>
-                            <div class="relative">
-                                <input type="checkbox" id="show-answers-toggle" class="sr-only peer" />
-                                <div
-                                    class="w-14 h-8 bg-gray-300 rounded-full dark:bg-gray-600 peer-checked:bg-green-500 dark:peer-checked:bg-green-400 transition-colors">
-                                </div>
-                                <div
-                                    class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-full">
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                    <!-- Question Count Display -->
-                    <div id="question-count-container" class="mt-4 text-sm text-gray-600 dark:text-gray-400 h-5">
-                        <!-- Content will be injected by JS -->
-                    </div>
-                </header>
-                <main id="preview-container" class="space-y-6 pb-8 sm:pb-12">
-                    <!-- Content will be loaded here -->
-                </main>
-            </div>
-
-            <!-- Generator Panel -->
-            <div id="panel-generator" role="tabpanel" aria-labelledby="tab-generator" class="hidden pt-6">
-                <h2 class="text-2xl font-bold font-kanit text-gray-800 dark:text-gray-100">Quiz Data Generator</h2>
-                <p class="text-gray-600 dark:text-gray-400 mt-1 mb-6">
-                    ใช้เครื่องมือนี้เพื่อสร้างโค้ดสำหรับชุดข้อสอบใหม่ได้ง่ายขึ้น
-                    โดยกรอกข้อมูลด้านล่างแล้วคัดลอกโค้ดที่สร้างขึ้นไปวางในไฟล์ที่ถูกต้อง</p>
-
-               <!-- Main Generator Layout: 2 columns on large screens -->
-                <div class="mt-6 grid grid-cols-1 lg:grid-cols-5 lg:gap-8">
-
-                    <!-- Left Column: Inputs -->
-                    <form id="generator-form" class="lg:col-span-3 space-y-6">
-                        <!-- Step 1: Metadata -->
-                        <fieldset class="p-4 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                            <legend class="px-2 font-bold text-lg font-kanit">ขั้นตอนที่ 1: ข้อมูลทั่วไปของชุดข้อสอบ</legend>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div><label for="gen-id" class="gen-label">Quiz ID (ภาษาอังกฤษ, ไม่มีเว้นวรรค, เช่น Astro1)</label><input type="text" id="gen-id" class="gen-input" required></div>
-                                <div><label for="gen-title" class="gen-label">Title (ชื่อชุดข้อสอบ)</label><input type="text" id="gen-title" class="gen-input" required></div>
-                                <div class="md:col-span-2"><label for="gen-desc" class="gen-label">Description (คำอธิบาย)</label><input type="text" id="gen-desc" class="gen-input"></div>
-                                <div><label for="gen-category" class="gen-label">Category (หมวดหมู่หลัก)</label><select id="gen-category" class="gen-input">
-                                        <option value="Astronomy">Astronomy</option>
-                                        <option value="EarthScience">EarthScience</option>
-                                        <option value="AstronomyReview">AstronomyReview</option>
-                                        <option value="GeneralKnowledge">GeneralKnowledge</option>
-                                    </select></div>
-                                <div><label for="gen-icon" class="gen-label">Icon Path (เช่น ./assets/icons/study.png)</label><input type="text" id="gen-icon" value="./assets/icons/astronomy.png" class="gen-input"></div>
-                            </div>
-                        </fieldset>
-
-                        <!-- Step 2: Questions -->
-                        <fieldset class="p-4 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                            <legend class="px-2 font-bold text-lg font-kanit">ขั้นตอนที่ 2: เพิ่มคำถาม</legend>
-                            <div id="gen-items-container" class="space-y-5 mt-4">
-                                <!-- Questions and Scenarios will be added here by JS. -->
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-3">
-                                <button type="button" id="gen-add-question-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition text-sm font-bold inline-flex items-center gap-2 shadow-sm hover:shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                    เพิ่มคำถามเดี่ยว
-                                </button>
-                                <button type="button" id="gen-add-scenario-btn" class="px-4 py-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 transition text-sm font-bold inline-flex items-center gap-2 shadow-sm hover:shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a1 1 0 100 2h16a1 1 0 100-2H2z" />
-                                    </svg>
-                                    เพิ่มสถานการณ์
-                                </button>
-                                <button type="button" id="gen-import-docx-btn"
-                                    class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm font-bold inline-flex items-center gap-2 shadow-sm hover:shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                    นำเข้าจาก .docx
-                                </button>
-                                <input type="file" id="gen-docx-input" class="hidden" accept=".docx">
-                            </div>
-                            <div class="mt-4">
-                                <details class="group">
-                                    <summary class="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-open:rotate-90" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                        ดูตัวอย่างโครงสร้างไฟล์ .docx สำหรับนำเข้า
-                                    </summary>
-                                    <div class="mt-3 p-4 bg-gray-100 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                                        <pre class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono custom-scrollbar overflow-x-auto"><code>สถานการณ์: การเกิดฤดูกาล
-โลกโคจรรอบดวงอาทิตย์โดยที่แกนหมุนของโลกเอียงทำมุมประมาณ 23.5 องศา
-การเอียงของแกนโลกนี้ส่งผลให้แต่ละพื้นที่บนโลกได้รับปริมาณแสงอาทิตย์แตกต่างกันไปในแต่ละช่วงของปี ทำให้เกิดเป็นฤดูกาลต่างๆ
-
-1. เพราะเหตุใดบริเวณขั้วโลกจึงมีช่วงเวลากลางวันและกลางคืนยาวนานถึง 6 เดือน?
-ก. แกนโลกเอียง
-ข. โลกโคจรรอบดวงอาทิตย์เป็นวงรี
-ค. การหมุนรอบตัวเองของโลก
-ง. อิทธิพลของดวงจันทร์
-เฉลย: ก.
-คำอธิบาย: เนื่องจากแกนโลกเอียง ทำให้ขั้วโลกด้านหนึ่งหันเข้าหาดวงอาทิตย์ตลอดเวลาเป็นเวลา 6 เดือน (เกิดฤดูร้อน)
-ในขณะที่อีกด้านหนึ่งหันออกจากดวงอาทิตย์ตลอดเวลา (เกิดฤดูหนาว)
-
----
-
-2. ดาวเคราะห์ดวงใดมีแกนหมุนเอียงน้อยที่สุด?
-ก. โลก
-ข. ดาวอังคาร
-ค. ดาวพุธ
-ง. ดาวยูเรนัส
-เฉลย: ค.
-คำอธิบาย: ดาวพุธมีแกนเอียงเพียงประมาณ 0.03 องศา ทำให้แทบไม่มีฤดูกาล</code></pre>
-                                    </div>
-                                </details>
-                            </div>
-                        </fieldset>
-                    </form>
-
-                    <!-- Right Column: Outputs (Sticky) -->
-                    <div class="lg:col-span-2 lg:sticky lg:top-28 h-fit mt-6 lg:mt-0">
-                        <fieldset class="space-y-4 p-4 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm backdrop-blur-sm">
-                            <legend class="px-2 font-bold text-lg font-kanit">ขั้นตอนที่ 3: โค้ดที่สร้างขึ้น</legend>
-
-                            <!-- Output for quizzes-list.js -->
-                            <div>
-                                <label class="gen-label">1. คัดลอกโค้ดนี้ไปวางในไฟล์ <code
-                                        class="font-mono text-sm bg-gray-200 dark:bg-gray-600 px-1 rounded">data/quizzes-list.js</code>
-                                    (วางต่อท้ายใน array)</label>
-                                <div class="relative mt-1">
-                                    <textarea id="gen-output-list" rows="5" readonly class="gen-output"></textarea>
-                                    <button type="button" data-copy-target="gen-output-list"
-                                        class="gen-copy-btn">คัดลอก</button>
-                                </div>
-                            </div>
-
-                            <!-- Output for the new data file -->
-                            <div>
-                                <label class="gen-label">2. สร้างไฟล์ใหม่ชื่อ <code id="gen-output-filename"
-                                        class="font-mono text-sm bg-gray-200 dark:bg-gray-600 px-1 rounded">data/your-id-data.js</code>
-                                    แล้ววางโค้ดนี้ลงไป</label>
-                                <div class="relative mt-1">
-                                    <textarea id="gen-output-data" rows="10" readonly class="gen-output"></textarea>
-                                    <button type="button" data-copy-target="gen-output-data"
-                                        class="gen-copy-btn">คัดลอก</button>
-                                </div>
-                            </div>
-                        </fieldset>
-                    </div>
+    
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress-bar" class="fixed top-0 left-0 z-50 h-1 bg-blue-500 dark:bg-blue-400 transition-all duration-100" style="width: 0%;"></div>
+    
+    <!-- Dropdown Menu (Left) -->
+    <div class="absolute top-4 left-4 md:top-6 md:left-6">
+        <div class="relative">
+            <button id="main-menu-btn" title="เมนู"
+                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <div id="main-menu-dropdown"
+                class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                <div class="p-2">
+                    <a href="index.html"
+                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                    <a href="preview-data.html"
+                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                    <a href="about.html"
+                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
                 </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Dark Mode Toggle (Right) -->
+    <div class="absolute top-4 right-4 md:top-6 md:right-6">
+        <button id="dark-mode-toggle"
+            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
+            <!-- Icon will be inserted by JS -->
+        </button>
+    </div>
 
-        <div id="footer-placeholder" class="mt-12"></div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-8 pt-20">
+        <header class="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">แสดงตัวอย่างชุดข้อสอบ</h1>
+                    <p id="script-name" class="text-md text-gray-600 dark:text-gray-400 mt-1"></p>
+                </div>
+                <div class="flex items-center gap-2"> <!-- Wrapper for buttons -->
+                    <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap">
+                        &larr; กลับหน้าหลัก
+                    </a>
+                </div>
+            </div>
+            <div class="mt-6">
+                <label for="quiz-selector" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">เลือกชุดข้อสอบเพื่อแสดงตัวอย่าง:</label>
+                <select id="quiz-selector" class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+                    <option value="">-- กรุณาเลือก --</option>
+                </select>
+            </div>
+            <div class="mt-4">
+                <label for="search-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ค้นหาคำถาม (Keyword):</label>
+                <input type="text" id="search-input" placeholder="เช่น บิกแบง, แรงโน้มถ่วง, ..." class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">ปรับขนาดตัวอักษร:</span>
+                <div class="flex items-center gap-2">
+                    <button id="zoom-out-btn" aria-label="ลดขนาดตัวอักษร" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">-</button>
+                    <span id="zoom-level-display" class="text-sm w-12 text-center font-kanit">100%</span>
+                    <button id="zoom-in-btn" aria-label="เพิ่มขนาดตัวอักษร" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-lg font-bold leading-none disabled:opacity-50 disabled:cursor-not-allowed">+</button>
+                    <button id="zoom-reset-btn" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm">รีเซ็ต</button>
+                </div>
+            </div>
+            <!-- Show/Hide Answers Toggle -->
+            <div class="mt-4 flex items-center gap-x-4">
+                <label for="show-answers-toggle" class="flex items-center cursor-pointer select-none">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-3">แสดงเฉลย:</span>
+                    <div class="relative">
+                        <input type="checkbox" id="show-answers-toggle" class="sr-only peer" />
+                        <div class="w-14 h-8 bg-gray-300 rounded-full dark:bg-gray-600 peer-checked:bg-green-500 dark:peer-checked:bg-green-400 transition-colors"></div>
+                        <div class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                    </div>
+                </label>
+            </div>
+            <!-- Question Count Display -->
+            <div id="question-count-container" class="mt-4 text-sm text-gray-600 dark:text-gray-400 h-5">
+                <!-- Content will be injected by JS -->
+            </div>
+        </header>
+        
+        <main id="preview-container" class="space-y-6 pb-8 sm:pb-12">
+            <!-- Content will be loaded here -->
+        </main>
     </div>
 
     <!-- Scenario Details Modal -->
-    <div id="scenario-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div id="scenario-modal-content"
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
-            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
-            </h3>
-            <div id="scenario-modal-description"
-                class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
+    <div id="scenario-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+        <div id="scenario-modal-backdrop" class="absolute inset-0"></div>
+        <div id="scenario-modal-content" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
+            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit"></h3>
+            <div id="scenario-modal-description" class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
             </div>
-            <button data-modal-close aria-label="ปิด"
-                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor">
+            <button id="scenario-modal-close" aria-label="ปิด" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
     </div>
 
-    <!-- Data Inspector Modal -->
-    <div id="data-inspector-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun">
-        <div
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full anim-modal-pop-in flex flex-col">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 font-kanit">
-                    Data Inspector
-                </h3>
-                <button data-modal-close aria-label="ปิด"
-                    class="p-2 -mt-2 -mr-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div class="bg-gray-100 dark:bg-gray-900 rounded-md max-h-[60vh] flex flex-col">
-                <textarea id="data-inspector-content"
-                    class="w-full flex-grow bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none border-0 focus:ring-0 custom-scrollbar"
-                    rows="15" spellcheck="false"></textarea>
-            </div>
-            <div id="data-inspector-feedback" class="text-xs h-4 mt-2"></div>
-            <div class="mt-4 flex justify-end gap-3">
-                <button id="data-inspector-copy-btn"
-                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">คัดลอก</button>
-                <button id="data-inspector-save-btn"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm font-bold">บันทึกการเปลี่ยนแปลง</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Scroll to Top Button -->
-    <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
-        class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
+    <button id="scroll-to-top-btn"
+        aria-label="เลื่อนขึ้นบนสุด" class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
         <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
             stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
         </svg>
     </button>
-    <!-- preview.js is a module and will import its own dependencies. -->
-    <script src="./scripts/preview-data-loader.js" type="module"></script>
+    <!-- Load data first, as preview.js depends on it. Added missing scripts. -->
+    <script src="./data/quizzes-list.js"></script>
+    <script src="./scripts/preview.js"></script>
+    <script src="./scripts/dark-mode.js"></script>
+    <script src="./scripts/main-menu.js" defer></script>
 </body>
-
 </html>

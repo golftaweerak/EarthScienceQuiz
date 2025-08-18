@@ -1,0 +1,19 @@
+(index):64  cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anonymous) @ (index):64
+components/_footer.html:1   Failed to load resource: the server responded with a status of 404 ()
+component-loader.js:16  Error loading component for #footer-placeholder: Error: Failed to fetch ./components/_footer.html: 
+    at loadComponent (component-loader.js:9:33)
+    at async Promise.all (index 2)
+    at async HTMLDocument.main (app-loader.js:11:5)
+loadComponent @ component-loader.js:16
+components/_header.html:1   Failed to load resource: the server responded with a status of 404 ()
+component-loader.js:16  Error loading component for #header-placeholder: Error: Failed to fetch ./components/_header.html: 
+    at loadComponent (component-loader.js:9:33)
+    at async Promise.all (index 1)
+    at async HTMLDocument.main (app-loader.js:11:5)
+loadComponent @ component-loader.js:16
+components/_main_header.html:1   Failed to load resource: the server responded with a status of 404 ()
+component-loader.js:16  Error loading component for #main_header-placeholder: Error: Failed to fetch ./components/_main_header.html: 
+    at loadComponent (component-loader.js:9:33)
+    at async Promise.all (index 0)
+    at async HTMLDocument.main (app-loader.js:11:5)

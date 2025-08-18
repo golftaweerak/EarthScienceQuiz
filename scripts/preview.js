@@ -1,9 +1,3 @@
-import { ModalHandler } from './modal-handler.js';
-import { initializeDarkMode } from './dark-mode.js';
-import { initializeDropdown } from './dropdown.js';
-import { initializeMenu } from './menu-handler.js';
-import { quizList } from '../data/quizzes-list.js';
-
 const CONFIG = {
     SEARCH_DEBOUNCE_MS: 300,
     MIN_SEARCH_LENGTH: 3,
@@ -39,7 +33,7 @@ async function fetchAllQuizData() {
     console.log("Fetching all quiz data for the first time...");
 
     const promises = quizList.map(async (quiz) => {
-        const scriptPath = `./data/${quiz.id}-data.js`;
+        const scriptPath = `data/${quiz.id}-data.js`;
         try {
             const response = await fetch(scriptPath);
             if (!response.ok) {
@@ -114,39 +108,18 @@ function createQuestionElement(item, displayIndex, keyword) {
     titleSpan.textContent = `ข้อที่ ${displayIndex}`;
     questionHeader.appendChild(titleSpan);
 
-    // Create a container for buttons on the right
-    const headerButtonsContainer = document.createElement('div');
-    headerButtonsContainer.className = 'flex items-center gap-4';
-
-    // Add "View Scenario" button if the question belongs to one.
+    // Add "View Scenario" button if the question belongs to one
     if (item.scenarioTitle) {
         const viewScenarioBtn = document.createElement('button');
         viewScenarioBtn.className = 'text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline focus:outline-none';
         viewScenarioBtn.textContent = 'ดูข้อมูลสถานการณ์';
         viewScenarioBtn.type = 'button';
         viewScenarioBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent triggering other click events on the header.
             window.showScenarioModal(item.scenarioTitle, item.scenarioDescription, e.currentTarget);
         });
-        headerButtonsContainer.appendChild(viewScenarioBtn);
+        questionHeader.appendChild(viewScenarioBtn);
     }
-
-    // Add "Inspect Data" button only on preview-data.html.
-    const isDataPreviewPage = window.location.pathname.endsWith('/preview-data.html');
-    if (isDataPreviewPage) {
-        const inspectBtn = document.createElement('button');
-        inspectBtn.className = 'text-xs font-mono text-purple-600 dark:text-purple-400 hover:underline focus:outline-none';
-        inspectBtn.textContent = '[Inspect Data]';
-        inspectBtn.type = 'button';
-        inspectBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // The 'item' here is the full question object passed to createQuestionElement
-            window.showDataInspectorModal(item, e.currentTarget);
-        });
-        headerButtonsContainer.appendChild(inspectBtn);
-    }
-    questionHeader.appendChild(headerButtonsContainer);
-
     questionDiv.appendChild(questionHeader);
 
     if (questionHtml) {
@@ -431,7 +404,7 @@ svg" fill="none" viewBox="0 0 24 24">
 }
 
 // Main execution
-export function initializePreviewPage() {
+document.addEventListener('DOMContentLoaded', () => {
     const scriptNameEl = document.getElementById('script-name');
     const container = document.getElementById('preview-container');
     const quizSelector = document.getElementById('quiz-selector');
@@ -442,13 +415,6 @@ export function initializePreviewPage() {
     const scenarioModal = new ModalHandler('scenario-modal');
     const modalTitle = document.getElementById('scenario-modal-title');
     const modalDescription = document.getElementById('scenario-modal-description');
-    const dataInspectorModal = new ModalHandler('data-inspector-modal');
-    const dataInspectorTextarea = document.getElementById('data-inspector-content');
-    const dataInspectorSaveBtn = document.getElementById('data-inspector-save-btn');
-    const dataInspectorCopyBtn = document.getElementById('data-inspector-copy-btn');
-    const dataInspectorFeedback = document.getElementById('data-inspector-feedback');
-
-    let currentlyInspectedItem = null; // To hold a reference to the object being edited
 
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
@@ -540,7 +506,7 @@ export function initializePreviewPage() {
             return;
         }
 
-        const scriptPath = `./data/${scriptName}`;
+        const scriptPath = `data/${scriptName}`;
         //scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
         container.innerHTML = `<div class="text-center p-8 text-gray-500 dark:text-gray-400">
                                     <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -627,549 +593,6 @@ export function initializePreviewPage() {
         scenarioModal.open(triggerElement);
     };
 
-    // Make the data inspector modal function globally accessible.
-    window.showDataInspectorModal = (data, triggerElement) => {
-        if (dataInspectorTextarea) {
-            currentlyInspectedItem = data; // Store reference to the original object
-            // Pretty-print the JSON data for readability.
-            dataInspectorTextarea.value = JSON.stringify(data, null, 2);
-            if (dataInspectorFeedback) dataInspectorFeedback.innerHTML = ''; // Clear old feedback
-        }
-        // We don't need to check for a syntax highlighter, just display the text.
-        dataInspectorModal.open(triggerElement);
-    };
-
-    // --- Data Inspector Modal Listeners ---
-    if (dataInspectorSaveBtn) {
-        dataInspectorSaveBtn.addEventListener('click', () => {
-            if (!currentlyInspectedItem || !dataInspectorTextarea) return;
-
-            try {
-                const newQuestionData = JSON.parse(dataInspectorTextarea.value);
-                
-                // Find the index of the original object in the main data array
-                const index = currentQuizData.findIndex(q => q === currentlyInspectedItem);
-
-                if (index > -1) {
-                    currentQuizData[index] = newQuestionData; // Replace the old object with the new one
-                    currentlyInspectedItem = newQuestionData; // Update the reference
-                    
-                    if (dataInspectorFeedback) {
-                        dataInspectorFeedback.innerHTML = `<span class="text-green-500">บันทึกข้อมูลสำเร็จ! กำลังรีเฟรช...</span>`;
-                    }
-                    
-                    setTimeout(() => {
-                        dataInspectorModal.close();
-                        renderQuizData(); // Re-render the entire list to reflect changes
-                    }, 800);
-
-                } else {
-                    throw new Error("ไม่พบข้อมูลคำถามเดิมในชุดข้อมูลปัจจุบัน");
-                }
-            } catch (error) {
-                console.error("JSON Parse Error:", error);
-                if (dataInspectorFeedback) {
-                    dataInspectorFeedback.innerHTML = `<span class="text-red-500">ข้อผิดพลาด: รูปแบบ JSON ไม่ถูกต้อง. (${error.message})</span>`;
-                }
-            }
-        });
-    }
-
-    if (dataInspectorCopyBtn) {
-        dataInspectorCopyBtn.addEventListener('click', () => {
-            if (!dataInspectorTextarea) return;
-            navigator.clipboard.writeText(dataInspectorTextarea.value).then(() => {
-                if (dataInspectorFeedback) {
-                    dataInspectorFeedback.innerHTML = `<span class="text-blue-500">คัดลอกข้อมูลไปยังคลิปบอร์ดแล้ว!</span>`;
-                    setTimeout(() => {
-                        if (dataInspectorFeedback.innerHTML.includes('คัดลอก')) {
-                            dataInspectorFeedback.innerHTML = '';
-                        }
-                    }, 2000);
-                }
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                if (dataInspectorFeedback) {
-                    dataInspectorFeedback.innerHTML = `<span class="text-red-500">ไม่สามารถคัดลอกได้</span>`;
-                }
-            });
-        });
-    }
-
-    // --- Generator Panel Logic ---
-    const generatorForm = document.getElementById('generator-form');
-    const itemsContainer = document.getElementById('gen-items-container');
-    const addQuestionBtn = document.getElementById('gen-add-question-btn');
-    const addScenarioBtn = document.getElementById('gen-add-scenario-btn');
-    const outputList = document.getElementById('gen-output-list');
-    const importDocxBtn = document.getElementById('gen-import-docx-btn');
-    const docxInput = document.getElementById('gen-docx-input');
-    const outputData = document.getElementById('gen-output-data');
-    const outputFilename = document.getElementById('gen-output-filename');
-
-    // Tab switching
-    const tabPreview = document.getElementById('tab-preview');
-    const tabGenerator = document.getElementById('tab-generator');
-    const panelPreview = document.getElementById('panel-preview');
-    const panelGenerator = document.getElementById('panel-generator');
-
-    function switchTab(selectedTab) {
-        [tabPreview, tabGenerator].forEach(tab => {
-            const isSelected = tab === selectedTab;
-            tab.setAttribute('aria-selected', isSelected);
-            tab.classList.toggle('border-blue-500', isSelected);
-            tab.classList.toggle('text-blue-600', isSelected);
-            tab.classList.toggle('dark:border-blue-400', isSelected);
-            tab.classList.toggle('dark:text-blue-400', isSelected);
-            tab.classList.toggle('border-transparent', !isSelected);
-            tab.classList.toggle('text-gray-500', !isSelected);
-            tab.classList.toggle('hover:text-gray-700', !isSelected);
-            tab.classList.toggle('hover:border-gray-300', !isSelected);
-        });
-        panelPreview.classList.toggle('hidden', selectedTab !== tabPreview);
-        panelGenerator.classList.toggle('hidden', selectedTab !== tabGenerator);
-    }
-
-    if (tabPreview && tabGenerator) {
-        tabPreview.addEventListener('click', () => switchTab(tabPreview));
-        tabGenerator.addEventListener('click', () => switchTab(tabGenerator));
-    }
-
-    function createQuestionBlockHTML(questionCount, isSubQuestion = false) {
-        const radioName = `correct-choice-${Date.now()}-${Math.random()}`; // Unique name for radio group
-        const title = isSubQuestion ? `คำถามย่อยที่ ${questionCount}` : `คำถามที่ ${questionCount}`;
-        const removeClass = isSubQuestion ? 'gen-remove-sub-question-btn' : 'gen-remove-question-btn';
-        // Modernized remove button with an icon
-        const removeButtonHTML = `
-            <button type="button" class="${removeClass} p-2 text-gray-400 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition-colors" aria-label="ลบรายการนี้">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                </svg>
-            </button>
-        `;
-        return `
-            <div class="p-4 bg-gray-100/50 dark:bg-gray-900/30 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-                <p class="font-bold text-gray-700 dark:text-gray-300">${title}</p>
-                ${removeButtonHTML}
-            </div>
-            <div class="p-4 space-y-4">
-                <div><label class="gen-label">Question Text (รองรับ LaTeX และขึ้นบรรทัดใหม่)</label><textarea rows="2" class="gen-input gen-question" required></textarea></div>
-                <div class="space-y-2 pl-3 border-l-2 border-gray-200 dark:border-gray-600">
-                    <label class="gen-label">Choices (คลิกวงกลมเพื่อเลือกคำตอบที่ถูกต้อง)</label>
-                    <div class="flex items-center gap-3"><input type="radio" name="${radioName}" value="0" class="gen-radio" required><input type="text" placeholder="ตัวเลือกที่ 1" class="gen-input gen-choice" required></div>
-                    <div class="flex items-center gap-3"><input type="radio" name="${radioName}" value="1" class="gen-radio"><input type="text" placeholder="ตัวเลือกที่ 2" class="gen-input gen-choice" required></div>
-                    <div class="flex items-center gap-3"><input type="radio" name="${radioName}" value="2" class="gen-radio"><input type="text" placeholder="ตัวเลือกที่ 3" class="gen-input gen-choice"></div>
-                    <div class="flex items-center gap-3"><input type="radio" name="${radioName}" value="3" class="gen-radio"><input type="text" placeholder="ตัวเลือกที่ 4" class="gen-input gen-choice"></div>
-                    <div class="flex items-center gap-3"><input type="radio" name="${radioName}" value="4" class="gen-radio"><input type="text" placeholder="ตัวเลือกที่ 5" class="gen-input gen-choice"></div>
-                </div>
-                <div><label class="gen-label">Explanation (Optional, รองรับ LaTeX)</label><textarea rows="2" class="gen-input gen-explanation"></textarea></div>
-                <div><label class="gen-label">Sub-Category (Optional, e.g., Geology, Meteorology)</label><input type="text" class="gen-input gen-subcategory"></div>
-            </div>
-        `;
-    }
-
-    if (addQuestionBtn) {
-        addQuestionBtn.addEventListener('click', () => {
-            const questionCount = document.querySelectorAll('.gen-question-block:not(.gen-sub-question-block .gen-question-block)').length + 1;
-            const newQuestionBlock = document.createElement('div');
-            newQuestionBlock.className = 'gen-question-block bg-white dark:bg-gray-800/70 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden';
-            newQuestionBlock.innerHTML = createQuestionBlockHTML(questionCount, false);
-            itemsContainer.appendChild(newQuestionBlock);
-            generateCode();
-        });
-    }
-
-    if (addScenarioBtn) {
-        addScenarioBtn.addEventListener('click', () => {
-            const newScenarioBlock = document.createElement('div');
-            newScenarioBlock.className = 'gen-scenario-block bg-blue-50 dark:bg-blue-900/40 rounded-xl border border-blue-200 dark:border-blue-800 overflow-hidden shadow-md';
-            newScenarioBlock.innerHTML = `
-                <div class="p-4 bg-blue-100/50 dark:bg-blue-900/30 flex justify-between items-center border-b border-blue-200 dark:border-blue-800">
-                    <h4 class="font-bold text-lg font-kanit text-blue-800 dark:text-blue-300">สถานการณ์ (Scenario)</h4>
-                    <button type="button" class="gen-remove-scenario-btn p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition-colors" aria-label="ลบสถานการณ์">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                    </button>
-                </div>
-                <div class="p-4 space-y-4">
-                    <div class="grid grid-cols-1 gap-4">
-                        <div><label class="gen-label">Scenario Title</label><input type="text" class="gen-input gen-scenario-title" required></div>
-                        <div><label class="gen-label">Scenario Description (รองรับ LaTeX และขึ้นบรรทัดใหม่)</label><textarea rows="3" class="gen-input gen-scenario-desc"></textarea></div>
-                    </div>
-                    <div class="gen-sub-questions-container pt-3 space-y-5">
-                        <!-- Sub-questions will be added here -->
-                    </div>
-                    <div class="pt-3 border-t border-blue-200 dark:border-blue-700">
-                        <button type="button" class="gen-add-sub-question-btn px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                            เพิ่มคำถามย่อย
-                        </button>
-                    </div>
-                </div>
-            `;
-            itemsContainer.appendChild(newScenarioBlock);
-            generateCode();
-        });
-    }
-
-    if (itemsContainer) {
-        itemsContainer.addEventListener('click', (e) => {
-            const target = e.target;
-            let changed = false;
-
-            if (target.classList.contains('gen-remove-question-btn')) {
-                target.closest('.gen-question-block').remove();
-                changed = true;
-            } else if (target.classList.contains('gen-remove-scenario-btn')) {
-                target.closest('.gen-scenario-block').remove();
-                changed = true;
-            } else if (target.classList.contains('gen-remove-sub-question-btn')) {
-                const subQuestionBlock = target.closest('.gen-sub-question-block');
-                const scenarioContainer = subQuestionBlock.parentElement;
-                subQuestionBlock.remove();
-                // Re-number sub-questions within this scenario
-                scenarioContainer.querySelectorAll('.gen-sub-question-block').forEach((block, index) => {
-                    block.querySelector('p.font-bold').textContent = `คำถามย่อยที่ ${index + 1}`;
-                });
-                changed = true;
-            } else if (target.classList.contains('gen-add-sub-question-btn')) {
-                const scenarioBlock = target.closest('.gen-scenario-block');
-                const subQuestionsContainer = scenarioBlock.querySelector('.gen-sub-questions-container');
-                const subQuestionCount = subQuestionsContainer.children.length + 1;
-                const newSubQuestionBlock = document.createElement('div');
-                newSubQuestionBlock.className = 'gen-sub-question-block bg-white dark:bg-gray-800/70 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden';
-                newSubQuestionBlock.innerHTML = createQuestionBlockHTML(subQuestionCount, true);
-                subQuestionsContainer.appendChild(newSubQuestionBlock);
-                changed = true;
-            }
-
-            if (changed) {
-                // Re-number standalone questions if any were added/removed
-                let questionCounter = 1;
-                document.querySelectorAll('.gen-question-block:not(.gen-sub-question-block .gen-question-block)').forEach(block => {
-                    block.querySelector('p.font-bold').textContent = `คำถามที่ ${questionCounter++}`;
-                });
-                generateCode(); // Re-generate code after any change
-            }
-        });
-    }
-
-    if (importDocxBtn && docxInput) {
-        importDocxBtn.addEventListener('click', () => {
-            docxInput.click(); // Trigger the hidden file input
-        });
-
-        docxInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const arrayBuffer = e.target.result;
-                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-                    .then(result => { 
-                        const parsedQuestions = parseDocxContent(result.value || '');
-                        if (parsedQuestions.length > 0) {
-                            populateGenerator(parsedQuestions); 
-                        } else {
-                            alert("ไม่สามารถแยกแยะข้อมูลคำถามจากไฟล์ได้ โปรดตรวจสอบรูปแบบของไฟล์ .docx");
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Error processing DOCX file:", err);
-                        alert("เกิดข้อผิดพลาดในการประมวลผลไฟล์ .docx");
-                    });
-            };
-            reader.readAsArrayBuffer(file);
-            event.target.value = ''; // Reset input so the same file can be selected again
-        });
-    }
-
-    /**
-     * Parses raw text from a DOCX file into a structured array of questions and scenarios.
-     * @param {string} text The raw text content from the DOCX file.
-     * @returns {Array<object>} An array of question and scenario objects.
-     */
-     function parseDocxContent(text) {
-         const lines = text.split('\n').filter(line => line.trim() !== '');
-         const items = [];
-         let currentItem = null; // Can be a question object or a scenario object
-         let currentSubQuestion = null; // The question object being built inside a scenario
-         let readingMode = null; // null, 'description', or 'explanation'
- 
-         const choicePrefixes = ['ก.', 'ข.', 'ค.', 'ง.', 'จ.'];
- 
-         const finalizeCurrentItem = () => {
-             if (currentItem) {
-                 items.push(currentItem);
-                 currentItem = null;
-                 currentSubQuestion = null;
-                 readingMode = null;
-             }
-         };
- 
-         lines.forEach(line => {
-             const trimmedLine = line.trim();
- 
-             // --- Block Starters (highest priority) ---
-             if (trimmedLine.toLowerCase().startsWith('สถานการณ์:')) {
-                 finalizeCurrentItem();
-                 currentItem = { type: 'scenario', title: trimmedLine.substring(9).trim(), description: '', questions: [] };
-                 readingMode = 'description'; // Start reading description
-                 return;
-             }
- 
-             if (/^\d+\.\s/.test(trimmedLine)) {
-                 // If it's a standalone question, finalize the previous one.
-                 if (currentItem && currentItem.type === 'question') {
-                     finalizeCurrentItem();
-                 }
-                 readingMode = null; // Stop reading description/explanation
-                 const newQuestion = { question: trimmedLine.replace(/^\d+\.\s/, ''), options: [], answer: '', explanation: '' };
-                 if (currentItem && currentItem.type === 'scenario') {
-                     currentItem.questions.push(newQuestion);
-                     currentSubQuestion = newQuestion;
-                 } else {
-                     // This is a new standalone question
-                     currentItem = { type: 'question', ...newQuestion };
-                     currentSubQuestion = null;
-                 }
-                 return;
-             }
-             
-             // --- End of Scenario ---
-             if (currentItem && currentItem.type === 'scenario' && trimmedLine === '---') {
-                 finalizeCurrentItem();
-                 return;
-             }
- 
-             // --- Line Processors (within a block) ---
-             if (!currentItem) return; // Skip lines before any block starts
- 
-             const targetQuestion = currentItem.type === 'scenario' ? currentSubQuestion : currentItem;
- 
-             // Handle multi-line description or explanation
-             if (readingMode === 'description' && currentItem.type === 'scenario' && !targetQuestion) {
-                 currentItem.description += (currentItem.description ? '\n' : '') + line;
-                 return;
-             }
-             if (readingMode === 'explanation' && targetQuestion) {
-                 targetQuestion.explanation += '\n' + line;
-                 return;
-             }
- 
-             // If we are not in a multi-line reading mode, check for prefixes
-             if (targetQuestion) {
-                 const choicePrefix = choicePrefixes.find(p => trimmedLine.startsWith(p));
-                 if (choicePrefix) {
-                     readingMode = null; // A choice line stops any multi-line reading
-                     targetQuestion.options.push(trimmedLine.substring(choicePrefix.length).trim());
-                     return;
-                 }
-                 if (trimmedLine.toLowerCase().startsWith('เฉลย:')) {
-                     readingMode = null;
-                     const answerText = trimmedLine.substring(5).trim();
-                     const answerPrefix = answerText.endsWith('.') ? answerText : answerText + '.';
-                     const answerIndex = choicePrefixes.indexOf(answerPrefix);
-                     if (answerIndex > -1 && targetQuestion.options[answerIndex]) {
-                         targetQuestion.answer = targetQuestion.options[answerIndex];
-                     }
-                     return;
-                 }
-                 if (trimmedLine.toLowerCase().startsWith('คำอธิบาย:')) {
-                     targetQuestion.explanation = trimmedLine.substring(9).trim();
-                     readingMode = 'explanation'; // Start reading explanation
-                     return;
-                 }
-             }
-         });
- 
-         finalizeCurrentItem(); // Push the last item
-         return items;
-     }
- 
-     function populateQuestionBlock(blockElement, questionData) {
-         if (!blockElement || !questionData) return;
- 
-         const questionInput = blockElement.querySelector('.gen-question');
-         const explanationInput = blockElement.querySelector('.gen-explanation');
-         const subCategoryInput = blockElement.querySelector('.gen-subcategory');
-         const choiceInputs = blockElement.querySelectorAll('.gen-choice');
-         const radioInputs = blockElement.querySelectorAll('.gen-radio');
- 
-         if (questionInput) questionInput.value = questionData.question || '';
-         if (explanationInput) explanationInput.value = questionData.explanation || '';
-         if (subCategoryInput) subCategoryInput.value = questionData.subCategory || '';
- 
-         if (questionData.options && Array.isArray(questionData.options)) {
-             questionData.options.forEach((optionText, index) => {
-                 if (choiceInputs[index]) {
-                     choiceInputs[index].value = optionText;
-                     if (optionText.trim() === (questionData.answer || '').trim()) {
-                         if (radioInputs[index]) {
-                             radioInputs[index].checked = true;
-                         }
-                     }
-                 }
-             });
-         }
-     }
- 
-     function populateGenerator(items) {
-         itemsContainer.innerHTML = ''; // Clear existing questions
-         let questionCounter = 0;
- 
-         items.forEach((itemData) => {
-             if (itemData.type === 'scenario') {
-                 // Create a scenario block
-                const newScenarioBlock = document.createElement('div');
-                newScenarioBlock.className = 'gen-scenario-block bg-blue-50 dark:bg-blue-900/40 rounded-xl border border-blue-200 dark:border-blue-800 overflow-hidden shadow-md';
-                newScenarioBlock.innerHTML = `
-                    <div class="p-4 bg-blue-100/50 dark:bg-blue-900/30 flex justify-between items-center border-b border-blue-200 dark:border-blue-800">
-                        <h4 class="font-bold text-lg font-kanit text-blue-800 dark:text-blue-300">สถานการณ์ (Scenario)</h4>
-                        <button type="button" class="gen-remove-scenario-btn p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition-colors" aria-label="ลบสถานการณ์">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </div>
-                    <div class="p-4 space-y-4">
-                        <div class="grid grid-cols-1 gap-4">
-                            <div><label class="gen-label">Scenario Title</label><input type="text" class="gen-input gen-scenario-title" required></div>
-                            <div><label class="gen-label">Scenario Description (รองรับ LaTeX และขึ้นบรรทัดใหม่)</label><textarea rows="3" class="gen-input gen-scenario-desc"></textarea></div>
-                        </div>
-                        <div class="gen-sub-questions-container pt-3 space-y-5">
-                            <!-- Sub-questions will be added here -->
-                        </div>
-                        <div class="pt-3 border-t border-blue-200 dark:border-blue-700">
-                            <button type="button" class="gen-add-sub-question-btn px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-xs font-bold inline-flex items-center gap-1.5 shadow-sm hover:shadow-md">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                                เพิ่มคำถามย่อย
-                            </button>
-                        </div>
-                    </div>
-                `;
- 
-                 // Populate scenario fields
-                 newScenarioBlock.querySelector('.gen-scenario-title').value = itemData.title || '';
-                 newScenarioBlock.querySelector('.gen-scenario-desc').value = itemData.description || '';
-                 
-                 const subQuestionsContainer = newScenarioBlock.querySelector('.gen-sub-questions-container');
-                 if (itemData.questions && Array.isArray(itemData.questions)) {
-                     itemData.questions.forEach((subQuestionData, index) => {
-                         const newSubQuestionBlock = document.createElement('div');
-                         newSubQuestionBlock.className = 'gen-sub-question-block bg-white dark:bg-gray-800/70 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden';
-                         newSubQuestionBlock.innerHTML = createQuestionBlockHTML(index + 1, true);
-                         populateQuestionBlock(newSubQuestionBlock, subQuestionData);
-                         subQuestionsContainer.appendChild(newSubQuestionBlock);
-                     });
-                 }
-                 itemsContainer.appendChild(newScenarioBlock);
- 
-             } else if (itemData.type === 'question') {
-                 // Create a standalone question block
-                 questionCounter++;
-                 const newQuestionBlock = document.createElement('div');
-                 newQuestionBlock.className = 'gen-question-block bg-white dark:bg-gray-800/70 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden';
-                 newQuestionBlock.innerHTML = createQuestionBlockHTML(questionCounter, false);
-                 populateQuestionBlock(newQuestionBlock, itemData);
-                 itemsContainer.appendChild(newQuestionBlock);
-             }
-         });
-         // Add one empty question block if the container is empty after populating
-         if (itemsContainer.children.length === 0) addQuestionBtn.click();
-         generateCode(); // Update the output code
-     }
-
-    // Generate code on form input
-    function generateCode() {
-        if (!generatorForm) return;
-
-        const id = document.getElementById('gen-id').value.trim();
-        const title = document.getElementById('gen-title').value.trim();
-        const description = document.getElementById('gen-desc').value.trim();
-        const category = document.getElementById('gen-category').value;
-        const icon = document.getElementById('gen-icon').value.trim();
-
-        const itemsForDataFile = [];
-        let totalQuestionCount = 0;
-
-        function parseQuestionBlock(block) {
-            const questionText = block.querySelector('.gen-question').value;
-            const choiceInputs = Array.from(block.querySelectorAll('.gen-choice'));
-            const choices = choiceInputs.map(c => c.value).filter(Boolean);
-            const checkedRadio = block.querySelector('.gen-radio:checked');
-            let answer = '';
-            if (checkedRadio) {
-                const correctIndex = parseInt(checkedRadio.value, 10);
-                answer = choiceInputs[correctIndex]?.value || '';
-            }
-            const explanation = block.querySelector('.gen-explanation').value;
-            const subCategory = block.querySelector('.gen-subcategory')?.value.trim() || '';
-            return { question: questionText, options: choices, answer, explanation, subCategory };
-        }
-
-        itemsContainer.childNodes.forEach(itemBlock => {
-            if (itemBlock.nodeType !== Node.ELEMENT_NODE) return;
-
-            if (itemBlock.classList.contains('gen-question-block')) {
-                const questionData = parseQuestionBlock(itemBlock);
-                if (questionData.question && questionData.options.length > 0 && questionData.answer) {
-                    itemsForDataFile.push({ type: "question", ...questionData });
-                    totalQuestionCount++;
-                }
-            } else if (itemBlock.classList.contains('gen-scenario-block')) {
-                const scenarioTitle = itemBlock.querySelector('.gen-scenario-title').value;
-                const scenarioDesc = itemBlock.querySelector('.gen-scenario-desc').value;
-                const subQuestionBlocks = itemBlock.querySelectorAll('.gen-sub-question-block');
-                const subQuestions = Array.from(subQuestionBlocks).map(parseQuestionBlock).filter(q => q.question && q.options.length > 0 && q.answer);
-
-                if (scenarioTitle && subQuestions.length > 0) {
-                    itemsForDataFile.push({ type: "scenario", title: scenarioTitle, description: scenarioDesc, questions: subQuestions });
-                    totalQuestionCount += subQuestions.length;
-                }
-            }
-        });
-
-        // Update UI and generate code strings
-        if (outputFilename) outputFilename.textContent = id ? `data/${id}-data.js` : 'data/your-id-data.js';
-
-        const listEntry = { id, title, description, url: `./quiz/index.html?id=${id}`, storageKey: `quizState-${id}`, amount: totalQuestionCount, category, icon, altText: `ไอคอน ${title}` };
-        outputList.value = `,\n${JSON.stringify(listEntry, null, 4)}`;
-
-        const dataFileContent = `const quizItems = ${JSON.stringify(itemsForDataFile, (key, value) => {
-            // Clean up empty optional fields before stringifying for cleaner data files
-            if ((key === 'explanation' || key === 'description' || key === 'subCategory') && value === '') {
-                return undefined;
-            }
-            return value;
-        }, 4)};`;
-        outputData.value = dataFileContent;
-    }
-
-    let generatorDebounceTimer;
-    if (generatorForm) {
-        generatorForm.addEventListener('input', () => {
-            clearTimeout(generatorDebounceTimer);
-            // Use a slightly longer debounce time for the generator as it's a heavier operation
-            generatorDebounceTimer = setTimeout(generateCode, 500);
-        });
-        // Generate code initially to populate fields if there's any default content
-        generateCode();
-    }
-
-    // Copy to clipboard functionality
-    document.querySelectorAll('.gen-copy-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const targetId = e.currentTarget.dataset.copyTarget;
-            const textarea = document.getElementById(targetId);
-            if (textarea) {
-                navigator.clipboard.writeText(textarea.value).then(() => {
-                    const originalText = e.currentTarget.textContent;
-                    e.currentTarget.textContent = 'คัดลอกแล้ว!';
-                    setTimeout(() => { e.currentTarget.textContent = originalText; }, 2000);
-                }).catch(err => { console.error('Failed to copy:', err); alert('ไม่สามารถคัดลอกได้'); });
-            }
-        });
-    });
-
     // --- Scroll to Top Button Functionality ---
     const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
 
@@ -1189,4 +612,4 @@ export function initializePreviewPage() {
         });
     });
 
-}
+});

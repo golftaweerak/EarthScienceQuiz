@@ -1,8 +1,8 @@
-export const quizList = [
+const quizList = [
   {
     id: "Astro1",
     title: "ทบทวน ดาราศาสตร์ ชุด 1",
-    amount: 50,
+    amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=Astro1",
     storageKey: "quizState-Astro1",
@@ -14,7 +14,7 @@ export const quizList = [
   {
     id: "Astro2",
     title: "ทบทวน ดาราศาสตร์ ชุด 2",
-    amount: 60,
+    amount: "60 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=Astro2",
     storageKey: "quizState-Astro2",
@@ -26,7 +26,7 @@ export const quizList = [
   {
     id: "ESr1",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 1",
-    amount: 50,
+    amount: "50 ข้อ",
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=ESr1",
     storageKey: "quizState-ESr1",
@@ -38,7 +38,7 @@ export const quizList = [
   {
     id: "junior1",
     title: "ดาราศาสตร์ ม.ต้น ชุด 1",
-    amount: 120,
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior1",
@@ -51,7 +51,7 @@ export const quizList = [
   {
     id: "junior2",
     title: "ดาราศาสตร์ ม.ต้น ชุด 2",
-    amount: 120,
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior2",
@@ -64,7 +64,7 @@ export const quizList = [
   {
     id: "senior1",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
-    amount: 120,
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior1",
@@ -77,7 +77,7 @@ export const quizList = [
   {
     id: "senior2",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 2",
-    amount: 120,
+    amount: "120 ข้อ",
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior2",
@@ -91,7 +91,7 @@ export const quizList = [
   {
     id: "ES1",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
-    amount: 150,
+    amount: "150 ข้อ",
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES1",
@@ -104,7 +104,7 @@ export const quizList = [
   {
     id: "ES2",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 2",
-    amount: 150,
+    amount: "150 ข้อ",
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES2",
@@ -117,7 +117,7 @@ export const quizList = [
   {
     id: "ES3",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 3",
-    amount: 150,
+    amount: "150 ข้อ",
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES3",
