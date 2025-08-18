@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="/styles/main.css">
     <!-- KaTeX for rendering LaTeX, consistent with quiz/index.html -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
         xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
@@ -31,53 +31,22 @@
 
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
-    
-    <!-- Scroll Progress Bar -->
-    <div id="scroll-progress-bar" class="fixed top-0 left-0 z-50 h-1 bg-blue-500 dark:bg-blue-400 transition-all duration-100" style="width: 0%;"></div>
-    
-    <!-- Dropdown Menu (Left) -->
-    <div class="absolute top-4 left-4 md:top-6 md:left-6">
-        <div class="relative">
-            <button id="main-menu-btn" title="เมนู"
-                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
-            <div id="main-menu-dropdown"
-                class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
-                <div class="p-2">
-                    <a href="index.html"
-                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
-                    <a href="preview-data.html"
-                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
-                    <a href="about.html"
-                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
-                </div>
-            </div>
+
+    <!-- Shared Sticky Header -->
+    <div id="main_header-placeholder"></div>
+
+    <div class="container mx-auto px-4 sm:px-8 pt-24 md:pt-28">
+        <!-- Developer Tool Banner -->
+        <div class="max-w-4xl mx-auto mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg" role="alert">
+            <p class="font-bold">Developer Tool: Data Preview</p>
+            <p class="text-sm">หน้านี้ใช้สำหรับตรวจสอบการแสดงผลของข้อมูลข้อสอบโดยตรงจากไฟล์ `.js`</p>
         </div>
-    </div>
 
-    <!-- Dark Mode Toggle (Right) -->
-    <div class="absolute top-4 right-4 md:top-6 md:right-6">
-        <button id="dark-mode-toggle"
-            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-            <!-- Icon will be inserted by JS -->
-        </button>
-    </div>
-
-    <div class="max-w-4xl mx-auto px-4 sm:px-8 pt-20">
-        <header class="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <header class="max-w-4xl mx-auto mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">แสดงตัวอย่างชุดข้อสอบ</h1>
                     <p id="script-name" class="text-md text-gray-600 dark:text-gray-400 mt-1"></p>
-                </div>
-                <div class="flex items-center gap-2"> <!-- Wrapper for buttons -->
-                    <a href="index.html" class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap">
-                        &larr; กลับหน้าหลัก
-                    </a>
                 </div>
             </div>
             <div class="mt-6">
@@ -119,20 +88,43 @@
         <main id="preview-container" class="space-y-6 pb-8 sm:pb-12">
             <!-- Content will be loaded here -->
         </main>
+
+        <div id="footer-placeholder" class="mt-12"></div>
     </div>
 
     <!-- Scenario Details Modal -->
     <div id="scenario-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div id="scenario-modal-backdrop" class="absolute inset-0"></div>
         <div id="scenario-modal-content" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
             <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit"></h3>
             <div id="scenario-modal-description" class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
             </div>
-            <button id="scenario-modal-close" aria-label="ปิด" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+            <button data-modal-close aria-label="ปิด" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
                 <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
+        </div>
+    </div>
+
+    <!-- Data Inspector Modal -->
+    <div id="data-inspector-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full anim-modal-pop-in flex flex-col">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 font-kanit">
+                    Data Inspector
+                </h3>
+                <button data-modal-close aria-label="ปิด" class="p-2 -mt-2 -mr-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="bg-gray-100 dark:bg-gray-900 rounded-md max-h-[60vh] flex flex-col">
+                <textarea id="data-inspector-content" class="w-full flex-grow bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none border-0 focus:ring-0 custom-scrollbar" rows="15" spellcheck="false"></textarea>
+            </div>
+            <div id="data-inspector-feedback" class="text-xs h-4 mt-2"></div>
+            <div class="mt-4 flex justify-end gap-3">
+                <button id="data-inspector-copy-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">คัดลอก</button>
+                <button id="data-inspector-save-btn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm font-bold">บันทึกการเปลี่ยนแปลง</button>
+            </div>
         </div>
     </div>
 
@@ -144,10 +136,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
         </svg>
     </button>
-    <!-- Load data first, as preview.js depends on it. Added missing scripts. -->
-    <script src="./data/quizzes-list.js"></script>
-    <script src="./scripts/preview.js"></script>
-    <script src="./scripts/dark-mode.js"></script>
-    <script src="./scripts/main-menu.js" defer></script>
+    <!-- preview.js is a module and will import its own dependencies. -->
+    <script src="/scripts/preview-data-loader.js" type="module"></script>
 </body>
 </html>
