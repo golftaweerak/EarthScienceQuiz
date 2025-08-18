@@ -23,13 +23,3 @@
         background-position: 80px 80px; /* Adjust values for different speed/direction */
     }
 }
-
-/* Shake animation for error feedback in modals */
-@keyframes shake-horizontal {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-  20%, 40%, 60%, 80% { transform: translateX(5px); }
-}
-.anim-shake {
-  animation: shake-horizontal 0.5s cubic-bezier(.36,.07,.19,.97) both;
-}

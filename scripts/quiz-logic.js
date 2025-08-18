@@ -1,14 +1,12 @@
-import { ModalHandler } from './modal-handler.js';
-import { shuffleArray } from './utils.js'; // สมมติว่าสร้างไฟล์ utils.js
-
-// state: Stores all dynamic data of the quiz
-let state = {};
-// elements: Caches all DOM elements for quick access
-let elements = {};
-// handler: A dedicated handler for the resume modal
-let resumeModalHandler;
-// config: Stores all static configuration and constants
-const config = {
+const QuizApp = (function () {
+  // state: Stores all dynamic data of the quiz
+  let state = {};
+  // elements: Caches all DOM elements for quick access
+  let elements = {};
+  // handler: A dedicated handler for the resume modal
+  let resumeModalHandler;
+  // config: Stores all static configuration and constants
+  const config = {
     soundOnIcon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
     soundOffIcon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd" /><path stroke-linecap="round" stroke-linejoin="round" d="M17 14l-2-2m0 0l-2-2m2 2l-2 2m2-2l2-2" /></svg>`,
     resultMessages: {
@@ -43,71 +41,66 @@ const config = {
     },
   };
 
-/**
- * Initializes the entire quiz application.
- * This function is the main entry point for the quiz logic, called by quiz-loader.js.
- * @param {Array} quizData - The array of question objects for the quiz.
- * @param {string} storageKey - The key for storing progress in localStorage.
- */
-export function init(quizData, storageKey) {
-    // --- 1. Element Caching ---
+  function init(quizData, storageKey) {
+    // --- Element Caching ---
     elements = {
-        // Screens
-        startScreen: document.getElementById("start-screen"),
-        quizScreen: document.getElementById("quiz-screen"),
-        resultScreen: document.getElementById("result-screen"),
-        reviewScreen: document.getElementById("review-screen"),
-        quizNav: document.getElementById("quiz-nav"),
-        // Buttons
-        startBtn: document.getElementById("start-btn"),
-        nextBtn: document.getElementById("next-btn"),
-        prevBtn: document.getElementById("prev-btn"),
-        restartBtn: document.getElementById("restart-btn"),
-        reviewBtn: document.getElementById("review-btn"),
-        backToResultBtn: document.getElementById("back-to-result-btn"),
-        // Quiz UI
-        questionCounter: document.getElementById("question-counter"),
-        scoreCounter: document.getElementById("score-counter"),
-        question: document.getElementById("question"),
-        options: document.getElementById("options"),
-        feedback: document.getElementById("feedback"),
-        feedbackContent: document.querySelector("#feedback .feedback-content"),
-        progressBar: document.getElementById("progress-bar"),
-        // Result & Review UI
-        reviewContainer: document.getElementById("review-container"),
-        // Modal & Sound
-        resumeModal: document.getElementById("resume-modal"),
-        resumeConfirmBtn: document.getElementById("resume-confirm-btn"),
-        resumeRejectBtn: document.getElementById("resume-reject-btn"),
-        soundToggleBtn: document.getElementById("sound-toggle-btn"),
-        timerDisplay: document.getElementById("timer-display"),
-        timerValue: document.getElementById("timer-value"),
+      // Screens
+      startScreen: document.getElementById("start-screen"),
+      quizScreen: document.getElementById("quiz-screen"),
+      resultScreen: document.getElementById("result-screen"),
+      reviewScreen: document.getElementById("review-screen"),
+      quizNav: document.getElementById("quiz-nav"),
+      startBtn: document.getElementById("start-btn"),
+      nextBtn: document.getElementById("next-btn"),
+      prevBtn: document.getElementById("prev-btn"),
+      restartBtn: document.getElementById("restart-btn"),
+      reviewBtn: document.getElementById("review-btn"),
+      backToResultBtn: document.getElementById("back-to-result-btn"),
+      // Quiz UI
+      questionCounter: document.getElementById("question-counter"),
+      scoreCounter: document.getElementById("score-counter"),
+      question: document.getElementById("question"),
+      options: document.getElementById("options"),
+      feedback: document.getElementById("feedback"),
+      feedbackContent: document.querySelector("#feedback .feedback-content"),
+      progressBar: document.getElementById("progress-bar"),
+      // Result & Review UI
+      reviewContainer: document.getElementById("review-container"),
+      // Modal & Sound
+      resumeModal: document.getElementById("resume-modal"),
+      modalContent: document.querySelector("#resume-modal .modal-content"),
+      resumeConfirmBtn: document.getElementById("resume-confirm-btn"),
+      resumeRejectBtn: document.getElementById("resume-reject-btn"),
+      soundToggleBtn: document.getElementById("sound-toggle-btn"),
+      timerDisplay: document.getElementById("timer-display"),
+      timerValue: document.getElementById("timer-value"),
     };
 
-    // --- 2. State Initialization ---
-    state = {
-        quizData: quizData, // Use data passed from the loader
-        storageKey: storageKey, // Use key passed from the loader
-        currentQuestionIndex: 0,
-        score: 0,
-        shuffledQuestions: [],
-        userAnswers: [],
-        isSoundEnabled: true, // This will be initialized properly later
-        correctSound: new Audio("../assets/audio/correct.mp3"),
-        incorrectSound: new Audio("../assets/audio/incorrect.mp3"),
-        timerMode: "none",
-        timeLeft: 0,
-        timerId: null,
-        initialTime: 0,
-        activeScreen: null,
-    };
-
-    // --- 3. Initial Setup ---
+    // --- NEW: Initialize the modal handler for the resume modal ---
     resumeModalHandler = new ModalHandler('resume-modal');
+
+    // --- State Initialization ---
+    state = {
+      quizData: quizData,
+      storageKey: storageKey,
+      currentQuestionIndex: 0,
+      score: 0,
+      shuffledQuestions: [],
+      userAnswers: [],
+      isSoundEnabled: true,
+      correctSound: new Audio("../assets/audio/correct.mp3"),
+      incorrectSound: new Audio("../assets/audio/incorrect.mp3"),
+      timerMode: "none",
+      timeLeft: 0,
+      timerId: null,
+      initialTime: 0, // Add to track the starting time for color coding
+    };
+
+    // --- Initialization ---
     bindEventListeners();
     initializeSound();
-    checkForSavedQuiz(); // This will check localStorage and either show the start screen or a resume prompt.
-}
+    checkForSavedQuiz();
+  }
 
   // --- UI / Rendering Functions ---
 
@@ -116,22 +109,23 @@ export function init(quizData, storageKey) {
    * @param {HTMLElement} fromScreen The screen to hide.
    * @param {HTMLElement} toScreen The screen to show.
    */
-  function switchScreen(toScreen) {
+  function switchScreen(fromScreen, toScreen) {
     const transitionDuration = 300; // ms, should match CSS animation duration
-    const fromScreen = state.activeScreen;
 
-    if (fromScreen && fromScreen !== toScreen) {
-        fromScreen.classList.add("anim-fade-out");
+    if (fromScreen) {
+      fromScreen.classList.add("anim-fade-out");
       setTimeout(() => {
         fromScreen.classList.add("hidden");
         fromScreen.classList.remove("anim-fade-out");
+        if (toScreen) {
+          toScreen.classList.remove("hidden");
+          toScreen.classList.add("anim-fade-in");
+        }
       }, transitionDuration);
-    }
-
-    if (toScreen) {
+    } else if (toScreen) {
+      // For the very first screen
       toScreen.classList.remove("hidden");
       toScreen.classList.add("anim-fade-in");
-      state.activeScreen = toScreen;
     }
   }
 
@@ -140,8 +134,8 @@ export function init(quizData, storageKey) {
    * @param {HTMLElement} element The element to render math in.
    */
   function renderMath(element) {
-    if (window.renderMathInElement && element) {
-      window.renderMathInElement(element, {
+    if (typeof renderMathInElement === "function" && element) {
+      renderMathInElement(element, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
           { left: "$", right: "$", display: false },
@@ -162,39 +156,6 @@ export function init(quizData, storageKey) {
     if (elements.quizNav) elements.quizNav.classList.remove("hidden");
   }
 
-  /**
-   * Creates a single option button element.
-   * @param {string} optionText - The text content for the option.
-   * @param {object|null} previousAnswer - The user's previously recorded answer for this question, if any.
-   * @returns {HTMLElement} The created button element.
-   */
-  function createOptionButton(optionText, previousAnswer) {
-    const button = document.createElement("button");
-    button.innerHTML = optionText.replace(/\n/g, "<br>");
-    button.dataset.optionValue = optionText; // Store raw value
-    button.className = "option-btn w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-left hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-blue-500 dark:hover:border-blue-500";
-
-    if (previousAnswer) {
-      // This is a revisited question, so we disable the button and show its state.
-      button.disabled = true;
-      const isCorrectOption = optionText.trim() === previousAnswer.correctAnswer.trim();
-      const wasSelected = optionText.trim() === previousAnswer.selectedAnswer.trim();
-
-      if (isCorrectOption) {
-        button.classList.add("correct");
-      } else if (wasSelected) {
-        // Only mark as incorrect if it was selected and is not the correct answer.
-        button.classList.add("incorrect");
-      }
-    } else {
-      // This is a new, unanswered question.
-      button.addEventListener("click", selectAnswer);
-    }
-
-    return button;
-  }
-
-
   function showQuestion() {
     // Only stop the timer if it's a per-question timer.
     // The overall timer should continue running across questions.
@@ -203,24 +164,66 @@ export function init(quizData, storageKey) {
     }
     resetState();
     const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-    if (!currentQuestion) {
-        console.error("Invalid question index:", state.currentQuestionIndex);
-        showResults(); // Or handle error appropriately
-        return;
-    }
     // Safely replace newlines, guarding against undefined/null questions
-    const questionHtml = (currentQuestion?.question || "").replace(/\n/g, "<br>");
+    const questionHtml = (currentQuestion.question || "").replace(/\n/g, "<br>");
 
     elements.questionCounter.textContent = `ข้อที่ ${
       state.currentQuestionIndex + 1
     } / ${state.shuffledQuestions.length}`;
     elements.question.innerHTML = questionHtml;
 
-    const previousAnswer = state.userAnswers?.[state.currentQuestionIndex];
-    const shuffledOptions = shuffleArray([...(currentQuestion?.options || [])]);
+    const previousAnswer = state.userAnswers[state.currentQuestionIndex];
 
+    // --- New: Shuffle options to prevent memorizing order ---
+    // Create a copy to avoid modifying the original question data in the state
+    const shuffledOptions = [...(currentQuestion.options || [])];
+    // Fisher-Yates (aka Knuth) Shuffle algorithm for an unbiased shuffle
+    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledOptions[i], shuffledOptions[j]] = [
+        shuffledOptions[j],
+        shuffledOptions[i],
+      ];
+    }
+
+    // Use the shuffled array to create the buttons
     shuffledOptions.forEach((option) => {
-        elements.options.appendChild(createOptionButton(option, previousAnswer));
+      const button = document.createElement("button");
+      button.innerHTML = option.replace(/\n/g, "<br>");
+      // Store the original, raw option value to prevent issues with HTML/KaTeX rendering
+      button.dataset.optionValue = option;
+      button.classList.add(
+        "option-btn",
+        "w-full",
+        "p-4",
+        "border-2",
+        "border-gray-300",
+        "dark:border-gray-600",
+        "rounded-lg",
+        "text-left",
+        "hover:bg-gray-100",
+        "dark:hover:bg-gray-700",
+        "hover:border-blue-500",
+        "dark:hover:border-blue-500"
+      );
+
+      if (previousAnswer) {
+        // This is a revisited question, disable buttons and show state
+        button.disabled = true;
+        if (option.trim() === previousAnswer.correctAnswer) {
+          button.classList.add("correct");
+        }
+        if (
+          option.trim() === previousAnswer.selectedAnswer &&
+          !previousAnswer.isCorrect
+        ) {
+          button.classList.add("incorrect");
+        }
+      } else {
+        // This is a new question
+        button.addEventListener("click", selectAnswer);
+      }
+      elements.options.appendChild(button);
     });
 
     if (previousAnswer) {
@@ -269,17 +272,17 @@ export function init(quizData, storageKey) {
     const selectedValue = selectedBtn.dataset.optionValue.trim();
     // Safely get and trim the correct answer to prevent errors if it's not a string (e.g., null, undefined, number)
     const correctAnswerValue =
-      state.shuffledQuestions[state.currentQuestionIndex]?.answer;
+      state.shuffledQuestions[state.currentQuestionIndex].answer;
     const correctAnswer = (correctAnswerValue || "").toString().trim();
     const correct = selectedValue === correctAnswer;
 
     // Store the user's answer. This is the only time an answer is recorded for a question.
     state.userAnswers[state.currentQuestionIndex] = {
-      question: state.shuffledQuestions[state.currentQuestionIndex]?.question,
+      question: state.shuffledQuestions[state.currentQuestionIndex].question,
       selectedAnswer: selectedValue,
       correctAnswer: correctAnswer,
       isCorrect: correct,
-      explanation: state.shuffledQuestions[state.currentQuestionIndex]?.explanation || "",
+      explanation: state.shuffledQuestions[state.currentQuestionIndex].explanation || "",
     };
 
     if (correct) {
@@ -301,7 +304,7 @@ export function init(quizData, storageKey) {
     // Show feedback and disable all options
     showFeedback(
       correct,
-      state.shuffledQuestions[state.currentQuestionIndex]?.explanation,
+      state.shuffledQuestions[state.currentQuestionIndex].explanation,
       correctAnswer
     );
 
@@ -393,7 +396,9 @@ export function init(quizData, storageKey) {
     buildResultsLayout(resultInfo, stats);
 
     // Switch to the result screen
-    switchScreen(elements.resultScreen);
+    const allScreens = [elements.startScreen, elements.quizScreen, elements.reviewScreen];
+    const fromScreen = allScreens.find(screen => screen && !screen.classList.contains('hidden'));
+    switchScreen(fromScreen, elements.resultScreen);
 
     // Save the final state. This is important for the 'view results' feature.
     saveQuizState();
@@ -606,8 +611,22 @@ export function init(quizData, storageKey) {
       state.timerMode = timerModeSelector.value;
     }
 
-    state.shuffledQuestions = shuffleArray([...state.quizData]);
-    switchScreen(elements.quizScreen);
+    const allScreens = [elements.startScreen, elements.resultScreen, elements.reviewScreen];
+    const fromScreen = allScreens.find(screen => screen && !screen.classList.contains('hidden'));
+
+    // Use the more robust Fisher-Yates shuffle for unbiased randomness,
+    // consistent with how options are shuffled.
+    const questionsToShuffle = [...state.quizData];
+    for (let i = questionsToShuffle.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [questionsToShuffle[i], questionsToShuffle[j]] = [
+        questionsToShuffle[j],
+        questionsToShuffle[i],
+      ];
+    }
+    state.shuffledQuestions = questionsToShuffle;
+
+    switchScreen(fromScreen, elements.quizScreen);
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
       // Use shuffledQuestions.length for consistency, as it's the actual set of questions being used.
@@ -630,7 +649,7 @@ export function init(quizData, storageKey) {
 
   // --- New Review Functions ---
   function showReview() {
-    switchScreen(elements.reviewScreen);
+    switchScreen(elements.resultScreen, elements.reviewScreen);
     elements.reviewContainer.innerHTML = ""; // Clear previous review
 
     const incorrectAnswers = getIncorrectAnswers();
@@ -708,7 +727,7 @@ export function init(quizData, storageKey) {
   }
 
   function backToResult() {
-    switchScreen(elements.resultScreen);
+    switchScreen(elements.reviewScreen, elements.resultScreen);
   }
 
   // --- State Management (LocalStorage) ---
@@ -745,7 +764,8 @@ export function init(quizData, storageKey) {
   function resumeQuiz(savedState) {
     loadStateFromSave(savedState);
 
-    switchScreen(elements.quizScreen);
+    switchScreen(elements.startScreen, elements.quizScreen);
+    elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
     showQuestion();
 
     // If resuming a quiz with an overall timer, restart the countdown
@@ -758,9 +778,6 @@ export function init(quizData, storageKey) {
     // --- NEW: Check for 'view_results' action from URL first ---
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get("action");
-
-    // Set initial screen
-    switchScreen(elements.startScreen);
 
     const savedStateJSON = localStorage.getItem(state.storageKey);
     if (!savedStateJSON) {
@@ -956,8 +973,9 @@ export function init(quizData, storageKey) {
     // เพื่อให้ผู้ใช้สามารถเลือกโหมดจับเวลาใหม่และเริ่มควิซใหม่ได้
     elements.restartBtn.addEventListener("click", () => {
       clearSavedState(); // Clear progress from localStorage for a true fresh start
-      cleanupResultsScreen(); // Reuse the cleanup function to ensure the dynamic results are removed
-      switchScreen(elements.startScreen);
+      switchScreen(elements.resultScreen, elements.startScreen);
+      // The modern results layout is dynamically added, so we should remove it to prevent it from showing up behind the start screen on a slow transition.
+      document.getElementById("modern-results-layout")?.remove();
     });
     elements.reviewBtn.addEventListener("click", showReview);
     elements.backToResultBtn.addEventListener("click", backToResult);
@@ -965,3 +983,9 @@ export function init(quizData, storageKey) {
       elements.soundToggleBtn.addEventListener("click", toggleSound);
     }
   }
+
+  // --- Public API ---
+  return {
+    init: init, // Expose the init function to the public
+  };
+})();

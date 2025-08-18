@@ -1,9 +1,3 @@
-import { ModalHandler } from './modal-handler.js';
-import { initializeDarkMode } from './dark-mode.js';
-import { initializeDropdown } from './dropdown.js';
-import { initializeMenu } from './menu-handler.js';
-import { quizList } from '../data/quizzes-list.js';
-
 const CONFIG = {
     SEARCH_DEBOUNCE_MS: 300,
     MIN_SEARCH_LENGTH: 3,
@@ -39,7 +33,7 @@ async function fetchAllQuizData() {
     console.log("Fetching all quiz data for the first time...");
 
     const promises = quizList.map(async (quiz) => {
-        const scriptPath = `./data/${quiz.id}-data.js`;
+        const scriptPath = `data/${quiz.id}-data.js`;
         try {
             const response = await fetch(scriptPath);
             if (!response.ok) {
@@ -114,39 +108,18 @@ function createQuestionElement(item, displayIndex, keyword) {
     titleSpan.textContent = `ข้อที่ ${displayIndex}`;
     questionHeader.appendChild(titleSpan);
 
-    // Create a container for buttons on the right
-    const headerButtonsContainer = document.createElement('div');
-    headerButtonsContainer.className = 'flex items-center gap-4';
-
-    // Add "View Scenario" button if the question belongs to one.
+    // Add "View Scenario" button if the question belongs to one
     if (item.scenarioTitle) {
         const viewScenarioBtn = document.createElement('button');
         viewScenarioBtn.className = 'text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline focus:outline-none';
         viewScenarioBtn.textContent = 'ดูข้อมูลสถานการณ์';
         viewScenarioBtn.type = 'button';
         viewScenarioBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent triggering other click events on the header.
             window.showScenarioModal(item.scenarioTitle, item.scenarioDescription, e.currentTarget);
         });
-        headerButtonsContainer.appendChild(viewScenarioBtn);
+        questionHeader.appendChild(viewScenarioBtn);
     }
-
-    // Add "Inspect Data" button only on preview-data.html.
-    const isDataPreviewPage = window.location.pathname.endsWith('/preview-data.html');
-    if (isDataPreviewPage) {
-        const inspectBtn = document.createElement('button');
-        inspectBtn.className = 'text-xs font-mono text-purple-600 dark:text-purple-400 hover:underline focus:outline-none';
-        inspectBtn.textContent = '[Inspect Data]';
-        inspectBtn.type = 'button';
-        inspectBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            // The 'item' here is the full question object passed to createQuestionElement
-            window.showDataInspectorModal(item, e.currentTarget);
-        });
-        headerButtonsContainer.appendChild(inspectBtn);
-    }
-    questionHeader.appendChild(headerButtonsContainer);
-
     questionDiv.appendChild(questionHeader);
 
     if (questionHtml) {
@@ -431,7 +404,7 @@ svg" fill="none" viewBox="0 0 24 24">
 }
 
 // Main execution
-export function initializePreviewPage() {
+document.addEventListener('DOMContentLoaded', () => {
     const scriptNameEl = document.getElementById('script-name');
     const container = document.getElementById('preview-container');
     const quizSelector = document.getElementById('quiz-selector');
@@ -442,13 +415,6 @@ export function initializePreviewPage() {
     const scenarioModal = new ModalHandler('scenario-modal');
     const modalTitle = document.getElementById('scenario-modal-title');
     const modalDescription = document.getElementById('scenario-modal-description');
-    const dataInspectorModal = new ModalHandler('data-inspector-modal');
-    const dataInspectorTextarea = document.getElementById('data-inspector-content');
-    const dataInspectorSaveBtn = document.getElementById('data-inspector-save-btn');
-    const dataInspectorCopyBtn = document.getElementById('data-inspector-copy-btn');
-    const dataInspectorFeedback = document.getElementById('data-inspector-feedback');
-
-    let currentlyInspectedItem = null; // To hold a reference to the object being edited
 
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
@@ -540,7 +506,7 @@ export function initializePreviewPage() {
             return;
         }
 
-        const scriptPath = `./data/${scriptName}`;
+        const scriptPath = `data/${scriptName}`;
         //scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
         container.innerHTML = `<div class="text-center p-8 text-gray-500 dark:text-gray-400">
                                     <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -627,75 +593,6 @@ export function initializePreviewPage() {
         scenarioModal.open(triggerElement);
     };
 
-    // Make the data inspector modal function globally accessible.
-    window.showDataInspectorModal = (data, triggerElement) => {
-        if (dataInspectorTextarea) {
-            currentlyInspectedItem = data; // Store reference to the original object
-            // Pretty-print the JSON data for readability.
-            dataInspectorTextarea.value = JSON.stringify(data, null, 2);
-            if (dataInspectorFeedback) dataInspectorFeedback.innerHTML = ''; // Clear old feedback
-        }
-        // We don't need to check for a syntax highlighter, just display the text.
-        dataInspectorModal.open(triggerElement);
-    };
-
-    // --- Data Inspector Modal Listeners ---
-    if (dataInspectorSaveBtn) {
-        dataInspectorSaveBtn.addEventListener('click', () => {
-            if (!currentlyInspectedItem || !dataInspectorTextarea) return;
-
-            try {
-                const newQuestionData = JSON.parse(dataInspectorTextarea.value);
-                
-                // Find the index of the original object in the main data array
-                const index = currentQuizData.findIndex(q => q === currentlyInspectedItem);
-
-                if (index > -1) {
-                    currentQuizData[index] = newQuestionData; // Replace the old object with the new one
-                    currentlyInspectedItem = newQuestionData; // Update the reference
-                    
-                    if (dataInspectorFeedback) {
-                        dataInspectorFeedback.innerHTML = `<span class="text-green-500">บันทึกข้อมูลสำเร็จ! กำลังรีเฟรช...</span>`;
-                    }
-                    
-                    setTimeout(() => {
-                        dataInspectorModal.close();
-                        renderQuizData(); // Re-render the entire list to reflect changes
-                    }, 800);
-
-                } else {
-                    throw new Error("ไม่พบข้อมูลคำถามเดิมในชุดข้อมูลปัจจุบัน");
-                }
-            } catch (error) {
-                console.error("JSON Parse Error:", error);
-                if (dataInspectorFeedback) {
-                    dataInspectorFeedback.innerHTML = `<span class="text-red-500">ข้อผิดพลาด: รูปแบบ JSON ไม่ถูกต้อง. (${error.message})</span>`;
-                }
-            }
-        });
-    }
-
-    if (dataInspectorCopyBtn) {
-        dataInspectorCopyBtn.addEventListener('click', () => {
-            if (!dataInspectorTextarea) return;
-            navigator.clipboard.writeText(dataInspectorTextarea.value).then(() => {
-                if (dataInspectorFeedback) {
-                    dataInspectorFeedback.innerHTML = `<span class="text-blue-500">คัดลอกข้อมูลไปยังคลิปบอร์ดแล้ว!</span>`;
-                    setTimeout(() => {
-                        if (dataInspectorFeedback.innerHTML.includes('คัดลอก')) {
-                            dataInspectorFeedback.innerHTML = '';
-                        }
-                    }, 2000);
-                }
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                if (dataInspectorFeedback) {
-                    dataInspectorFeedback.innerHTML = `<span class="text-red-500">ไม่สามารถคัดลอกได้</span>`;
-                }
-            });
-        });
-    }
-
     // --- Scroll to Top Button Functionality ---
     const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
 
@@ -715,4 +612,4 @@ export function initializePreviewPage() {
         });
     });
 
-}
+});
