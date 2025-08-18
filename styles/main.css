@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -29,14 +29,19 @@ body.dark {
 /* Prerequisites are added via Tailwind classes: `relative` and `overflow-hidden` */
 /* Use CSS variables for reusability. Defaults to a white shine. */
 .shine-effect::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   transform: translateX(-100%) skewX(-25deg);
   width: 40%;
   height: 100%;
   --shine-color: 255, 255, 255; /* Default: white */
-  background: linear-gradient(to right, rgba(var(--shine-color), 0) 0%, rgba(var(--shine-color), 0.15) 50%, rgba(var(--shine-color), 0) 100%);
+  background: linear-gradient(
+    to right,
+    rgba(var(--shine-color), 0) 0%,
+    rgba(var(--shine-color), 0.15) 50%,
+    rgba(var(--shine-color), 0) 100%
+  );
   pointer-events: none;
   transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -52,5 +57,8 @@ body.dark {
 
   .btn-primary {
     @apply w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-slate-950;
+  }
+  html {
+    scroll-behavior: smooth;
   }
 }

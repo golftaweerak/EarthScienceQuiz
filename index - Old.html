@@ -28,8 +28,8 @@
 
         <!-- Dropdown Menu (Left) - Added z-30 to ensure it's above other content -->
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-30">
-            <div class="relative">
-                <button id="main-menu-btn" title="เมนู"
+            <nav class="relative" aria-label="Main navigation">
+                <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
                     class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
@@ -47,12 +47,12 @@
                             class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
                     </div>
                 </div>
-            </div>
+            </nav>
         </div>
 
         <!-- Dark Mode Toggle (Right) -->
         <div class="absolute top-4 right-4 md:top-6 md:right-6">
-            <button id="dark-mode-toggle"
+            <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
                 class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
                 <!-- Icon will be inserted by JS -->
             </button>
@@ -61,19 +61,19 @@
         <!-- Content wrapper with top margin to avoid overlapping with absolute-positioned buttons, similar to about.html -->
         <div class="mt-20 md:mt-24">
             <header class="text-center mb-8 md:mb-12 font-kanit fade-in-up">
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
-                    แบบฝึกหัดเตรียมความพร้อม สอวน.
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
+                    เตรียมความพร้อม สอวน.
                 </h1>
                 <div class="flex justify-center mt-2">
                     <p
                         class="flex flex-col md:flex-row items-center justify-center gap-x-3 gap-y-1 text-base text-gray-600 dark:text-gray-400">
                         <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
-                            <img src="./assets/icons/astronomy.png" alt="Icon"
+                            <img src="./assets/icons/astronomy.png" alt="ไอคอนดาราศาสตร์"
                                 class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาดาราศาสตร์
                         </span>
                         <span class="hidden md:inline">และ</span>
                         <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
-                            <img src="./assets/icons/earth.png" alt="Icon"
+                            <img src="./assets/icons/earth.png" alt="ไอคอนวิทยาศาสตร์โลกและอวกาศ"
                                 class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาวิทยาศาสตร์โลกและอวกาศ
                         </span>
                     </p>
@@ -98,23 +98,25 @@
             </div>
         </div>
 
-    <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
-        <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
+        <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
+            <img src="./Clipped_image_20230501_070502.png" alt="SABA Logo" class="h-12 mx-auto mb-4">
 
-        <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 font-kanit mb-4">
-            <img src="./assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full flex-shrink-0">
-            <div class="text-center sm:text-left text-gray-700 dark:text-gray-200 font-kanit">
-                <p>
-                    พัฒนาโดย <a href="about.html"
-                        class="text-blue-600 dark:text-blue-400 hover:underline">นายทวีรักษ์ ทูลพุทธา</a>
-                </p>
-                <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
+            <div class="flex justify-center items-center space-x-4 font-kanit mb-4">
+                <img src="./assets/icons/1076370247_normal.png" alt="promma logo" class="h-12 w-12 rounded-full flex-shrink-0">
+                <div class="text-left text-gray-700 dark:text-gray-200 font-kanit">
+                    <p>
+                        พัฒนาโดย <a href="about.html"
+                            class="text-blue-600 dark:text-blue-400 hover:underline">นายทวีรักษ์ ทูลพุทธา</a>
+                    </p>
+                    <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
+                </div>
             </div>
-        </div>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-6">
-            © <span id="copyright-year">2024</span> Prommanusorn Phetchaburi School. All rights reserved.
-        </p>
-    </footer>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-6">
+                © <span id="copyright-year"></span> Prommanusorn Phetchaburi School. All rights reserved.
+            </p>
+
+            
+        </footer>
 
     <!-- Reset Confirmation Modal -->
     <div id="reset-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
@@ -131,7 +133,7 @@
                 <strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>
             </p>
             <div class="mt-6 flex justify-center gap-4">
-                <button id="reset-cancel-btn" class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                <button id="reset-cancel-btn" data-modal-close class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
                     ยกเลิก
                 </button>
                 <button id="reset-confirm-btn" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-bold">
@@ -160,18 +162,22 @@
                 <button id="completed-start-over-btn" class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">
                     เริ่มใหม่
                 </button>
-                <button id="completed-cancel-btn" class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                <button id="completed-cancel-btn" data-modal-close class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
                     ยกเลิก
                 </button>
             </div>
         </div>
     </div>
 
-    <script src="./data/quizzes-list.js"></script>
-    <script src="./scripts/utils.js"></script>
-    <script src="./scripts/main.js"></script>
-    <script src="./dark-mode.js"></script>
+    <script src="./data/quizzes-list.js" defer></script>
+    <script src="./scripts/modal-handler.js" defer></script>
+    <script src="./scripts/utils.js" defer></script>
+    <script src="./scripts/main.js" defer></script>
+    <script src="./scripts/dark-mode.js" defer></script>
     <script src="./scripts/main-menu.js" defer></script>
+    <script>
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+    </script>
 </body>
 
 </html>

@@ -1,142 +1,285 @@
-/**
- * Initializes the main dropdown menu, populates it with quiz data,
- * and sets up all necessary event listeners for interaction.
- */
-function initializeDropdownMenu() {
+document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.getElementById('quiz-menu-btn');
     const menuDropdown = document.getElementById('quiz-menu-dropdown');
-    const menuContainer = document.getElementById('quiz-menu-items');
-
-    if (!menuButton || !menuDropdown || !menuContainer) {
-        console.warn('Dropdown menu initialization skipped: a required element is missing.');
+    
+    // Only run if the core menu elements exist on the page
+    if (!menuButton || !menuDropdown) {
         return;
     }
 
-    if (menuButton.dataset.menuInitialized) {
-        return;
-    }
-    menuButton.dataset.menuInitialized = 'true';
+    /**
+     * Retrieves the progress state of a quiz from localStorage.
+     * This function is aligned with the one in main.js for consistency.
+     * @param {string} storageKey - The key for the quiz in localStorage.
+     * @param {number} totalQuestions - The total number of questions in the quiz.
+     * @returns {object} An object containing progress details.
+     */
+    function getQuizProgress(storageKey, totalQuestions) {
+        const defaultState = {
+            score: 0,
+            percentage: 0,
+            progressTextColor: "text-gray-500 dark:text-gray-400",
+            isFinished: false,
+            hasProgress: false,
+        };
 
-    const completedQuizModal = document.getElementById('completed-quiz-modal');
-    const startOverBtn = document.getElementById('completed-start-over-btn');
-    const viewResultsBtn = document.getElementById('completed-view-results-btn');
-    const cancelCompletedBtn = document.getElementById('completed-cancel-btn');
+        if (totalQuestions <= 0) return defaultState;
 
-    let activeQuizUrl = '';
-    let activeStorageKey = '';
+        try {
+            const savedStateJSON = localStorage.getItem(storageKey);
+            if (!savedStateJSON) return defaultState;
 
-    const currentQuizId = new URLSearchParams(window.location.search).get('id');
+            const savedState = JSON.parse(savedStateJSON);
+            if (!savedState || typeof savedState.currentQuestionIndex !== "number") return defaultState;
 
-    const toggleMenu = (forceHide = false) => {
-        const isHidden = menuDropdown.classList.contains('hidden');
-        if (forceHide || !isHidden) {
-            menuDropdown.classList.remove('opacity-100', 'scale-100');
-            menuDropdown.classList.add('opacity-0', 'scale-95');
-            // Use `setTimeout` to allow the animation to finish before hiding
-            setTimeout(() => {
-                menuDropdown.classList.add('hidden');
-            }, 200); // Match the duration in CSS
-        } else {
-            menuDropdown.classList.remove('hidden', 'opacity-0', 'scale-95');
-            menuDropdown.classList.add('opacity-100', 'scale-100');
+            const answeredCount = savedState.currentQuestionIndex;
+            const score = savedState.score || 0;
+            const isFinished = answeredCount >= totalQuestions;
+            const percentage = Math.round((answeredCount / totalQuestions) * 100);
+
+            if (isFinished) {
+                return {
+                    score,
+                    percentage,
+                    progressTextColor: "text-green-600 dark:text-green-400",
+                    isFinished: true,
+                    hasProgress: true,
+                };
+            } else {
+                return {
+                    score,
+                    percentage,
+                    progressTextColor: "text-blue-600 dark:text-blue-400",
+                    isFinished: false,
+                    hasProgress: true,
+                };
+            }
+        } catch (e) {
+            console.error(`Could not parse saved state for ${storageKey}:`, e);
+            return defaultState;
         }
+    }
+
+    // Define Category Details for consistent display (aligned with main.js)
+    const categoryDetails = {
+        AstronomyReview: { title: "ทบทวน (Review)", order: 1 },
+        Astronomy: { title: "ดาราศาสตร์ (Astronomy)", order: 2 },
+        EarthScience: { title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)", order: 3 },
     };
+
+    // --- Modal Setup ---
+    // Use the new ModalHandler for the "Completed Quiz" modal.
+    const completedModal = new ModalHandler('completed-quiz-modal');
+    const viewResultsBtn = document.getElementById('completed-view-results-btn');
+    const startOverBtn = document.getElementById('completed-start-over-btn');
+
+    let activeQuizUrl = ''; // To store the URL for the modal actions
+    let activeStorageKey = ''; // To store the storage key for the modal actions
+
+    const menuContainer = menuDropdown.querySelector('.p-2');
+
+    // Check if the quiz list data is available from 'quizzes-list.js'
+    if (menuContainer && typeof quizList !== 'undefined') {
+        // Get the current quiz ID from the URL
+        const currentQuizId = new URLSearchParams(window.location.search).get('id');
+        
+        // --- Dynamic Pathing Logic ---
+        // Determine correct paths based on the current page location
+        const isQuizPage = window.location.pathname.includes('/quiz/');
+        const homePath = isQuizPage ? '../index.html' : './index.html';
+        const aboutPath = isQuizPage ? '../about.html' : './about.html';
+        const previewPath = isQuizPage ? '../preview.html' : './preview.html';
+        const assetPathPrefix = isQuizPage ? '../' : './';
+        const quizPathPrefix = isQuizPage ? './' : './quiz/';
+        const getQuizUrl = (id) => `${quizPathPrefix}index.html?id=${id}`;
+
+        // --- Category and Grouping Logic ---
+        const groupedQuizzes = quizList.reduce((acc, quiz) => {
+            const category = quiz.category || "Uncategorized";
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(quiz);
+            return acc;
+        }, {});
+        
+        const sortedCategories = Object.keys(groupedQuizzes).sort((a, b) => {
+            const orderA = categoryDetails[a]?.order || 99;
+            const orderB = categoryDetails[b]?.order || 99;
+            return orderA - orderB;
+        });
+
+        // --- Build Menu HTML ---
+        let menuHTML = `
+            <a href="${homePath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+            <a href="${previewPath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+            <a href="${aboutPath}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+            <hr class="my-2 border-gray-200 dark:border-gray-600">
+            <div id="menu-quiz-list" class="space-y-px">
+        `;
+
+        sortedCategories.forEach(categoryKey => {
+            const quizzes = groupedQuizzes[categoryKey];
+            const details = categoryDetails[categoryKey];
+            if (!details || !quizzes || quizzes.length === 0) return;
+
+            menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>`;
+
+            quizzes.forEach(quiz => {
+                const quizIdFromUrl = new URLSearchParams(quiz.url.split('?')[1]).get('id');
+                const isCurrentQuiz = quizIdFromUrl === currentQuizId;
+                const linkUrl = getQuizUrl(quizIdFromUrl);
+
+                const totalQuestions = parseInt(quiz.amount, 10) || 0;
+                const progress = getQuizProgress(quiz.storageKey, totalQuestions);
+
+                // Determine vertical alignment: center if finished, top-align otherwise.
+                const alignmentClass = progress.hasProgress ? 'items-center' : 'items-start';
+
+                const progressDetailsHTML = progress.hasProgress
+                    ? `<div>
+                           <span class="text-xs font-medium ${progress.progressTextColor}">คะแนน: ${progress.score}/${totalQuestions} (${progress.percentage}%)</span>
+                       </div>`
+                    : "";
+
+                const activeClasses = isCurrentQuiz ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700';
+
+                menuHTML += `
+                    <a href="${linkUrl}" data-storage-key="${quiz.storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item block px-4 py-2 text-sm rounded-md ${activeClasses}">
+                        <div class="flex ${alignmentClass} gap-3">
+                            <div class="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white">
+                                <img src="${assetPathPrefix}${quiz.icon}" alt="${quiz.title} icon" class="h-4 w-4">
+                            </div>
+                            <div class="min-w-0">
+                                <span>${quiz.title}</span>
+                                ${progressDetailsHTML}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+        });
+
+        // Add Custom Quizzes
+        const savedQuizzesJSON = localStorage.getItem("customQuizzesList");
+        const savedQuizzes = savedQuizzesJSON ? JSON.parse(savedQuizzesJSON) : [];
+
+        if (savedQuizzes.length > 0) {
+            menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
+            menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
+
+            savedQuizzes.forEach((quiz) => {
+                const totalQuestions = quiz.questions.length;
+                const progress = getQuizProgress(quiz.storageKey, totalQuestions);
+                const linkUrl = getQuizUrl(quiz.customId);
+                const isCurrentQuiz = quiz.customId === currentQuizId;
+
+                // Determine vertical alignment: center if finished, top-align otherwise.
+                const alignmentClass = progress.hasProgress ? 'items-center' : 'items-start';
+
+                const progressDetailsHTML = progress.hasProgress
+                    ? `<div><span class="text-xs font-medium ${progress.progressTextColor}">คะแนน: ${progress.score}/${totalQuestions} (${progress.percentage}%)</span></div>`
+                    : "";
+                
+                const activeClasses = isCurrentQuiz ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold' : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700';
+
+                menuHTML += `
+                    <a href="${linkUrl}" data-storage-key="${quiz.storageKey}" data-total-questions="${quiz.questions.length}" class="quiz-menu-item block px-4 py-2 text-sm rounded-md ${activeClasses}">
+                        <div class="flex ${alignmentClass} gap-3">
+                            <div class="h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-white">
+                                <img src="${assetPathPrefix}assets/icons/study.png" alt="ไอคอนแบบทดสอบที่สร้างเอง" class="h-4 w-4">
+                            </div>
+                            <div class="min-w-0">
+                                <span>${quiz.title}</span>
+                                ${progressDetailsHTML}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+        }
+
+        menuHTML += `</div>`; // Close menu-quiz-list
+        menuContainer.innerHTML = menuHTML;
+
+        // Add a single event listener to the container for all quiz items (Event Delegation).
+        // This is more efficient than adding a listener to every single link and works
+        // correctly with dynamically generated HTML.
+        menuContainer.addEventListener('click', (event) => {
+            // Find the main link element, even if a child (like the icon or title) was clicked.
+            const quizLink = event.target.closest('.quiz-menu-item');
+
+            // If the click was not on a quiz item, do nothing.
+            if (!quizLink) {
+                return;
+            }
+
+            const storageKey = quizLink.dataset.storageKey;
+            const totalQuestions = parseInt(quizLink.dataset.totalQuestions, 10) || 0;
+
+            // If the link doesn't have the necessary data, let it navigate normally.
+            if (!storageKey || totalQuestions === 0) {
+                return;
+            }
+
+            const progress = getQuizProgress(storageKey, totalQuestions);
+
+            // If the quiz is completed, prevent navigation and show the modal instead.
+            if (progress.isFinished) {
+                event.preventDefault();
+                activeQuizUrl = quizLink.href;
+                activeStorageKey = storageKey;
+                completedModal.open(quizLink); // Pass the link as the trigger for focus restoration.
+            }
+            // If the quiz is not finished, the default 'a' tag behavior (navigation) will proceed.
+        });
+    }
+
+    // --- Menu Toggle Logic ---
+    // Add transform-origin for better animation
+    if (menuDropdown) {
+        menuDropdown.style.transformOrigin = 'top left';
+    }
 
     menuButton.addEventListener('click', (event) => {
         event.stopPropagation();
-        toggleMenu();
+        const isHidden = menuDropdown.classList.contains('hidden');
+        if (isHidden) {
+            menuDropdown.classList.remove('hidden');
+            menuDropdown.classList.remove('anim-dropdown-out');
+            menuDropdown.classList.add('anim-dropdown-in');
+        } else {
+            menuDropdown.classList.remove('anim-dropdown-in');
+            menuDropdown.classList.add('anim-dropdown-out');
+            setTimeout(() => menuDropdown.classList.add('hidden'), 150); // Match animation duration
+        }
     });
 
+    // Close menu when clicking outside
     document.addEventListener('click', (event) => {
         if (!menuDropdown.classList.contains('hidden') && !menuDropdown.contains(event.target) && !menuButton.contains(event.target)) {
-            toggleMenu(true);
+            menuDropdown.classList.remove('anim-dropdown-in');
+            menuDropdown.classList.add('anim-dropdown-out');
+            setTimeout(() => menuDropdown.classList.add('hidden'), 150);
         }
     });
 
-    if (typeof quizList === 'undefined') {
-        menuContainer.innerHTML = '<p class="px-4 py-2 text-sm text-gray-500">Could not load quiz list.</p>';
-        return;
-    }
-
-    const categoryDisplayNames = {
-        seniorHigh: 'ระดับมัธยมปลาย',
-        university: 'ระดับมหาวิทยาลัย',
-        general: 'ทั่วไป'
-    };
-    const categoryOrder = ['seniorHigh', 'university', 'general'];
-
-    const groupedQuizzes = quizList.reduce((acc, quiz) => {
-        const category = quiz.category || 'general';
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(quiz);
-        return acc;
-    }, {});
-
-    menuContainer.innerHTML = '';
-
-    const modalHandler = {
-        completedQuizModal,
-        setActiveState: (url, key) => {
-            activeQuizUrl = url;
-            activeStorageKey = key;
-        }
-    };
-
-    categoryOrder.forEach(categoryKey => {
-        if (groupedQuizzes[categoryKey]) {
-            const header = document.createElement('div');
-            header.className = 'px-4 pt-3 pb-1 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider';
-            header.textContent = categoryDisplayNames[categoryKey] || categoryKey;
-            menuContainer.appendChild(header);
-
-            groupedQuizzes[categoryKey].forEach(quiz => {
-                const quizIdFromUrl = new URLSearchParams(quiz.url.split('?')[1]).get('id');
-                const isCurrentQuiz = quizIdFromUrl === currentQuizId;
-                const status = getQuizStatus(quiz.storageKey);
-
-                const menuItem = createQuizMenuItem(quiz, isCurrentQuiz, quiz.url, status, modalHandler);
-                menuContainer.appendChild(menuItem);
-            });
-        }
-    });
-
-    // --- Modal Logic ---
-    const handleModalAction = (action) => {
-        if (window.AppUtils) {
-            window.AppUtils.hideModal(completedQuizModal);
-        }
-        if (action === 'startOver' && activeStorageKey) {
-            localStorage.removeItem(activeStorageKey);
-        }
-        if (activeQuizUrl) {
-            const finalUrl = action === 'viewResults'
-                ? `${activeQuizUrl}${activeQuizUrl.includes('?') ? '&' : '?'}action=view_results`
-                : activeQuizUrl;
-            window.location.href = finalUrl;
-        }
-    };
-
-    if (startOverBtn) {
-        startOverBtn.addEventListener('click', () => handleModalAction('startOver'));
-    }
+    // --- Completed Quiz Modal Logic ---
     if (viewResultsBtn) {
-        viewResultsBtn.addEventListener('click', () => handleModalAction('viewResults'));
-    }
-    if (cancelCompletedBtn) {
-        cancelCompletedBtn.addEventListener('click', () => {
-            if (window.AppUtils) window.AppUtils.hideModal(completedQuizModal);
+        viewResultsBtn.addEventListener('click', () => {
+            if (activeQuizUrl) {
+                const separator = activeQuizUrl.includes('?') ? '&' : '?';
+                window.location.href = `${activeQuizUrl}${separator}action=view_results`;
+            }
+            completedModal.close();
         });
     }
-}
-
-// Listen for the custom event that signals a component (like the header) has been loaded.
-document.addEventListener('componentLoaded', (e) => {
-    if (e.detail.name === 'header') {
-        initializeDropdownMenu();
+    if (startOverBtn) {
+        startOverBtn.addEventListener('click', () => {
+            if (activeStorageKey) localStorage.removeItem(activeStorageKey);
+            if (activeQuizUrl) window.location.href = activeQuizUrl;
+            completedModal.close();
+        });
     }
-});
-
-// Fallback for pages that might not use the dynamic component loader.
-document.addEventListener('DOMContentLoaded', () => {
-    initializeDropdownMenu();
+    // The cancel button is now handled automatically by ModalHandler via the `data-modal-close` attribute.
 });

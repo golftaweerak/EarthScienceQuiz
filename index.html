@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="th" class="">
+<html lang="th">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เตรียมความพร้อม สอวน.</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark')
+        // Enable class-based dark mode
+        tailwind.config = {
+            darkMode: 'class'
         }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,32 +20,85 @@
     <link rel="stylesheet" href="./styles/main.css">
     <link rel="stylesheet" href="./styles/animations.css">
     <link rel="stylesheet" href="./styles/custom-hovers.css">
+    <link rel="stylesheet" href="./styles/custom-scrollbar.css">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300 flex flex-col min-h-screen">
-    <!-- Header Placeholder -->
-    <div data-component="header"></div>
 
-    <!-- Content wrapper with top margin to avoid overlapping with absolute-positioned buttons -->
-    <div class="container mx-auto px-4 pb-8 md:pb-12 flex-grow mt-20 md:mt-24">
-        <div>
-            <header class="text-center mb-8 md:mb-12 font-kanit fade-in-up">
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 pb-2">
-                    เตรียมความพร้อม สอวน.
-                </h1>
-                <div class="flex justify-center mt-2">
-                    <p
-                        class="flex flex-col md:flex-row items-center justify-center gap-x-3 gap-y-1 text-base text-gray-600 dark:text-gray-400">
-                        <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
-                            <img src="./assets/icons/astronomy.png" alt="Icon"
-                                class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาดาราศาสตร์
-                        </span>
-                        <span class="hidden md:inline">และ</span>
-                        <span class="inline-flex items-center transition-transform duration-300 hover:-translate-y-1">
-                            <img src="./assets/icons/earth.png" alt="Icon"
-                                class="inline-block h-7 w-7 mr-2 bg-white rounded-full p-0.5">วิชาวิทยาศาสตร์โลกและอวกาศ
-                        </span>
-                    </p>
+    <!-- New Sticky Header -->
+    <header
+        class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md transition-colors duration-300">
+        <div class="container mx-auto flex items-center justify-between h-16 px-4">
+            <!-- Left Side: Menu -->
+            <div class="flex-1 flex justify-start">
+                <nav class="relative" aria-label="Main navigation">
+                    <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
+                        class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div id="main-menu-dropdown"
+                        class="hidden absolute left-0 mt-2 w-72 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu">
+                        <div class="p-2">
+                            <a href="index.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
+                            <a href="preview.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
+                            <a href="about.html"
+                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
+                            <hr class="my-2 border-gray-200 dark:border-gray-600">
+                            <div id="menu-quiz-list" class="space-y-px"></div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Center: Title -->
+            <div class="flex-shrink-0">
+                <h1
+                    class="font-kanit text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
+                    เตรียมความพร้อม สอวน.</h1>
+            </div>
+
+            <!-- Right Side: Dark Mode Toggle -->
+            <div class="flex-1 flex justify-end">
+                <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
+                    class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                    <!-- Icon will be inserted by JS -->
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 pb-8 md:pb-12 flex-grow">
+
+        <!-- Content wrapper with top padding to avoid overlapping with the new fixed header -->
+        <div class="pt-24 md:pt-28">
+            <header class="mb-12 font-kanit fade-in-up" aria-label="เลือกหมวดวิชา">
+                <!-- The main H1 title has been moved to the sticky header -->
+                <!-- New button-like links to categories -->
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a href="#category-Astronomy"
+                        class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800/60 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-gray-700/80 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                            <img src="./assets/icons/astronomy.png" alt="ไอคอนดาราศาสตร์" class="h-6 w-6">
+                        </div>
+                        <span class="font-medium text-gray-800 dark:text-gray-200">วิชาดาราศาสตร์</span>
+                    </a>
+                    <a href="#category-EarthScience"
+                        class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800/60 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-gray-700/80 transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 dark:focus:ring-offset-gray-900">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white flex items-center justify-center">
+                            <img src="./assets/icons/earth.png" alt="ไอคอนวิทยาศาสตร์โลกและอวกาศ" class="h-6 w-6">
+                        </div>
+                        <span class="font-medium text-gray-800 dark:text-gray-200">วิชาวิทยาศาสตร์โลกและอวกาศ</span>
+                    </a>
                 </div>
             </header>
 
@@ -55,9 +107,9 @@
             </main>
 
             <!-- Random Quiz Button (Moved) -->
-            <div class="my-12 text-center">
+            <div class="my-12 text-center flex flex-wrap justify-center items-center gap-4">
                 <button id="random-quiz-btn"
-                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 btn-glow-indigo">
+                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-900 btn-glow-indigo">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -65,73 +117,220 @@
                     </svg>
                     สุ่มแบบทดสอบ
                 </button>
+                <button id="create-custom-quiz-btn"
+                    class="font-kanit inline-flex items-center justify-center px-5 py-2 sm:px-6 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 dark:focus:ring-offset-gray-900 btn-glow-teal">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    สร้างแบบทดสอบเอง
+                </button>
             </div>
         </div>
-    </div>
 
-    <!-- Footer Placeholder -->
-    <div data-component="footer"></div>
+        <footer class="text-center py-8 border-t border-gray-200 dark:border-gray-700">
+            <img src="./assets/images/saba.png" alt="SABA Logo" class="h-12 mx-auto mb-4 ">
 
-    <!-- Reset Confirmation Modal -->
-    <div id="reset-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center" >
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
-                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+            <div class="flex justify-center items-center space-x-4 font-kanit mb-4">
+                <img src="./assets/icons/promma-logo.png" alt="promma logo"
+                    class="h-12 w-12 rounded-full flex-shrink-0">
+                <div class="text-left text-gray-700 dark:text-gray-200 font-kanit">
+                    <p>
+                        พัฒนาโดย <a href="about.html"
+                            class="text-blue-600 dark:text-blue-400 hover:underline">นายทวีรักษ์ ทูลพุทธา</a>
+                    </p>
+                    <p>โรงเรียนพรหมานุสรณ์จังหวัดเพชรบุรี</p>
+                </div>
             </div>
-            <h3 id="reset-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">ยืนยันการล้างข้อมูล</h3>
-            <p id="reset-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?
-                <br>
-                <strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-6">
+                © <span id="copyright-year"></span> Prommanusorn Phetchaburi School. All rights reserved.
             </p>
-            <div class="mt-6 flex justify-center gap-4">
-                <button id="reset-cancel-btn" class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
-                    ยกเลิก
-                </button>
-                <button id="reset-confirm-btn" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-bold">
-                    ยืนยัน
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Completed Quiz Action Modal -->
-    <div id="completed-quiz-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog" aria-modal="true" aria-labelledby="completed-modal-title">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
-                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <h3 id="completed-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">ทำแบบทดสอบนี้เสร็จแล้ว</h3>
-            <p id="completed-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?
-            </p>
-            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
-                <button id="completed-view-results-btn" class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">
-                    ดูผลคะแนน
-                </button>
-                <button id="completed-start-over-btn" class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">
-                    เริ่มใหม่
-                </button>
-                <button id="completed-cancel-btn" class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
-                    ยกเลิก
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Data and Utilities should be loaded first -->
-    <script src="./data/quizzes-list.js"></script>
-    <script src="./scripts/utils.js"></script>
-    <!-- Component loader runs next -->
-    <script src="./scripts/components.js"></script>
-    <!-- Page-specific and component-dependent scripts run last -->
-    <script src="./scripts/main.js"></script>
-    <script src="./scripts/dropdown-menu.js"></script>
-    <script src="./scripts/theme-toggle.js"></script>
+
+        </footer>
+
+        <!-- Generic Confirmation Modal -->
+        <div id="confirm-action-modal"
+            class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="confirm-modal-title">
+            <div
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+                <div
+                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 id="confirm-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                    <!-- Title will be set by JS -->
+                </h3>
+                <p id="confirm-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    <!-- Description will be set by JS -->
+                </p>
+                <div class="mt-6 flex justify-center gap-4">
+                    <button id="confirm-cancel-btn" data-modal-close
+                        class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                        ยกเลิก
+                    </button>
+                    <button id="confirm-action-btn"
+                        class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-bold">
+                        ยืนยัน
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Quiz Action Modal -->
+        <div id="completed-quiz-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="completed-modal-title">
+            <div
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+                <div
+                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+                    <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 id="completed-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                    ทำแบบทดสอบนี้เสร็จแล้ว</h3>
+                <p id="completed-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?
+                </p>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+                    <button id="completed-view-results-btn"
+                        class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">
+                        ดูผลคะแนน
+                    </button>
+                    <button id="completed-start-over-btn"
+                        class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">
+                        เริ่มใหม่
+                    </button>
+                    <button id="completed-cancel-btn" data-modal-close
+                        class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                        ยกเลิก
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Quiz Creation Modal -->
+        <div id="custom-quiz-modal"
+            class="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto p-4 bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="custom-quiz-modal-title">
+            <div
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-auto p-6 text-left">
+                <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-700">
+                    <div>
+                        <h3 id="custom-quiz-modal-title"
+                            class="text-xl font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                            สร้างแบบทดสอบเอง</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            เลือกจำนวนข้อและรูปแบบการจับเวลาที่คุณต้องการ</p>
+                    </div>
+                    <button data-modal-close aria-label="ปิด"
+                        class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Category Question Count Settings -->
+                <div id="custom-quiz-category-selection" class="space-y-4 my-6"></div>
+
+                <!-- Timer Mode Setting -->
+                <fieldset class="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <legend class="text-sm font-bold text-gray-700 dark:text-gray-300 px-2">
+                        รูปแบบการจับเวลา
+                    </legend>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label
+                            class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                            <input type="radio" name="custom-timer-mode" value="none"
+                                class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
+                            <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ไม่จับเวลา</span>
+                        </label>
+                        <label
+                            class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                            <input type="radio" name="custom-timer-mode" value="overall"
+                                class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ทั้งชุด</span>
+                        </label>
+                        <label
+                            class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                            <input type="radio" name="custom-timer-mode" value="perQuestion"
+                                class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">เป็นข้อ</span>
+                        </label>
+                    </div>
+                </fieldset>
+
+                <!-- Action Footer -->
+                <div class="mt-8 pt-4 -mx-6 -mb-6 px-6 pb-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="font-bold text-gray-800 dark:text-gray-100 order-2 sm:order-1">
+                        จำนวนข้อทั้งหมด: <span id="total-question-count" class="font-sarabun text-xl text-blue-600 dark:text-blue-400">0</span>
+                    </div>
+                    <button id="custom-quiz-start-btn"
+                        class="w-full sm:w-auto order-1 sm:order-2 px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-bold text-lg">
+                        เริ่มทำแบบทดสอบ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Quiz Hub Modal -->
+        <div id="custom-quiz-hub-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 hidden" role="dialog"
+            aria-modal="true" aria-labelledby="custom-quiz-hub-modal-title">
+            <div
+                class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl m-4 p-6 text-left">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 id="custom-quiz-hub-modal-title"
+                        class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                        แบบทดสอบที่สร้างเอง</h3>
+                    <button data-modal-close aria-label="ปิด"
+                        class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="custom-quiz-list" class="max-h-96 overflow-y-auto pr-2 space-y-3 mb-6" aria-live="polite">
+                    <!-- List of saved custom quizzes will be inserted here by JS -->
+                    <p id="no-custom-quizzes-msg" class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        ยังไม่มีแบบทดสอบที่สร้างเอง</p>
+                </div>
+
+                <button id="open-create-quiz-modal-btn"
+                    class="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-bold text-lg flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    สร้างแบบทดสอบใหม่
+                </button>
+            </div>
+        </div>
+
+        <script src="./data/quizzes-list.js" defer></script>
+        <script src="./scripts/modal-handler.js" defer></script>
+        <script src="./scripts/utils.js" defer></script>
+        <script src="./scripts/main.js" defer></script>
+        <script src="./scripts/dark-mode.js" defer></script>
+        <script src="./scripts/main-menu.js" defer></script>
+        <script>
+            document.getElementById('copyright-year').textContent = new Date().getFullYear();
+        </script>
 </body>
 
 </html>
