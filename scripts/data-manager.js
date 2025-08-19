@@ -2,7 +2,6 @@
  * A centralized module for managing shared data like category details,
  * quiz progress, and fetching quiz question data.
  */
-import { quizList } from '../data/quizzes-list.js';
 
 // Single source of truth for all category metadata.
 export const categoryDetails = {
@@ -12,24 +11,32 @@ export const categoryDetails = {
         icon: "./assets/icons/study.png",
         order: 1,
         color: "border-sky-500",
+        cardGlow: "hover:shadow-sky-400/40",
+        logoGlow: "group-hover:shadow-sky-400/40",
     },
     Astronomy: {
         title: "ดาราศาสตร์ (Astronomy)",
         icon: "./assets/icons/astronomy.png",
         order: 2,
         color: "border-indigo-500",
+        cardGlow: "hover:shadow-indigo-400/40",
+        logoGlow: "group-hover:shadow-indigo-400/40",
     },
     EarthScience: {
         title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
         icon: "./assets/icons/earth.png",
         order: 3,
         color: "border-teal-500",
+        cardGlow: "hover:shadow-teal-400/40",
+        logoGlow: "group-hover:shadow-teal-400/40",
     },
     GeneralKnowledge: {
         title: "ความรู้ทั่วไป (General)",
         icon: "./assets/icons/general.png", // หมายเหตุ: คุณอาจต้องสร้างไฟล์ไอคอนนี้ หรือใช้ study.png แทน
         order: 4,
         color: "border-amber-500",
+        cardGlow: "hover:shadow-amber-400/40",
+        logoGlow: "group-hover:shadow-amber-400/40",
     },
     // Sub-categories used for custom quiz creation
     Geology: {
@@ -100,20 +107,29 @@ export async function fetchAllQuizData() {
         return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategoryCache };
     }
 
-    const promises = quizList.map(async (quiz) => {
-        const scriptPath = `./data/${quiz.id}-data.js`;
+    const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+
+    // Filter out any potential empty/falsy entries from the list to prevent errors.
+    const validQuizList = quizList.filter(quiz => quiz);
+    const promises = validQuizList.map(async (quiz) => {
+        // Add a cache-busting query parameter to ensure the latest data is always fetched.
+        const scriptPath = `./data/${quiz.id}-data.js?v=${Date.now()}`;
         try {
             const response = await fetch(scriptPath);
             if (!response.ok) return [];
             const scriptText = await response.text();
-            // This is the correct and robust way to execute the script text in a sandboxed function and get the data variable it defines.
-            const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
+            // This sandboxed function execution needs to be consistent with quiz-loader.js
+            // It checks for the modern `quizItems`, then the legacy `quizScenarios`, then the oldest `quizData`.
+            const data = new Function(`${scriptText}; if (typeof quizItems !== 'undefined') return quizItems; if (typeof quizScenarios !== 'undefined') return quizScenarios; if (typeof quizData !== 'undefined') return quizData; return undefined;`)();
 
             if (!data || !Array.isArray(data)) return [];
 
             return data.flatMap((item) => {
+                if (!item) return []; // Gracefully handle null/undefined entries in the data array
+
                 if (item.type === "scenario" && Array.isArray(item.questions)) {
-                    return item.questions.map((q) => ({ ...q, subCategory: q.subCategory || item.subCategory }));
+                    // Filter out null/undefined questions within the scenario before mapping
+                    return item.questions.filter(q => q).map((q) => ({ ...q, subCategory: q.subCategory || item.subCategory }));
                 }
                 return { ...item, subCategory: item.subCategory };
             });

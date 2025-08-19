@@ -21,7 +21,12 @@ body {
 
 /* Always show scrollbar to prevent layout shift when content height changes */
 html {
-  overflow-y: scroll;
+  overflow-y: scroll; /* Prevent layout shift */
+  scroll-behavior: smooth; /* Enable smooth scrolling for anchor links */
+  /* Add global scroll padding to account for the fixed header.
+     This is often more reliable than scroll-margin on individual elements.
+     Header is 4rem (h-16), so 5rem provides a nice 1rem gap. */
+  scroll-padding-top: 5rem;
 }
 
 /* Custom dark mode background with subtle pattern */
@@ -74,10 +79,6 @@ body.dark {
     animation: pulse-glow-teal 3s infinite ease-in-out;
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
-  
   .gen-label {
     @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
   }
@@ -184,17 +185,17 @@ body.dark {
   - The shadow shape is based on Tailwind's `shadow-xl` for consistency.
 */
 
-.quiz-card.border-red-500:hover {
-    box-shadow: 0 20px 25px -5px rgb(239 68 68 / 0.15), 0 8px 10px -6px rgb(239 68 68 / 0.1);
+.quiz-card.border-sky-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(14 165 233 / 0.15), 0 8px 10px -6px rgb(14 165 233 / 0.1);
 }
-.quiz-card.border-pink-500:hover {
-    box-shadow: 0 20px 25px -5px rgb(236 72 153 / 0.15), 0 8px 10px -6px rgb(236 72 153 / 0.1);
+.quiz-card.border-indigo-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(99 102 241 / 0.15), 0 8px 10px -6px rgb(99 102 241 / 0.1);
 }
-.quiz-card.border-blue-500:hover {
-    box-shadow: 0 20px 25px -5px rgb(59 130 246 / 0.15), 0 8px 10px -6px rgb(59 130 246 / 0.1);
+.quiz-card.border-teal-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(20 184 166 / 0.15), 0 8px 10px -6px rgb(20 184 166 / 0.1);
 }
-.quiz-card.border-green-500:hover {
-    box-shadow: 0 20px 25px -5px rgb(34 197 94 / 0.15), 0 8px 10px -6px rgb(34 197 94 / 0.1);
+.quiz-card.border-amber-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(245 158 11 / 0.15), 0 8px 10px -6px rgb(245 158 11 / 0.1);
 }
 
 /* --- Glow Effects for other elements --- */

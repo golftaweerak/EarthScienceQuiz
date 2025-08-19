@@ -20,13 +20,13 @@
     <link rel="stylesheet" href="./styles/bundle.css">
     <!-- KaTeX for rendering LaTeX, consistent with quiz/index.html -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-        integrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
+        xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
         crossorigin="anonymous"></script>
     <!-- This is the auto-render extension for KaTeX -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+        xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
         onload="console.log('KaTeX auto-render loaded.')">
     </script>
     <!-- Add mammoth.js for DOCX import -->
@@ -109,6 +109,13 @@
                                 </div>
                             </div>
                         </label>
+                    </div>
+                    <!-- Jump to Question Selector -->
+                    <div id="jump-to-question-container" class="mt-4 hidden">
+                        <label for="question-jumper" class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">ไปที่ข้อ:</label>
+                        <select id="question-jumper"
+                            class="w-full max-w-xs p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+                        </select>
                     </div>
                     <!-- Question Count Display -->
                     <div id="question-count-container" class="mt-4 text-sm text-gray-600 dark:text-gray-400 h-5">
@@ -290,7 +297,7 @@
                     class="w-full flex-grow bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none border-0 focus:ring-0 custom-scrollbar"
                     rows="15" spellcheck="false"></textarea>
             </div>
-            <div id="data-inspector-feedback" class="text-xs h-4 mt-2"></div>
+            <div id="data-inspector-feedback" class="text-xs h-4 mt-2" aria-live="polite"></div>
             <div class="mt-4 flex justify-end gap-3">
                 <button id="data-inspector-copy-btn"
                     class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">คัดลอก</button>

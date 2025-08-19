@@ -1,1 +1,1 @@
-      "$v_{esc} = \\sqrt{2GM/R}$. ดังนั้น $\\frac{v_{mars}}{v_{earth}} = \\sqrt{\\frac{M_{mars}/M_{earth}}{R_{mars}/R_{earth}}} = \\sqrt{\\frac{0.1}{0.5}} = \\sqrt{0.2} \\approx 0.447$. $v_{mars} \\approx 0.447 \\times 11.2 \\text{ km/s} \\approx 5.0$ km/s.",
+      "$v_{esc} = \\sqrt{2GM/R}$. ดังนั้น $\\frac{v_{mars}}{v_{earth}} = \\sqrt{\\frac{M_{mars}/M_{earth}}{R_{mars}/R_{earth}}} = \\sqrt{\\frac{0.1}{0.5}} = \\sqrt{0.2} \\approx 0.447$. $v_{mars} \\approx 0.447 \\times 11.2 \\text{ km/s} \\approx 5.0$ km/s."

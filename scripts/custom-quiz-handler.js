@@ -35,6 +35,7 @@ export function initializeCustomQuizHandler() {
 
     const createCustomQuizBtn = document.getElementById("create-custom-quiz-btn");
     const customQuizStartBtn = document.getElementById("custom-quiz-start-btn");
+    const customQuizClearBtn = document.getElementById("custom-quiz-clear-btn");
     const categorySelectionContainer = document.getElementById("custom-quiz-category-selection");
     const totalQuestionCountDisplay = document.getElementById("total-question-count");
     const openCreateQuizModalBtn = document.getElementById("open-create-quiz-modal-btn");
@@ -118,15 +119,24 @@ export function initializeCustomQuizHandler() {
 
             const quizItemEl = document.createElement("div");
             quizItemEl.dataset.quizId = quiz.customId;
-            quizItemEl.className = "custom-quiz-item flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600";
+            quizItemEl.className = "custom-quiz-item flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
+            
+            const iconUrl = quiz.icon || './assets/icons/study.png';
+            const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบที่สร้างเอง';
+
             quizItemEl.innerHTML = `
-                <div class="flex-grow min-w-0">
-                    <div data-title-display>
-                        <p class="font-bold text-gray-800 dark:text-gray-100 truncate">${quiz.title}</p>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 truncate">${quiz.description}</p>
+                <div class="flex items-center gap-4 flex-grow min-w-0">
+                    <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-2">
+                        <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                     </div>
-                    <div data-edit-container class="hidden"></div>
-                    ${progressText ? `<div class="mt-1">${progressText}</div>` : ""}
+                    <div class="flex-grow min-w-0">
+                        <div data-title-display>
+                            <p class="font-bold text-gray-800 dark:text-gray-100">${quiz.title}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">${quiz.description}</p>
+                        </div>
+                        <div data-edit-container class="hidden"></div>
+                        ${progressText ? `<div class="mt-1">${progressText}</div>` : ""}
+                    </div>
                 </div>
                 <div class="flex-shrink-0 flex items-center gap-2">
                     <div data-view-controls class="flex items-center gap-2">
@@ -146,21 +156,40 @@ export function initializeCustomQuizHandler() {
     function createCategoryControlHTML(category, displayName, iconSrc, maxCount) {
         const disabled = maxCount === 0;
         const finalIconSrc = iconSrc || './assets/icons/study.png';
-        // Use a grid layout for better alignment on larger screens.
-        // It stacks on mobile and becomes a 2-column layout on medium screens and up.
+
+        // Helper to generate quick-select buttons
+        const createQuickSelectButton = (value, text) => {
+            if (maxCount < value) return ''; // Don't show button if max is less than the value
+            // Adjusted colors for better contrast and consistency
+            return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 dark:text-gray-300 dark:bg-gray-600 rounded-md hover:bg-blue-600 dark:hover:bg-blue-500 hover:text-white dark:hover:text-white transition-colors">${text || value}</button>`;
+        };
+
         return `
-            <div class="grid grid-cols-1 md:grid-cols-2 md:items-center gap-x-6 gap-y-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 ${disabled ? "opacity-50" : ""}">
-                <!-- Left Column: Category Label -->
-                <label for="count-slider-${category}" class="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-3 ${disabled ? "cursor-not-allowed" : ""}">
-                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white dark:bg-gray-200 flex items-center justify-center p-1">
+            <div class="custom-quiz-control-group p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 ${disabled ? "opacity-50 pointer-events-none" : ""}">
+                <!-- Header: Icon, Name, and Count -->
+                <div class="flex items-center justify-between mb-3">
+                    <label for="count-slider-${category}" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-3">
+                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1 shadow-sm">
                         <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
+                        </div>
+                        <span class="whitespace-nowrap">${displayName}</span>
+                    </label>
+                    <div class="font-sarabun text-right">
+                        <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500">
+                        <span class="text-gray-500 dark:text-gray-400"> / ${maxCount} ข้อ</span>
                     </div>
-                    <div class="flex-grow"><span class="whitespace-nowrap">${displayName}:</span> <span data-value-display="${category}" class="font-sarabun text-blue-600 dark:text-blue-400">0</span> / <span class="font-sarabun">${maxCount}</span> ข้อ</div>
-                </label>
-                <!-- Right Column: Slider and Number Input -->
+                </div>
+
+                <!-- Controls: Slider and Quick-Select Buttons -->
                 <div class="flex items-center gap-4">
-                    <input data-slider="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" ${disabled ? "disabled" : ""}>
-                    <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-24 flex-shrink-0 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-center text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
+                    <input data-slider="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500" ${disabled ? "disabled" : ""}>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
+                    ${createQuickSelectButton(10)}
+                    ${createQuickSelectButton(25)}
+                    ${createQuickSelectButton(50)}
+                    ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
                 </div>
             </div>`;
     }
@@ -174,26 +203,47 @@ export function initializeCustomQuizHandler() {
     }
 
     function setupCustomQuizInputListeners() {
-        document.querySelectorAll('#custom-quiz-category-selection input[type="range"], #custom-quiz-category-selection input[type="number"]').forEach(el => {
-            el.addEventListener('input', (e) => {
-                const category = e.target.dataset.slider || e.target.dataset.input;
-                const value = e.target.value;
+        const container = document.getElementById('custom-quiz-category-selection');
+        if (!container) return;
+
+        // Use event delegation for better performance
+        container.addEventListener('input', (e) => {
+            const target = e.target;
+            if (target.matches('input[type="range"]') || target.matches('input[type="number"]')) {
+                const category = target.dataset.slider || target.dataset.input;
+                let value = target.value;
                 const slider = document.querySelector(`[data-slider="${category}"]`);
                 const input = document.querySelector(`[data-input="${category}"]`);
-                const display = document.querySelector(`[data-value-display="${category}"]`);
 
-                if (e.target.type === 'number') {
-                    const max = parseInt(e.target.max, 10);
-                    if (parseInt(value) > max) e.target.value = max;
+                if (target.type === 'number') {
+                    const max = parseInt(target.max, 10);
+                    if (parseInt(value, 10) > max) {
+                        value = max;
+                        target.value = max;
+                    }
                 }
 
-                const finalValue = e.target.value === "" ? 0 : e.target.value;
+                const finalValue = value === "" ? 0 : value;
                 if (slider) slider.value = finalValue;
                 if (input) input.value = finalValue;
-                if (display) display.textContent = finalValue;
 
                 updateTotalCount();
-            });
+            }
+        });
+
+        container.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.matches('button[data-quick-select]')) {
+                const category = target.dataset.quickSelect;
+                const value = target.dataset.value;
+                const slider = document.querySelector(`[data-slider="${category}"]`);
+                const input = document.querySelector(`[data-input="${category}"]`);
+
+                if (slider) slider.value = value;
+                if (input) input.value = value;
+
+                updateTotalCount();
+            }
         });
     }
 
@@ -224,15 +274,25 @@ export function initializeCustomQuizHandler() {
 
             let categoryHTML = customQuizCategories.map(categoryKey => {
                 const details = allCategoryDetails[categoryKey];
+                if (!details) {
+                    console.warn(`Details not found for custom quiz category: ${categoryKey}`);
+                    return ''; // Skip this category if details are missing
+                }
+                // Use displayName if it exists, otherwise fall back to title. This handles categories like "Astronomy".
+                const displayName = details.displayName || details.title;
                 const maxCount = byCategory[categoryKey]?.length || 0;
-                return createCategoryControlHTML(categoryKey, details.displayName, details.icon, maxCount);
+                return createCategoryControlHTML(categoryKey, displayName, details.icon, maxCount);
             }).join('');
 
             // Handle the 'General' category separately, which draws from all questions
-            const generalDetails = allCategoryDetails['General'];
-            const generalMaxCount = allQuestions.length;
-            categoryHTML += createCategoryControlHTML('General', generalDetails.displayName, generalDetails.icon, generalMaxCount);
-
+            const generalDetails = allCategoryDetails['General']; // This is the key for the "All" category
+            if (generalDetails) {
+                const generalMaxCount = allQuestions.length;
+                categoryHTML += createCategoryControlHTML('General', generalDetails.displayName, generalDetails.icon, generalMaxCount);
+            } else {
+                console.warn('Details for "General" category not found. Skipping.');
+            }
+            
             if (categorySelectionContainer) {
                 categorySelectionContainer.innerHTML = categoryHTML;
                 setupCustomQuizInputListeners();
@@ -279,14 +339,33 @@ export function initializeCustomQuizHandler() {
             return;
         }
 
+        // Analyze the final set of questions to create an accurate, detailed description.
+        const categoryCounts = selectedQuestions.reduce((acc, question) => {
+            // Use 'General' as the default category if a question lacks a subCategory.
+            const categoryName = question.subCategory || 'General';
+            acc[categoryName] = (acc[categoryName] || 0) + 1;
+            return acc;
+        }, {});
+
+        // Create description parts using proper display names from the data manager.
+        const descriptionParts = Object.entries(categoryCounts).map(([key, count]) => {
+            const details = allCategoryDetails[key];
+            // Look for displayName first, then title, then fall back to the key itself for robustness.
+            const displayName = details?.displayName || details?.title || key;
+            return `${displayName}: ${count} ข้อ`;
+        });
+
+        const detailedDescription = descriptionParts.length > 0 ? descriptionParts.join(' | ') : `แบบทดสอบที่สร้างขึ้นโดยมี ${selectedQuestions.length} ข้อ`;
+
         const timestamp = Date.now();
         const customQuiz = {
             customId: `custom_${timestamp}`,
             storageKey: `quizState-custom_${timestamp}`,
-            title: `แบบทดสอบแบบกำหนดเอง (${new Date(timestamp).toLocaleString('th-TH')})`,
-            description: `แบบทดสอบที่สร้างขึ้นโดยมี ${selectedQuestions.length} ข้อ`,
+            title: `แบบทดสอบ (${new Date(timestamp).toLocaleString('th-TH')})`,
+            description: detailedDescription,
             questions: selectedQuestions,
             timerMode: timerMode,
+            icon: "./assets/icons/study.png", // Add a default icon
         };
 
         const savedQuizzes = getSavedCustomQuizzes();
@@ -359,6 +438,20 @@ export function initializeCustomQuizHandler() {
                 }
                 // If not finished, the default 'a' tag behavior will handle navigation.
             }
+        });
+    }
+
+    // Listener for the "Clear All" button in the custom quiz creation modal
+    if (customQuizClearBtn) {
+        customQuizClearBtn.addEventListener('click', () => {
+            const inputs = document.querySelectorAll('#custom-quiz-category-selection input[type="number"]');
+            inputs.forEach(input => {
+                const category = input.dataset.input;
+                const slider = document.querySelector(`[data-slider="${category}"]`);
+                input.value = 0;
+                if (slider) slider.value = 0;
+            });
+            updateTotalCount();
         });
     }
 

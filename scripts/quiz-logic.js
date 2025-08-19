@@ -14,7 +14,7 @@ const config = {
     resultMessages: {
       perfect: {
         title: "ยอดเยี่ยมมาก!",
-        message: "คุณคืออนาคตนักดาราศาสตร์โอลิมปิก!",
+        message: "คุณคืออนาคตนักเรียนโอลิมปิก!",
         icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`,
         colorClass: "text-yellow-400",
       },
@@ -282,6 +282,9 @@ export function init(quizData, storageKey) {
       explanation: state.shuffledQuestions[state.currentQuestionIndex]?.explanation || "",
     };
 
+    // Save state immediately after an answer is recorded for better data persistence.
+    saveQuizState();
+
     if (correct) {
       state.score++;
       elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
@@ -348,7 +351,6 @@ export function init(quizData, storageKey) {
     state.currentQuestionIndex++;
     if (state.currentQuestionIndex < state.shuffledQuestions.length) {
       showQuestion();
-      saveQuizState();
     } else {
       showResults();
     }
@@ -572,7 +574,7 @@ export function init(quizData, storageKey) {
     dataContainer.appendChild(statsContainer);
     layoutContainer.appendChild(dataContainer);
 
-    // --- 5. Assemble and Inject ---
+    // --- 3. Assemble and Inject ---
     // Prepend to the result screen so it appears before the buttons
     elements.resultScreen.prepend(layoutContainer);
 
@@ -606,7 +608,11 @@ export function init(quizData, storageKey) {
       state.timerMode = timerModeSelector.value;
     }
 
-    state.shuffledQuestions = shuffleArray([...state.quizData]);
+    // Filter out any potential null or undefined questions from the source data
+    // to prevent errors during the quiz, especially in the results analysis.
+    const validQuizData = state.quizData.filter(q => q);
+    state.shuffledQuestions = shuffleArray([...validQuizData]);
+
     switchScreen(elements.quizScreen);
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
@@ -716,7 +722,10 @@ export function init(quizData, storageKey) {
   function loadStateFromSave(savedState) {
     state.currentQuestionIndex = savedState.currentQuestionIndex;
     state.score = savedState.score;
-    state.shuffledQuestions = savedState.shuffledQuestions;
+    // Filter the loaded questions to ensure data integrity, in case the saved state is from an older version or has corrupt data.
+    state.shuffledQuestions = Array.isArray(savedState.shuffledQuestions)
+      ? savedState.shuffledQuestions.filter(q => q)
+      : [];
     state.userAnswers = savedState.userAnswers || [];
     state.timerMode = savedState.timerMode || "none";
     state.timeLeft = savedState.timeLeft || 0;
@@ -755,62 +764,57 @@ export function init(quizData, storageKey) {
   }
 
   function checkForSavedQuiz() {
-    // --- NEW: Check for 'view_results' action from URL first ---
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get("action");
-
-    // Set initial screen
-    switchScreen(elements.startScreen);
-
     const savedStateJSON = localStorage.getItem(state.storageKey);
-    if (!savedStateJSON) {
-      // If there's no saved state, we can't view results or resume, so just exit.
-      return;
+
+    // Case 1: Viewing results directly. This has the highest priority.
+    if (action === 'view_results' && savedStateJSON) {
+        try {
+            const savedState = JSON.parse(savedStateJSON);
+            // Validate state before using it
+            if (typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions)) {
+                loadStateFromSave(savedState);
+                showResults(); // This will also call switchScreen to the result screen
+                return; // Done.
+            }
+        } catch (e) {
+            console.error("Error parsing saved state for viewing results:", e);
+            clearSavedState();
+            // Fall through to show start screen on error
+        }
     }
 
-    try {
-      const savedState = JSON.parse(savedStateJSON);
-      if (
-        typeof savedState.currentQuestionIndex !== "number" ||
-        !Array.isArray(savedState.shuffledQuestions)
-      ) {
-        // Invalid state, remove it and exit.
-        clearSavedState();
-        return;
-      }
-
-      // Priority 1: Handle 'view_results' action
-      if (action === "view_results") {
-        loadStateFromSave(savedState);
-
-        // Hide the start screen and directly show the results screen
-        elements.startScreen.classList.add("hidden");
-        showResults();
-        // Important: Stop further execution to prevent the resume modal from showing
-        return;
-      }
-
-      // Priority 2: Handle standard quiz resume (if not viewing results)
-      if (elements.resumeModal && resumeModalHandler) {
-        resumeModalHandler.open();
-
-        // The 'reject' button is now handled by `data-modal-close`,
-        // but we still need to clear the state when it's clicked.
-        elements.resumeRejectBtn.onclick = () => {
-          clearSavedState();
-          // The modal will close automatically due to data-modal-close.
-        };
-
-        // The 'confirm' button needs to resume the quiz before closing.
-        elements.resumeConfirmBtn.onclick = () => {
-          resumeQuiz(savedState);
-          resumeModalHandler.close();
-        };
-      }
-    } catch (e) {
-      console.error("Error parsing saved quiz state:", e);
-      clearSavedState();
+    // Case 2: Resuming a quiz in progress.
+    if (savedStateJSON) {
+        try {
+            const savedState = JSON.parse(savedStateJSON);
+            if (typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions)) {
+                // There is valid progress, show the start screen and then the resume prompt.
+                switchScreen(elements.startScreen);
+                if (elements.resumeModal && resumeModalHandler) {
+                    resumeModalHandler.open();
+                    elements.resumeRejectBtn.onclick = () => {
+                        clearSavedState();
+                    };
+                    elements.resumeConfirmBtn.onclick = () => {
+                        resumeQuiz(savedState);
+                        resumeModalHandler.close();
+                    };
+                }
+                return; // Done.
+            } else {
+                // Invalid state found, clear it.
+                clearSavedState();
+            }
+        } catch (e) {
+            console.error("Error parsing saved quiz state for resume:", e);
+            clearSavedState();
+        }
     }
+
+    // Case 3: Default case - no valid saved state or not resuming. Show the start screen.
+    switchScreen(elements.startScreen);
   }
 
   // --- Timer Functions ---

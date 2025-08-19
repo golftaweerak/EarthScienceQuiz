@@ -26,6 +26,20 @@ const categoryDetails = {
     },
 };
 
+/**
+ * Corrects image paths for the preview pages.
+ * Data files assume a path relative to the '/quiz/' directory (e.g., '../assets/images/foo.png').
+ * This function adjusts them to be relative to the root (e.g., './assets/images/foo.png').
+ * @param {string} htmlString The HTML content to process.
+ * @returns {string} The HTML content with corrected image paths.
+ */
+function correctImagePaths(htmlString) {
+    if (!htmlString) return '';
+    // This regex finds src attributes that start with ../ and replaces them.
+    // It's safer than a simple string replace as it targets the attribute.
+    return htmlString.replace(/src="\.\.\//g, 'src="./');
+}
+
 let currentQuizData = []; // Store the full data for the selected quiz
 let allQuizzesCache = null; // Cache for all quiz data to avoid re-fetching
 
@@ -73,11 +87,23 @@ async function fetchAllQuizData() {
  */
 function flattenQuizDataItem(item, sourceTitle) {
     if (item.type === 'scenario' && Array.isArray(item.questions)) {
+        // Correct the path for the main scenario description
+        const correctedDescription = correctImagePaths(item.description);
         return item.questions.map(q => ({
-            ...q, scenarioTitle: item.title, scenarioDescription: item.description, sourceQuizTitle: sourceTitle
+            ...q,
+            // Correct paths for each question and its explanation within the scenario
+            question: correctImagePaths(q.question),
+            explanation: correctImagePaths(q.explanation),
+            scenarioTitle: item.title,
+            scenarioDescription: correctedDescription,
+            sourceQuizTitle: sourceTitle
         }));
     } else if (item.type === 'question' || !item.type) {
-        return [{ ...item, sourceQuizTitle: sourceTitle }];
+        // Correct paths for a standalone question
+        return [{ ...item,
+            question: correctImagePaths(item.question),
+            explanation: correctImagePaths(item.explanation),
+            sourceQuizTitle: sourceTitle }];
     }
     return [];
 }
@@ -103,6 +129,8 @@ function createQuestionElement(item, displayIndex, keyword) {
     const explanationHtml = item.explanation ? highlightText(item.explanation.replace(/\n/g, '<br>'), keyword) : '';
 
     const questionDiv = document.createElement('div');
+    // Add a unique ID for the jump-to-question feature
+    questionDiv.id = `question-${displayIndex}`;
     // Add 'question-card' for PDF page breaks
     questionDiv.className = 'bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 question-card';
 
@@ -207,10 +235,16 @@ function renderQuizData() {
     const searchInput = document.getElementById('search-input');
     const filterKeyword = searchInput.value.toLowerCase().trim();
     const countContainer = document.getElementById('question-count-container');
+    const jumpContainer = document.getElementById('jump-to-question-container');
+    const questionJumper = document.getElementById('question-jumper');
 
     container.innerHTML = '';
     if (countContainer) {
         countContainer.innerHTML = '';
+    }
+    if (jumpContainer) {
+        jumpContainer.classList.add('hidden');
+        questionJumper.innerHTML = '';
     }
 
     if (currentQuizData.length > 0) {
@@ -362,6 +396,22 @@ function renderQuizData() {
             }
         });
 
+        // --- Populate the jump-to-question dropdown AFTER rendering ---
+        if (questionJumper && filteredData.length > 0) {
+            questionJumper.innerHTML = '<option value="">-- ไปที่ข้อ --</option>'; // Add a default option
+
+            filteredData.forEach((item, index) => {
+                const displayIndex = index + 1;
+                const option = document.createElement('option');
+                option.value = `#question-${displayIndex}`;
+                const questionText = (item.question || '').replace(/<[^>]*>?/gm, ''); // Strip HTML tags
+                const truncatedText = questionText.length > 70 ? questionText.substring(0, 70) + '...' : questionText;
+                option.textContent = `ข้อ ${displayIndex}: ${truncatedText}`;
+                questionJumper.appendChild(option);
+            });
+
+            jumpContainer.classList.remove('hidden');
+        }
         // Now that all HTML is in the DOM, render the math using KaTeX
         if (window.renderMathInElement) {
             renderMathInElement(container, {
@@ -437,6 +487,7 @@ export function initializePreviewPage() {
     const quizSelector = document.getElementById('quiz-selector');
     const searchInput = document.getElementById('search-input');
     const showAnswersToggle = document.getElementById('show-answers-toggle');
+    const questionJumper = document.getElementById('question-jumper');
 
     // --- Modal Setup ---
     const scenarioModal = new ModalHandler('scenario-modal');
@@ -469,6 +520,25 @@ export function initializePreviewPage() {
     zoomOutBtn.addEventListener('click', () => { if (currentZoomLevel > CONFIG.MIN_ZOOM) { currentZoomLevel -= CONFIG.ZOOM_STEP; applyZoom(); } });
     zoomResetBtn.addEventListener('click', () => { currentZoomLevel = CONFIG.DEFAULT_ZOOM; applyZoom(); });
     applyZoom(); // Set initial state
+
+    // --- Jump to Question Functionality ---
+    if (questionJumper) {
+        questionJumper.addEventListener('change', (event) => {
+            const targetId = event.target.value;
+            if (!targetId) return;
+
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Add a temporary highlight effect for better user feedback
+                targetElement.classList.add('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-offset-gray-800', 'transition-all', 'duration-300');
+                setTimeout(() => {
+                    targetElement.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500', 'dark:ring-offset-gray-800');
+                }, 2500);
+            }
+        });
+    }
 
     // --- Show/Hide Answers Toggle Functionality ---
     if (showAnswersToggle) {

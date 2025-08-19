@@ -2,6 +2,47 @@ import { ModalHandler } from "./modal-handler.js";
 import { getQuizProgress, categoryDetails } from "./data-manager.js";
 import { quizList } from "../data/quizzes-list.js";
 
+/**
+ * Toggles the state of an accordion section (expands or collapses it).
+ * @param {HTMLElement} toggleElement The header element of the accordion section.
+ * @param {'open'|'close'|undefined} forceState - Force the accordion to open, close, or toggle.
+ */
+export const toggleAccordion = (toggleElement, forceState) => {
+  const content = toggleElement.nextElementSibling;
+  const icon = toggleElement.querySelector(".chevron-icon");
+  const iconContainer = toggleElement.querySelector(
+    ".section-icon-container"
+  );
+  if (!content || !icon) return;
+
+  const isCollapsed = content.classList.contains("grid-rows-[0fr]");
+
+  let shouldBeOpen =
+    forceState === "open"
+      ? true
+      : forceState === "close"
+      ? false
+      : isCollapsed;
+
+  if (shouldBeOpen === !isCollapsed) return;
+
+  content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
+  content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
+  icon.classList.toggle("rotate-180", shouldBeOpen);
+
+  // Accessibility: Update ARIA attribute
+  toggleElement.setAttribute("aria-expanded", shouldBeOpen);
+
+
+  if (iconContainer) {
+    iconContainer.classList.toggle("scale-105", shouldBeOpen);
+    iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
+  }
+};
+
+// A function to get all the toggles, so we don't expose the variable directly
+export const getSectionToggles = () => document.querySelectorAll(".section-toggle");
+
 export function initializePage() {
   // --- 0. Initialize Modals and Cache Elements ---
 
@@ -62,14 +103,6 @@ export function initializePage() {
     return `<div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-sm ${progressTextColor}">${progressText}</span><span class="text-sm text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span>${resetButtonHTML}</div></div>`;
   }
 
-  // Map border colors to their corresponding shadow colors for the hover effect
-  const shadowColorMap = {
-    "border-sky-500": "hover:shadow-sky-500/40",
-    "border-indigo-500": "hover:shadow-indigo-500/40",
-    "border-teal-500": "hover:shadow-teal-500/40",
-    "border-amber-500": "hover:shadow-amber-500/40",
-  };
-
   /**
    * Creates a single quiz card element.
    * @param {object} quiz - The quiz data object.
@@ -79,19 +112,23 @@ export function initializePage() {
   function createQuizCard(quiz, index) {
     const card = document.createElement("a");
     card.href = quiz.url;
-    const borderColorClass = categoryDetails[quiz.category]?.color || "border-gray-400";
-    const shadowClass = shadowColorMap[borderColorClass] || "hover:shadow-gray-400/30";
-
-    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 fade-in-up ${shadowClass}`;
-    card.style.animationDelay = `${index * 50}ms`; // Slightly faster animation
-
+    const categoryDetail = categoryDetails[quiz.category];
+    const borderColorClass = categoryDetail?.color || "border-gray-400";
+    const cardGlowClass = categoryDetail?.cardGlow || "";
+    const logoGlowClass = categoryDetail?.logoGlow || "";
     const totalQuestions = quiz.amount || 0;
+
+    card.dataset.storageKey = quiz.storageKey;
+    card.dataset.totalQuestions = totalQuestions;
+
+    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 fade-in-up ${borderColorClass} ${cardGlowClass}`;
+    card.style.animationDelay = `${index * 50}ms`; // Slightly faster animation
     const progress = getQuizProgress(quiz.storageKey, totalQuestions);
     const progressHTML = createProgressHTML(progress, quiz.storageKey);
 
     card.innerHTML = `
       <div class="flex-grow flex items-start gap-4">
-        <div class="flex-shrink-0 h-16 w-16 rounded-full flex items-center justify-center border-4 ${borderColorClass} transition-colors duration-300 bg-white dark:bg-white">
+        <div class="flex-shrink-0 h-16 w-16 rounded-full flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white dark:bg-white group-hover:shadow-lg ${logoGlowClass}">
           <img src="${quiz.icon}" alt="${quiz.altText}" class="h-9 w-9 transition-transform duration-300 group-hover:scale-110">
         </div>
         <div class="flex-grow">
@@ -102,57 +139,6 @@ export function initializePage() {
       </div>
       <div class="progress-footer-wrapper">${progressHTML}</div>
     `;
-
-    // =================================================================
-    // START: ส่วนแก้ไขปัญหาการคลิก
-    // นี่คือส่วนสำคัญที่แก้ไขปัญหาการคลิกการ์ดแล้วไม่ไปหน้าทำข้อสอบ
-    // เราจะดักจับ event การคลิกเพื่อตรวจสอบเงื่อนไขพิเศษเท่านั้น
-    card.addEventListener("click", (event) => {
-      // ตรวจสอบสถานะล่าสุดของแบบทดสอบนี้
-      const currentProgress = getQuizProgress(quiz.storageKey, quiz.amount || 0);
-
-      // เงื่อนไข: ถ้าทำแบบทดสอบ "เสร็จแล้ว" เท่านั้น
-      if (currentProgress.isFinished) {
-        // ให้ยกเลิกการทำงานปกติของลิงก์ (คือไม่ให้ไปที่หน้า quiz)
-        event.preventDefault();
-
-        // เก็บข้อมูลที่จำเป็นสำหรับการทำงานของ Modal
-        activeQuizUrl = quiz.url;
-        activeStorageKey = quiz.storageKey;
-
-        // แล้วเปิดหน้าต่าง Modal ขึ้นมาแทน
-        completedModal.open(event.currentTarget);
-      }
-      // ถ้าเงื่อนไขไม่เป็นจริง (ยังทำไม่เสร็จ หรือยังไม่เริ่ม)
-      // โค้ดใน if block นี้จะไม่ทำงาน และลิงก์จะทำงานตามปกติ
-      // คือพาผู้ใช้ไปยัง URL ที่กำหนดใน href
-    });
-    // END: ส่วนแก้ไขปัญหาการคลิก
-    // =================================================================
-
-    const resetButton = card.querySelector(".reset-progress-btn");
-    if (resetButton) {
-      resetButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const key = event.currentTarget.dataset.storageKey;
-        const onConfirm = () => {
-          localStorage.removeItem(key);
-          const progressWrapper = card.querySelector(".progress-footer-wrapper");
-          if (!progressWrapper) return;
-          const newProgress = getQuizProgress(key, totalQuestions);
-          const newProgressHTML = createProgressHTML(newProgress, key);
-          progressWrapper.style.transition = "opacity 0.2s ease-out";
-          progressWrapper.style.opacity = "0";
-          setTimeout(() => {
-            progressWrapper.innerHTML = newProgressHTML;
-            progressWrapper.style.transition = "opacity 0.3s ease-in";
-            progressWrapper.style.opacity = "1";
-          }, 200);
-        };
-        showConfirmModal("ยืนยันการล้างข้อมูล", 'คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?<br><strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>', onConfirm, event.currentTarget);
-      });
-    }
     return card;
   }
 
@@ -176,7 +162,18 @@ export function initializePage() {
     const toggleHeader = document.createElement("div");
     toggleHeader.className = "section-toggle flex justify-between items-center cursor-pointer p-4";
     const sectionBorderColor = details.color || "border-blue-600";
-    toggleHeader.innerHTML = `<h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 flex items-center font-kanit"><div class="section-icon-container flex-shrink-0 h-12 w-12 mr-3 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300"><img src="${details.icon}" alt="${details.title} Icon" class="h-8 w-8"></div>${details.title}</h2><svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>`;
+    toggleHeader.innerHTML = `
+      <div class="flex items-center min-w-0 gap-4">
+        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300">
+          <img src="${details.icon}" alt="${details.title} Icon" class="h-8 w-8">
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 font-kanit">${details.title}</h2>
+          <p class="text-sm font-normal text-gray-500 dark:text-gray-400 -mt-1">จำนวน ${quizzes.length} ชุด</p>
+        </div>
+      </div>
+      <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+    `;
     // Accessibility: Add ARIA attributes for the accordion header
     toggleHeader.setAttribute("aria-expanded", "false");
     toggleHeader.setAttribute("aria-controls", `content-${categoryKey}`);
@@ -202,47 +199,22 @@ export function initializePage() {
     return section;
   }
 
-  /**
-   * Toggles the state of an accordion section (expands or collapses it).
-   * @param {HTMLElement} toggleElement The header element of the accordion section.
-   * @param {'open'|'close'|undefined} forceState - Force the accordion to open, close, or toggle.
-   */
-  const toggleAccordion = (toggleElement, forceState) => {
-    const content = toggleElement.nextElementSibling;
-    const icon = toggleElement.querySelector(".chevron-icon");
-    const iconContainer = toggleElement.querySelector(
-      ".section-icon-container"
-    );
-    if (!content || !icon) return;
-
-    const isCollapsed = content.classList.contains("grid-rows-[0fr]");
-
-    let shouldBeOpen =
-      forceState === "open"
-        ? true
-        : forceState === "close"
-        ? false
-        : isCollapsed;
-
-    if (shouldBeOpen === !isCollapsed) return;
-
-    content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
-    content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
-    icon.classList.toggle("rotate-180", shouldBeOpen);
-
-    // Accessibility: Update ARIA attribute
-    toggleElement.setAttribute("aria-expanded", shouldBeOpen);
-
-
-    if (iconContainer) {
-      iconContainer.classList.toggle("scale-105", shouldBeOpen);
-      iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
-    }
-  };
-
   // --- Main Rendering Logic ---
 
+  // Display total quiz count below the header
+  const headerPlaceholder = document.getElementById('header-placeholder');
+  if (headerPlaceholder) {
+      const totalQuizCount = quizList.filter(q => q).length; // Filter for safety
+      if (totalQuizCount > 0) {
+          const countElement = document.createElement('div');
+          // Use the same max-width and margin as the main container for alignment
+          countElement.className = 'max-w-4xl mx-auto text-center text-gray-500 dark:text-gray-400 mb-8 -mt-4 font-kanit';
+          countElement.innerHTML = `<p>แบบทดสอบทั้งหมด <span class="font-bold text-teal-600 dark:text-teal-400">${totalQuizCount}</span> ชุด</p>`;
+          headerPlaceholder.after(countElement);
+      }
+  }
   // 1. Group quizzes by category
+  let fragment; // Declare fragment here so it's accessible later
   const groupedQuizzes = quizList.reduce((acc, quiz) => {
     const category = quiz.category || "Uncategorized";
     if (!acc[category]) {
@@ -262,7 +234,7 @@ export function initializePage() {
   // 3. Create and append category sections using a DocumentFragment for performance
   const container = document.getElementById("quiz-categories-container");
   if (container) {
-    const fragment = document.createDocumentFragment();
+    fragment = document.createDocumentFragment(); // Assign to the already declared fragment
     sortedCategories.forEach((categoryKey) => {
       const quizzes = groupedQuizzes[categoryKey];
       const section = createCategorySection(categoryKey, quizzes);
@@ -277,40 +249,51 @@ export function initializePage() {
   }
 
   // 4. Attach listeners and set initial state for accordions
-  const sectionToggles = document.querySelectorAll(".section-toggle");
+  const sectionToggles = getSectionToggles();
   sectionToggles.forEach((toggle) => {
     toggle.addEventListener("click", () => toggleAccordion(toggle));
   });
 
-  // Open the first section by default for better UX
-  if (sectionToggles.length > 0) {
-    toggleAccordion(sectionToggles[0], "open");
+  // Display a message if no quizzes were found after processing
+  // This check should happen AFTER attempting to append content to the container.
+  // Check if the container actually has children, not the fragment (which might be empty or out of scope).
+  if (container && container.children.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-16 text-gray-500 dark:text-gray-400">
+          <p class="text-lg font-bold mb-2">ไม่พบแบบทดสอบ</p>
+          <p>ดูเหมือนจะยังไม่มีแบบทดสอบให้แสดงในขณะนี้ โปรดลองตรวจสอบภายหลัง</p>
+        </div>
+      `;
   }
 
-  // 5. Add listeners to header buttons to open corresponding accordions
-  // This makes the category buttons in the header interactive.
-  const headerCategoryLinks = document.querySelectorAll('#header-placeholder a[href^="#category-"]');
-  headerCategoryLinks.forEach(link => {
-      link.addEventListener('click', (event) => {
-          // The default browser action (scrolling to the anchor) is desired, so we don't use event.preventDefault().
-          const targetId = link.getAttribute('href').substring(1);
-          const targetSection = document.getElementById(targetId);
+  /**
+   * Handles the logic when a reset progress button is clicked.
+   * @param {Event} event The click event.
+   * @param {HTMLElement} card The parent quiz card element.
+   * @param {HTMLElement} resetButton The reset button that was clicked.
+   */
+  function handleResetButtonClick(event, card, resetButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    const key = resetButton.dataset.storageKey;
+    const totalQuestions = parseInt(card.dataset.totalQuestions, 10);
 
-          if (targetSection) {
-              const targetToggle = targetSection.querySelector('.section-toggle');
-              if (targetToggle) {
-                  // For a better user experience, close all other accordions first.
-                  sectionToggles.forEach(otherToggle => {
-                      if (otherToggle !== targetToggle) {
-                          toggleAccordion(otherToggle, 'close');
-                      }
-                  });
-                  // Then, ensure the target accordion is open.
-                  toggleAccordion(targetToggle, 'open');
-              }
-          }
-      });
-  });
+    const onConfirm = () => {
+      localStorage.removeItem(key);
+      const progressWrapper = card.querySelector(".progress-footer-wrapper");
+      if (!progressWrapper) return;
+      const newProgress = getQuizProgress(key, totalQuestions);
+      const newProgressHTML = createProgressHTML(newProgress, key);
+      progressWrapper.style.transition = "opacity 0.2s ease-out";
+      progressWrapper.style.opacity = "0";
+      setTimeout(() => {
+        progressWrapper.innerHTML = newProgressHTML;
+        progressWrapper.style.transition = "opacity 0.3s ease-in";
+        progressWrapper.style.opacity = "1";
+      }, 200);
+    };
+    showConfirmModal("ยืนยันการล้างข้อมูล", 'คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?<br><strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>', onConfirm, resetButton);
+  }
 
   // --- Random Quiz Button Functionality ---
   const randomQuizBtn = document.getElementById("random-quiz-btn");
@@ -321,26 +304,6 @@ export function initializePage() {
         const randomQuizUrl = quizList[randomIndex].url;
         window.location.href = randomQuizUrl;
       }
-    });
-  }
-
-  // --- Modal Action Logic ---
-
-  // --- Completed Quiz Modal Actions ---
-  if (viewResultsBtn) {
-    viewResultsBtn.addEventListener("click", () => {
-      if (activeQuizUrl) {
-        const separator = activeQuizUrl.includes("?") ? "&" : "?";
-        window.location.href = `${activeQuizUrl}${separator}action=view_results`;
-      }
-      completedModal.close();
-    });
-  }
-  if (startOverBtn) {
-    startOverBtn.addEventListener("click", () => {
-      if (activeStorageKey) localStorage.removeItem(activeStorageKey);
-      if (activeQuizUrl) window.location.href = activeQuizUrl;
-      completedModal.close();
     });
   }
 
@@ -358,6 +321,34 @@ export function initializePage() {
     confirmModal.open(triggerElement);
   }
 
+  // --- Event Delegation Listener ---
+  if (container) {
+    container.addEventListener('click', (event) => {
+      const card = event.target.closest('.quiz-card');
+      if (!card) return; // Exit if the click was not inside a card
+
+      const resetButton = event.target.closest('.reset-progress-btn');
+
+      // Handle reset button click
+      if (resetButton) {
+        handleResetButtonClick(event, card, resetButton);
+        return; // Stop further processing
+      }
+
+      // Handle card click (for completed quizzes)
+      const storageKey = card.dataset.storageKey;
+      const totalQuestions = parseInt(card.dataset.totalQuestions, 10);
+      const currentProgress = getQuizProgress(storageKey, totalQuestions);
+
+      if (currentProgress.isFinished) {
+        event.preventDefault();
+        activeQuizUrl = card.href;
+        activeStorageKey = storageKey;
+        completedModal.open(card);
+      }
+    });
+  }
+
   // This single listener handles all confirmation actions for the generic modal.
   if (confirmActionBtn) {
     confirmActionBtn.addEventListener("click", () => {
@@ -366,6 +357,24 @@ export function initializePage() {
       }
       confirmModal.close();
       confirmCallback = null; // Clean up callback after use.
+    });
+  }
+
+  // --- Completed Quiz Modal Actions ---
+  if (viewResultsBtn) {
+    viewResultsBtn.addEventListener("click", () => {
+      if (activeQuizUrl) {
+        const separator = activeQuizUrl.includes("?") ? "&" : "?";
+        window.location.href = `${activeQuizUrl}${separator}action=view_results`;
+      }
+      completedModal.close();
+    });
+  }
+  if (startOverBtn) {
+    startOverBtn.addEventListener("click", () => {
+      if (activeStorageKey) localStorage.removeItem(activeStorageKey);
+      if (activeQuizUrl) window.location.href = activeQuizUrl;
+      completedModal.close();
     });
   }
 }
