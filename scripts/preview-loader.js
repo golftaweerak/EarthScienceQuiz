@@ -9,8 +9,8 @@ import { initializePreviewPage } from './preview.js';
 async function main() {
     // Load shared components first
     await Promise.all([
-        loadComponent('#main_header-placeholder', './components/_main_header.html'),
-        loadComponent('#footer-placeholder', './components/_footer.html')
+        loadComponent('#main_header-placeholder', './components/main_header.html'),
+        loadComponent('#footer-placeholder', './components/footer.html')
     ]);
 
     // Initialize common UI components like header, menu, and footer scripts

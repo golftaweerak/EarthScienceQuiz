@@ -9,9 +9,9 @@ import { initializeCommonComponents } from './common-init.js';
 async function main() {
     // Load all shared components concurrently for better performance.
     await Promise.all([
-        loadComponent('#main_header-placeholder', './components/_main_header.html'),
-        loadComponent('#header-placeholder', './components/_header.html'),
-        loadComponent('#footer-placeholder', './components/_footer.html')
+        loadComponent('#main_header-placeholder', './components/main_header.html'),
+        loadComponent('#header-placeholder', './components/header.html'),
+        loadComponent('#footer-placeholder', './components/footer.html')
     ]);
 
     // Initialize common components like header, menu, etc.
