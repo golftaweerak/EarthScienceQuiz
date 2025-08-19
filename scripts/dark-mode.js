@@ -1,6 +1,6 @@
 // --- Dark Mode Toggle Script ---
 
-document.addEventListener('DOMContentLoaded', () => {
+export function initializeDarkMode() { 
     const toggleButton = document.getElementById('dark-mode-toggle');
     if (!toggleButton) {
         // console.error('Dark mode toggle button not found!');
@@ -29,4 +29,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply theme on initial load
     const isInitialDark = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
     applyTheme(isInitialDark);
-});
+}

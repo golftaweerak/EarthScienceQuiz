@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/bundle.css">
     <!-- KaTeX for rendering LaTeX, consistent with quiz/index.html -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
         xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
@@ -34,69 +34,31 @@
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
 
-    <!-- Scroll Progress Bar -->
-    <div id="scroll-progress-bar"
-        class="fixed top-0 left-0 z-50 h-1 bg-blue-500 dark:bg-blue-400 transition-all duration-100" style="width: 0%;">
-    </div>
+    <!-- Shared Sticky Header -->
+    <div id="main_header-placeholder"></div>
 
-    <!-- Dropdown Menu (Left) -->
-    <div class="absolute top-4 left-4 md:top-6 md:left-6">
-        <div class="relative">
-            <button id="main-menu-btn" title="เมนู"
-                class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-            </button>
-            <div id="main-menu-dropdown"
-                class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-20 border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
-                <div class="p-2">
-                    <a href="index.html"
-                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
-                    <a href="preview.html"
-                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
-                    <a href="about.html"
-                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dark Mode Toggle (Right) -->
-    <div class="absolute top-4 right-4 md:top-6 md:right-6">
-        <button id="dark-mode-toggle"
-            class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900">
-            <!-- Icon will be inserted by JS -->
-        </button>
-    </div>
-
-    <div class="max-w-4xl mx-auto px-4 sm:px-8 pt-20">
-        <header class="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+    <div class="container mx-auto px-4 sm:px-8 pt-24 md:pt-28">
+        <header class="max-w-4xl mx-auto mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">แสดงตัวอย่างชุดข้อสอบ
                     </h1>
-                    <p id="script-name" class="text-md text-gray-600 dark:text-gray-400 mt-1"></p>
+                    <p id="s cript-name" class="text-md text-gray-600 dark:text-gray-400 mt-1"></p>
                 </div>
                 <div class="flex items-center gap-2"> <!-- Wrapper for buttons -->
-                    <a href="index.html"
-                        class="inline-block bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 whitespace-nowrap">
-                        &larr; กลับหน้าหลัก
-                    </a>
                 </div>
             </div>
             <div class="mt-6">
                 
                 <select id="quiz-selector"
-                    class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+                    class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
                     <option value="">-- เลือกชุดข้อสอบเพื่อแสดง --</option>
                 </select>
             </div>
             <div class="mt-4">
                 
                 <input type="text" id="search-input" placeholder="ค้นหาคำถาม จาก Keyword"
-                    class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200">
+                    class="w-full max-w-md p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 focus:ring-blue-500 focus:border-blue-500 text-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400">
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">ปรับขนาดตัวอักษร:</span>
@@ -116,9 +78,11 @@
             </div>
         </header>
 
-        <main id="preview-container" class="space-y-6 pb-8 sm:pb-12">
+        <main id="preview-container" class="max-w-4xl mx-auto space-y-6 pb-8 sm:pb-12">
             <!-- Content will be loaded here -->
         </main>
+
+        <div id="footer-placeholder" class="mt-12"></div>
     </div>
 
     <!-- Scenario Details Modal -->
@@ -149,12 +113,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
         </svg>
     </button>
-    <!-- Load data first, as preview.js depends on it -->
-    <script src="./data/quizzes-list.js"></script>
-    <script src="./scripts/modal-handler.js"></script>
-    <script src="./scripts/preview.js"></script>
-    <script src="./scripts/dark-mode.js"></script>
-    <script src="./scripts/main-menu.js" defer></script>
+
+    <script src="./scripts/preview-loader.js" type="module"></script>
 </body>
 
 </html>

@@ -1,0 +1,480 @@
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Ensure dropdown options are readable in dark mode on supported browsers */
+  option {
+    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200;
+  }
+}
+
+body {
+  font-family: "Sarabun", sans-serif;
+}
+
+.font-kanit {
+  font-family: "Kanit", sans-serif;
+}
+
+/* Always show scrollbar to prevent layout shift when content height changes */
+html {
+  overflow-y: scroll;
+}
+
+/* Custom dark mode background with subtle pattern */
+body.dark {
+  background-color: #020617; /* A very dark blue, tailwind slate-950 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%231e293b' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+  /* Add a subtle moving background effect */
+  animation: move-bg 10s linear infinite;
+}
+
+/* --- Shine Effect on Card Hover --- */
+/* Prerequisites are added via Tailwind classes: `relative` and `overflow-hidden` */
+/* Use CSS variables for reusability. Defaults to a white shine. */
+.shine-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  transform: translateX(-100%) skewX(-25deg);
+  width: 40%;
+  height: 100%;
+  --shine-color: 255, 255, 255; /* Default: white */
+  background: linear-gradient(
+    to right,
+    rgba(var(--shine-color), 0) 0%,
+    rgba(var(--shine-color), 0.15) 50%,
+    rgba(var(--shine-color), 0) 100%
+  );
+  pointer-events: none;
+  transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.shine-effect:hover::after {
+  transform: translateX(300%) skewX(-25deg);
+}
+
+@layer components {
+  .btn-icon {
+    @apply p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900;
+  }
+
+  .btn-primary {
+    @apply w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-slate-950;
+  }
+
+  .animate-pulse-glow-indigo {
+    animation: pulse-glow-indigo 3s infinite ease-in-out;
+  }
+
+  .animate-pulse-glow-teal {
+    animation: pulse-glow-teal 3s infinite ease-in-out;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  .gen-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+  .gen-input {
+    @apply w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 dark:placeholder-gray-400;
+  }
+  .gen-output {
+    @apply w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-mono text-sm resize-none custom-scrollbar;
+  }
+  .gen-copy-btn {
+    @apply absolute top-2 right-2 px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-xs hover:bg-gray-300 dark:hover:bg-gray-500 transition;
+  }
+  .gen-radio {
+    @apply h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:focus:ring-blue-600 dark:ring-offset-gray-800;
+  }
+
+  /* Customize autofill styles for better dark mode compatibility in Webkit browsers */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    /* The box-shadow trick is used to change the background color of the autofill. */
+    -webkit-box-shadow: 0 0 0px 1000px theme('colors.white') inset !important;
+    /* This is a common hack to override the browser's default autofill background */
+    transition: background-color 600000s 0s, color 600000s 0s;
+    /* Set text color for light mode */
+    -webkit-text-fill-color: theme('colors.black') !important;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    /* The box-shadow trick is used to change the background color of the autofill. */
+    /* Use dark theme colors for autofill and add transition hack to ensure they apply */
+    -webkit-box-shadow: 0 0 0px 1000px theme('colors.gray.950') inset !important;
+    -webkit-text-fill-color: theme('colors.gray.100') !important;
+    transition: background-color 600000s 0s, color 600000s 0s;
+  }
+}
+
+@keyframes pulse-glow-indigo {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+  }
+}
+
+@keyframes pulse-glow-teal {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
+  }
+}
+/* Fade-in animation for page load */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Animated background for dark mode */
+@keyframes move-bg {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 80px 80px; /* Adjust values for different speed/direction */
+    }
+}
+
+/* Shake animation for error feedback in modals */
+@keyframes shake-horizontal {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+.anim-shake {
+  animation: shake-horizontal 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+/*
+  Custom Hover Effects for Quiz Cards
+
+  This file provides a robust solution for applying colored shadows on hover,
+  bypassing the limitations of the Tailwind CSS JIT compiler.
+
+  How it works:
+  - This version directly sets the `box-shadow` property on hover. This is the most
+    reliable method as it doesn't depend on manipulating Tailwind's internal
+    CSS variables, which can be inconsistent with the CDN JIT compiler.
+  - The shadow shape is based on Tailwind's `shadow-xl` for consistency.
+*/
+
+.quiz-card.border-red-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(239 68 68 / 0.15), 0 8px 10px -6px rgb(239 68 68 / 0.1);
+}
+.quiz-card.border-pink-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(236 72 153 / 0.15), 0 8px 10px -6px rgb(236 72 153 / 0.1);
+}
+.quiz-card.border-blue-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(59 130 246 / 0.15), 0 8px 10px -6px rgb(59 130 246 / 0.1);
+}
+.quiz-card.border-green-500:hover {
+    box-shadow: 0 20px 25px -5px rgb(34 197 94 / 0.15), 0 8px 10px -6px rgb(34 197 94 / 0.1);
+}
+
+/* --- Glow Effects for other elements --- */
+
+/* Accordion links on the main page */
+.dark .section-accordion a.group:hover {
+    /* A more prominent blue glow for dark mode */
+    box-shadow: 0 0 25px -5px rgba(96, 165, 250, 0.6); /* tailwind blue-400 with more opacity */
+}
+
+.section-accordion a.group:hover {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1), 0 0 15px -5px rgba(59, 130, 246, 0.3);
+}
+
+/* Enhanced glow for the Random Quiz button */
+.dark .btn-glow-indigo:hover {
+    box-shadow: 0 0 25px -5px rgba(129, 140, 248, 0.7); /* tailwind indigo-400 with more opacity */
+}
+
+/* Enhanced glow for the Custom Quiz button */
+.dark .btn-glow-teal:hover {
+    box-shadow: 0 0 25px -5px rgba(45, 212, 191, 0.7); /* tailwind teal-400 with more opacity */
+}
+/* --- Custom Scrollbar Styles --- */
+
+/* For Firefox */
+html {
+    /* scrollbar-width and scrollbar-color are Firefox-specific */
+    scrollbar-width: thin;
+    /* thumb color, track color */
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.dark html {
+    scrollbar-color: #4a5568 #1a202c;
+}
+
+
+/* For Webkit-based browsers (Chrome, Safari, new Edge, etc.) */
+::-webkit-scrollbar {
+    width: 10px;
+    /* Width of the vertical scrollbar */
+    height: 10px;
+    /* Height of the horizontal scrollbar */
+}
+
+/* The track (the area the scrollbar moves in) */
+::-webkit-scrollbar-track {
+    background: #f1f5f9; /* slate-100 */
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #1a202c; /* gray-900 */
+}
+
+/* The draggable scrolling handle */
+::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* slate-300 */
+    border-radius: 10px;
+    border: 2px solid #f1f5f9; /* Creates padding around thumb */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background-color: #4a5568; /* gray-600 */
+    border-radius: 10px;
+    border: 2px solid #1a202c; /* Padding color matches the track */
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8; /* slate-400 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #718096; /* gray-500 */
+}
+
+/* --- Specific Scrollbar for Dropdown Menu --- */
+
+/* For Firefox */
+.custom-scrollbar-menu {
+    scrollbar-width: thin;
+    /* thumb color, track color */
+    scrollbar-color: #a0aec0 #e2e8f0; /* gray-400, gray-200 */
+}
+
+.dark .custom-scrollbar-menu {
+    scrollbar-color: #718096 #2d3748; /* gray-500, gray-700 */
+}
+
+/* For Webkit-based browsers (Chrome, Safari, new Edge, etc.) */
+.custom-scrollbar-menu::-webkit-scrollbar {
+    width: 8px; /* Make it a bit thinner for menus */
+}
+
+.custom-scrollbar-menu::-webkit-scrollbar-track {
+    background: transparent; /* Make track transparent */
+}
+
+.custom-scrollbar-menu::-webkit-scrollbar-thumb {
+    background-color: #a0aec0; /* gray-400 */
+    border-radius: 20px;
+    /* Add a border that matches the menu background for a 'padding' effect */
+    border: 2px solid #ffffff; /* white */
+}
+
+.dark .custom-scrollbar-menu::-webkit-scrollbar-thumb {
+    background-color: #718096; /* gray-500 */
+    border: 2px solid #1f2937; /* gray-800 */
+}
+/* --- Screen & Modal Transitions --- */
+
+@keyframes screenFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes screenFadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+.anim-fade-in {
+    animation: screenFadeIn 0.4s ease-out forwards;
+}
+
+.anim-fade-out {
+    animation: screenFadeOut 0.3s ease-in forwards;
+}
+
+/* --- Enhanced Modal Animations --- */
+
+@keyframes backdrop-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.anim-backdrop-fade-in {
+    animation: backdrop-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes backdrop-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+.anim-backdrop-fade-out {
+    animation: backdrop-fade-out 0.3s ease-in forwards;
+}
+
+@keyframes modal-pop-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+.anim-modal-pop-in {
+    animation: modal-pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes modal-pop-out {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.95); }
+}
+.anim-modal-pop-out {
+    animation: modal-pop-out 0.25s ease-in forwards;
+}
+
+/* --- Dropdown Menu Animations --- */
+@keyframes dropdown-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes dropdown-out {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+}
+
+.anim-dropdown-in { animation: dropdown-in 0.2s ease-out forwards; }
+.anim-dropdown-out { animation: dropdown-out 0.15s ease-in forwards; }
+
+/* --- Feedback Box Animation --- */
+@keyframes feedback-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.anim-feedback-in { animation: feedback-slide-in 0.4s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; }
+
+/* --- Timer Pulse Animation --- */
+@keyframes pulse-warning {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+.anim-pulse-warning {
+    animation: pulse-warning 1.5s infinite ease-in-out;
+}
+
+/* --- Option Button Selection Animation --- */
+@keyframes option-select-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+.anim-option-pop { animation: option-select-pop 0.3s ease-out; }
+.option-btn {
+    transition: all 0.3s ease;
+}
+
+.correct {
+    background-color: #22c55e !important;
+    color: white !important;
+    border-color: #16a34a !important;
+}
+
+.incorrect {
+    background-color: #ef4444 !important;
+    color: white !important;
+    border-color: #dc2626 !important;
+}
+
+.feedback-content {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* --- Custom Scrollbars --- */
+/* For Webkit browsers like Chrome, Safari */
+.feedback-content::-webkit-scrollbar,
+#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.feedback-content::-webkit-scrollbar-track,
+#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.feedback-content::-webkit-scrollbar-thumb,
+#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #d1d5db; /* gray-300 */
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.feedback-content::-webkit-scrollbar-thumb:hover,
+#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af; /* gray-400 */
+}
+
+.dark .feedback-content::-webkit-scrollbar-thumb,
+.dark #quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #4b5563; /* gray-600 */
+}
+
+.dark .feedback-content::-webkit-scrollbar-thumb:hover,
+.dark #quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #374151; /* gray-700 */
+}
+
+/* For Firefox */
+.feedback-content, #quiz-menu-dropdown .overflow-y-auto { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
+.dark .feedback-content, .dark #quiz-menu-dropdown .overflow-y-auto { scrollbar-color: #4b5563 transparent; }

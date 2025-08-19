@@ -1,3 +1,7 @@
+
+import { init as initQuizApp } from './quiz-logic.js';
+import { quizList } from '../data/quizzes-list.js';
+
 /**
  * Populates the common elements of the quiz page (titles, descriptions).
  * @param {string} title The main title for the quiz.
@@ -7,17 +11,11 @@ function populatePage(title, description) {
     document.title = title;
     const startScreenTitle = document.getElementById('start-screen-title');
     const startScreenDesc = document.getElementById('start-screen-description');
-    
     if (startScreenTitle) startScreenTitle.textContent = title;
     if (startScreenDesc) startScreenDesc.textContent = description;
-
-    document.getElementById('quiz-title-header').textContent = title;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Set current year in footer
-    document.getElementById('copyright-year').textContent = new Date().getFullYear();
-
+export function initializeQuiz() {
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('id');
 
@@ -44,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (selectedTimerInput) selectedTimerInput.checked = true;
                 }
 
-                QuizApp.init(customQuizData.questions, customQuizData.storageKey);
+                initQuizApp(customQuizData.questions, customQuizData.storageKey);
                 return; // Stop further execution
             } catch (error) {
                 handleQuizError("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลแบบทดสอบที่สร้างเองได้");
@@ -60,13 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 2. Find the corresponding quiz info from the global quizList
-    // Ensure quizList is loaded before this script runs
-    if (typeof quizList === 'undefined') {
-        handleQuizError("เกิดข้อผิดพลาดในการโหลดรายการแบบทดสอบ", "ไม่สามารถโหลด quizList ได้");
-        return;
-    }
-
     const quizInfo = quizList.find(q => q.id === quizId);
 
     if (!quizInfo) {
@@ -74,9 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // 3. Dynamically load the specific quiz data script
+    // Dynamically load the specific quiz data script.
     const dataScript = document.createElement('script');
-    // Example: ../data/junior1-data.js
     dataScript.src = `../data/${quizId}-data.js`;
 
     dataScript.onload = () => {
@@ -147,10 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 6. Initialize the quiz logic with the loaded data
-        QuizApp.init(processedQuizData, quizInfo.storageKey);
+        initQuizApp(processedQuizData, quizInfo.storageKey);
 
-        // 7. Highlight the active quiz in the dropdown menu
-        highlightActiveQuiz(quizInfo.storageKey);
     };
 
     dataScript.onerror = () => {
@@ -158,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.body.appendChild(dataScript);
-});
+}
 
 function handleQuizError(title, message) {
     const startScreen = document.getElementById('start-screen');
@@ -172,14 +160,4 @@ function handleQuizError(title, message) {
         `;
     }
     document.title = "เกิดข้อผิดพลาด";
-}
-
-function highlightActiveQuiz(storageKey) {
-    const links = document.querySelectorAll('#quiz-menu-dropdown a');
-    links.forEach(link => {
-        const quizFromLink = quizList.find(q => link.href.includes(q.url.substring(1)));
-        if (quizFromLink && quizFromLink.storageKey === storageKey) {
-            link.classList.add('font-bold', 'bg-blue-50', 'dark:bg-gray-700/50');
-        }
-    });
 }
