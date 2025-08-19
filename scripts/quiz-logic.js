@@ -403,6 +403,30 @@ export function init(quizData, storageKey, quizTitle) {
       return acc;
     }, {});
 
+    // --- Performance Analysis ---
+    const performanceSummary = { best: null, worst: null };
+    const categoryEntries = Object.entries(categoryStats);
+
+    if (categoryEntries.length > 1) {
+        let bestCat = { name: null, score: -1 };
+        let worstCat = { name: null, score: 101 };
+
+        categoryEntries.forEach(([name, data]) => {
+            // Only consider categories with a reasonable number of questions for meaningful stats
+            if (data.total >= 3) { 
+                const percentage = (data.correct / data.total) * 100;
+                if (percentage > bestCat.score) {
+                    bestCat = { name, score: percentage };
+                }
+                if (percentage < worstCat.score) {
+                    worstCat = { name, score: percentage };
+                }
+            }
+        });
+        if (bestCat.name && bestCat.score >= 80 && bestCat.name !== worstCat.name) performanceSummary.best = bestCat.name;
+        if (worstCat.name && worstCat.score < 60 && bestCat.name !== worstCat.name) performanceSummary.worst = worstCat.name;
+    }
+
     // Get the appropriate message and icon based on the score
     const resultInfo = getResultInfo(percentage);
 
@@ -414,6 +438,7 @@ export function init(quizData, storageKey, quizTitle) {
       incorrectAnswersCount,
       percentage,
       formattedTime,
+      performanceSummary,
       categoryStats,
     };
 
@@ -624,7 +649,40 @@ export function init(quizData, storageKey, quizTitle) {
       layoutContainer.appendChild(categoryContainer);
     }
 
-    // --- 4. Action Buttons ---
+    // --- 4. Performance Summary ---
+    if (stats.performanceSummary && (stats.performanceSummary.best || stats.performanceSummary.worst)) {
+        const summaryContainer = document.createElement('div');
+        summaryContainer.className = 'w-full max-w-2xl mx-auto mt-6 p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm';
+        summaryContainer.innerHTML = `<h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3 font-kanit">สรุปผลการทำแบบทดสอบ</h3>`;
+        
+        const summaryList = document.createElement('ul');
+        summaryList.className = 'space-y-2 text-sm';
+
+        if (stats.performanceSummary.best) {
+            const bestItem = document.createElement('li');
+            bestItem.className = 'flex items-start gap-3';
+            bestItem.innerHTML = `
+                <svg class="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                <span class="text-gray-700 dark:text-gray-300">ทำได้ดีมากในหมวดหมู่: <strong class="font-semibold text-green-600 dark:text-green-400">${stats.performanceSummary.best}</strong></span>
+            `;
+            summaryList.appendChild(bestItem);
+        }
+
+        if (stats.performanceSummary.worst) {
+            const worstItem = document.createElement('li');
+            worstItem.className = 'flex items-start gap-3';
+            worstItem.innerHTML = `
+                <svg class="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                <span class="text-gray-700 dark:text-gray-300">หมวดหมู่ที่ควรทบทวนเพิ่มเติม: <strong class="font-semibold text-yellow-600 dark:text-yellow-500">${stats.performanceSummary.worst}</strong></span>
+            `;
+            summaryList.appendChild(worstItem);
+        }
+
+        summaryContainer.appendChild(summaryList);
+        layoutContainer.appendChild(summaryContainer);
+    }
+
+    // --- 5. Action Buttons ---
     const actionsContainer = document.createElement('div');
     actionsContainer.className = 'w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 mt-8';
     
@@ -638,11 +696,11 @@ export function init(quizData, storageKey, quizTitle) {
 
     layoutContainer.appendChild(actionsContainer);
 
-    // --- 5. Assemble and Inject ---
+    // --- 6. Assemble and Inject ---
     // Prepend to the result screen so it appears before the buttons
     elements.resultScreen.prepend(layoutContainer);
 
-    // --- 7. Final UI Updates ---
+    // --- 8. Final UI Updates ---
     // Show or hide the review button based on incorrect answers
     const incorrectAnswers = getIncorrectAnswers();
     if (incorrectAnswers.length > 0) {
