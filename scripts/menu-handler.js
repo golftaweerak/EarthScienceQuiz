@@ -115,6 +115,13 @@ export function initializeMenu() {
         });
     }
 
+  // 3. Always add the stats link at the end
+  menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
+  menuHTML += `
+      <a href="./stats.html" class="group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+          <div class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">📊 ดูสถิติทั้งหมด</div>
+      </a>`;
+
     menuQuizListContainer.innerHTML = menuHTML;
 
     // --- Event Delegation for Menu Items ---

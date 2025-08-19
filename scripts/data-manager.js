@@ -94,8 +94,35 @@ export function getQuizProgress(storageKey, totalQuestions) {
     }
 }
 
+/**
+ * Retrieves progress for all known quizzes (standard and custom).
+ * @returns {Promise<Array<object>>} An array of progress objects for all quizzes.
+ */
+export async function getAllQuizProgress() {
+    const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+    const { getSavedCustomQuizzes } = await import('./custom-quiz-handler.js');
+
+    const allQuizzes = [...quizList, ...getSavedCustomQuizzes()];
+    const allProgress = allQuizzes.map(quiz => {
+        const totalQuestions = quiz.amount || quiz.questions?.length || 0;
+        if (totalQuestions === 0) return null;
+
+        const storageKey = quiz.storageKey || `quizState-${quiz.id || quiz.customId}`;
+        const progress = getQuizProgress(storageKey, totalQuestions);
+
+        return {
+            ...progress,
+            title: quiz.title,
+            category: categoryDetails[quiz.category]?.title || quiz.category || 'ไม่ระบุ',
+            storageKey: storageKey,
+        };
+    }).filter(p => p !== null); // Filter out quizzes with no questions
+    return allProgress;
+}
+
 let allQuestionsCache = null;
 let questionsBySubCategoryCache = {};
+let scenariosCache = new Map();
 
 /**
  * Fetches and processes all questions from all quiz data files.
@@ -103,8 +130,9 @@ let questionsBySubCategoryCache = {};
  * @returns {Promise<{allQuestions: Array, byCategory: object}>}
  */
 export async function fetchAllQuizData() {
-    if (allQuestionsCache && Object.keys(questionsBySubCategoryCache).length > 0) {
-        return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategoryCache };
+    // Check if all caches are populated
+    if (allQuestionsCache && Object.keys(questionsBySubCategoryCache).length > 0 && scenariosCache.size > 0) {
+        return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategoryCache, scenarios: scenariosCache };
     }
 
     const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
@@ -125,13 +153,23 @@ export async function fetchAllQuizData() {
             if (!data || !Array.isArray(data)) return [];
 
             return data.flatMap((item) => {
-                if (!item) return []; // Gracefully handle null/undefined entries in the data array
+                if (!item) return [];
 
                 if (item.type === "scenario" && Array.isArray(item.questions)) {
+                    const scenarioId = `${quiz.id}_${item.title.replace(/\s/g, '_')}`;
+                    // Cache the scenario details
+                    if (!scenariosCache.has(scenarioId)) {
+                        scenariosCache.set(scenarioId, { title: item.title, description: item.description });
+                    }
                     // Filter out null/undefined questions within the scenario before mapping
-                    return item.questions.filter(q => q).map((q) => ({ ...q, subCategory: q.subCategory || item.subCategory }));
+                    return item.questions.filter(q => q).map((q) => ({ 
+                        ...q, 
+                        subCategory: q.subCategory || item.subCategory,
+                        sourceQuizTitle: quiz.title, // Add source quiz title
+                        scenarioId: scenarioId // Link question back to its scenario
+                    }));
                 }
-                return { ...item, subCategory: item.subCategory };
+                return { ...item, subCategory: item.subCategory, sourceQuizTitle: quiz.title };
             });
         } catch (error) {
             console.error(`Error fetching or processing ${scriptPath}:`, error);
@@ -151,5 +189,5 @@ export async function fetchAllQuizData() {
         return acc;
     }, {});
 
-    return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategoryCache };
+    return { allQuestions: allQuestionsCache, byCategory: questionsBySubCategoryCache, scenarios: scenariosCache };
 }

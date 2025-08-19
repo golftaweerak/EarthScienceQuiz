@@ -48,8 +48,9 @@ const config = {
  * This function is the main entry point for the quiz logic, called by quiz-loader.js.
  * @param {Array} quizData - The array of question objects for the quiz.
  * @param {string} storageKey - The key for storing progress in localStorage.
+ * @param {string} quizTitle - The title of the current quiz.
  */
-export function init(quizData, storageKey) {
+export function init(quizData, storageKey, quizTitle) {
     // --- 1. Element Caching ---
     elements = {
         // Screens
@@ -88,6 +89,7 @@ export function init(quizData, storageKey) {
     state = {
         quizData: quizData, // Use data passed from the loader
         storageKey: storageKey, // Use key passed from the loader
+        quizTitle: quizTitle || "แบบทดสอบ",
         currentQuestionIndex: 0,
         score: 0,
         shuffledQuestions: [],
@@ -280,6 +282,8 @@ export function init(quizData, storageKey) {
       correctAnswer: correctAnswer,
       isCorrect: correct,
       explanation: state.shuffledQuestions[state.currentQuestionIndex]?.explanation || "",
+      subCategory: state.shuffledQuestions[state.currentQuestionIndex]?.subCategory || 'ไม่มีหมวดหมู่',
+      sourceQuizTitle: state.shuffledQuestions[state.currentQuestionIndex]?.sourceQuizTitle
     };
 
     // Save state immediately after an answer is recorded for better data persistence.
@@ -379,15 +383,38 @@ export function init(quizData, storageKey) {
         ? Math.round((correctAnswers / totalQuestions) * 100)
         : 0;
 
+    // Calculate time taken
+    const timeTaken = state.startTime ? Date.now() - state.startTime : 0;
+    const minutes = Math.floor(timeTaken / 60000);
+    const seconds = Math.floor((timeTaken % 60000) / 1000);
+    const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+
+    // Calculate score by subcategory
+    const categoryStats = state.userAnswers.reduce((acc, answer) => {
+      if (!answer) return acc;
+      const category = answer.subCategory || 'ไม่มีหมวดหมู่';
+      if (!acc[category]) {
+          acc[category] = { correct: 0, total: 0 };
+      }
+      acc[category].total++;
+      if (answer.isCorrect) acc[category].correct++;
+      return acc;
+    }, {});
+
     // Get the appropriate message and icon based on the score
     const resultInfo = getResultInfo(percentage);
 
     // Prepare stats object for the layout builder
     const stats = {
       totalQuestions,
+      totalScore: state.quizData.length,
       correctAnswers,
       incorrectAnswersCount,
       percentage,
+      formattedTime,
+      categoryStats,
     };
 
     // Clean up old results and build the new layout
@@ -460,7 +487,7 @@ export function init(quizData, storageKey) {
     const item = document.createElement("div");
     item.className = "flex items-center gap-3";
     item.innerHTML = `
-        <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${classes.bg} ${classes.text}">
+        <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${classes.bg} ${classes.text} shadow-inner">
             ${icon}
         </div>
         <div>
@@ -472,7 +499,7 @@ export function init(quizData, storageKey) {
   }
 
   /**
-   * Builds the entire modern, responsive layout for the result screen.
+   * Builds the modern, responsive layout for the result screen.
    * @param {object} resultInfo The object containing the title, message, and icon for the result.
    * @param {object} stats An object with all calculated statistics (scores, percentage, time).
    */
@@ -480,7 +507,7 @@ export function init(quizData, storageKey) {
     const layoutContainer = document.createElement("div");
     layoutContainer.id = "modern-results-layout";
     // A compact, centered layout that adapts for different screen sizes.
-    layoutContainer.className =
+    layoutContainer.className = 
       "w-full max-w-2xl mx-auto flex flex-col items-center gap-8 mt-8 mb-6 px-4";
 
     // --- 1. Message Area (Icon, Title, Message) ---
@@ -489,6 +516,7 @@ export function init(quizData, storageKey) {
     messageContainer.innerHTML = `
         <div class="w-16 h-16 mx-auto mb-3 ${resultInfo.colorClass}">${resultInfo.icon}</div>
         <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100">${resultInfo.title}</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">จากชุดข้อสอบ: <span class="font-semibold">${state.quizTitle}</span></p>
         <p class="mt-2 text-lg text-gray-600 dark:text-gray-300">${resultInfo.message}</p>
     `;
     layoutContainer.appendChild(messageContainer);
@@ -547,6 +575,9 @@ export function init(quizData, storageKey) {
       createStatItem(stats.correctAnswers, "คำตอบถูก", icons.correct, "green")
     );
     statsContainer.appendChild(
+      createStatItem(stats.totalScore, "คะแนนเต็ม", icons.total, "gray")
+    );    
+    statsContainer.appendChild(
       createStatItem(
         stats.incorrectAnswersCount,
         "คำตอบผิด",
@@ -555,30 +586,63 @@ export function init(quizData, storageKey) {
       )
     );
 
-    if (state.timerMode === "overall" && state.initialTime > 0) {
-      const timeTakenSeconds = state.initialTime - state.timeLeft;
-      const minutes = Math.floor(timeTakenSeconds / 60);
-      const seconds = timeTakenSeconds % 60;
-      const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds
-        .toString()
-        .padStart(2, "0")}`;
-      statsContainer.appendChild(
-        createStatItem(formattedTime, "เวลาที่ใช้", icons.time, "blue")
-      );
-    } else {
-      statsContainer.appendChild(
-        createStatItem(stats.totalQuestions, "ข้อทั้งหมด", icons.total, "gray")
-      );
-    }
+    // Always show time taken if available
+    statsContainer.appendChild(
+      createStatItem(stats.formattedTime, "เวลาที่ใช้", icons.time, "blue")
+    );
 
     dataContainer.appendChild(statsContainer);
     layoutContainer.appendChild(dataContainer);
 
-    // --- 3. Assemble and Inject ---
+    // --- 3. Category Breakdown ---
+    // Only show if there's more than one category to break down.
+    if (stats.categoryStats && Object.keys(stats.categoryStats).length > 1) {
+      const categoryContainer = document.createElement('div');
+      categoryContainer.className = 'w-full max-w-2xl mx-auto mt-8';
+      categoryContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-4">คะแนนตามหมวดหมู่</h3>`;
+      
+      const categoryGrid = document.createElement('div');
+      categoryGrid.className = 'space-y-3';
+
+      for (const [category, data] of Object.entries(stats.categoryStats)) {
+          const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+          const item = document.createElement('div');
+          item.className = 'p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg';
+          item.innerHTML = `
+              <div class="flex justify-between items-center text-sm">
+                  <span class="font-medium text-gray-700 dark:text-gray-200">${category}</span>
+                  <span class="font-semibold text-gray-800 dark:text-gray-100">${data.correct} / ${data.total} <span class="font-normal text-gray-500 dark:text-gray-400">(${percentage}%)</span></span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1.5">
+                  <div class="bg-blue-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+              </div>
+          `;
+          categoryGrid.appendChild(item);
+      }
+      
+      categoryContainer.appendChild(categoryGrid);
+      layoutContainer.appendChild(categoryContainer);
+    }
+
+    // --- 4. Action Buttons ---
+    const actionsContainer = document.createElement('div');
+    actionsContainer.className = 'w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 mt-8';
+    
+    // Restart Button
+    elements.restartBtn.className = 'w-full sm:w-auto flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg';
+    actionsContainer.appendChild(elements.restartBtn);
+
+    // Review Button (will be shown/hidden later)
+    elements.reviewBtn.className = 'w-full sm:w-auto flex-1 bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg';
+    actionsContainer.appendChild(elements.reviewBtn);
+
+    layoutContainer.appendChild(actionsContainer);
+
+    // --- 5. Assemble and Inject ---
     // Prepend to the result screen so it appears before the buttons
     elements.resultScreen.prepend(layoutContainer);
 
-    // --- 6. Final UI Updates ---
+    // --- 7. Final UI Updates ---
     // Show or hide the review button based on incorrect answers
     const incorrectAnswers = getIncorrectAnswers();
     if (incorrectAnswers.length > 0) {
@@ -598,6 +662,7 @@ export function init(quizData, storageKey) {
   function startQuiz() {
     stopTimer();
     clearSavedState();
+    state.startTime = Date.now(); // Record start time
 
     // Only read timer mode if the controls are visible (i.e., on the start screen).
     // On restart, it will reuse the previously selected mode.
@@ -638,79 +703,125 @@ export function init(quizData, storageKey) {
   function showReview() {
     switchScreen(elements.reviewScreen);
     elements.reviewContainer.innerHTML = ""; // Clear previous review
-
+    
     const incorrectAnswers = getIncorrectAnswers();
+    const reviewScreenHeader = elements.reviewScreen.querySelector('h2');
 
-    incorrectAnswers.forEach((answer, index) => {
-      const reviewItem = document.createElement("div");
-      // A more distinct card for each review item
-      reviewItem.className =
-        "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
+    if (reviewScreenHeader) {
+        const headerContainer = reviewScreenHeader.parentElement;
+        // Clear previous dynamic elements to prevent duplication
+        headerContainer.querySelectorAll('.dynamic-review-element').forEach(el => el.remove());
 
-      const questionHtml = (answer.question || "").replace(/\n/g, "<br>");
-      const explanationHtml = answer.explanation
-        ? answer.explanation.replace(/\n/g, "<br>")
-        : "";
+        const subtitle = document.createElement('p');
+        subtitle.className = 'quiz-subtitle text-md text-gray-600 dark:text-gray-400 mt-1 dynamic-review-element';
+        subtitle.innerHTML = `จากชุดข้อสอบ: <span class="font-semibold text-gray-700 dark:text-gray-300">${state.quizTitle}</span>`;
+        reviewScreenHeader.after(subtitle);
 
-      // Using template literals for a cleaner, more structured layout
-      reviewItem.innerHTML = `
-          <div class="flex items-start gap-4">
-              <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${
-                index + 1
-              }</span>
-              <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200">${questionHtml}</div>
-          </div>
+        // --- Filter UI ---
+        const subCategories = [...new Set(incorrectAnswers.map(a => a.subCategory || 'ไม่มีหมวดหมู่'))];
+        if (subCategories.length > 1) {
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'mt-4 dynamic-review-element';
+            
+            let optionsHTML = '<option value="all">ทุกหมวดหมู่</option>';
+            subCategories.sort().forEach(cat => {
+                optionsHTML += `<option value="${cat}">${cat}</option>`;
+            });
 
-          <div class="mt-4 space-y-3">
-              <!-- User's incorrect answer -->
-              <div class="flex items-start gap-3 p-3 rounded-md bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700/60">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                  </svg>
-                  <div>
-                      <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
-                      <p class="text-red-700 dark:text-red-400 font-mono">${
-                        answer.selectedAnswer || ""
-                      }</p>
-                  </div>
-              </div>
+            filterContainer.innerHTML = `
+                <label for="review-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">กรองตามหมวดหมู่:</label>
+                <select id="review-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    ${optionsHTML}
+                </select>
+            `;
+            subtitle.after(filterContainer);
 
-              <!-- Correct answer -->
-              <div class="flex items-start gap-3 p-3 rounded-md bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                  </svg>
-                  <div>
-                      <p class="text-sm font-medium text-green-800 dark:text-green-300">คำตอบที่ถูกต้อง</p>
-                      <p class="text-green-700 dark:text-green-400 font-mono">${
-                        answer.correctAnswer || ""
-                      }</p>
-                  </div>
-              </div>
-          </div>
+            const filterSelect = document.getElementById('review-filter');
+            filterSelect.addEventListener('change', (e) => {
+                renderReviewItems(incorrectAnswers, e.target.value);
+            });
+        }
 
-          ${
-            explanationHtml
-              ? `
-          <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div class="flex items-start gap-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" />
-                  </svg>
-                  <div>
-                      <p class="text-sm font-medium text-blue-800 dark:text-blue-300">คำอธิบาย</p>
-                      <p class="text-gray-600 dark:text-gray-400 mt-1">${explanationHtml}</p>
-                  </div>
-              </div>
-          </div>
-          `
-              : ""
-          }
-      `;
-      elements.reviewContainer.appendChild(reviewItem);
-    });
+        const countDisplay = document.createElement('p');
+        countDisplay.id = 'review-count-display';
+        countDisplay.className = 'text-sm text-gray-500 dark:text-gray-400 mt-3 dynamic-review-element';
+        headerContainer.appendChild(countDisplay);
+    }
 
+    renderReviewItems(incorrectAnswers, 'all');
     renderMath(elements.reviewContainer); // Render math only in the review container
+  }
+
+  /**
+   * Renders the list of incorrect answers, optionally filtered by category.
+   * @param {Array} allIncorrectAnswers - The full list of incorrect answer objects.
+   * @param {string} filterCategory - The category to filter by, or 'all' to show all.
+   */
+  function renderReviewItems(allIncorrectAnswers, filterCategory) {
+      elements.reviewContainer.innerHTML = ""; // Clear previous items
+
+      const filteredAnswers = (filterCategory === 'all')
+          ? allIncorrectAnswers
+          : allIncorrectAnswers.filter(answer => (answer.subCategory || 'ไม่มีหมวดหมู่') === filterCategory);
+
+      const countDisplay = document.getElementById('review-count-display');
+      if (countDisplay) {
+          countDisplay.textContent = `แสดง ${filteredAnswers.length} ข้อจากทั้งหมด ${allIncorrectAnswers.length} ข้อที่ตอบผิด`;
+      }
+
+      if (filteredAnswers.length === 0 && filterCategory !== 'all') {
+          elements.reviewContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-4">ไม่พบข้อที่ตอบผิดในหมวดหมู่นี้</p>`;
+          return;
+      }
+
+      filteredAnswers.forEach((answer, index) => {
+        const reviewItem = document.createElement("div");
+        reviewItem.className = "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
+
+        const questionHtml = (answer.question || "").replace(/\n/g, "<br>");
+        const explanationHtml = answer.explanation ? answer.explanation.replace(/\n/g, "<br>") : "";
+        
+        const tagsHtml = [answer.subCategory, answer.sourceQuizTitle]
+          .filter(Boolean)
+          .map(tag => `<span class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">${tag}</span>`)
+          .join('');
+
+        reviewItem.innerHTML = `
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${index + 1}</span>
+                <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200">${questionHtml}${tagsHtml}</div>
+            </div>
+            <div class="mt-4 space-y-3">
+                <div class="flex items-start gap-3 p-3 rounded-md bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700/60">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                    <div>
+                        <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
+                        <p class="text-red-700 dark:text-red-400 font-mono">${answer.selectedAnswer || ""}</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-md bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                    <div>
+                        <p class="text-sm font-medium text-green-800 dark:text-green-300">คำตอบที่ถูกต้อง</p>
+                        <p class="text-green-700 dark:text-green-400 font-mono">${answer.correctAnswer || ""}</p>
+                    </div>
+                </div>
+            </div>
+            ${explanationHtml ? `
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-start gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" /></svg>
+                    <div>
+                        <p class="text-sm font-medium text-blue-800 dark:text-blue-300">คำอธิบาย</p>
+                        <p class="text-gray-600 dark:text-gray-400 mt-1">${explanationHtml}</p>
+                    </div>
+                </div>
+            </div>` : ""}
+        `;
+        elements.reviewContainer.appendChild(reviewItem);
+      });
+
+      renderMath(elements.reviewContainer);
   }
 
   function backToResult() {
@@ -955,14 +1066,8 @@ export function init(quizData, storageKey) {
   function bindEventListeners() {
     elements.startBtn.addEventListener("click", startQuiz);
     elements.nextBtn.addEventListener("click", showNextQuestion);
-    elements.prevBtn.addEventListener("click", showPreviousQuestion);
-    // เปลี่ยนให้ปุ่ม "ทำแบบทดสอบอีกครั้ง" กลับไปที่หน้าเริ่มต้น
-    // เพื่อให้ผู้ใช้สามารถเลือกโหมดจับเวลาใหม่และเริ่มควิซใหม่ได้
-    elements.restartBtn.addEventListener("click", () => {
-      clearSavedState(); // Clear progress from localStorage for a true fresh start
-      cleanupResultsScreen(); // Reuse the cleanup function to ensure the dynamic results are removed
-      switchScreen(elements.startScreen);
-    });
+    elements.prevBtn.addEventListener("click", showPreviousQuestion);    
+    elements.restartBtn.addEventListener("click", startQuiz);
     elements.reviewBtn.addEventListener("click", showReview);
     elements.backToResultBtn.addEventListener("click", backToResult);
     if (elements.soundToggleBtn) {

@@ -318,16 +318,33 @@ export function initializeCustomQuizHandler() {
             counts[input.dataset.input] = parseInt(input.value, 10) || 0;
         });
 
-        const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked')?.value || "none";
+        const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked')?.value || "none";        
 
-        const { byCategory, allQuestions } = await fetchAllQuizData();
+        const { allQuestions, byCategory, scenarios } = await fetchAllQuizData();
         let selectedQuestions = [];
 
         Object.keys(counts).forEach(category => {
             const count = counts[category];
             if (count > 0) {
-                const source = (category === 'General') ? allQuestions : (byCategory[category] || []);
-                selectedQuestions.push(...shuffleArray([...source]).slice(0, count));
+                let sourcePool = (category === 'General') ? allQuestions : (byCategory[category] || []);
+                let chosenQuestions = shuffleArray([...sourcePool]).slice(0, count);
+
+                // Reconstruct scenario questions for ALL chosen questions.
+                chosenQuestions = chosenQuestions.map(q => {
+                    // If the question has a scenarioId, it means it was part of a scenario.
+                    if (q.scenarioId && scenarios.has(q.scenarioId)) {
+                        const scenario = scenarios.get(q.scenarioId);
+                        const description = (scenario.description || '').replace(/\n/g, '<br>');
+                        // Re-create the full question text with the scenario context.
+                        return {
+                            ...q,
+                            question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${scenario.title}</p><div class="mt-2 text-gray-700 dark:text-gray-300">${description}</div></div>${q.question}`,
+                        };
+                    }
+                    return q;
+                });
+
+                selectedQuestions.push(...chosenQuestions);
             }
         });
 

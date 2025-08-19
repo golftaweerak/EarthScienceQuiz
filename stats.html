@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-pt-20 scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สถิติของฉัน - Earth Science Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./styles/bundle.css">
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
+
+    <!-- Shared Sticky Header -->
+    <div id="main_header-placeholder"></div>
+
+    <div class="container mx-auto px-4 sm:px-8 pt-24 md:pt-28">
+        <header class="max-w-4xl mx-auto mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">สถิติของฉัน</h1>
+                    <p class="text-md text-gray-600 dark:text-gray-400 mt-1">ภาพรวมผลการทำแบบทดสอบทั้งหมดของคุณ</p>
+                </div>
+                <button id="clear-stats-btn"
+                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-bold transition shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    ล้างข้อมูลสถิติทั้งหมด
+                </button>
+            </div>
+        </header>
+
+        <main id="stats-container" class="max-w-4xl mx-auto space-y-8 pb-8 sm:pb-12">
+            <!-- Stats content will be loaded here by stats-loader.js -->
+            <div id="loading-spinner" class="text-center py-16 text-gray-500 dark:text-gray-400">
+                <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p>กำลังโหลดข้อมูลสถิติ...</p>
+            </div>
+        </main>
+
+        <div id="footer-placeholder" class="mt-12"></div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-action-modal"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-md w-full anim-modal-pop-in modal-content">
+            <button data-modal-close aria-label="ปิด"
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="flex items-start gap-4">
+                <div
+                    class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div class="mt-3 text-center sm:mt-0 sm:text-left">
+                    <h3 id="confirm-modal-title" class="text-lg leading-6 font-bold text-gray-900 dark:text-gray-100 font-kanit"
+                        id="modal-title">ยืนยันการกระทำ</h3>
+                    <div class="mt-2">
+                        <p id="confirm-modal-description" class="text-sm text-gray-500 dark:text-gray-400">
+                            คุณแน่ใจหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+                <button id="confirm-action-btn" type="button"
+                    class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm">
+                    ยืนยัน
+                </button>
+                <button id="confirm-cancel-btn" data-modal-close type="button"
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./scripts/stats-loader.js" type="module"></script>
+</body>
+
+</html>

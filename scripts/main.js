@@ -8,40 +8,34 @@ import { quizList } from "../data/quizzes-list.js";
  * @param {'open'|'close'|undefined} forceState - Force the accordion to open, close, or toggle.
  */
 export const toggleAccordion = (toggleElement, forceState) => {
-  const content = toggleElement.nextElementSibling;
-  const icon = toggleElement.querySelector(".chevron-icon");
-  const iconContainer = toggleElement.querySelector(
-    ".section-icon-container"
-  );
-  if (!content || !icon) return;
+    const content = toggleElement.nextElementSibling;
+    const icon = toggleElement.querySelector(".chevron-icon");
+    const iconContainer = toggleElement.querySelector(".section-icon-container");
+    if (!content || !icon) return;
 
-  const isCollapsed = content.classList.contains("grid-rows-[0fr]");
+    const isCurrentlyOpen = toggleElement.getAttribute('aria-expanded') === 'true';
+    // Determine the target state. If forceState is provided, use it. Otherwise, toggle.
+    const shouldBeOpen = forceState !== undefined ? forceState === 'open' : !isCurrentlyOpen;
 
-  let shouldBeOpen =
-    forceState === "open"
-      ? true
-      : forceState === "close"
-      ? false
-      : isCollapsed;
+    // If the state is already what we want, do nothing.
+    if (shouldBeOpen === isCurrentlyOpen) return;
 
-  if (shouldBeOpen === !isCollapsed) return;
+    toggleElement.setAttribute("aria-expanded", shouldBeOpen);
+    icon.classList.toggle("rotate-180", shouldBeOpen);
 
-  content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
-  content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
-  icon.classList.toggle("rotate-180", shouldBeOpen);
+    if (iconContainer) {
+        iconContainer.classList.toggle("scale-105", shouldBeOpen);
+        iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
+    }
 
-  // Accessibility: Update ARIA attribute
-  toggleElement.setAttribute("aria-expanded", shouldBeOpen);
-
-
-  if (iconContainer) {
-    iconContainer.classList.toggle("scale-105", shouldBeOpen);
-    iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
-  }
+    // The grid-rows trick is a clever way to animate height with Tailwind.
+    content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
+    content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
 };
 
 // A function to get all the toggles, so we don't expose the variable directly
-export const getSectionToggles = () => document.querySelectorAll(".section-toggle");
+export const getSectionToggles = () =>
+  document.querySelectorAll(".section-toggle");
 
 export function initializePage() {
   // --- 0. Initialize Modals and Cache Elements ---
@@ -92,15 +86,27 @@ export function initializePage() {
       progressDetails = `0/${progress.totalQuestions} ข้อ`;
     }
 
-    const resetButtonHTML = progress.hasProgress
-      ? `
+    const actions = [];
+    if (progress.isFinished) {
+      actions.push(`
+        <a href="./stats.html" class="text-xs text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200 inline-flex items-center font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
+            ดูสถิติ
+        </a>`);
+    }
+    if (progress.hasProgress) {
+      actions.push(`
             <button data-storage-key="${storageKey}" class="reset-progress-btn text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                 ล้างข้อมูล
-            </button>`
-      : "";
+            </button>`);
+    }
 
-    return `<div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-sm ${progressTextColor}">${progressText}</span><span class="text-sm text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span>${resetButtonHTML}</div></div>`;
+    const footerActionsHTML = actions.join(
+      '<span class="text-gray-300 dark:text-gray-600">|</span>'
+    );
+
+    return `<div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-sm ${progressTextColor}">${progressText}</span><span class="text-sm text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span><div class="flex items-center gap-2">${footerActionsHTML}</div></div></div>`;
   }
 
   /**
@@ -151,16 +157,20 @@ export function initializePage() {
   function createCategorySection(categoryKey, quizzes) {
     const details = categoryDetails[categoryKey];
     if (!details) {
-      console.warn(`Details for category "${categoryKey}" not found. Skipping.`);
+      console.warn(
+        `Details for category "${categoryKey}" not found. Skipping.`
+      );
       return null;
     }
 
     const section = document.createElement("section");
     section.id = `category-${categoryKey}`;
-    section.className = "section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden";
+    section.className =
+      "section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden";
 
     const toggleHeader = document.createElement("div");
-    toggleHeader.className = "section-toggle flex justify-between items-center cursor-pointer p-4";
+    toggleHeader.className =
+      "section-toggle flex justify-between items-center cursor-pointer p-4";
     const sectionBorderColor = details.color || "border-blue-600";
     toggleHeader.innerHTML = `
       <div class="flex items-center min-w-0 gap-4">
@@ -179,7 +189,8 @@ export function initializePage() {
     toggleHeader.setAttribute("aria-controls", `content-${categoryKey}`);
 
     const contentDiv = document.createElement("div");
-    contentDiv.className = "section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out";
+    contentDiv.className =
+      "section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out";
     const innerContentWrapper = document.createElement("div");
     innerContentWrapper.className = "overflow-hidden";
     const quizGrid = document.createElement("div");
@@ -202,16 +213,17 @@ export function initializePage() {
   // --- Main Rendering Logic ---
 
   // Display total quiz count below the header
-  const headerPlaceholder = document.getElementById('header-placeholder');
+  const headerPlaceholder = document.getElementById("header-placeholder");
   if (headerPlaceholder) {
-      const totalQuizCount = quizList.filter(q => q).length; // Filter for safety
-      if (totalQuizCount > 0) {
-          const countElement = document.createElement('div');
-          // Use the same max-width and margin as the main container for alignment
-          countElement.className = 'max-w-4xl mx-auto text-center text-gray-500 dark:text-gray-400 mb-8 -mt-4 font-kanit';
-          countElement.innerHTML = `<p>แบบทดสอบทั้งหมด <span class="font-bold text-teal-600 dark:text-teal-400">${totalQuizCount}</span> ชุด</p>`;
-          headerPlaceholder.after(countElement);
-      }
+    const totalQuizCount = quizList.filter((q) => q).length; // Filter for safety
+    if (totalQuizCount > 0) {
+      const countElement = document.createElement("div");
+      // Use the same max-width and margin as the main container for alignment
+      countElement.className =
+        "max-w-4xl mx-auto text-center text-gray-500 dark:text-gray-400 mb-8 -mt-4 font-kanit";
+      countElement.innerHTML = `<p>แบบทดสอบทั้งหมด <span class="font-bold text-teal-600 dark:text-teal-400">${totalQuizCount}</span> ชุด</p>`;
+      headerPlaceholder.after(countElement);
+    }
   }
   // 1. Group quizzes by category
   let fragment; // Declare fragment here so it's accessible later
@@ -258,7 +270,7 @@ export function initializePage() {
   // This check should happen AFTER attempting to append content to the container.
   // Check if the container actually has children, not the fragment (which might be empty or out of scope).
   if (container && container.children.length === 0) {
-      container.innerHTML = `
+    container.innerHTML = `
         <div class="text-center py-16 text-gray-500 dark:text-gray-400">
           <p class="text-lg font-bold mb-2">ไม่พบแบบทดสอบ</p>
           <p>ดูเหมือนจะยังไม่มีแบบทดสอบให้แสดงในขณะนี้ โปรดลองตรวจสอบภายหลัง</p>
@@ -292,7 +304,12 @@ export function initializePage() {
         progressWrapper.style.opacity = "1";
       }, 200);
     };
-    showConfirmModal("ยืนยันการล้างข้อมูล", 'คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?<br><strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>', onConfirm, resetButton);
+    showConfirmModal(
+      "ยืนยันการล้างข้อมูล",
+      'คุณแน่ใจหรือไม่ว่าต้องการล้างความคืบหน้าของแบบทดสอบนี้?<br><strong class="text-red-600 dark:text-red-500">การกระทำนี้ไม่สามารถย้อนกลับได้</strong>',
+      onConfirm,
+      resetButton
+    );
   }
 
   // --- Random Quiz Button Functionality ---
@@ -323,11 +340,11 @@ export function initializePage() {
 
   // --- Event Delegation Listener ---
   if (container) {
-    container.addEventListener('click', (event) => {
-      const card = event.target.closest('.quiz-card');
+    container.addEventListener("click", (event) => {
+      const card = event.target.closest(".quiz-card");
       if (!card) return; // Exit if the click was not inside a card
 
-      const resetButton = event.target.closest('.reset-progress-btn');
+      const resetButton = event.target.closest(".reset-progress-btn");
 
       // Handle reset button click
       if (resetButton) {
