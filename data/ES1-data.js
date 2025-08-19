@@ -1,4 +1,4 @@
-const quizData = [
+export const quizData = [
   // ส่วนที่ 1: ธรณีวิทยา
   {
     number: 1,

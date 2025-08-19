@@ -4,7 +4,7 @@
  * จำนวน: 90 ข้อ
  */
 
-const quizItems = [
+export const quizItems = [
   // --- สถานการณ์ที่ 1: การวิเคราะห์ดาวคู่เชิงสเปกโตรสโกปี ---
   {
     type: "scenario",

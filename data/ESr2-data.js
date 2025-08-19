@@ -4,7 +4,7 @@
  * หมวดหมู่ย่อย: Geology, Meteorology, Astronomy
  */
 
-const quizItems = [
+export const quizItems = [
   // --- Geology Scenarios & Questions ---
   {
     type: "scenario",

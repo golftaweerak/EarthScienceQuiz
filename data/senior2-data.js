@@ -1,4 +1,4 @@
-const quizData = [
+export const quizData = [
   {
     question:
       "เส้นเมริเดียนของผู้สังเกต (Observer's Meridian) คือวงกลมใหญ่บนทรงกลมฟ้าที่ลากผ่านจุดใด",

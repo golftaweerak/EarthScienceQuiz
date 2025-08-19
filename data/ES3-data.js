@@ -1,4 +1,4 @@
-const quizItems = [
+export const quizItems = [
   // --- ส่วนที่ 1: ธรณีวิทยา ---
   {
     type: "scenario",

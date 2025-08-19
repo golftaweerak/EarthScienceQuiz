@@ -4,7 +4,7 @@
  * จำนวน: 50 ข้อ
  */
 
-const quizItems = [
+export const quizItems = [
   // --- สถานการณ์ที่ 1: การสังเกตการณ์ท้องฟ้าจากตำแหน่งต่างๆ ---
   {
     type: "scenario",

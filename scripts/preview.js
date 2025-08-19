@@ -53,15 +53,12 @@ async function fetchAllQuizData() {
     console.log("Fetching all quiz data for the first time...");
 
     const promises = quizList.map(async (quiz) => {
-        const scriptPath = `./data/${quiz.id}-data.js`;
+        const scriptPath = `../data/${quiz.id}-data.js`;
         try {
-            const response = await fetch(scriptPath);
-            if (!response.ok) {
-                console.warn(`Could not load ${scriptPath}: ${response.statusText}`);
-                return []; // Return empty array for failed fetches
-            }
-            const scriptText = await response.text();
-            const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
+            // Use modern dynamic import for robustness and better error handling
+            const module = await import(scriptPath);
+            // Handle both `quizItems` and `quizData` for compatibility with older files.
+            const data = module.quizItems || module.quizData || [];
 
             if (data && Array.isArray(data)) {
                 return data.flatMap(item => flattenQuizDataItem(item, quiz.title));
@@ -186,20 +183,30 @@ function createQuestionElement(item, displayIndex, keyword) {
 
     const choices = item.choices || item.options; // Handle both 'choices' and 'options' property from data files
     if (choices && Array.isArray(choices)) {
-        const choicesList = document.createElement('ol');
-        choicesList.className = 'list-decimal list-inside mt-4 space-y-2 text-gray-700 dark:text-gray-400';
-        choicesList.type = 'ก';
-        choices.forEach(choice => {
-            const choiceItem = document.createElement('li');
-            // Also replace newlines in choices, just in case
-            choiceItem.innerHTML = ` ${highlightText(choice.replace(/\n/g, '<br>'), keyword)}`; // Add space for alignment and highlight
+        const choicesContainer = document.createElement('div');
+        choicesContainer.className = 'pl-4 mt-4 space-y-2 text-gray-700 dark:text-gray-400';
+        const thaiNumerals = ['ก', 'ข', 'ค', 'ง', 'จ', 'ฉ', 'ช', 'ซ'];
+
+        choices.forEach((choice, index) => {
+            const choiceWrapper = document.createElement('div');
+            choiceWrapper.className = 'flex items-start gap-2';
+
+            const numeralSpan = document.createElement('span');
+            numeralSpan.className = 'font-semibold';
+            numeralSpan.textContent = `${thaiNumerals[index] || (index + 1)}.`;
+
+            const choiceTextDiv = document.createElement('div');
+            choiceTextDiv.innerHTML = highlightText(choice.replace(/\n/g, '<br>'), keyword);
+
             // Highlight the correct answer
             if (showAnswers && choice === item.answer) {
-                choiceItem.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
+                choiceWrapper.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
             }
-            choicesList.appendChild(choiceItem);
+            choiceWrapper.appendChild(numeralSpan);
+            choiceWrapper.appendChild(choiceTextDiv);
+            choicesContainer.appendChild(choiceWrapper);
         });
-        questionDiv.appendChild(choicesList);
+        questionDiv.appendChild(choicesContainer);
     }
     // Add explanation section
     if (showAnswers && explanationHtml) {
@@ -610,7 +617,7 @@ export function initializePreviewPage() {
             return;
         }
 
-        const scriptPath = `./data/${scriptName}`;
+        const scriptPath = `../data/${scriptName}`;
         //scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
         container.innerHTML = `<div class="text-center p-8 text-gray-500 dark:text-gray-400">
                                     <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -621,15 +628,10 @@ export function initializePreviewPage() {
                                 </div>`;
 
         try {
-            const response = await fetch(scriptPath);
-            if (!response.ok) {
-                throw new Error(`ไม่สามารถโหลดไฟล์ได้ (${response.status})`);
-            }
-            const scriptText = await response.text();
-            
-            // Execute script text in a new function scope to avoid global conflicts
-            // This is robust enough to handle variables named `quizData` or `quizItems`.
-            const data = new Function(`${scriptText}; if (typeof quizData !== 'undefined') return quizData; if (typeof quizItems !== 'undefined') return quizItems; return undefined;`)();
+            // Use modern dynamic import for robustness and better error handling
+            const module = await import(scriptPath);
+            // Handle both `quizItems` and `quizData` for compatibility with older files.
+            const data = module.quizItems || module.quizData || [];
 
             if (typeof data !== 'undefined' && Array.isArray(data)) {
                 const quizTitle = quizSelector.options[quizSelector.selectedIndex].text;

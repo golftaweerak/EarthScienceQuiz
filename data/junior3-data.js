@@ -4,7 +4,7 @@
  * จำนวน: 90 ข้อ
  */
 
-const quizItems = [
+export const quizItems = [
   // --- หัวข้อที่ 1: ส่วนประกอบของระบบสุริยะ ---
   {
     type: "question",

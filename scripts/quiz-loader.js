@@ -70,19 +70,13 @@ export async function initializeQuiz() {
     // --- NEW: Robust data loading using fetch to avoid global scope issues ---
     try {
         const scriptPath = `../data/${quizId}-data.js?v=${Date.now()}`;
-        const response = await fetch(scriptPath);
-        if (!response.ok) {
-            handleQuizError("ไม่พบไฟล์ข้อมูลแบบทดสอบ", `ไม่สามารถโหลดไฟล์ที่ต้องการได้: ${scriptPath}`);
-            return;
-        }
-        const scriptText = await response.text();
-
-        // Execute the script text in a sandboxed function to get the data it defines,
-        // supporting 'quizItems', 'quizScenarios', or 'quizData' variables.
-        const data = new Function(`${scriptText}; if (typeof quizItems !== 'undefined') return quizItems; if (typeof quizScenarios !== 'undefined') return quizScenarios; if (typeof quizData !== 'undefined') return quizData; return undefined;`)();
+        // Use modern dynamic import for robustness and better error handling
+        const module = await import(scriptPath);
+        // Handle both `quizItems` and `quizData` for compatibility with older files.
+        const data = module.quizItems || module.quizData || [];
 
         if (!data || !Array.isArray(data)) {
-            handleQuizError("เกิดข้อผิดพลาดในการโหลดข้อมูลคำถาม", `ไม่สามารถโหลดข้อมูลจาก ${scriptPath} ได้อย่างถูกต้อง`);
+            handleQuizError("เกิดข้อผิดพลาดในการโหลดข้อมูลคำถาม", `ไม่พบข้อมูลคำถามในไฟล์ ${scriptPath} หรือข้อมูลมีรูปแบบไม่ถูกต้อง`);
             return;
         }
 
@@ -98,7 +92,7 @@ export async function initializeQuiz() {
                 // It's a scenario, prepend its title and description to each of its questions.
                 const title = item.title || '';
                 const description = (item.description || '').replace(/\n/g, '<br>');
-                // Filter out any potential null/undefined questions within the scenario's questions array
+                // Filter out any potential null/undefined questions within the scenario's questions array.
                 return item.questions.filter(q => q).map(question => ({
                     ...question, // This is safe now because we filtered out falsy values
                     question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${title}</p><div class="mt-2 text-gray-700 dark:text-gray-300">${description}</div></div>${question.question}`,
