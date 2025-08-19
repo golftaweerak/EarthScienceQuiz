@@ -393,6 +393,11 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       .toString()
       .padStart(2, "0")}`;
 
+    // Calculate average time per question
+    const averageTimePerQuestion = totalQuestions > 0 ? (timeTaken / 1000 / totalQuestions).toFixed(1) : 0;
+    const formattedAverageTime = `${averageTimePerQuestion} วิ/ข้อ`;
+
+
     // Calculate score by subcategory
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
       if (!answer) return acc;
@@ -440,6 +445,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       incorrectAnswersCount,
       percentage,
       formattedTime,
+      formattedAverageTime,
       performanceSummary,
       categoryStats,
     };
@@ -503,6 +509,10 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       blue: {
         bg: "bg-blue-100 dark:bg-blue-900/40",
         text: "text-blue-700 dark:text-blue-300",
+      },
+      purple: {
+        bg: "bg-purple-100 dark:bg-purple-900/40",
+        text: "text-purple-700 dark:text-purple-400",
       },
       gray: {
         bg: "bg-gray-100 dark:bg-gray-700/60",
@@ -616,6 +626,9 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     // Always show time taken if available
     statsContainer.appendChild(
       createStatItem(stats.formattedTime, "เวลาที่ใช้", icons.time, "blue")
+    );
+    statsContainer.appendChild(
+      createStatItem(stats.formattedAverageTime, "เฉลี่ยต่อข้อ", icons.time, "purple")
     );
 
     dataContainer.appendChild(statsContainer);
