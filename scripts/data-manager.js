@@ -15,7 +15,8 @@ export const categoryDetails = {
         logoGlow: "group-hover:shadow-sky-400/40",
     },
     Astronomy: {
-        title: "ดาราศาสตร์ (Astronomy)",
+        title: "ดาราศาสตร์",
+        displayName: "ดาราศาสตร์ (Astronomy)",
         icon: "./assets/icons/astronomy.png",
         order: 2,
         color: "border-indigo-500",
@@ -23,7 +24,8 @@ export const categoryDetails = {
         logoGlow: "group-hover:shadow-indigo-400/40",
     },
     EarthScience: {
-        title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
+        title: "วิทยาศาสตร์โลกและอวกาศ",
+        displayName: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
         icon: "./assets/icons/earth.png",
         order: 3,
         color: "border-teal-500",
@@ -31,7 +33,8 @@ export const categoryDetails = {
         logoGlow: "group-hover:shadow-teal-400/40",
     },
     GeneralKnowledge: {
-        title: "ความรู้ทั่วไป (General)",
+        title: "ความรู้ทั่วไป",
+        displayName: "ความรู้ทั่วไป (General)",
         icon: "./assets/icons/general.png", // หมายเหตุ: คุณอาจต้องสร้างไฟล์ไอคอนนี้ หรือใช้ study.png แทน
         order: 4,
         color: "border-amber-500",

@@ -100,6 +100,33 @@ export function initializeCustomQuizHandler() {
         }
     }
 
+    /**
+     * Creates the HTML for the progress bar section of a custom quiz card.
+     * @param {object} progress - The progress object from getQuizProgress.
+     * @returns {string} The HTML string for the progress section, or an empty string if no progress.
+     */
+    function createCustomQuizProgressHTML(progress) {
+        if (!progress.hasProgress) return '';
+
+        const progressText = progress.isFinished 
+            ? `ทำเสร็จแล้ว (${progress.score}/${progress.totalQuestions})` 
+            : `ทำต่อ (${progress.answeredCount}/${progress.totalQuestions})`;
+        
+        const progressBarColor = progress.isFinished ? 'bg-green-500' : 'bg-blue-500';
+
+        return `
+            <div>
+                <div class="flex justify-between items-center text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    <span>${progressText}</span>
+                    <span>${progress.percentage}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+                    <div class="${progressBarColor} h-2 rounded-full" style="width: ${progress.percentage}%"></div>
+                </div>
+            </div>
+        `;
+    }
+
     function renderCustomQuizList() {
         const savedQuizzes = getSavedCustomQuizzes();
 
@@ -107,48 +134,44 @@ export function initializeCustomQuizHandler() {
         customQuizListContainer.innerHTML = "";
 
         savedQuizzes.forEach((quiz) => {
-            const progress = getQuizProgress(quiz.storageKey, quiz.questions.length);
-            let progressText = "";
-            if (progress.isFinished) {
-                progressText = `<span class="text-xs font-medium text-green-600 dark:text-green-400">ทำเสร็จแล้ว (${progress.score}/${progress.totalQuestions})</span>`;
-            } else if (progress.hasProgress) {
-                progressText = `<span class="text-xs font-medium text-blue-600 dark:text-blue-400">ทำต่อ (${progress.answeredCount}/${progress.totalQuestions})</span>`;
-            }
+            const progress = getQuizProgress(quiz.storageKey, quiz.questions.length);            
             const buttonText = progress.hasProgress ? "ทำต่อ" : "เริ่มทำ";
             const quizUrl = `./quiz/index.html?id=${quiz.customId}`;
+            const progressHtml = createCustomQuizProgressHTML(progress);
 
             const quizItemEl = document.createElement("div");
             quizItemEl.dataset.quizId = quiz.customId;
-            quizItemEl.className = "custom-quiz-item flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
+            quizItemEl.className = "custom-quiz-item flex flex-col p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
             
             const iconUrl = quiz.icon || './assets/icons/dices.png';
             const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบที่สร้างเอง';
 
             quizItemEl.innerHTML = `
-                <div class="flex items-center gap-4 flex-grow min-w-0">
+                <div class="flex items-start gap-4">
                     <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-2">
                         <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                     </div>
                     <div class="flex-grow min-w-0">
-                        <div data-title-display>
-                            <p class="font-bold text-gray-800 dark:text-gray-100">${quiz.title}</p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">${quiz.description}</p>
+                        <div data-title-display class="flex justify-between items-start">
+                            <p class="font-bold text-gray-800 dark:text-gray-100 truncate pr-2">${quiz.title}</p>
+                            <div data-view-controls class="flex items-center gap-1 flex-shrink-0">
+                                <button data-action="edit" aria-label="แก้ไขชื่อ" class="p-2 text-gray-500 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 dark:hover:text-yellow-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                                <button data-action="delete" aria-label="ลบแบบทดสอบ" class="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                            </div>
                         </div>
-                        <div data-edit-container class="hidden"></div>
-                        ${progressText ? `<div class="mt-1">${progressText}</div>` : ""}
+                        <div data-edit-controls class="hidden flex items-center gap-2 mt-1">
+                             <button data-action="save" aria-label="บันทึก" class="p-2 text-gray-500 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/50 dark:hover:text-green-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
+                             <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
+                        </div>
+                        <div data-edit-container class="hidden mt-1"></div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">${quiz.description}</p>
                     </div>
                 </div>
-                <div class="flex-shrink-0 flex items-center gap-2">
-                    <div data-view-controls class="flex items-center gap-2">
-                        <a href="${quizUrl}" class="start-custom-quiz-btn px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition">${buttonText}</a>
-                        <button data-action="edit" aria-label="แก้ไขชื่อ" class="p-2 text-gray-500 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 dark:hover:text-yellow-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button data-action="delete" aria-label="ลบแบบทดสอบ" class="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
-                    </div>
-                    <div data-edit-controls class="hidden flex items-center gap-2">
-                        <button data-action="save" aria-label="บันทึก" class="p-2 text-gray-500 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/50 dark:hover:text-green-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
-                        <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
-                    </div>
-                </div>`;
+                <div class="mt-4 space-y-2">
+                    ${progressHtml}
+                    <a href="${quizUrl}" class="start-custom-quiz-btn w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition shadow-sm hover:shadow-md">${buttonText}</a>
+                </div>
+            `;
             customQuizListContainer.appendChild(quizItemEl);
         });
     }
@@ -160,36 +183,36 @@ export function initializeCustomQuizHandler() {
         // Helper to generate quick-select buttons
         const createQuickSelectButton = (value, text) => {
             if (maxCount < value) return ''; // Don't show button if max is less than the value
-            // Adjusted colors for better contrast and consistency
-            return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 dark:text-gray-300 dark:bg-gray-600 rounded-md hover:bg-blue-600 dark:hover:bg-blue-500 hover:text-white dark:hover:text-white transition-colors">${text || value}</button>`;
+            return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors">${text || value}</button>`;
         };
 
         return `
-            <div class="custom-quiz-control-group p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 ${disabled ? "opacity-50 pointer-events-none" : ""}">
-                <!-- Header: Icon, Name, and Count -->
-                <div class="flex items-center justify-between mb-3">
-                    <label for="count-slider-${category}" class="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-3">
-                        <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1 shadow-sm">
-                        <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
+            <div class="custom-quiz-control-group p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 ${disabled ? "opacity-50 pointer-events-none" : ""}">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1.5 shadow-sm">
+                            <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
                         </div>
-                        <span class="whitespace-nowrap">${displayName}</span>
-                    </label>
-                    <div class="font-sarabun text-right">
-                        <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500">
-                        <span class="text-gray-500 dark:text-gray-400"> / ${maxCount} ข้อ</span>
+                        <div>
+                            <label for="count-slider-${category}" class="font-bold text-gray-800 dark:text-gray-200 truncate">${displayName}</label>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">มีทั้งหมด ${maxCount} ข้อ</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-20 p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-bold text-lg text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
 
-                <!-- Controls: Slider and Quick-Select Buttons -->
-                <div class="flex items-center gap-4">
-                    <input data-slider="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500" ${disabled ? "disabled" : ""}>
-                </div>
-                <div class="flex items-center gap-2 mt-2">
-                    <span class="text-xs text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
-                    ${createQuickSelectButton(10)}
-                    ${createQuickSelectButton(25)}
-                    ${createQuickSelectButton(50)}
-                    ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
+                <div class="mt-4 space-y-3">
+                    <input data-slider="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500" ${disabled ? "disabled" : ""}>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
+                        ${createQuickSelectButton(10)}
+                        ${createQuickSelectButton(25)}
+                        ${createQuickSelectButton(50)}
+                        ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
+                        <button type="button" data-quick-select="${category}" data-value="0" class="px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
+                    </div>
                 </div>
             </div>`;
     }
@@ -278,8 +301,8 @@ export function initializeCustomQuizHandler() {
                     console.warn(`Details not found for custom quiz category: ${categoryKey}`);
                     return ''; // Skip this category if details are missing
                 }
-                // Use displayName if it exists, otherwise fall back to title. This handles categories like "Astronomy".
-                const displayName = details.displayName || details.title;
+                // Use title for a cleaner, Thai-only display in the UI.
+                const displayName = details.title;
                 const maxCount = byCategory[categoryKey]?.length || 0;
                 return createCategoryControlHTML(categoryKey, displayName, details.icon, maxCount);
             }).join('');
@@ -361,9 +384,9 @@ export function initializeCustomQuizHandler() {
             .filter(([, count]) => count > 0) // Filter out categories with 0 questions
             .map(([key, count]) => {
                 const details = allCategoryDetails[key];
-                // Look for displayName first, then title, then fall back to the key itself for robustness.
-                const displayName = details?.displayName || details?.title || key;
-                return `${displayName}: ${count} ข้อ`;
+                // Use title for a cleaner, Thai-only display in the description.
+                const title = details?.title || key;
+                return `${title}: ${count} ข้อ`;
             });
 
         const detailedDescription = descriptionParts.length > 0 ? descriptionParts.join(' | ') : `แบบทดสอบที่สร้างขึ้นโดยมี ${selectedQuestions.length} ข้อ`;
