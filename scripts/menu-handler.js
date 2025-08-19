@@ -17,7 +17,7 @@ function createMenuItemHTML(quiz, getQuizUrl) {
     const storageKey = quiz.storageKey || `quizState-${quiz.id}`;
     const quizId = quiz.id || quiz.customId;
     const linkUrl = getQuizUrl(quizId); // This will be relative
-    const iconUrl = quiz.icon || './assets/icons/study.png';
+    const iconUrl = quiz.icon || './assets/icons/dices.png';
     const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบ';
 
     const progress = getQuizProgress(storageKey, totalQuestions);

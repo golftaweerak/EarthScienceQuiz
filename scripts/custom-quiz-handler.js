@@ -121,7 +121,7 @@ export function initializeCustomQuizHandler() {
             quizItemEl.dataset.quizId = quiz.customId;
             quizItemEl.className = "custom-quiz-item flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
             
-            const iconUrl = quiz.icon || './assets/icons/study.png';
+            const iconUrl = quiz.icon || './assets/icons/dices.png';
             const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบที่สร้างเอง';
 
             quizItemEl.innerHTML = `
@@ -339,21 +339,15 @@ export function initializeCustomQuizHandler() {
             return;
         }
 
-        // Analyze the final set of questions to create an accurate, detailed description.
-        const categoryCounts = selectedQuestions.reduce((acc, question) => {
-            // Use 'General' as the default category if a question lacks a subCategory.
-            const categoryName = question.subCategory || 'General';
-            acc[categoryName] = (acc[categoryName] || 0) + 1;
-            return acc;
-        }, {});
-
-        // Create description parts using proper display names from the data manager.
-        const descriptionParts = Object.entries(categoryCounts).map(([key, count]) => {
-            const details = allCategoryDetails[key];
-            // Look for displayName first, then title, then fall back to the key itself for robustness.
-            const displayName = details?.displayName || details?.title || key;
-            return `${displayName}: ${count} ข้อ`;
-        });
+        // Create description parts directly from the user's selections in the 'counts' object.
+        const descriptionParts = Object.entries(counts)
+            .filter(([, count]) => count > 0) // Filter out categories with 0 questions
+            .map(([key, count]) => {
+                const details = allCategoryDetails[key];
+                // Look for displayName first, then title, then fall back to the key itself for robustness.
+                const displayName = details?.displayName || details?.title || key;
+                return `${displayName}: ${count} ข้อ`;
+            });
 
         const detailedDescription = descriptionParts.length > 0 ? descriptionParts.join(' | ') : `แบบทดสอบที่สร้างขึ้นโดยมี ${selectedQuestions.length} ข้อ`;
 
@@ -365,7 +359,7 @@ export function initializeCustomQuizHandler() {
             description: detailedDescription,
             questions: selectedQuestions,
             timerMode: timerMode,
-            icon: "./assets/icons/study.png", // Add a default icon
+            icon: "./assets/icons/dices.png", // Add a default icon
         };
 
         const savedQuizzes = getSavedCustomQuizzes();

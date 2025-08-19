@@ -11,23 +11,22 @@ const quizItems = [
     title: "สถานการณ์: การวิเคราะห์ข้อมูลดาวฤกษ์",
     description: `
       นักดาราศาสตร์ได้รวบรวมข้อมูลของดาวฤกษ์ 5 ดวงที่น่าสนใจ ดังตารางด้านล่าง ให้นักเรียนใช้ข้อมูลนี้เพื่อตอบคำถาม 5 ข้อถัดไป (กำหนดให้ $M_\\odot \\approx +4.8$, $T_\\odot \\approx 5800$ K)
-      <br><br>
-      <div class="overflow-x-auto rounded-lg border border-slate-300 dark:border-slate-700">
-        <table class="w-full text-center border-collapse bg-white dark:bg-gray-900/50 text-sm">
-          <thead class="bg-slate-50 dark:bg-slate-800">
+      <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+        <table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
+          <thead class="bg-slate-100 text-xs uppercase text-slate-700 dark:bg-slate-700 dark:text-slate-300">
             <tr>
-              <th class="border-b border-slate-300 dark:border-slate-600 font-semibold p-3 text-slate-900 dark:text-slate-200">ดาวฤกษ์</th>
-              <th class="border-b border-slate-300 dark:border-slate-600 font-semibold p-3 text-slate-900 dark:text-slate-200">โชติมาตรปรากฏ (m)</th>
-              <th class="border-b border-slate-300 dark:border-slate-600 font-semibold p-3 text-slate-900 dark:text-slate-200">มุมพารัลแลกซ์ (p) (พิลิปดา)</th>
-              <th class="border-b border-slate-300 dark:border-slate-600 font-semibold p-3 text-slate-900 dark:text-slate-200">ชนิดสเปกตรัม</th>
+              <th scope="col" class="px-6 py-3">ดาวฤกษ์</th>
+              <th scope="col" class="px-6 py-3 text-center">โชติมาตรปรากฏ (m)</th>
+              <th scope="col" class="px-6 py-3 text-center">มุมพารัลแลกซ์ (p) (พิลิปดา)</th>
+              <th scope="col" class="px-6 py-3 text-center">ชนิดสเปกตรัม</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-            <tr><td class="p-3 font-mono">Sirius A</td><td class="p-3 font-mono">-1.46</td><td class="p-3 font-mono">0.379</td><td class="p-3 font-mono">A1V</td></tr>
-            <tr><td class="p-3 font-mono">Betelgeuse</td><td class="p-3 font-mono">+0.50 (แปรแสง)</td><td class="p-3 font-mono">0.005</td><td class="p-3 font-mono">M1Iab</td></tr>
-            <tr><td class="p-3 font-mono">Proxima Centauri</td><td class="p-3 font-mono">+11.13</td><td class="p-3 font-mono">0.772</td><td class="p-3 font-mono">M5.5Ve</td></tr>
-            <tr><td class="p-3 font-mono">Vega</td><td class="p-3 font-mono">+0.03</td><td class="p-3 font-mono">0.130</td><td class="p-3 font-mono">A0V</td></tr>
-            <tr><td class="p-3 font-mono">Barnard's Star</td><td class="p-3 font-mono">+9.53</td><td class="p-3 font-mono">0.549</td><td class="p-3 font-mono">M4V</td></tr>
+          <tbody>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Sirius A</th><td class="px-6 py-4 text-center font-mono">-1.46</td><td class="px-6 py-4 text-center font-mono">0.379</td><td class="px-6 py-4 text-center font-mono">A1V</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Betelgeuse</th><td class="px-6 py-4 text-center font-mono">+0.50 (แปรแสง)</td><td class="px-6 py-4 text-center font-mono">0.005</td><td class="px-6 py-4 text-center font-mono">M1Iab</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Proxima Centauri</th><td class="px-6 py-4 text-center font-mono">+11.13</td><td class="px-6 py-4 text-center font-mono">0.772</td><td class="px-6 py-4 text-center font-mono">M5.5Ve</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Vega</th><td class="px-6 py-4 text-center font-mono">+0.03</td><td class="px-6 py-4 text-center font-mono">0.130</td><td class="px-6 py-4 text-center font-mono">A0V</td></tr>
+            <tr class="bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Barnard's Star</th><td class="px-6 py-4 text-center font-mono">+9.53</td><td class="px-6 py-4 text-center font-mono">0.549</td><td class="px-6 py-4 text-center font-mono">M4V</td></tr>
           </tbody>
         </table>
       </div>
@@ -506,9 +505,9 @@ const quizItems = [
     question:
       "ดาวฤกษ์ดวงหนึ่งมีมุมพารัลแลกซ์ $p = 0.02''$. หากมันมีโชติมาตรปรากฏ $m = +8.5$, โชติมาตรสัมบูรณ์ $M$ ของมันคือเท่าใด?",
     options: ["-1.5", "-0.5", "+1.5", "+3.5"],
-    answer: "-0.5",
+    answer: "+5.0",
     explanation:
-      "ระยะทาง $d = 1/p = 1/0.02 = 50$ pc. $M = m + 5 - 5\\log(d) = 8.5 + 5 - 5\\log(50) \\approx 13.5 - 5(1.7) = 13.5 - 8.5 = +5.0$. ขออภัยครับ คำนวณผิดพลาด. $M = 8.5 + 5 - 5(1.699) = 13.5 - 8.495 = +5.005$. ตัวเลือกน่าจะผิดพลาด. หาก $m=3.5$, $M = 3.5 + 5 - 8.5 = 0$. หาก $m=8.5$, $M=5$. หาก $M=-0.5$, $m = -0.5 - 5 + 8.5 = 3$. โจทย์น่าจะมีข้อผิดพลาด",
+      "ระยะทาง $d = 1/p = 1/0.02 = 50$ pc. $M = m + 5 - 5\\log(d) = 8.5 + 5 - 5\\log(50) \\approx 13.5 - 5(1.7) = 13.5 - 8.5 = +5.0$.",
     subCategory: "Astronomy",
   },
   {
@@ -532,7 +531,7 @@ const quizItems = [
     number: 38,
     question:
       "ดาวฤกษ์ A มี $L = 100 L_\\odot, T = 10000$ K. ดาว B มี $L = 0.01 L_\\odot, T = 3000$ K. อัตราส่วนรัศมี $R_A/R_B$ คือเท่าใด?",
-    options: ["10", "50", "100", "250"],
+    options: ["9.1", "50", "100", "250"],
     answer: "50",
     explanation:
       "จาก $L \\propto R^2 T^4$, $(R_A/R_B)^2 = (L_A/L_B) / (T_A/T_B)^4 = (100/0.01) / (10000/3000)^4 = 10000 / (3.33)^4 \\approx 10000 / 123 \\approx 81$. $R_A/R_B \\approx 9$. โจทย์น่าจะมีข้อผิดพลาด",

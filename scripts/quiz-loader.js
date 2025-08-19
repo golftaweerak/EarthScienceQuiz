@@ -101,7 +101,7 @@ export async function initializeQuiz() {
                 // Filter out any potential null/undefined questions within the scenario's questions array
                 return item.questions.filter(q => q).map(question => ({
                     ...question, // This is safe now because we filtered out falsy values
-                    question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${title}</p><p class="mt-2 text-gray-700 dark:text-gray-300">${description}</p></div>${question.question}`
+                    question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${title}</p><div class="mt-2 text-gray-700 dark:text-gray-300">${description}</div></div>${question.question}`
                 }));
             }
             // It's a standalone question or a malformed item, return it as is.

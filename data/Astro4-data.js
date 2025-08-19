@@ -11,7 +11,7 @@ const quizItems = [
     title: "สถานการณ์ที่: การสังเกตการณ์ท้องฟ้า",
     description: `
       นักดาราศาสตร์ 3 คน สังเกตการณ์ท้องฟ้าในคืนเดียวกัน แต่จากตำแหน่งที่แตกต่างกัน:
-      <div class="my-4 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
         <table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
           <thead class="bg-slate-100 text-xs uppercase text-slate-700 dark:bg-slate-700 dark:text-slate-300">
             <tr>
@@ -26,6 +26,7 @@ const quizItems = [
           </tbody>
         </table>
       </div>
+      ให้นักเรียนใช้ข้อมูลนี้ตอบคำถาม 4 ข้อถัดไป
     `,
     questions: [
       {

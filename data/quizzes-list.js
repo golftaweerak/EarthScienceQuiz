@@ -223,7 +223,7 @@ export const quizList = [
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES6",
     storageKey: "quizState-ES6",
-    icon: "./assets/icons/study.png",
+    icon: "./assets/icons/geology.png",
     borderColor: "border-green-500",
     altText: "ไอคอนสำหรับ ES6",
     category: "EarthScience",
