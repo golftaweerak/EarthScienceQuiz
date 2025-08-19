@@ -175,7 +175,7 @@
                     <legend class="text-sm font-bold text-gray-700 dark:text-gray-300 px-2">
                         รูปแบบการจับเวลา
                     </legend>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="space-y-3">
                         <label
                             class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
                             <input type="radio" name="custom-timer-mode" value="none"
@@ -188,12 +188,20 @@
                                 class="h-5 w-5 text-blue-600 focus:ring-blue-500">
                             <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ทั้งชุด</span>
                         </label>
+                        <div id="overall-time-input-container" class="hidden pl-10">
+                            <input type="number" id="custom-timer-overall-minutes" value="20" min="1" class="gen-input w-24 text-center">
+                            <span class="ml-2 text-gray-600 dark:text-gray-400">นาที</span>
+                        </div>
                         <label
                             class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
                             <input type="radio" name="custom-timer-mode" value="perQuestion"
                                 class="h-5 w-5 text-blue-600 focus:ring-blue-500">
                             <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">เป็นข้อ</span>
                         </label>
+                        <div id="per-question-time-input-container" class="hidden pl-10">
+                            <input type="number" id="custom-timer-per-question-seconds" value="90" min="10" step="5" class="gen-input w-24 text-center">
+                            <span class="ml-2 text-gray-600 dark:text-gray-400">วินาที</span>
+                        </div>
                     </div>
                 </fieldset>
 

@@ -268,6 +268,28 @@ export function initializeCustomQuizHandler() {
                 updateTotalCount();
             }
         });
+
+        // Add listeners for timer mode radio buttons to show/hide custom time inputs
+        const timerRadios = document.querySelectorAll('input[name="custom-timer-mode"]');
+        const overallTimeInputContainer = document.getElementById('overall-time-input-container');
+        const perQuestionTimeInputContainer = document.getElementById('per-question-time-input-container');
+
+        function handleTimerModeChange() {
+            const selectedMode = document.querySelector('input[name="custom-timer-mode"]:checked').value;
+            if (overallTimeInputContainer) {
+                overallTimeInputContainer.classList.toggle('hidden', selectedMode !== 'overall');
+            }
+            if (perQuestionTimeInputContainer) {
+                perQuestionTimeInputContainer.classList.toggle('hidden', selectedMode !== 'perQuestion');
+            }
+        }
+
+        timerRadios.forEach(radio => {
+            radio.addEventListener('change', handleTimerModeChange);
+        });
+
+        // Set initial visibility based on the default checked radio
+        handleTimerModeChange();
     }
 
     // --- 3. Event Listeners Setup ---
@@ -341,7 +363,16 @@ export function initializeCustomQuizHandler() {
             counts[input.dataset.input] = parseInt(input.value, 10) || 0;
         });
 
-        const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked')?.value || "none";        
+        const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked')?.value || "none";
+        let customTime = null;
+
+        if (timerMode === 'overall') {
+            const minutes = document.getElementById('custom-timer-overall-minutes').value;
+            customTime = parseInt(minutes, 10) * 60; // Convert minutes to seconds
+        } else if (timerMode === 'perQuestion') {
+            const seconds = document.getElementById('custom-timer-per-question-seconds').value;
+            customTime = parseInt(seconds, 10);
+        }
 
         const { allQuestions, byCategory, scenarios } = await fetchAllQuizData();
         let selectedQuestions = [];
@@ -399,6 +430,7 @@ export function initializeCustomQuizHandler() {
             description: detailedDescription,
             questions: selectedQuestions,
             timerMode: timerMode,
+            customTime: customTime, // Add custom time to the quiz object
             icon: "./assets/icons/dices.png", // Add a default icon
         };
 

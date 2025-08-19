@@ -49,8 +49,9 @@ const config = {
  * @param {Array} quizData - The array of question objects for the quiz.
  * @param {string} storageKey - The key for storing progress in localStorage.
  * @param {string} quizTitle - The title of the current quiz.
+ * @param {number|null} customTime - Custom time in seconds, if provided.
  */
-export function init(quizData, storageKey, quizTitle) {
+export function init(quizData, storageKey, quizTitle, customTime) {
     // --- 1. Element Caching ---
     elements = {
         // Screens
@@ -90,6 +91,7 @@ export function init(quizData, storageKey, quizTitle) {
         quizData: quizData, // Use data passed from the loader
         storageKey: storageKey, // Use key passed from the loader
         quizTitle: quizTitle || "แบบทดสอบ",
+        customTime: customTime, // Store custom time
         currentQuestionIndex: 0,
         score: 0,
         shuffledQuestions: [],
@@ -739,9 +741,10 @@ export function init(quizData, storageKey, quizTitle) {
     switchScreen(elements.quizScreen);
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
-      // Use shuffledQuestions.length for consistency, as it's the actual set of questions being used.
-      state.initialTime =
-        state.shuffledQuestions.length * config.timerDefaults.overallMultiplier;
+      // Use custom time if provided, otherwise calculate based on defaults
+      state.initialTime = (state.customTime && state.customTime > 0)
+        ? state.customTime
+        : state.shuffledQuestions.length * config.timerDefaults.overallMultiplier;
       state.timeLeft = state.initialTime;
       startTimer();
     } else if (state.timerMode === "perQuestion") {
@@ -1051,8 +1054,11 @@ export function init(quizData, storageKey, quizTitle) {
       return;
     }
     if (state.timerMode === "perQuestion") {
-      state.timeLeft = config.timerDefaults.perQuestion;
-      state.initialTime = config.timerDefaults.perQuestion;
+      // Use custom time if provided, otherwise use default
+      state.timeLeft = (state.customTime && state.customTime > 0)
+        ? state.customTime
+        : config.timerDefaults.perQuestion;
+      state.initialTime = state.timeLeft;
     }
 
     elements.timerDisplay.classList.remove("hidden");

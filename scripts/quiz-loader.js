@@ -43,7 +43,7 @@ export async function initializeQuiz() {
                     if (selectedTimerInput) selectedTimerInput.checked = true;
                 }
 
-                initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title);
+                initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, customQuizData.customTime);
                 return; // Stop further execution
             } catch (error) {
                 handleQuizError("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลแบบทดสอบที่สร้างเองได้");
