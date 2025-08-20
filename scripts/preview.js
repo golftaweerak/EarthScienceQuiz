@@ -24,9 +24,10 @@ const CONFIG = {
  */
 function correctImagePaths(htmlString) {
     if (!htmlString) return '';
-    // This regex finds src attributes that start with ../ and replaces them.
-    // It's safer than a simple string replace as it targets the attribute.
-    return htmlString.replace(/src="\.\.\//g, 'src="./');
+    // This regex finds src attributes (with single or double quotes) that start with ../
+    // and replaces them to be relative to the root.
+    // The (["']) part captures the quote character, and $1 in the replacement string re-inserts it.
+    return htmlString.replace(/src=(["'])\.\.\//g, 'src=$1./');
 }
 
 let currentQuizData = []; // Store the full data for the selected quiz to be rendered
