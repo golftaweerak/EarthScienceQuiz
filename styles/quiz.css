@@ -34,7 +34,8 @@
  * This prevents large images from overflowing their container on smaller screens (mobile).
 */
 #question img,
-.question-card img {
+.question-card img,
+.prose img { /* Target images inside scenario descriptions as well */
     display: block; /* Ensure the image is a block element for proper sizing and margin */
     max-width: 100%;
     height: auto;
