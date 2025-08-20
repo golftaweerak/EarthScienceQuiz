@@ -20,9 +20,63 @@ export function getSavedCustomQuizzes() {
     }
 }
 /**
+ * Creates the HTML for a general category control block (icon, title, slider, quick-select buttons).
+ * This is used for the "All" category and as the header for main category accordions.
+ * @param {string} category - The category key (e.g., 'General', 'Geology').
+ * @param {string} displayName - The display name for the category.
+ * @param {string} iconSrc - The path to the icon.
+ * @param {number} maxCount - The total number of questions available.
+ * @param {boolean} [isMainCategory=false] - Flag to determine if this is for an accordion header.
+ * @returns {string} The HTML string for the control block.
+ */
+function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCount, isMainCategory = false) {
+    const disabled = maxCount === 0;
+    const finalIconSrc = iconSrc || './assets/icons/study.png';
+    const dataAttr = isMainCategory ? 'data-main-input' : 'data-input';
+    const sliderDataAttr = isMainCategory ? 'data-main-slider' : 'data-slider';
+
+    // Helper to generate quick-select buttons
+    const createQuickSelectButton = (value, text) => {
+        if (maxCount < value) return ''; // Don't show button if max is less than the value
+        return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors">${text || value}</button>`;
+    };
+
+    return `
+        <div class="transition-all duration-300 ${disabled ? "opacity-50" : ""}">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1.5 shadow-sm">
+                        <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
+                    </div>
+                    <div>
+                        <label for="count-slider-${category}" class="font-bold text-gray-800 dark:text-gray-200 truncate">${displayName}</label>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">มีทั้งหมด ${maxCount} ข้อ</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <input ${dataAttr}="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-20 p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-bold text-lg text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
+                </div>
+            </div>
+
+            <div class="mt-4 space-y-3 ${disabled ? 'pointer-events-none' : ''}">
+                <input ${sliderDataAttr}="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
+                    ${createQuickSelectButton(10)}
+                    ${createQuickSelectButton(25)}
+                    ${createQuickSelectButton(50)}
+                    ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
+                    <button type="button" data-quick-select="${category}" data-value="0" class="px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
+                </div>
+            </div>
+        </div>`;
+}
+/**
  * Initializes all functionality related to creating and managing custom quizzes.
  */
 export function initializeCustomQuizHandler() {
+    let quizDataCache = null; // Cache for fetched quiz data
+
     // --- 1. Cache Elements & Initialize Modals ---
     const customQuizModal = new ModalHandler("custom-quiz-modal");
     const customQuizHubModal = new ModalHandler("custom-quiz-hub-modal");
@@ -176,42 +230,69 @@ export function initializeCustomQuizHandler() {
         });
     }
 
-    function createCategoryControlHTML(category, displayName, iconSrc, maxCount) {
+    /**
+     * Creates the HTML for a single specific sub-category control (label, input, slider).
+     * @param {string} mainCategory - The parent category key (e.g., 'Geology').
+     * @param {string} specificCategory - The specific sub-category name.
+     * @param {number} maxCount - The number of questions available in this specific sub-category.
+     * @returns {string} The HTML string for the control.
+     */
+    function createSpecificCategoryControlHTML(mainCategory, specificCategory, maxCount) {
         const disabled = maxCount === 0;
-        const finalIconSrc = iconSrc || './assets/icons/study.png';
-
-        // Helper to generate quick-select buttons
-        const createQuickSelectButton = (value, text) => {
-            if (maxCount < value) return ''; // Don't show button if max is less than the value
-            return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors">${text || value}</button>`;
-        };
+        // Create a safe ID for HTML elements by removing special characters.
+        const uniqueId = `${mainCategory}-${specificCategory}`.replace(/[^a-zA-Z0-9-_]/g, '');
+        // Create a data attribute value that's easy to parse later.
+        const dataId = `${mainCategory}__SEP__${specificCategory}`;
 
         return `
-            <div class="custom-quiz-control-group p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 ${disabled ? "opacity-50 pointer-events-none" : ""}">
+            <div class="specific-category-control pl-4 py-3 border-t border-gray-200 dark:border-gray-700/50 ${disabled ? 'opacity-50 pointer-events-none' : ''}">
                 <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1.5 shadow-sm">
-                            <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
-                        </div>
-                        <div>
-                            <label for="count-slider-${category}" class="font-bold text-gray-800 dark:text-gray-200 truncate">${displayName}</label>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">มีทั้งหมด ${maxCount} ข้อ</p>
-                        </div>
+                    <div class="min-w-0">
+                        <label for="count-slider-${uniqueId}" class="font-medium text-gray-700 dark:text-gray-200 text-sm">${specificCategory}</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">มี ${maxCount} ข้อ</p>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <input data-input="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-20 p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-bold text-lg text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500">
+                        <input data-input="${dataId}" id="count-input-${uniqueId}" type="number" min="0" max="${maxCount}" value="0" class="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-semibold text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
+                <div class="mt-3">
+                    <input data-slider="${dataId}" id="count-slider-${uniqueId}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500" ${disabled ? "disabled" : ""}>
+                </div>
+            </div>`;
+    }
 
-                <div class="mt-4 space-y-3">
-                    <input data-slider="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500" ${disabled ? "disabled" : ""}>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
-                        ${createQuickSelectButton(10)}
-                        ${createQuickSelectButton(25)}
-                        ${createQuickSelectButton(50)}
-                        ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
-                        <button type="button" data-quick-select="${category}" data-value="0" class="px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
+    /**
+     * Creates the HTML for a main category accordion, containing all its specific sub-category controls.
+     * @param {string} mainCategory - The key of the main category.
+     * @param {object} specificData - The nested object of specific categories and their questions.
+     * @param {string} iconSrc - The path to the icon for this category.
+     * @returns {string} The HTML string for the accordion section.
+     */
+    function createMainCategoryAccordionHTML(mainCategory, specificData, iconSrc) {
+        const totalQuestionsInMainCategory = Object.values(specificData).reduce((sum, questions) => sum + (questions?.length || 0), 0);
+        const finalIconSrc = iconSrc || './assets/icons/study.png';
+        const mainCategoryDetails = allCategoryDetails[mainCategory] || { displayName: mainCategory };
+        const disabled = totalQuestionsInMainCategory === 0;
+
+        const specificControlsHTML = Object.entries(specificData)
+            .sort(([keyA], [keyB]) => keyA.localeCompare(keyB, 'th-TH-u-nu-thai')) // Sort specific categories alphabetically
+            .map(([specificCategory, questions]) => createSpecificCategoryControlHTML(mainCategory, specificCategory, questions.length))
+            .join('');
+
+        return `
+            <div class="custom-quiz-control-group bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" data-main-category-group="${mainCategory}">
+                <div class="p-4">
+                ${createGeneralCategoryControlHTML(mainCategory, mainCategoryDetails.displayName, finalIconSrc, totalQuestionsInMainCategory, true)}
+                </div>
+                <div class="main-category-toggle flex items-center justify-between gap-4 px-4 py-2 cursor-pointer bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-colors border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">หรือเลือกตามหัวข้อย่อย...</span>
+                    </div>
+                    <svg class="chevron-icon h-5 w-5 text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+                <div class="specific-categories-container grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out">
+                    <div class="overflow-hidden">
+                        ${specificControlsHTML}
                     </div>
                 </div>
             </div>`;
@@ -229,14 +310,56 @@ export function initializeCustomQuizHandler() {
         const container = document.getElementById('custom-quiz-category-selection');
         if (!container) return;
 
+        const allInputs = Array.from(container.querySelectorAll('input[type="number"]'));
+        const allSliders = Array.from(container.querySelectorAll('input[type="range"]'));
+        const generalInput = container.querySelector('[data-input="General"]');
+        const generalSlider = container.querySelector('[data-slider="General"]');
+        const categoryInputs = allInputs.filter(el => el !== generalInput);
+        const categorySliders = allSliders.filter(el => el !== generalSlider);
+
         // Use event delegation for better performance
         container.addEventListener('input', (e) => {
             const target = e.target;
+
+            // --- Mutual Exclusion Logic ---
+            if (target.matches('[data-main-input], [data-main-slider], [data-input*="__SEP__"]')) {
+                // User is adjusting a specific or main category. Reset "General".
+                if (generalInput && generalInput.value !== '0') generalInput.value = 0;
+                if (generalSlider && generalSlider.value !== '0') generalSlider.value = 0;
+
+                if (target.matches('[data-main-input], [data-main-slider]')) {
+                    // User is adjusting a MAIN category control. Reset its specific sub-categories.
+                    const mainCategory = target.dataset.mainInput || target.dataset.mainSlider;
+                    const group = container.querySelector(`[data-main-category-group="${mainCategory}"]`);
+                    if (group) {
+                        group.querySelectorAll(`[data-input^="${mainCategory}__SEP__"]`).forEach(input => {
+                            const specificSlider = group.querySelector(`[data-slider="${input.dataset.input}"]`);
+                            if (input.value !== '0') input.value = 0;
+                            if (specificSlider && specificSlider.value !== '0') specificSlider.value = 0;
+                        });
+                    }
+                } else if (target.matches('[data-input*="__SEP__"]')) {
+                    // User is adjusting a SPECIFIC sub-category control. Reset its main category.
+                    const dataId = target.dataset.input;
+                    if (dataId) {
+                        const mainCategory = dataId.split('__SEP__')[0];
+                        const mainInput = container.querySelector(`[data-main-input="${mainCategory}"]`);
+                        const mainSlider = container.querySelector(`[data-main-slider="${mainCategory}"]`);
+                        if (mainInput && mainInput.value !== '0') mainInput.value = 0;
+                        if (mainSlider && mainSlider.value !== '0') mainSlider.value = 0;
+                    }
+                }
+            } else if (target.matches('[data-input="General"], [data-slider="General"]')) {
+                // User is adjusting "General". Reset all other categories.
+                categoryInputs.forEach(input => { if (input.value !== '0') input.value = 0; });
+                categorySliders.forEach(slider => { if (slider.value !== '0') slider.value = 0; });
+            }
+
             if (target.matches('input[type="range"]') || target.matches('input[type="number"]')) {
-                const category = target.dataset.slider || target.dataset.input;
+                const dataId = target.dataset.slider || target.dataset.input || target.dataset.mainSlider || target.dataset.mainInput;
                 let value = target.value;
-                const slider = document.querySelector(`[data-slider="${category}"]`);
-                const input = document.querySelector(`[data-input="${category}"]`);
+                const slider = document.querySelector(`[data-slider="${dataId}"], [data-main-slider="${dataId}"]`);
+                const input = document.querySelector(`[data-input="${dataId}"], [data-main-input="${dataId}"]`);
 
                 if (target.type === 'number') {
                     const max = parseInt(target.max, 10);
@@ -256,16 +379,44 @@ export function initializeCustomQuizHandler() {
 
         container.addEventListener('click', (e) => {
             const target = e.target;
+            // Handle quick select buttons (only for general category now)
             if (target.matches('button[data-quick-select]')) {
                 const category = target.dataset.quickSelect;
                 const value = target.dataset.value;
-                const slider = document.querySelector(`[data-slider="${category}"]`);
-                const input = document.querySelector(`[data-input="${category}"]`);
-
+                const slider = document.querySelector(`[data-slider="${category}"], [data-main-slider="${category}"]`);
+                const input = document.querySelector(`[data-input="${category}"], [data-main-input="${category}"]`);
                 if (slider) slider.value = value;
                 if (input) input.value = value;
 
+                // Trigger mutual exclusion logic after quick select
+                if (category === 'General') {
+                    categoryInputs.forEach(inp => { if (inp.value !== '0') inp.value = 0; });
+                    categorySliders.forEach(sl => { if (sl.value !== '0') sl.value = 0; });
+                } else {
+                    if (generalInput && generalInput.value !== '0') generalInput.value = 0;
+                    if (generalSlider && generalSlider.value !== '0') generalSlider.value = 0;
+                    // If it's a main category quick select, also reset its sub-categories
+                    const group = container.querySelector(`[data-main-category-group="${category}"]`);
+                    if (group) {
+                        group.querySelectorAll(`[data-input^="${category}__SEP__"]`).forEach(specificInput => {
+                            const specificSlider = group.querySelector(`[data-slider="${specificInput.dataset.input}"]`);
+                            if (specificInput.value !== '0') specificInput.value = 0;
+                            if (specificSlider && specificSlider.value !== '0') specificSlider.value = 0;
+                        });
+                    }
+                }
                 updateTotalCount();
+            }
+
+            // Handle accordion toggling
+            const toggle = target.closest('.main-category-toggle');
+            if (toggle) {
+                const content = toggle.nextElementSibling;
+                const icon = toggle.querySelector('.chevron-icon');
+                const isOpen = content.classList.contains('grid-rows-[1fr]');
+                content.classList.toggle('grid-rows-[1fr]', !isOpen);
+                content.classList.toggle('grid-rows-[0fr]', isOpen);
+                icon.classList.toggle('rotate-180', !isOpen);
             }
         });
 
@@ -312,35 +463,31 @@ export function initializeCustomQuizHandler() {
         openCreateQuizModalBtn.disabled = true;
 
         try {
-            const { byCategory, allQuestions } = await fetchAllQuizData();
+            if (!quizDataCache) {
+                quizDataCache = await fetchAllQuizData(); // Fetch and cache the data only if it's not already loaded
+            }
+            const { byCategory, allQuestions } = quizDataCache;
 
-            // Define which sub-categories are available for custom quizzes
-            const customQuizCategories = ['Astronomy', 'Geology', 'Meteorology'];
-
-            let categoryHTML = customQuizCategories.map(categoryKey => {
-                const details = allCategoryDetails[categoryKey];
-                if (!details) {
-                    console.warn(`Details not found for custom quiz category: ${categoryKey}`);
-                    return ''; // Skip this category if details are missing
-                }
-                // Use title for a cleaner, Thai-only display, but fall back to displayName.
-                const displayName = details.title || details.displayName;
-                const maxCount = byCategory[categoryKey]?.length || 0;
-                return createCategoryControlHTML(categoryKey, displayName, details.icon, maxCount);
-            }).join('');
+            let categoryHTML = Object.keys(allCategoryDetails)
+                .filter(key => ['Geology', 'Meteorology', 'Astronomy'].includes(key))
+                .map(key => {
+                    const details = allCategoryDetails[key];
+                    const maxCount = byCategory[key] ? Object.values(byCategory[key]).flat().length : 0;
+                    return createGeneralCategoryControlHTML(key, details.displayName, details.icon, maxCount);
+                }).join('');
 
             // Handle the 'General' category separately, which draws from all questions
             const generalDetails = allCategoryDetails['General']; // This is the key for the "All" category
             if (generalDetails) {
                 const generalMaxCount = allQuestions.length;
-                categoryHTML += createCategoryControlHTML('General', generalDetails.displayName, generalDetails.icon, generalMaxCount);
+                categoryHTML += createGeneralCategoryControlHTML('General', generalDetails.displayName, generalDetails.icon, generalMaxCount);
             } else {
                 console.warn('Details for "General" category not found. Skipping.');
             }
             
             if (categorySelectionContainer) {
                 categorySelectionContainer.innerHTML = categoryHTML;
-                setupCustomQuizInputListeners();
+                setupCustomQuizInputListeners(); // Re-bind listeners to new elements
                 updateTotalCount(); // Reset total count display
             }
 
@@ -360,10 +507,20 @@ export function initializeCustomQuizHandler() {
     customQuizStartBtn.addEventListener("click", async () => {
         const counts = {};
         document.querySelectorAll('#custom-quiz-category-selection input[type="number"]').forEach(input => {
-            counts[input.dataset.input] = parseInt(input.value, 10) || 0;
+            const count = parseInt(input.value, 10) || 0;
+            if (count > 0) {
+                const key = input.dataset.input;
+                if (key) counts[key] = count;
+            }
         });
 
-        const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked')?.value || "none";
+        if (!quizDataCache) {
+            console.error("Quiz data has not been loaded. Cannot start quiz.");
+            // Optionally, show an error to the user.
+            return;
+        }
+
+        const timerMode = document.querySelector('input[name="custom-timer-mode"]:checked')?.value || 'none';
         let customTime = null;
 
         if (timerMode === 'overall') {
@@ -374,15 +531,21 @@ export function initializeCustomQuizHandler() {
             customTime = parseInt(seconds, 10);
         }
 
-        const { allQuestions, byCategory, scenarios } = await fetchAllQuizData();
+        const { allQuestions, byCategory, scenarios } = quizDataCache; // Use cached data
         let selectedQuestions = [];
 
-        Object.keys(counts).forEach(category => {
-            const count = counts[category];
-            if (count > 0) {
-                let sourcePool = (category === 'General') ? allQuestions : (byCategory[category] || []);
-                let chosenQuestions = shuffleArray([...sourcePool]).slice(0, count);
+        Object.entries(counts).forEach(([dataId, count]) => {
+            if (count <= 0) return;
 
+            let sourcePool = [];
+            if (dataId === 'General') {
+                sourcePool = allQuestions;
+            } else if (byCategory[dataId]) {
+                sourcePool = Object.values(byCategory[dataId]).flat();
+            }
+
+            if (sourcePool.length > 0) {
+                let chosenQuestions = shuffleArray([...sourcePool]).slice(0, count);
                 // Reconstruct scenario questions for ALL chosen questions.
                 chosenQuestions = chosenQuestions.map(q => {
                     // If the question has a scenarioId, it means it was part of a scenario.
@@ -397,7 +560,6 @@ export function initializeCustomQuizHandler() {
                     }
                     return q;
                 });
-
                 selectedQuestions.push(...chosenQuestions);
             }
         });
@@ -410,17 +572,14 @@ export function initializeCustomQuizHandler() {
             return;
         }
 
-        // Create description parts directly from the user's selections in the 'counts' object.
-        const descriptionParts = Object.entries(counts)
-            .filter(([, count]) => count > 0) // Filter out categories with 0 questions
-            .map(([key, count]) => {
-                const details = allCategoryDetails[key];
-                // Use title for a cleaner, Thai-only display, but fall back to displayName.
-                const title = details?.title || details?.displayName || key;
-                return `${title}: ${count} ข้อ`;
-            });
+        // Create a summarized description by grouping counts by main category.
+        const descriptionParts = Object.entries(counts).map(([key, count]) => {
+            const details = allCategoryDetails[key];
+            const title = details?.displayName || details?.title || key;
+            return `${title}: ${count} ข้อ`;
+        });
 
-        const detailedDescription = descriptionParts.length > 0 ? descriptionParts.join(' | ') : `แบบทดสอบที่สร้างขึ้นโดยมี ${selectedQuestions.length} ข้อ`;
+        const detailedDescription = descriptionParts.join(' | ');
 
         const timestamp = Date.now();
         const customQuiz = {
@@ -507,16 +666,13 @@ export function initializeCustomQuizHandler() {
         });
     }
 
-    // Listener for the "Clear All" button in the custom quiz creation modal
+    // Listener for the "Clear All" button
     if (customQuizClearBtn) {
         customQuizClearBtn.addEventListener('click', () => {
             const inputs = document.querySelectorAll('#custom-quiz-category-selection input[type="number"]');
-            inputs.forEach(input => {
-                const category = input.dataset.input;
-                const slider = document.querySelector(`[data-slider="${category}"]`);
-                input.value = 0;
-                if (slider) slider.value = 0;
-            });
+            const sliders = document.querySelectorAll('#custom-quiz-category-selection input[type="range"]');
+            inputs.forEach(input => { input.value = 0; });
+            sliders.forEach(slider => { slider.value = 0; });
             updateTotalCount();
         });
     }

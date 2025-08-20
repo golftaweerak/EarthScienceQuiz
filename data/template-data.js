@@ -8,11 +8,15 @@
  *
  * ตัวอย่างการเพิ่มข้อมูลใน quizzes-list.js:
  * {
- *   id: "MyQuiz", // ต้องตรงกับชื่อไฟล์ (ไม่รวม -data.js)
- *   title: "ชื่อชุดข้อสอบของคุณ",
- *   description: "คำอธิบายสั้นๆ เกี่ยวกับชุดข้อสอบนี้",
- *   // ... (ดู property อื่นๆ จากตัวอย่างในไฟล์)
- * },
+ *    id: "MyQuiz", // ต้องตรงกับชื่อไฟล์ (ไม่รวม -data.js)
+ *    title: "ชื่อชุดข้อสอบของคุณ",
+ *    amount: 50, // (ไม่บังคับ) จำนวนข้อทั้งหมดในชุดนี้
+ *    description: "คำอธิบายสั้นๆ เกี่ยวกับชุดข้อสอบนี้",
+ *    url: "./quiz/index.html?id=MyQuiz",
+ *    storageKey: "quizState-MyQuiz",
+ *    icon: "./assets/icons/study.png", // ไอคอนที่จะแสดง
+ *    category: "EarthScience", // หมวดหมู่หลัก (ดูใน data-manager.js)
+ *  },
  */
 
 export const quizItems = [
@@ -30,12 +34,20 @@ export const quizItems = [
         options: ["ตัวเลือก ก.", "ตัวเลือก ข.", "ตัวเลือก ค.", "ตัวเลือก ง."],
         answer: "ตัวเลือก ก.", // ต้องตรงกับข้อความใน options ทุกตัวอักษร
         explanation: "(ไม่บังคับ) คำอธิบายเพิ่มเติมสำหรับคำถามย่อยข้อที่ 1",
+        subCategory: {
+          main: "Geology", // หมวดหมู่หลัก เช่น Geology, Meteorology, Astronomy
+          specific: "1) หัวข้อย่อยที่ 1 ตามหลักสูตร" // หัวข้อย่อยที่เฉพาะเจาะจง
+        }
       },
       {
         question: "คำถามย่อยข้อที่ 2 ที่เกี่ยวกับสถานการณ์นี้",
         options: ["ตัวเลือก A", "ตัวเลือก B", "ตัวเลือก C", "ตัวเลือก D"],
         answer: "ตัวเลือก B",
         explanation: "(ไม่บังคับ) คำอธิบายเพิ่มเติมสำหรับคำถามย่อยข้อที่ 2",
+        subCategory: {
+          main: "Geology",
+          specific: "1) หัวข้อย่อยที่ 1 ตามหลักสูตร"
+        }
       },
     ],
   },
@@ -48,7 +60,10 @@ export const quizItems = [
     options: ["ตัวเลือกที่ 1", "ตัวเลือกที่ 2", "ตัวเลือกที่ 3", "ตัวเลือกที่ 4"],
     answer: "ตัวเลือกที่ 2",
     explanation: "(ไม่บังคับ) คำอธิบายเพิ่มเติม...",
-    subCategory: "(ไม่บังคับ) หมวดหมู่ย่อย เช่น 'Geology', 'Astronomy', 'Meteorology'",
+    subCategory: {
+      main: "Meteorology", // หมวดหมู่หลัก เช่น Geology, Meteorology, Astronomy
+      specific: "7) หัวข้อย่อยที่ 7 ตามหลักสูตร" // หัวข้อย่อยที่เฉพาะเจาะจง
+    }
   },
 
   // ... คุณสามารถเพิ่ม Scenario หรือ Question ต่อไปได้เรื่อยๆ ...

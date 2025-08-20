@@ -905,8 +905,8 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   // --- State Management (LocalStorage) ---
 
   function loadStateFromSave(savedState) {
-    state.currentQuestionIndex = savedState.currentQuestionIndex;
-    state.score = savedState.score;
+    state.currentQuestionIndex = savedState.currentQuestionIndex || 0;
+    state.score = savedState.score || 0;
     // Filter the loaded questions to ensure data integrity, in case the saved state is from an older version or has corrupt data.
     state.shuffledQuestions = Array.isArray(savedState.shuffledQuestions)
       ? savedState.shuffledQuestions.filter(q => q)
@@ -915,6 +915,9 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     state.timerMode = savedState.timerMode || "none";
     state.timeLeft = savedState.timeLeft || 0;
     state.initialTime = savedState.initialTime || 0;
+
+    // Update the score display on the UI to reflect the loaded score.
+    elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
   }
 
   function saveQuizState() {
@@ -928,6 +931,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       timerMode: state.timerMode,
       timeLeft: state.timeLeft,
       initialTime: state.initialTime,
+      lastAttemptTimestamp: Date.now(), // Add timestamp for recency tracking
     };
     localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
   }

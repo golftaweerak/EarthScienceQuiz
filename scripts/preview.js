@@ -3,6 +3,8 @@ import { initializeDarkMode } from './dark-mode.js';
 import { initializeDropdown } from './dropdown.js';
 import { initializeMenu } from './menu-handler.js';
 import { quizList } from '../data/quizzes-list.js';
+import { fetchAllQuizData, categoryDetails as allCategoryDetails } from './data-manager.js';
+import { subCategoryData, combinedAstronomyTopics } from '../data/sub-category-data.js';
 
 const CONFIG = {
     SEARCH_DEBOUNCE_MS: 300,
@@ -11,19 +13,6 @@ const CONFIG = {
     MIN_ZOOM: 70,
     MAX_ZOOM: 150,
     DEFAULT_ZOOM: 100,
-};
-
-// Centralized category display names to match index.html
-const categoryDetails = {
-    AstronomyReview: {
-        title: "ทบทวน (Review)",
-    },
-    Astronomy: {
-        title: "ดาราศาสตร์ (Astronomy)",
-    },
-    EarthScience: {
-        title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
-    },
 };
 
 /**
@@ -40,70 +29,7 @@ function correctImagePaths(htmlString) {
     return htmlString.replace(/src="\.\.\//g, 'src="./');
 }
 
-let currentQuizData = []; // Store the full data for the selected quiz
-let allQuizzesCache = null; // Cache for all quiz data to avoid re-fetching
-
-
-// Function to fetch, flatten, and cache data from all quiz files
-async function fetchAllQuizData() {
-    if (allQuizzesCache) {
-        return allQuizzesCache;
-    }
-
-    console.log("Fetching all quiz data for the first time...");
-
-    const promises = quizList.map(async (quiz) => {
-        const scriptPath = `../data/${quiz.id}-data.js`;
-        try {
-            // Use modern dynamic import for robustness and better error handling
-            const module = await import(scriptPath);
-            // Handle both `quizItems` and `quizData` for compatibility with older files.
-            const data = module.quizItems || module.quizData || [];
-
-            if (data && Array.isArray(data)) {
-                return data.flatMap(item => flattenQuizDataItem(item, quiz.title));
-            }
-            return [];
-        } catch (error) {
-            console.error(`Error processing ${scriptPath}:`, error);
-            return []; // Return empty array on error
-        }
-    });
-
-    const results = await Promise.all(promises);
-    allQuizzesCache = results.flat();
-    return allQuizzesCache;
-}
-
-/**
- * Helper function to flatten a single quiz item (question or scenario) into an array of questions.
- * This centralizes the flattening logic.
- * @param {object} item - The quiz item from the data file.
- * @param {string} sourceTitle - The title of the source quiz.
- * @returns {Array} An array of flattened question objects.
- */
-function flattenQuizDataItem(item, sourceTitle) {
-    if (item.type === 'scenario' && Array.isArray(item.questions)) {
-        // Correct the path for the main scenario description
-        const correctedDescription = correctImagePaths(item.description);
-        return item.questions.map(q => ({
-            ...q,
-            // Correct paths for each question and its explanation within the scenario
-            question: correctImagePaths(q.question),
-            explanation: correctImagePaths(q.explanation),
-            scenarioTitle: item.title,
-            scenarioDescription: correctedDescription,
-            sourceQuizTitle: sourceTitle
-        }));
-    } else if (item.type === 'question' || !item.type) {
-        // Correct paths for a standalone question
-        return [{ ...item,
-            question: correctImagePaths(item.question),
-            explanation: correctImagePaths(item.explanation),
-            sourceQuizTitle: sourceTitle }];
-    }
-    return [];
-}
+let currentQuizData = []; // Store the full data for the selected quiz to be rendered
 
 // Helper function to highlight keywords in a text
 function highlightText(text, keyword) {
@@ -229,7 +155,20 @@ function createQuestionElement(item, displayIndex, keyword) {
     if (item.sourceQuizTitle) {
         const sourceInfo = document.createElement('div');
         sourceInfo.className = 'mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700 text-right text-xs text-gray-500 dark:text-gray-400';
-        sourceInfo.innerHTML = `จาก: <span class="font-semibold">${item.sourceQuizTitle}</span>`;
+
+        let subCategoryText = '';
+        if (item.subCategory) {
+            // Handle both string and object structures for display
+            const subCat = item.subCategory;
+            const subCatDisplay = (typeof subCat === 'object' && subCat.main) 
+                ? (subCat.specific || subCat.main) 
+                : (typeof subCat === 'string' ? subCat : '');
+            if (subCatDisplay) {
+                // Use a line break for better readability instead of a pipe separator.
+                subCategoryText = `หมวดหมู่: <span class="font-semibold">${highlightText(subCatDisplay, keyword)}</span><br>`;
+            }
+        }
+        sourceInfo.innerHTML = `${subCategoryText}จาก: <span class="font-semibold">${highlightText(item.sourceQuizTitle, keyword)}</span>`;
         questionDiv.appendChild(sourceInfo);
     }
 
@@ -472,11 +411,13 @@ svg" fill="none" viewBox="0 0 24 24">
                                 <p>กำลังค้นหาจากข้อสอบทั้งหมด...</p>
                             </div>`;
     try {
-        const allData = await fetchAllQuizData();
+        // Use the centralized data manager to fetch all questions
+        const { allQuestions } = await fetchAllQuizData();
         if (countContainer) {
-            countContainer.innerHTML = `กำลังค้นหาจากข้อสอบทั้งหมด <span class="font-bold">${allData.length}</span> ข้อ...`;
+            countContainer.innerHTML = `กำลังค้นหาจากข้อสอบทั้งหมด <span class="font-bold">${allQuestions.length}</span> ข้อ...`;
         }
-        currentQuizData = allData;
+        // Correct image paths for global search results
+        currentQuizData = allQuestions.map(item => ({...item, question: correctImagePaths(item.question), explanation: correctImagePaths(item.explanation), scenarioDescription: correctImagePaths(item.scenarioDescription)}));
         renderQuizData(); // renderQuizData will use the keyword from the input to filter
     } catch (error) {
         console.error("Global search failed:", error);
@@ -572,6 +513,11 @@ export function initializePreviewPage() {
             return acc;
         }, {});
 
+        // Sort quizzes within each group alphabetically by title
+        Object.keys(groupedQuizzes).forEach(categoryKey => {
+            groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th'));
+        });
+
         // Create optgroups and options, ensuring a consistent order by sorting category keys
         const categoryOrder = ['AstronomyReview']; // Define which category should come first.
 
@@ -588,8 +534,8 @@ export function initializePreviewPage() {
             return a.localeCompare(b); // Otherwise, sort alphabetically
         }).forEach(categoryKey => {
             const optgroup = document.createElement('optgroup');
-            // Use the display title from categoryDetails, or the key itself as a fallback
-            optgroup.label = categoryDetails[categoryKey]?.title || categoryKey;
+            // Use the display title from the imported allCategoryDetails, or the key itself as a fallback
+            optgroup.label = allCategoryDetails[categoryKey]?.title || categoryKey;
             
             groupedQuizzes[categoryKey].forEach(quiz => {
                 const option = document.createElement('option');
@@ -627,22 +573,21 @@ export function initializePreviewPage() {
                                     <p>กำลังโหลดข้อมูล...</p>
                                 </div>`;
 
-        try {
-            // Use modern dynamic import for robustness and better error handling
-            const module = await import(scriptPath);
-            // Handle both `quizItems` and `quizData` for compatibility with older files.
-            const data = module.quizItems || module.quizData || [];
+        try {            
+            // Use the centralized data manager to fetch all questions
+            const { allQuestions } = await fetchAllQuizData();
+            const quizId = scriptName.replace('-data.js', '');
+            const quizInfo = quizList.find(q => q.id === quizId);
+            const quizTitle = quizInfo.title;
 
-            if (typeof data !== 'undefined' && Array.isArray(data)) {
-                const quizTitle = quizSelector.options[quizSelector.selectedIndex].text;
-                const flattenedData = data.flatMap(item => flattenQuizDataItem(item, quizTitle));
-                currentQuizData = flattenedData;
-                renderQuizData();
-            } else {
-                throw new Error('ไม่พบตัวแปร quizData หรือ quizItems ที่ถูกต้องในไฟล์');
-            }
+            // Filter the questions for the selected quiz
+            const flattenedData = allQuestions.filter(q => q.sourceQuizTitle === quizTitle);
+            
+            // Correct image paths for the selected quiz data
+            currentQuizData = flattenedData.map(item => ({...item, question: correctImagePaths(item.question), explanation: correctImagePaths(item.explanation), scenarioDescription: correctImagePaths(item.scenarioDescription)}));
+            renderQuizData();
         } catch (error) {
-            console.error('Failed to load or parse quiz script:', error);
+            console.error(`Failed to load or render quiz ${scriptName}:`, error);
             container.innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 rounded-r-lg" role="alert">
                                        <p class="font-bold">เกิดข้อผิดพลาด</p>
                                        <p>ไม่สามารถโหลดหรือประมวลผลไฟล์ <strong>${scriptPath}</strong> ได้. โปรดตรวจสอบว่าไฟล์ถูกต้องและไม่มีข้อผิดพลาด. (${error.message})</p>
@@ -683,6 +628,7 @@ export function initializePreviewPage() {
 
     const params = new URLSearchParams(window.location.search);
     const scriptNameFromUrl = params.get('script');
+
     if (scriptNameFromUrl) {
         quizSelector.value = scriptNameFromUrl;
         loadAndRenderQuiz(scriptNameFromUrl);
@@ -819,6 +765,22 @@ export function initializePreviewPage() {
                 </svg>
             </button>
         `;
+        // New sub-category controls using the centralized data
+        const subCategoryControlsHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="gen-label">ประเภทหมวดหมู่ (ถ้ามี)</label>
+                    <select class="gen-input gen-main-cat-type">
+                        <option value="">-- ไม่ระบุ --</option>
+                        <option value="EarthAndSpace">วิทยาศาสตร์โลกและอวกาศ</option>
+                        <option value="Astronomy">ดาราศาสตร์ (ม.ต้น/ม.ปลาย)</option>
+                    </select>
+                </div>
+                <div class="gen-specific-cat-container">
+                    <!-- Specific sub-category dropdown will be populated here by JS -->
+                </div>
+            </div>
+        `;
         return `
             <div class="p-4 bg-gray-100/50 dark:bg-gray-900/30 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
                 <p class="font-bold text-gray-700 dark:text-gray-300">${title}</p>
@@ -835,7 +797,10 @@ export function initializePreviewPage() {
                     <div class="flex items-center gap-3"><input type="radio" name="${radioName}" value="4" class="gen-radio"><input type="text" placeholder="ตัวเลือกที่ 5" class="gen-input gen-choice"></div>
                 </div>
                 <div><label class="gen-label">Explanation (Optional, รองรับ LaTeX)</label><textarea rows="2" class="gen-input gen-explanation"></textarea></div>
-                <div><label class="gen-label">Sub-Category (Optional, e.g., Geology, Meteorology)</label><input type="text" class="gen-input gen-subcategory"></div>
+                <div>
+                    <label class="gen-label">หมวดหมู่ย่อย (Sub-Category)</label>
+                    ${subCategoryControlsHTML}
+                </div>
             </div>
         `;
     }
@@ -922,6 +887,45 @@ export function initializePreviewPage() {
                 });
                 generateCode(); // Re-generate code after any change
             }
+        });
+    }
+
+    // Add a new 'change' listener for the dropdowns
+    if (itemsContainer) {
+        itemsContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('gen-main-cat-type')) {
+                const mainCatType = e.target.value;
+                const questionBlock = e.target.closest('.gen-question-block, .gen-sub-question-block');
+                if (!questionBlock) return;
+
+                const specificContainer = questionBlock.querySelector('.gen-specific-cat-container');
+                if (!specificContainer) return;
+
+                if (!mainCatType) {
+                    specificContainer.innerHTML = '';
+                    generateCode();
+                    return;
+                }
+
+                let specificSelectHTML = '';
+
+                if (mainCatType === 'EarthAndSpace') {
+                    const categories = subCategoryData[mainCatType];
+                    const mainTopics = Object.keys(categories);
+                    const optgroups = mainTopics.map(topic => {
+                        const topicOptions = categories[topic].map(specific => `<option value="${topic}__SEP__${specific}">${specific}</option>`).join('');
+                        return `<optgroup label="${topic}">${topicOptions}</optgroup>`;
+                    }).join('');
+                    specificSelectHTML = `<label class="gen-label">หัวข้อย่อย</label><select class="gen-input gen-specific-cat-object">${optgroups}</select>`;
+                } else if (mainCatType === 'Astronomy') {
+                    const options = combinedAstronomyTopics.map(item => 
+                        `<option value="${item.topic}">${item.topic} (${item.level})</option>`
+                    ).join('');
+                    specificSelectHTML = `<label class="gen-label">หัวข้อย่อยดาราศาสตร์</label><select class="gen-input gen-specific-cat-astro">${options}</select>`;
+                }
+                specificContainer.innerHTML = specificSelectHTML;
+            }
+            generateCode(); // Re-generate code on any change
         });
     }
 
@@ -1064,13 +1068,13 @@ export function initializePreviewPage() {
  
          const questionInput = blockElement.querySelector('.gen-question');
          const explanationInput = blockElement.querySelector('.gen-explanation');
-         const subCategoryInput = blockElement.querySelector('.gen-subcategory');
+         // The subcategory dropdowns will NOT be populated by this function for DOCX import.
+         // User will need to set them manually after import.
          const choiceInputs = blockElement.querySelectorAll('.gen-choice');
          const radioInputs = blockElement.querySelectorAll('.gen-radio');
  
          if (questionInput) questionInput.value = questionData.question || '';
          if (explanationInput) explanationInput.value = questionData.explanation || '';
-         if (subCategoryInput) subCategoryInput.value = questionData.subCategory || '';
  
          if (questionData.options && Array.isArray(questionData.options)) {
              questionData.options.forEach((optionText, index) => {
@@ -1174,7 +1178,26 @@ export function initializePreviewPage() {
                 answer = choiceInputs[correctIndex]?.value || '';
             }
             const explanation = block.querySelector('.gen-explanation').value;
-            const subCategory = block.querySelector('.gen-subcategory')?.value.trim() || '';
+            
+            // New logic for subCategory
+            const mainCatTypeSelect = block.querySelector('.gen-main-cat-type');
+            let subCategory = null; // Use null for no subcategory
+
+            if (mainCatTypeSelect && mainCatTypeSelect.value) {
+                const mainCatType = mainCatTypeSelect.value;
+                if (mainCatType === 'EarthAndSpace') {
+                    const specificSelect = block.querySelector('.gen-specific-cat-object');
+                    if (specificSelect && specificSelect.value) {
+                        const [main, specific] = specificSelect.value.split('__SEP__');
+                        subCategory = { main, specific };
+                    }
+                } else if (mainCatType === 'Astronomy') {
+                    const specificSelect = block.querySelector('.gen-specific-cat-astro');
+                    if (specificSelect && specificSelect.value) {
+                        subCategory = { main: "Astronomy", specific: specificSelect.value };
+                    }
+                }
+            }
             return { question: questionText, options: choices, answer, explanation, subCategory };
         }
 
@@ -1208,7 +1231,7 @@ export function initializePreviewPage() {
 
         const dataFileContent = `const quizItems = ${JSON.stringify(itemsForDataFile, (key, value) => {
             // Clean up empty optional fields before stringifying for cleaner data files
-            if ((key === 'explanation' || key === 'description' || key === 'subCategory') && value === '') {
+            if (key === 'subCategory' && !value) {
                 return undefined;
             }
             return value;

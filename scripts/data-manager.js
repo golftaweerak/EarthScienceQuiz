@@ -15,7 +15,7 @@ export const categoryDetails = {
         logoGlow: "group-hover:shadow-sky-400/40",
     },
     Astronomy: {
-        title: "ดาราศาสตร์",
+        title: "ดาราศาสตร์ (Astronomy)",
         displayName: "ดาราศาสตร์ (Astronomy)",
         icon: "./assets/icons/astronomy.png",
         order: 2,
@@ -24,7 +24,7 @@ export const categoryDetails = {
         logoGlow: "group-hover:shadow-indigo-400/40",
     },
     EarthScience: {
-        title: "วิทยาศาสตร์โลกและอวกาศ",
+        title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
         displayName: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
         icon: "./assets/icons/earth.png",
         order: 3,
@@ -43,15 +43,15 @@ export const categoryDetails = {
     },
     // Sub-categories used for custom quiz creation
     Geology: {
-        displayName: "ธรณีวิทยา",
+        displayName: "ธรณีวิทยา (Geology)",
         icon: "./assets/icons/geology.png",
     },
     Meteorology: {
-        displayName: "อุตุนิยมวิทยา",
+        displayName: "อุตุนิยมวิทยา (Meteorology)",
         icon: "./assets/icons/meteorology.png",
     },
     General: {
-        displayName: "สุ่มจากทุกหมวดหมู่",
+        displayName: "สุ่มจากทุกหมวดหมู่ (All)",
         icon: "./assets/icons/study.png",
     },
 };
@@ -70,6 +70,7 @@ export function getQuizProgress(storageKey, totalQuestions) {
         isFinished: false,
         answeredCount: 0,
         totalQuestions: totalQuestions,
+        lastAttemptTimestamp: 0, // Add timestamp for sorting by recency
     };
     if (totalQuestions <= 0) return defaultState;
 
@@ -89,14 +90,58 @@ export function getQuizProgress(storageKey, totalQuestions) {
         const score = savedState.score || 0;
         const isFinished = answeredCount >= totalQuestions; // A quiz is finished when all questions have been answered.
         const percentage = Math.round((answeredCount / totalQuestions) * 100);
+        const lastAttemptTimestamp = savedState.lastAttemptTimestamp || 0; // Get timestamp from saved state
 
-        return { score, percentage, isFinished, hasProgress: true, answeredCount, totalQuestions };
+        return { score, percentage, isFinished, hasProgress: true, answeredCount, totalQuestions, lastAttemptTimestamp };
     } catch (e) {
         console.error(`Could not parse saved state for ${storageKey}:`, e);
         return defaultState;
     }
 }
 
+/**
+ * Loads the entire saved state object for a quiz from localStorage.
+ * @param {string} storageKey - The key for the quiz in localStorage.
+ * @returns {object|null} The parsed state object, or null if not found or corrupt.
+ */
+export function loadQuizState(storageKey) {
+    const savedStateJSON = localStorage.getItem(storageKey);
+    if (!savedStateJSON) return null;
+    try {
+        const parsed = JSON.parse(savedStateJSON);
+        // Basic validation to ensure it's a plausible state object
+        if (parsed && typeof parsed.currentQuestionIndex === 'number' && Array.isArray(parsed.userAnswers)) {
+            return parsed;
+        }
+        return null;
+    } catch (e) {
+        console.error(`Could not parse saved state for ${storageKey}:`, e);
+        return null;
+    }
+}
+
+/**
+ * Retrieves detailed progress for all quizzes, including the userAnswers array.
+ * @returns {Promise<Array<object>>} An array of detailed progress objects.
+ */
+export async function getDetailedProgressForAllQuizzes() {
+    const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+    const { getSavedCustomQuizzes } = await import('./custom-quiz-handler.js');
+
+    const allQuizzes = [...quizList, ...getSavedCustomQuizzes()];
+    const allDetailedProgress = allQuizzes.map(quiz => {
+        const storageKey = quiz.storageKey || `quizState-${quiz.id || quiz.customId}`;
+        const savedState = loadQuizState(storageKey); // Use the existing function that returns the full state object
+
+        if (!savedState || !savedState.userAnswers || savedState.userAnswers.filter(a => a !== null).length === 0) {
+            return null; // No progress or no answers yet
+        }
+
+        return { ...quiz, ...savedState }; // Return full quiz info and its saved state
+    }).filter(p => p !== null);
+
+    return allDetailedProgress;
+}
 /**
  * Retrieves progress for all known quizzes (standard and custom).
  * @returns {Promise<Array<object>>} An array of progress objects for all quizzes.
@@ -182,11 +227,25 @@ export async function fetchAllQuizData() {
     const results = await Promise.all(promises);
     allQuestionsCache = results.flat();
 
+    // This logic creates a nested structure for easier filtering by specific sub-categories.
+    // e.g., { Geology: { "หัวข้อ 1": [q1, q2], "หัวข้อ 2": [q3] } }
     questionsBySubCategoryCache = allQuestionsCache.reduce((acc, question) => {
-        const category = question.subCategory;
-        if (category) {
-            if (!acc[category]) acc[category] = [];
-            acc[category].push(question);
+        const subCat = question.subCategory;
+        if (typeof subCat === 'object' && subCat.main && subCat.specific) {
+            const mainKey = subCat.main;
+            const specificKey = subCat.specific;
+
+            if (!acc[mainKey]) acc[mainKey] = {};
+            if (!acc[mainKey][specificKey]) acc[mainKey][specificKey] = [];
+            acc[mainKey][specificKey].push(question);
+
+        } else if (typeof subCat === 'string') {
+            // Handle legacy string-based subcategories by grouping them under a main key.
+            const mainKey = subCat;
+            const specificKey = 'Uncategorized';
+            if (!acc[mainKey]) acc[mainKey] = {};
+            if (!acc[mainKey][specificKey]) acc[mainKey][specificKey] = [];
+            acc[mainKey][specificKey].push(question);
         }
         return acc;
     }, {});

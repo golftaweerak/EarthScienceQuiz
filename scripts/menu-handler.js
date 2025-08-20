@@ -8,13 +8,14 @@ import { getSavedCustomQuizzes } from './custom-quiz-handler.js';
  * Creates the HTML string for a single quiz menu item, including progress.
  * @param {object} quiz - The quiz data object (standard or custom).
  * @param {function} getQuizUrl - Function to generate the correct URL for the quiz.
+ * @param {string|null} currentQuizId - The ID of the quiz currently being viewed, if any.
  * @returns {string} The HTML string for the menu item.
  */
-function createMenuItemHTML(quiz, getQuizUrl) {
+function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
     const totalQuestions = quiz.amount || quiz.questions?.length || 0;
     if (totalQuestions === 0) return ''; // Don't render items with no questions
 
-    const storageKey = quiz.storageKey || `quizState-${quiz.id}`;
+    const storageKey = quiz.storageKey || `quizState-${quiz.id || quiz.customId}`;
     const quizId = quiz.id || quiz.customId;
     const linkUrl = getQuizUrl(quizId); // This will be relative
     const iconUrl = quiz.icon || './assets/icons/dices.png';
@@ -22,6 +23,8 @@ function createMenuItemHTML(quiz, getQuizUrl) {
 
     const progress = getQuizProgress(storageKey, totalQuestions);
     let progressHtml = '';
+    let activeClass = '';
+    let titlePrefix = '';
 
     if (progress.isFinished) {
         progressHtml = `
@@ -35,14 +38,20 @@ function createMenuItemHTML(quiz, getQuizUrl) {
             </div>`;
     }
 
+    // Check if this is the currently active quiz
+    if (quizId === currentQuizId) {
+        activeClass = 'bg-blue-100 dark:bg-blue-900/50';
+        titlePrefix = '<span class="text-blue-500 mr-2" aria-hidden="true">▶️</span>';
+    }
+
     return `
-        <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+        <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md ${activeClass}">
             <div class="flex items-start gap-3">
                 <div class="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white dark:bg-gray-200 p-1 mt-0.5">
                     <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                 </div>
                 <div class="flex-grow min-w-0">
-                    <span class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">${quiz.title}</span>
+                    <span class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">${titlePrefix}${quiz.title}</span>
                     ${progressHtml}
                 </div>
             </div>
@@ -53,6 +62,7 @@ function createMenuItemHTML(quiz, getQuizUrl) {
  * Initializes the main navigation menu.
  * - Populates it with standard and custom quizzes.
  * - Shows progress for each quiz.
+ * - Highlights the currently active quiz.
  * - Handles clicks on completed quizzes to show a modal.
  */
 export function initializeMenu() {
@@ -71,11 +81,38 @@ export function initializeMenu() {
     let activeQuizUrl = '';
     let activeStorageKey = '';
 
+    // Get current quiz ID from URL to highlight it
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentQuizId = urlParams.get('id');
+
+    // --- Get all quizzes and their progress ---
+    const allQuizzes = [...quizList, ...getSavedCustomQuizzes()];
+    const quizzesWithProgress = allQuizzes.map(quiz => {
+        const totalQuestions = quiz.amount || quiz.questions?.length || 0;
+        if (totalQuestions === 0) return null;
+        const storageKey = quiz.storageKey || `quizState-${quiz.id || quiz.customId}`;
+        const progress = getQuizProgress(storageKey, totalQuestions);
+        return { ...quiz, ...progress };
+    }).filter(Boolean); // Filter out nulls
+
+    // --- Identify and sort recent quizzes ---
+    const recentQuizzes = quizzesWithProgress
+        .filter(q => q.hasProgress) // Only consider quizzes that have been started
+        .sort((a, b) => b.lastAttemptTimestamp - a.lastAttemptTimestamp) // Most recent first
+        .slice(0, 3); // Get top 3
+
+    const recentQuizIds = new Set(recentQuizzes.map(q => q.id || q.customId));
+
     // --- Pathing Logic: Use root-relative paths for consistency ---
     const getQuizUrl = (id) => `./quiz/index.html?id=${id}`;
 
     // --- Grouping and Sorting Logic ---
-    const groupedQuizzes = quizList.reduce((acc, quiz) => {
+    // Filter out recent quizzes from the main list to avoid duplication
+    const remainingQuizzes = quizzesWithProgress.filter(q => !recentQuizIds.has(q.id || q.customId));
+
+    const groupedQuizzes = remainingQuizzes
+        .filter(q => q.id) // Filter for standard quizzes only
+        .reduce((acc, quiz) => {
         const category = quiz.category || "Uncategorized";
         if (!acc[category]) acc[category] = [];
         acc[category].push(quiz);
@@ -88,10 +125,24 @@ export function initializeMenu() {
         return orderA - orderB;
     });
 
+    // Sort quizzes within each category alphabetically by title
+    Object.keys(groupedQuizzes).forEach(categoryKey => {
+        groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th'));
+    });
+
     // --- Build Menu HTML ---
     let menuHTML = '';
 
-    // 1. Standard Quizzes
+    // 1. Recent Quizzes Section
+    if (recentQuizzes.length > 0) {
+        menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ทำล่าสุด</h4>`;
+        recentQuizzes.forEach(quiz => {
+            menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
+        });
+        menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
+    }
+
+    // 2. Standard Quizzes
     sortedCategories.forEach(categoryKey => {
         const quizzes = groupedQuizzes[categoryKey];
         const details = allCategoryDetails[categoryKey];
@@ -100,22 +151,24 @@ export function initializeMenu() {
         menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>`;
 
         quizzes.forEach(quiz => {
-            menuHTML += createMenuItemHTML(quiz, getQuizUrl);
+            menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
         });
     });
 
-    // 2. Custom Quizzes
-    const savedQuizzes = getSavedCustomQuizzes(); // Use the safe, shared function
+    // 3. Custom Quizzes
+    const savedQuizzes = remainingQuizzes
+        .filter(q => q.customId) // Filter for custom quizzes only
+        .sort((a, b) => a.title.localeCompare(b.title, 'th')); // Sort custom quizzes alphabetically
     if (savedQuizzes.length > 0) {
         menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
         menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
 
         savedQuizzes.forEach((quiz) => {
-            menuHTML += createMenuItemHTML(quiz, getQuizUrl);
+            menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
         });
     }
 
-  // 3. Always add the stats link at the end
+  // 4. Always add the stats link at the end
   menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
   menuHTML += `
       <a href="./stats.html" class="group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
