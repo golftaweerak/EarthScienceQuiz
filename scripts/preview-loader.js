@@ -10,7 +10,8 @@ async function main() {
     // Load shared components first
     await Promise.all([
         loadComponent('#main_header-placeholder', './components/main_header.html'),
-        loadComponent('#footer-placeholder', './components/footer.html')
+        loadComponent('#footer-placeholder', './components/footer.html'),
+        loadComponent('#modals-placeholder', './components/modals_common.html')
     ]);
 
     // Initialize common UI components like header, menu, and footer scripts

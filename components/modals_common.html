@@ -1,0 +1,302 @@
+<!-- 
+    This file centralizes all modal dialogs used across the application.
+    It is loaded dynamically into a placeholder div on each page.
+    This approach reduces code duplication and simplifies maintenance.
+-->
+
+<!-- Generic Confirmation Modal (for clearing stats, etc.) -->
+<div id="confirm-action-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-md w-full anim-modal-pop-in modal-content">
+        <button data-modal-close aria-label="ปิด"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="flex items-start gap-4">
+            <div
+                class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10">
+                <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <div class="mt-3 text-center sm:mt-0 sm:text-left">
+                <h3 id="confirm-modal-title" class="text-lg leading-6 font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                    ยืนยันการกระทำ</h3>
+                <div class="mt-2">
+                    <p id="confirm-modal-description" class="text-sm text-gray-500 dark:text-gray-400">
+                        คุณแน่ใจหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+            <button id="confirm-action-btn" type="button"
+                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm">
+                ยืนยัน
+            </button>
+            <button id="confirm-cancel-btn" data-modal-close type="button"
+                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner Modal -->
+<div id="loading-spinner" class="hidden fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-75"
+    role="dialog" aria-modal="true">
+    <div class="loader"></div>
+</div>
+
+<!-- Completed Quiz Action Modal -->
+<div id="completed-quiz-modal"
+    class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-black bg-opacity-75" role="dialog"
+    aria-modal="true" aria-labelledby="completed-modal-title">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+            <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <h3 id="completed-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+            ทำแบบทดสอบนี้เสร็จแล้ว</h3>
+        <p id="completed-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?
+        </p>
+        <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
+            <button id="completed-view-results-btn"
+                class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">
+                ดูผลคะแนน
+            </button>
+            <button id="completed-start-over-btn"
+                class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">
+                เริ่มใหม่
+            </button>
+            <button id="completed-cancel-btn" data-modal-close
+                class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Quiz Creation Modal -->
+<div id="custom-quiz-modal"
+    class="hidden fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto p-4 bg-black bg-opacity-75"
+    role="dialog" aria-modal="true" aria-labelledby="custom-quiz-modal-title">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg my-8 mx-auto p-6 text-left">
+        <div class="flex justify-between items-start pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <h3 id="custom-quiz-modal-title"
+                    class="text-xl font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                    สร้างแบบทดสอบเอง</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    เลือกจำนวนข้อและรูปแบบการจับเวลาที่คุณต้องการ</p>
+            </div>
+            <button data-modal-close aria-label="ปิด"
+                class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div id="custom-quiz-category-selection" class="space-y-4 my-6"></div>
+        <fieldset class="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <legend class="text-sm font-bold text-gray-700 dark:text-gray-300 px-2">
+                รูปแบบการจับเวลา
+            </legend>
+            <div class="space-y-3">
+                <label
+                    class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                    <input type="radio" name="custom-timer-mode" value="none"
+                        class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
+                    <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ไม่จับเวลา</span>
+                </label>
+                <label
+                    class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                    <input type="radio" name="custom-timer-mode" value="overall"
+                        class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ทั้งชุด</span>
+                </label>
+                <div id="overall-time-input-container" class="hidden pl-10">
+                    <input type="number" id="custom-timer-overall-minutes" value="20" min="1" class="gen-input w-24 text-center">
+                    <span class="ml-2 text-gray-600 dark:text-gray-400">นาที</span>
+                </div>
+                <label
+                    class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
+                    <input type="radio" name="custom-timer-mode" value="perQuestion"
+                        class="h-5 w-5 text-blue-600 focus:ring-blue-500">
+                    <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">เป็นข้อ</span>
+                </label>
+                <div id="per-question-time-input-container" class="hidden pl-10">
+                    <input type="number" id="custom-timer-per-question-seconds" value="90" min="10" step="5" class="gen-input w-24 text-center">
+                    <span class="ml-2 text-gray-600 dark:text-gray-400">วินาที</span>
+                </div>
+            </div>
+        </fieldset>
+        <div class="mt-8 pt-4 -mx-6 -mb-6 px-6 pb-6 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-4 order-2 sm:order-1">
+                <div class="font-bold text-gray-800 dark:text-gray-100">
+                    จำนวนข้อทั้งหมด: <span id="total-question-count"
+                        class="font-sarabun text-xl text-blue-600 dark:text-blue-400">0</span>
+                </div>
+                <button id="custom-quiz-clear-btn" type="button" class="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 font-medium hover:underline">ล้างทั้งหมด</button>
+            </div>
+            <button id="custom-quiz-start-btn"
+                class="w-full sm:w-auto order-1 sm:order-2 px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-bold text-lg shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
+                เริ่มทำแบบทดสอบ
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Quiz Hub Modal -->
+<div id="custom-quiz-hub-modal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" role="dialog"
+    aria-modal="true" aria-labelledby="custom-quiz-hub-modal-title">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-2xl m-4 p-6 text-left">
+        <div class="flex justify-between items-start mb-4">
+            <h3 id="custom-quiz-hub-modal-title"
+                class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                แบบทดสอบที่สร้างเอง</h3>
+            <button data-modal-close aria-label="ปิด"
+                class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div id="custom-quiz-list" class="max-h-96 overflow-y-auto pr-2 space-y-3 mb-6" aria-live="polite">
+            <p id="no-custom-quizzes-msg" class="text-center text-gray-500 dark:text-gray-400 py-8">
+                ยังไม่มีแบบทดสอบที่สร้างเอง</p>
+        </div>
+        <button id="open-create-quiz-modal-btn"
+            class="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-bold text-lg flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            สร้างแบบทดสอบใหม่
+        </button>
+    </div>
+</div>
+
+<!-- Scenario Details Modal (for preview pages) -->
+<div id="scenario-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+    <div id="scenario-modal-content"
+        class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
+        <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
+        </h3>
+        <div id="scenario-modal-description"
+            class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
+        </div>
+        <button id="scenario-modal-close" data-modal-close aria-label="ปิด"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<!-- Data Inspector Modal (for preview-data page) -->
+<div id="data-inspector-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full anim-modal-pop-in flex flex-col">
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 font-kanit">
+                Data Inspector
+            </h3>
+            <button data-modal-close aria-label="ปิด"
+                class="p-2 -mt-2 -mr-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="bg-gray-100 dark:bg-gray-900 rounded-md max-h-[60vh] flex flex-col">
+            <textarea id="data-inspector-content"
+                class="w-full flex-grow bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none border-0 focus:ring-0 custom-scrollbar"
+                rows="15" spellcheck="false"></textarea>
+        </div>
+        <div id="data-inspector-feedback" class="text-xs h-4 mt-2" aria-live="polite"></div>
+        <div class="mt-4 flex justify-end gap-3">
+            <button id="data-inspector-copy-btn"
+                class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">คัดลอก</button>
+            <button id="data-inspector-save-btn"
+                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm font-bold">บันทึกการเปลี่ยนแปลง</button>
+        </div>
+    </div>
+</div>
+
+<!-- Developer Password Modal (for about page) -->
+<div id="dev-password-modal"
+    class="hidden fixed inset-0 z-[65] flex items-center justify-center bg-black bg-opacity-75" role="dialog"
+    aria-modal="true" aria-labelledby="dev-password-modal-title">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm m-4 p-6 text-left">
+        <div class="flex justify-between items-start mb-4">
+            <h3 id="dev-password-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                เข้าสู่เครื่องมือผู้พัฒนา</h3>
+            <button data-modal-close aria-label="ปิด"
+                class="-mt-2 -mr-2 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <form id="dev-password-form">
+            <label for="dev-password-input"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">กรุณาใส่รหัสผ่าน:</label>
+            <input type="password" id="dev-password-input" name="password"
+                class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required>
+            <p id="dev-password-error" class="text-red-500 text-sm mt-2 h-4"></p>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" data-modal-close
+                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">ยกเลิก</button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm font-bold">ยืนยัน</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resume Quiz Modal (for quiz page) -->
+<div id="resume-modal"
+    class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
+    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-sm w-full text-center"
+        role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+            <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+        </div>
+        <h3 id="modal-title" class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">พบข้อมูลที่บันทึกไว้</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">คุณต้องการทำแบบทดสอบต่อจากครั้งก่อนหรือไม่?</p>
+        <div class="flex flex-col sm:flex-row-reverse gap-3">
+            <button id="resume-confirm-btn"
+                class="w-full sm:w-auto flex-1 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                ทำต่อ
+            </button>
+            <button id="resume-reject-btn" data-modal-close
+                class="w-full sm:w-auto flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition duration-300">
+                เริ่มใหม่
+            </button>
+        </div>
+    </div>
+</div>

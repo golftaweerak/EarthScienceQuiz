@@ -254,59 +254,6 @@
 
         <div id="footer-placeholder" class="mt-12"></div>
     </div>
-
-    <!-- Scenario Details Modal -->
-    <div id="scenario-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div id="scenario-modal-content"
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
-            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
-            </h3>
-            <div id="scenario-modal-description"
-                class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
-            </div>
-            <button data-modal-close aria-label="ปิด"
-                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Data Inspector Modal -->
-    <div id="data-inspector-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun">
-        <div
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full anim-modal-pop-in flex flex-col">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 font-kanit">
-                    Data Inspector
-                </h3>
-                <button data-modal-close aria-label="ปิด"
-                    class="p-2 -mt-2 -mr-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div class="bg-gray-100 dark:bg-gray-900 rounded-md max-h-[60vh] flex flex-col">
-                <textarea id="data-inspector-content"
-                    class="w-full flex-grow bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none border-0 focus:ring-0 custom-scrollbar"
-                    rows="15" spellcheck="false"></textarea>
-            </div>
-            <div id="data-inspector-feedback" class="text-xs h-4 mt-2" aria-live="polite"></div>
-            <div class="mt-4 flex justify-end gap-3">
-                <button id="data-inspector-copy-btn"
-                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition text-sm font-bold">คัดลอก</button>
-                <button id="data-inspector-save-btn"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-sm font-bold">บันทึกการเปลี่ยนแปลง</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Scroll to Top Button -->
     <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
         class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
@@ -315,6 +262,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
         </svg>
     </button>
+    <!-- Placeholder for all common modals -->
+    <div id="modals-placeholder"></div>
+
     <!-- preview.js is a module and will import its own dependencies. -->
     <script src="./scripts/preview-data-loader.js" type="module"></script>
 </body>

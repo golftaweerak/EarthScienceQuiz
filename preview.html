@@ -93,26 +93,6 @@
         <div id="footer-placeholder" class="mt-12"></div>
     </div>
 
-    <!-- Scenario Details Modal -->
-    <div id="scenario-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div id="scenario-modal-content"
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
-            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
-            </h3>
-            <div id="scenario-modal-description"
-                class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
-            </div>
-            <button id="scenario-modal-close" data-modal-close aria-label="ปิด"
-                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    </div>
-
     <!-- Scroll to Top Button -->
     <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
         class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
@@ -122,32 +102,9 @@
         </svg>
     </button>
 
-    <!-- Completed Quiz Action Modal (Copied from index.html for menu functionality) -->
-    <div id="completed-quiz-modal"
-        class="hidden fixed inset-0 z-[55] flex items-center justify-center bg-black bg-opacity-75" role="dialog"
-        aria-modal="true" aria-labelledby="completed-modal-title">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
-            <div
-                class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
-                <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <h3 id="completed-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
-                ทำแบบทดสอบนี้เสร็จแล้ว</h3>
-            <p id="completed-modal-description" class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?
-            </p>
-            <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
-                <button id="completed-view-results-btn" class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-bold">ดูผลคะแนน</button>
-                <button id="completed-start-over-btn" class="w-full sm:w-auto order-2 sm:order-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-bold">เริ่มใหม่</button>
-                <button id="completed-cancel-btn" data-modal-close class="w-full sm:w-auto order-3 sm:order-3 mt-2 sm:mt-0 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-bold">ยกเลิก</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Placeholder for all common modals -->
+    <div id="modals-placeholder"></div>
+    
     <script src="./scripts/preview-loader.js" type="module"></script>
 </body>
 

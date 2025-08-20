@@ -53,7 +53,8 @@ async function main() {
     await Promise.all([
         loadComponent('#main_header-placeholder', './components/main_header.html'),
         loadComponent('#header-placeholder', './components/header.html'),
-        loadComponent('#footer-placeholder', './components/footer.html')
+        loadComponent('#footer-placeholder', './components/footer.html'),
+        loadComponent('#modals-placeholder', './components/modals_common.html'),
     ]);
 
     // Initialize common components like header, menu, etc.

@@ -12,6 +12,7 @@ async function initializeGlobal() {
         loadComponent('#main_header-placeholder', './components/main_header.html'),
         loadComponent('#header-placeholder', './components/header.html'), // This might not exist on all pages, but loadComponent handles it gracefully.
         loadComponent('#footer-placeholder', './components/footer.html'),
+        loadComponent('#modals-placeholder', './components/modals_common.html')
     ]);
 
     // Once components are loaded, initialize common scripts
