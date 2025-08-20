@@ -10,11 +10,19 @@ import { ModalHandler } from './modal-handler.js';
  * @param {string} icon - The SVG icon string.
  * @returns {HTMLElement} The created stat card element.
  */
-function createSummaryStatCard(label, value, icon) {
+function createSummaryStatCard(label, value, icon, theme = 'blue') {
+    const themeClasses = {
+        blue: { bg: "bg-blue-100 dark:bg-blue-900/40", text: "text-blue-600 dark:text-blue-400" },
+        green: { bg: "bg-green-100 dark:bg-green-900/40", text: "text-green-600 dark:text-green-400" },
+        yellow: { bg: "bg-yellow-100 dark:bg-yellow-900/40", text: "text-yellow-600 dark:text-yellow-500" },
+        purple: { bg: "bg-purple-100 dark:bg-purple-900/40", text: "text-purple-600 dark:text-purple-400" },
+    };
+    const classes = themeClasses[theme] || themeClasses.blue;
+
     const card = document.createElement('div');
     card.className = 'bg-white dark:bg-gray-800/50 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex items-center gap-4';
     card.innerHTML = `
-        <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+        <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center ${classes.bg} ${classes.text}">
             ${icon}
         </div>
         <div>
@@ -80,7 +88,8 @@ function renderStats(allDetailedProgress) {
     // --- 1. Calculate Overall Stats ---
     let totalAnswered = 0;
     let totalCorrect = 0;
-    const quizzesAttemptedCount = quizzesWithProgress.length;
+    const quizzesCompletedCount = quizzesWithProgress.filter(p => p.isFinished).length;
+    const quizzesInProgressCount = quizzesWithProgress.length - quizzesCompletedCount;
 
     quizzesWithProgress.forEach(quiz => {
         quiz.userAnswers.forEach(answer => {
@@ -97,13 +106,14 @@ function renderStats(allDetailedProgress) {
 
     // --- 2. Render Summary Section ---
     const summarySection = document.createElement('div');
-    summarySection.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+    summarySection.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
     summarySection.innerHTML = `
-        <h2 class="text-2xl font-bold font-kanit text-gray-800 dark:text-gray-100 sm:col-span-2 lg:col-span-3">ภาพรวม</h2>
+        <h2 class="text-2xl font-bold font-kanit text-gray-800 dark:text-gray-100 sm:col-span-2 lg:col-span-4">ภาพรวม</h2>
     `;
-    summarySection.appendChild(createSummaryStatCard('ทำไปแล้ว', `${quizzesAttemptedCount} ชุด`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>`));
-    summarySection.appendChild(createSummaryStatCard('คะแนนเฉลี่ย', `${averagePercentage}%`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>`));
-    summarySection.appendChild(createSummaryStatCard('ตอบถูกทั้งหมด', `${totalCorrect} ข้อ`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`));
+    summarySection.appendChild(createSummaryStatCard('กำลังทำ', `${quizzesInProgressCount} ชุด`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.586a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>`, 'yellow'));
+    summarySection.appendChild(createSummaryStatCard('ทำเสร็จแล้ว', `${quizzesCompletedCount} ชุด`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`, 'green'));
+    summarySection.appendChild(createSummaryStatCard('คะแนนเฉลี่ย', `${averagePercentage}%`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>`, 'blue'));
+    summarySection.appendChild(createSummaryStatCard('ตอบถูกทั้งหมด', `${totalCorrect} / ${totalAnswered} ข้อ`, `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`, 'purple'));
     container.appendChild(summarySection);
 
     // --- 3. Calculate and Render Category Stats ---
