@@ -33,13 +33,14 @@
  * Ensure images within question content are responsive.
  * This prevents large images from overflowing their container on smaller screens (mobile).
 */
+/* Target images on both the quiz page (#question) and the preview page (#preview-container) */
 #question img,
-/* Use a more specific selector for preview pages to override Tailwind utility classes */
-#preview-container .question-card img,
-#preview-container .prose img {
+#preview-container img {
     display: block; /* Ensure the image is a block element for proper sizing and margin */
-    max-width: 100%;
-    height: auto;
+    /* Use !important to override any inline Tailwind classes (e.g., max-w-md) from the data files */
+    max-width: 100% !important;
+    width: auto !important;
+    height: auto !important;
     margin-left: auto; /* Center the image within its container */
     margin-right: auto; /* Center the image within its container */
     margin-top: 0.75rem; /* my-3 */
