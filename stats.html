@@ -16,6 +16,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="./styles/bundle.css">
+    <!-- Add Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
@@ -40,7 +42,45 @@
             </div>
         </header>
 
-        <main id="stats-container" class="max-w-4xl mx-auto space-y-8 pb-8 sm:pb-12">
+        <!-- Main content area that will be shown after loading -->
+        <main id="stats-content" class="max-w-4xl mx-auto space-y-8 pb-8 sm:pb-12 opacity-0 transition-opacity duration-500">
+            <!-- Summary Cards Section -->
+            <section id="summary-cards-container"
+                class="space-y-4">
+                <h2 class="text-2xl font-bold font-kanit text-gray-800 dark:text-gray-100">ภาพรวม</h2>
+                <div id="summary-cards-grid" class="grid grid-cols-2 gap-4 sm:gap-6">
+                    <!-- Summary cards will be injected here by stats.js -->
+                </div>
+            </section>
+
+            <!-- Main Chart and Details Section -->
+            <section class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <!-- Overall Donut Chart -->
+                    <div class="text-center">
+                        <h2 class="text-xl font-bold font-kanit mb-4">ภาพรวมทั้งหมด</h2>
+                        <div class="relative h-60 w-60 sm:h-64 sm:w-64 mx-auto">
+                            <canvas id="overall-chart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Category & Sub-Category Scores List -->
+                    <div id="category-accordion-container" class="space-y-4">
+                        <!-- Category accordions will be injected here by stats.js -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Detailed List Section -->
+            <section class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-bold font-kanit mb-4">ประวัติการทำแบบทดสอบ</h2>
+                <div id="detailed-stats-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar-menu">
+                    <!-- Detailed list of completed quizzes will be injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Elements for loading and empty states -->
+        <div id="stats-container" class="max-w-4xl mx-auto">
             <!-- Stats content will be loaded here by stats-loader.js -->
             <div id="loading-spinner" class="text-center py-16 text-gray-500 dark:text-gray-400">
                 <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -52,7 +92,14 @@
                 </svg>
                 <p>กำลังโหลดข้อมูลสถิติ...</p>
             </div>
-        </main>
+            <div id="no-stats-message" class="hidden text-center py-16 text-gray-500 dark:text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-lg font-bold mb-2">ยังไม่มีข้อมูลสถิติ</p>
+                <p>เริ่มทำแบบทดสอบเพื่อดูสถิติของคุณที่นี่</p>
+            </div>
+        </div>
 
         <div id="footer-placeholder" class="mt-12"></div>
     </div>

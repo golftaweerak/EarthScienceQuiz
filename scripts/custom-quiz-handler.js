@@ -86,6 +86,7 @@ export function initializeCustomQuizHandler() {
     const confirmModalDescription = document.getElementById("confirm-modal-description");
     const confirmActionBtn = document.getElementById("confirm-action-btn");
     const confirmCancelBtn = document.getElementById("confirm-cancel-btn");
+    const confirmModalEl = document.getElementById("confirm-action-modal");
 
     const createCustomQuizBtn = document.getElementById("create-custom-quiz-btn");
     const customQuizStartBtn = document.getElementById("custom-quiz-start-btn");
@@ -184,6 +185,11 @@ export function initializeCustomQuizHandler() {
     function renderCustomQuizList() {
         const savedQuizzes = getSavedCustomQuizzes();
 
+        // Ensure the container is a grid for proper alignment and equal-height cards.
+        if (customQuizListContainer) {
+            customQuizListContainer.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
+        }
+
         noCustomQuizzesMsg.classList.toggle("hidden", savedQuizzes.length > 0);
         customQuizListContainer.innerHTML = "";
 
@@ -191,40 +197,55 @@ export function initializeCustomQuizHandler() {
             const progress = getQuizProgress(quiz.storageKey, quiz.questions.length);            
             const buttonText = progress.hasProgress ? "ทำต่อ" : "เริ่มทำ";
             const quizUrl = `./quiz/index.html?id=${quiz.customId}`;
-            const progressHtml = createCustomQuizProgressHTML(progress);
+
+            let footerHtml;
+            if (progress.hasProgress) {
+                const progressHtml = createCustomQuizProgressHTML(progress);
+                footerHtml = `
+                <div class="mt-auto pt-4 flex items-center gap-4">
+                    <a href="${quizUrl}" class="start-custom-quiz-btn flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition shadow-sm hover:shadow-md">${buttonText}</a>
+                    <div class="flex-grow min-w-0">
+                        ${progressHtml}
+                    </div>
+                </div>`;
+            } else {
+                footerHtml = `
+                <div class="mt-auto pt-4">
+                    <a href="${quizUrl}" class="start-custom-quiz-btn w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition shadow-sm hover:shadow-md">${buttonText}</a>
+                </div>`;
+            }
 
             const quizItemEl = document.createElement("div");
             quizItemEl.dataset.quizId = quiz.customId;
-            quizItemEl.className = "custom-quiz-item flex flex-col p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
+            quizItemEl.className = "custom-quiz-item flex flex-col h-full p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
             
             const iconUrl = quiz.icon || './assets/icons/dices.png';
             const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบที่สร้างเอง';
 
             quizItemEl.innerHTML = `
-                <div class="flex items-start gap-4">
-                    <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-2">
-                        <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
-                    </div>
-                    <div class="flex-grow min-w-0">
-                        <div data-title-display class="flex justify-between items-start">
-                            <p class="font-bold text-gray-800 dark:text-gray-100 truncate pr-2">${quiz.title}</p>
-                            <div data-view-controls class="flex items-center gap-1 flex-shrink-0">
-                                <button data-action="edit" aria-label="แก้ไขชื่อ" class="p-2 text-gray-500 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 dark:hover:text-yellow-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                                <button data-action="delete" aria-label="ลบแบบทดสอบ" class="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                <div class="flex-grow">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-2">
+                            <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div data-title-display class="flex justify-between items-start">
+                                <p class="font-bold text-gray-800 dark:text-gray-100 truncate pr-2">${quiz.title}</p>
+                                <div data-view-controls class="flex items-center gap-1 flex-shrink-0">
+                                    <button data-action="edit" aria-label="แก้ไขชื่อ" class="p-2 text-gray-500 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 dark:hover:text-yellow-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                                    <button data-action="delete" aria-label="ลบแบบทดสอบ" class="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
+                                </div>
                             </div>
+                            <div data-edit-controls class="hidden flex items-center gap-2 mt-1">
+                                 <button data-action="save" aria-label="บันทึก" class="p-2 text-gray-500 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/50 dark:hover:text-green-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
+                                 <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
+                            </div>
+                            <div data-edit-container class="hidden mt-1"></div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">${quiz.description}</p>
                         </div>
-                        <div data-edit-controls class="hidden flex items-center gap-2 mt-1">
-                             <button data-action="save" aria-label="บันทึก" class="p-2 text-gray-500 hover:bg-green-100 hover:text-green-600 dark:hover:bg-green-900/50 dark:hover:text-green-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg></button>
-                             <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
-                        </div>
-                        <div data-edit-container class="hidden mt-1"></div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">${quiz.description}</p>
                     </div>
                 </div>
-                <div class="mt-4 space-y-2">
-                    ${progressHtml}
-                    <a href="${quizUrl}" class="start-custom-quiz-btn w-full text-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-bold transition shadow-sm hover:shadow-md">${buttonText}</a>
-                </div>
+                ${footerHtml}
             `;
             customQuizListContainer.appendChild(quizItemEl);
         });
@@ -622,6 +643,9 @@ export function initializeCustomQuizHandler() {
                         if (confirmModalDescription) confirmModalDescription.textContent = 'คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบนี้? ข้อมูลความคืบหน้าทั้งหมดที่เกี่ยวข้องจะถูกลบไปด้วยและไม่สามารถย้อนกลับได้';
                         
                         onConfirmAction = () => deleteCustomQuiz(customId);
+                        // Use inline style for z-index to ensure it's applied over other modals.
+                        if (confirmModalEl) confirmModalEl.style.zIndex = '99';
+
                         confirmModal.open(actionButton);
                         break;
                     }
@@ -709,5 +733,17 @@ export function initializeCustomQuizHandler() {
         confirmCancelBtn.addEventListener('click', () => {
             onConfirmAction = null; // Clear action if user cancels
         });
+    }
+
+    // Robustly handle z-index for the confirmation modal.
+    // This ensures it appears above the hub modal, even when closed via backdrop/ESC.
+    if (confirmModalEl) {
+        const observer = new MutationObserver(() => {
+            // When the modal is hidden (closed), remove the inline z-index.
+            if (confirmModalEl.classList.contains('hidden')) {
+                confirmModalEl.style.zIndex = '';
+            }
+        });
+        observer.observe(confirmModalEl, { attributes: true, attributeFilter: ['class'] });
     }
 }

@@ -1,5 +1,6 @@
 
 import { init as initQuizApp } from './quiz-logic.js';
+import { getSavedCustomQuizzes } from './custom-quiz-handler.js';
 
 /**
  * Populates the common elements of the quiz page (titles, descriptions).
@@ -19,39 +20,39 @@ export async function initializeQuiz() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const quizId = urlParams.get('id');
+    const action = urlParams.get('action'); // Get the action from URL, e.g., 'view_results'
+
+    // If the action is to view results, immediately hide the start screen
+    // to prevent the "Start Quiz" button from flashing or appearing incorrectly.
+    if (action === 'view_results') {
+        const startScreen = document.getElementById('start-screen');
+        if (startScreen) {
+            startScreen.classList.add('hidden');
+        }
+    }
 
     // --- NEW: Handle Custom Quiz ---
     if (quizId && quizId.startsWith('custom_')) {
-        const allCustomQuizzesJSON = localStorage.getItem('customQuizzesList');
-        if (allCustomQuizzesJSON) {
-            try {
-                const allCustomQuizzes = JSON.parse(allCustomQuizzesJSON);
-                const customQuizData = allCustomQuizzes.find(q => q.customId === quizId);
+        const allCustomQuizzes = getSavedCustomQuizzes();
+        const customQuizData = allCustomQuizzes.find(q => q.customId === quizId);
 
-                if (!customQuizData) {
-                    handleQuizError("ไม่พบข้อมูลแบบทดสอบ", `ไม่พบข้อมูลแบบทดสอบที่สร้างเองสำหรับ ID: ${quizId}`);
-                    return;
-                }
-
-                populatePage(customQuizData.title, customQuizData.description);
-
-                // Hide the timer options and pre-select the chosen mode for the custom quiz
-                const timerOptions = document.getElementById('timer-options');
-                if (timerOptions) {
-                    timerOptions.classList.add('hidden');
-                    const selectedTimerInput = document.querySelector(`input[name="timer-mode"][value="${customQuizData.timerMode}"]`);
-                    if (selectedTimerInput) selectedTimerInput.checked = true;
-                }
-
-                initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, customQuizData.customTime);
-                return; // Stop further execution
-            } catch (error) {
-                handleQuizError("เกิดข้อผิดพลาด", "ไม่สามารถโหลดข้อมูลแบบทดสอบที่สร้างเองได้");
-                return;
-            }
+        if (!customQuizData) {
+            handleQuizError("ไม่พบข้อมูลแบบทดสอบ", `ไม่พบข้อมูลแบบทดสอบที่สร้างเองสำหรับ ID: ${quizId}`);
+            return;
         }
-        handleQuizError("ไม่พบข้อมูลแบบทดสอบ", "ไม่พบข้อมูลแบบทดสอบที่สร้างเอง กรุณากลับไปหน้าหลักแล้วลองใหม่อีกครั้ง");
-        return;
+
+        populatePage(customQuizData.title, customQuizData.description);
+
+        // Hide the timer options and pre-select the chosen mode for the custom quiz
+        const timerOptions = document.getElementById('timer-options');
+        if (timerOptions) {
+            timerOptions.classList.add('hidden');
+            const selectedTimerInput = document.querySelector(`input[name="timer-mode"][value="${customQuizData.timerMode}"]`);
+            if (selectedTimerInput) selectedTimerInput.checked = true;
+        }
+
+        initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, customQuizData.customTime, action);
+        return; // Stop further execution
     }
 
     if (!quizId) {
@@ -128,7 +129,7 @@ export async function initializeQuiz() {
         }
 
         // 6. Initialize the quiz logic with the processed data
-        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title);
+        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, null, action);
 
     } catch (error) {
         console.error(`Error loading quiz data for ID ${quizId}:`, error);

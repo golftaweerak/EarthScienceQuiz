@@ -53,17 +53,19 @@ export function initializePage() {
   const confirmModalDesc = document.getElementById("confirm-modal-description");
 
   // State variables to hold context for the active modal.
-  let activeQuizUrl = ""; // To store the quiz URL for the 'completed' modal actions.
-  let activeStorageKey = ""; // To store the storage key for the modal actions
-  let confirmCallback = null; // To store the action to perform on confirmation
+  const pageState = {
+    activeQuizUrl: "", // To store the quiz URL for the 'completed' modal actions.
+    activeStorageKey: "", // To store the storage key for the modal actions
+    confirmCallback: null, // To store the action to perform on confirmation
+  };
 
   /**
    * Creates the HTML for the progress bar section of a quiz card.
    * @param {object} progress - The progress object from getQuizProgress.
-   * @param {string} storageKey - The localStorage key for the quiz.
+   * @param {object} quiz - The full quiz object.
    * @returns {string} The HTML string for the progress section.
    */
-  function createProgressHTML(progress, storageKey) {
+  function createProgressHTML(progress, quiz) {
     // The progress object now contains totalQuestions, answeredCount, etc. from data-manager
     if (!progress.totalQuestions || progress.totalQuestions <= 0) return "";
 
@@ -87,16 +89,9 @@ export function initializePage() {
     }
 
     const actions = [];
-    if (progress.isFinished) {
-      actions.push(`
-        <a href="./stats.html" class="text-xs text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 transition-colors duration-200 inline-flex items-center font-medium">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" /></svg>
-            ดูสถิติ
-        </a>`);
-    }
     if (progress.hasProgress) {
       actions.push(`
-            <button data-storage-key="${storageKey}" class="reset-progress-btn text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
+            <button data-storage-key="${quiz.storageKey}" class="reset-progress-btn text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                 ล้างข้อมูล
             </button>`);
@@ -127,10 +122,10 @@ export function initializePage() {
     card.dataset.storageKey = quiz.storageKey;
     card.dataset.totalQuestions = totalQuestions;
 
-    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 fade-in-up ${borderColorClass} ${cardGlowClass}`;
+    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
     card.style.animationDelay = `${index * 50}ms`; // Slightly faster animation
     const progress = getQuizProgress(quiz.storageKey, totalQuestions);
-    const progressHTML = createProgressHTML(progress, quiz.storageKey);
+    const progressHTML = createProgressHTML(progress, quiz);
 
     card.innerHTML = `
       <div class="flex-grow flex items-start gap-4">
@@ -212,17 +207,14 @@ export function initializePage() {
 
   // --- Main Rendering Logic ---
 
-  // Display total quiz count below the header
-  const headerPlaceholder = document.getElementById("header-placeholder");
-  if (headerPlaceholder) {
+  // Display total quiz count in the new header for the list
+  const quizListHeader = document.getElementById("quiz-list-header");
+  const quizCountDisplay = document.getElementById("quiz-count-display");
+  if (quizListHeader && quizCountDisplay) {
     const totalQuizCount = quizList.filter((q) => q).length; // Filter for safety
     if (totalQuizCount > 0) {
-      const countElement = document.createElement("div");
-      // Use the same max-width and margin as the main container for alignment
-      countElement.className =
-        "max-w-4xl mx-auto text-center text-gray-500 dark:text-gray-400 mb-8 -mt-4 font-kanit";
-      countElement.innerHTML = `<p>แบบทดสอบทั้งหมด <span class="font-bold text-teal-600 dark:text-teal-400">${totalQuizCount}</span> ชุด</p>`;
-      headerPlaceholder.after(countElement);
+      quizCountDisplay.innerHTML = `แบบทดสอบทั้งหมด <span class="text-base font-bold text-teal-600 dark:text-teal-400 ml-2">${totalQuizCount} ชุด</span>`;
+      quizListHeader.classList.remove('hidden');
     }
   }
   // 1. Group quizzes by category
@@ -289,13 +281,14 @@ export function initializePage() {
     event.stopPropagation();
     const key = resetButton.dataset.storageKey;
     const totalQuestions = parseInt(card.dataset.totalQuestions, 10);
+    const quiz = quizList.find(q => q.storageKey === key);
 
     const onConfirm = () => {
       localStorage.removeItem(key);
       const progressWrapper = card.querySelector(".progress-footer-wrapper");
       if (!progressWrapper) return;
       const newProgress = getQuizProgress(key, totalQuestions);
-      const newProgressHTML = createProgressHTML(newProgress, key);
+      const newProgressHTML = createProgressHTML(newProgress, quiz);
       progressWrapper.style.transition = "opacity 0.2s ease-out";
       progressWrapper.style.opacity = "0";
       setTimeout(() => {
@@ -334,7 +327,7 @@ export function initializePage() {
   function showConfirmModal(title, description, onConfirm, triggerElement) {
     if (confirmModalTitle) confirmModalTitle.textContent = title;
     if (confirmModalDesc) confirmModalDesc.innerHTML = description;
-    confirmCallback = onConfirm;
+    pageState.confirmCallback = onConfirm;
     confirmModal.open(triggerElement);
   }
 
@@ -359,8 +352,8 @@ export function initializePage() {
 
       if (currentProgress.isFinished) {
         event.preventDefault();
-        activeQuizUrl = card.href;
-        activeStorageKey = storageKey;
+        pageState.activeQuizUrl = card.href;
+        pageState.activeStorageKey = storageKey;
         completedModal.open(card);
       }
     });
@@ -369,28 +362,28 @@ export function initializePage() {
   // This single listener handles all confirmation actions for the generic modal.
   if (confirmActionBtn) {
     confirmActionBtn.addEventListener("click", () => {
-      if (typeof confirmCallback === "function") {
-        confirmCallback();
+      if (typeof pageState.confirmCallback === "function") {
+        pageState.confirmCallback();
       }
       confirmModal.close();
-      confirmCallback = null; // Clean up callback after use.
+      pageState.confirmCallback = null; // Clean up callback after use.
     });
   }
 
   // --- Completed Quiz Modal Actions ---
   if (viewResultsBtn) {
     viewResultsBtn.addEventListener("click", () => {
-      if (activeQuizUrl) {
-        const separator = activeQuizUrl.includes("?") ? "&" : "?";
-        window.location.href = `${activeQuizUrl}${separator}action=view_results`;
+      if (pageState.activeQuizUrl) {
+        const separator = pageState.activeQuizUrl.includes("?") ? "&" : "?";
+        window.location.href = `${pageState.activeQuizUrl}${separator}action=view_results`;
       }
       completedModal.close();
     });
   }
   if (startOverBtn) {
     startOverBtn.addEventListener("click", () => {
-      if (activeStorageKey) localStorage.removeItem(activeStorageKey);
-      if (activeQuizUrl) window.location.href = activeQuizUrl;
+      if (pageState.activeStorageKey) localStorage.removeItem(pageState.activeStorageKey);
+      if (pageState.activeQuizUrl) window.location.href = pageState.activeQuizUrl;
       completedModal.close();
     });
   }
