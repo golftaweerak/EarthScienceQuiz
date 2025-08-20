@@ -1,59 +1,30 @@
-.option-btn {
-    transition: all 0.3s ease;
+/* Custom styles for the quiz page */
+
+/* 
+ * Apply Thai-style word wrapping to key text elements on the quiz page.
+ * - `word-break: keep-all;` prevents words from breaking in the middle.
+ * - `overflow-wrap: break-word;` allows long, unbreakable strings to wrap if they would overflow.
+*/
+#question, .option-btn, #feedback, #review-container {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    /* text-align: justify; */
+    line-height: 1.75; /* เพิ่มระยะห่างระหว่างบรรทัดเพื่อให้อ่านง่ายขึ้น */
 }
 
-.correct {
-    background-color: #22c55e !important;
-    color: white !important;
-    border-color: #16a34a !important;
+/* 
+ * Apply the same Thai justification to the preview pages (preview.html, preview-data.html)
+ * which use the .question-card and .prose classes for content.
+*/
+.question-card,
+.prose {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    /* text-align: justify; */
+    line-height: 1.75; /* เพิ่มระยะห่างระหว่างบรรทัดเพื่อให้อ่านง่ายขึ้น */
 }
 
-.incorrect {
-    background-color: #ef4444 !important;
-    color: white !important;
-    border-color: #dc2626 !important;
+.question-card h2,
+.question-card .font-semibold {
+    text-align: left; /* Reset alignment for headers and choice numerals */
 }
-
-.feedback-content {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-/* --- Custom Scrollbars --- */
-/* For Webkit browsers like Chrome, Safari */
-.feedback-content::-webkit-scrollbar,
-#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.feedback-content::-webkit-scrollbar-track,
-#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.feedback-content::-webkit-scrollbar-thumb,
-#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: #d1d5db; /* gray-300 */
-  border-radius: 20px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-.feedback-content::-webkit-scrollbar-thumb:hover,
-#quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #9ca3af; /* gray-400 */
-}
-
-.dark .feedback-content::-webkit-scrollbar-thumb,
-.dark #quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: #4b5563; /* gray-600 */
-}
-
-.dark .feedback-content::-webkit-scrollbar-thumb:hover,
-.dark #quiz-menu-dropdown .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background-color: #374151; /* gray-700 */
-}
-
-/* For Firefox */
-.feedback-content, #quiz-menu-dropdown .overflow-y-auto { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
-.dark .feedback-content, .dark #quiz-menu-dropdown .overflow-y-auto { scrollbar-color: #4b5563 transparent; }
