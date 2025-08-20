@@ -401,12 +401,21 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     // Calculate score by subcategory
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
       if (!answer) return acc;
-      const category = answer.subCategory || 'ไม่มีหมวดหมู่';
-      if (!acc[category]) {
-          acc[category] = { correct: 0, total: 0 };
+      // Handle both string and object formats for subCategory to get a displayable name.
+      let categoryName = 'ไม่มีหมวดหมู่';
+      if (typeof answer.subCategory === 'object' && answer.subCategory.specific) {
+          // If it's an object like { main: '...', specific: '...' }, use the specific name.
+          categoryName = answer.subCategory.specific;
+      } else if (typeof answer.subCategory === 'string') {
+          // If it's just a string, use it directly.
+          categoryName = answer.subCategory;
       }
-      acc[category].total++;
-      if (answer.isCorrect) acc[category].correct++;
+
+      if (!acc[categoryName]) {
+          acc[categoryName] = { correct: 0, total: 0 };
+      }
+      acc[categoryName].total++;
+      if (answer.isCorrect) acc[categoryName].correct++;
       return acc;
     }, {});
 

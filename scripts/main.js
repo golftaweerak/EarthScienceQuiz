@@ -213,7 +213,7 @@ export function initializePage() {
   if (quizListHeader && quizCountDisplay) {
     const totalQuizCount = quizList.filter((q) => q).length; // Filter for safety
     if (totalQuizCount > 0) {
-      quizCountDisplay.innerHTML = `แบบทดสอบทั้งหมด <span class="text-base font-bold text-teal-600 dark:text-teal-400 ml-2">${totalQuizCount} ชุด</span>`;
+      quizCountDisplay.innerHTML = `<span class="text-base text-xs font-bold">แบบทดสอบทั้งหมด</span> <span class="text-base text-xs font-bold text-teal-600 dark:text-teal-400 ml-2">${totalQuizCount} ชุด</span>`;
       quizListHeader.classList.remove('hidden');
     }
   }
