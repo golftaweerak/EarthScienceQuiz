@@ -34,8 +34,9 @@
  * This prevents large images from overflowing their container on smaller screens (mobile).
 */
 #question img,
-.question-card img,
-.prose img { /* Target images inside scenario descriptions as well */
+/* Use a more specific selector for preview pages to override Tailwind utility classes */
+#preview-container .question-card img,
+#preview-container .prose img {
     display: block; /* Ensure the image is a block element for proper sizing and margin */
     max-width: 100%;
     height: auto;
