@@ -15,21 +15,6 @@ const CONFIG = {
     DEFAULT_ZOOM: 100,
 };
 
-/**
- * Corrects image paths for the preview pages.
- * Data files assume a path relative to the '/quiz/' directory (e.g., '../assets/images/foo.png').
- * This function adjusts them to be relative to the root (e.g., './assets/images/foo.png').
- * @param {string} htmlString The HTML content to process.
- * @returns {string} The HTML content with corrected image paths.
- */
-function correctImagePaths(htmlString) {
-    if (!htmlString) return '';
-    // This regex finds src attributes (with single or double quotes) that start with ../
-    // and replaces them to be relative to the root.
-    // The (["']) part captures the quote character, and $1 in the replacement string re-inserts it.
-    return htmlString.replace(/src=(["'])\.\.\//g, 'src=$1./');
-}
-
 let currentQuizData = []; // Store the full data for the selected quiz to be rendered
 
 // Helper function to highlight keywords in a text
@@ -343,6 +328,16 @@ function renderQuizData() {
             }
         });
 
+        // --- Final DOM adjustments ---
+        // Correct image paths by iterating through the newly added DOM elements.
+        // This is more robust than string replacement on raw HTML, ensuring all images
+        // from questions, explanations, and scenarios are handled correctly.
+        container.querySelectorAll('img[src^="../"]').forEach(img => {
+            const currentSrc = img.getAttribute('src');
+            // Change '../' to './' to make it relative to the root for preview.html
+            img.src = currentSrc.replace('../', './');
+        });
+
         // --- Populate the jump-to-question dropdown AFTER rendering ---
         if (questionJumper && filteredData.length > 0) {
             questionJumper.innerHTML = '<option value="">-- ไปที่ข้อ --</option>'; // Add a default option
@@ -413,12 +408,22 @@ svg" fill="none" viewBox="0 0 24 24">
                             </div>`;
     try {
         // Use the centralized data manager to fetch all questions
-        const { allQuestions } = await fetchAllQuizData();
+        const { allQuestions, scenarios } = await fetchAllQuizData();
         if (countContainer) {
             countContainer.innerHTML = `กำลังค้นหาจากข้อสอบทั้งหมด <span class="font-bold">${allQuestions.length}</span> ข้อ...`;
         }
-        // Correct image paths for global search results
-        currentQuizData = allQuestions.map(item => ({...item, question: correctImagePaths(item.question), explanation: correctImagePaths(item.explanation), scenarioDescription: correctImagePaths(item.scenarioDescription)}));
+
+        // Add scenario info back to each question item for easier rendering
+        const allDataWithScenarios = allQuestions.map(item => {
+            if (item.scenarioId && scenarios.has(item.scenarioId)) {
+                const scenario = scenarios.get(item.scenarioId);
+                return { ...item, scenarioTitle: scenario.title, scenarioDescription: scenario.description };
+            }
+            return item;
+        });
+
+        // Use the data with scenarios directly. Path correction will happen after rendering.
+        currentQuizData = allDataWithScenarios;
         renderQuizData(); // renderQuizData will use the keyword from the input to filter
     } catch (error) {
         console.error("Global search failed:", error);
@@ -576,16 +581,29 @@ export function initializePreviewPage() {
 
         try {            
             // Use the centralized data manager to fetch all questions
-            const { allQuestions } = await fetchAllQuizData();
+            const { allQuestions, scenarios } = await fetchAllQuizData();
             const quizId = scriptName.replace('-data.js', '');
             const quizInfo = quizList.find(q => q.id === quizId);
-            const quizTitle = quizInfo.title;
+            const quizTitle = quizInfo?.title; // Use optional chaining for safety
+
+            if (!quizTitle) {
+                throw new Error(`Quiz info not found for ID: ${quizId}`);
+            }
 
             // Filter the questions for the selected quiz
             const flattenedData = allQuestions.filter(q => q.sourceQuizTitle === quizTitle);
             
-            // Correct image paths for the selected quiz data
-            currentQuizData = flattenedData.map(item => ({...item, question: correctImagePaths(item.question), explanation: correctImagePaths(item.explanation), scenarioDescription: correctImagePaths(item.scenarioDescription)}));
+            // Add scenario info back to each question item for easier rendering
+            const dataWithScenarios = flattenedData.map(item => {
+                if (item.scenarioId && scenarios.has(item.scenarioId)) {
+                    const scenario = scenarios.get(item.scenarioId);
+                    return { ...item, scenarioTitle: scenario.title, scenarioDescription: scenario.description };
+                }
+                return item;
+            });
+
+            // Use the data with scenarios directly. Path correction will happen after rendering.
+            currentQuizData = dataWithScenarios;
             renderQuizData();
         } catch (error) {
             console.error(`Failed to load or render quiz ${scriptName}:`, error);

@@ -863,21 +863,21 @@ export function init(quizData, storageKey, quizTitle, customTime) {
         reviewItem.innerHTML = `
             <div class="flex items-start gap-4">
                 <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${index + 1}</span>
-                <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200">${questionHtml}${tagsHtml}</div>
+                <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200 min-w-0 break-words">${questionHtml}${tagsHtml}</div>
             </div>
             <div class="mt-4 space-y-3">
                 <div class="flex items-start gap-3 p-3 rounded-md bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700/60">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
                     <div>
                         <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
-                        <p class="text-red-700 dark:text-red-400 font-mono">${answer.selectedAnswer || ""}</p>
+                        <p class="text-red-700 dark:text-red-400 font-mono break-words whitespace-pre-wrap">${answer.selectedAnswer || ""}</p>
                     </div>
                 </div>
                 <div class="flex items-start gap-3 p-3 rounded-md bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
                     <div>
                         <p class="text-sm font-medium text-green-800 dark:text-green-300">คำตอบที่ถูกต้อง</p>
-                        <p class="text-green-700 dark:text-green-400 font-mono">${answer.correctAnswer || ""}</p>
+                        <p class="text-green-700 dark:text-green-400 font-mono break-words whitespace-pre-wrap">${answer.correctAnswer || ""}</p>
                     </div>
                 </div>
             </div>
@@ -887,7 +887,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-blue-500 dark:text-blue-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" /></svg>
                     <div>
                         <p class="text-sm font-medium text-blue-800 dark:text-blue-300">คำอธิบาย</p>
-                        <p class="text-gray-600 dark:text-gray-400 mt-1">${explanationHtml}</p>
+                        <p class="text-gray-600 dark:text-gray-400 mt-1 break-words">${explanationHtml}</p>
                     </div>
                 </div>
             </div>` : ""}

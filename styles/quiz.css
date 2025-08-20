@@ -35,7 +35,8 @@
 */
 /* Target images on both the quiz page (#question) and the preview page (#preview-container) */
 #question img,
-#preview-container img {
+#preview-container img,
+#review-container img { /* Add review container for responsive images on the review screen */
     display: block; /* Ensure the image is a block element for proper sizing and margin */
     /* Use !important to override any inline Tailwind classes (e.g., max-w-md) from the data files */
     max-width: 100% !important;

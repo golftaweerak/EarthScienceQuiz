@@ -40,6 +40,43 @@ async function main() {
         fixComponentPathsForSubdirectory('footer-placeholder');
     }
 
+    // --- SETUP AUTOMATIC MATH RENDERING FOR DYNAMIC CONTENT ---
+    // The quiz question and feedback explanation are loaded dynamically. We use
+    // MutationObservers to automatically render KaTeX whenever new content is added,
+    // ensuring that math equations display correctly even when shown after a timeout.
+    const setupMathObserver = (elementId) => {
+        const targetNode = document.getElementById(elementId);
+        // Exit if the target element or the KaTeX renderer isn't available.
+        if (!targetNode || !window.renderMathInElement) return;
+
+        const renderMath = () => {
+            try {
+                // Call the KaTeX auto-render function on the target element.
+                window.renderMathInElement(targetNode, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\(', right: '\\)', display: false},
+                        {left: '\\[', right: '\\]', display: true}
+                    ],
+                    // Don't throw an error on parsing failure, just log it.
+                    throwOnError: false
+                });
+            } catch (error) {
+                console.error(`KaTeX rendering failed for #${elementId}:`, error);
+            }
+        };
+
+        // Create an observer that calls renderMath whenever the element's content changes.
+        const observer = new MutationObserver(renderMath);
+
+        // Start observing the target node for additions/removals of child nodes.
+        observer.observe(targetNode, { childList: true, subtree: true });
+    };
+
+    setupMathObserver('question'); // For the question text itself
+    setupMathObserver('feedback'); // For the explanation text in the feedback box
+
     // Initialize the core quiz functionality.
     // This function will handle loading data and setting up the quiz logic.
     initializeQuiz();
