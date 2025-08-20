@@ -144,14 +144,11 @@ export async function fetchAllQuizData() {
     const validQuizList = quizList.filter(quiz => quiz);
     const promises = validQuizList.map(async (quiz) => {
         // Add a cache-busting query parameter to ensure the latest data is always fetched.
-        const scriptPath = `./data/${quiz.id}-data.js?v=${Date.now()}`;
+        const scriptPath = `../data/${quiz.id}-data.js?v=${Date.now()}`;
         try {
-            const response = await fetch(scriptPath);
-            if (!response.ok) return [];
-            const scriptText = await response.text();
-            // This sandboxed function execution needs to be consistent with quiz-loader.js
-            // It checks for the modern `quizItems`, then the legacy `quizScenarios`, then the oldest `quizData`.
-            const data = new Function(`${scriptText}; if (typeof quizItems !== 'undefined') return quizItems; if (typeof quizScenarios !== 'undefined') return quizScenarios; if (typeof quizData !== 'undefined') return quizData; return undefined;`)();
+            const module = await import(scriptPath);
+            // Handle modern `quizItems`, legacy `quizScenarios`, and oldest `quizData` for compatibility.
+            const data = module.quizItems || module.quizScenarios || module.quizData || [];
 
             if (!data || !Array.isArray(data)) return [];
 
@@ -166,13 +163,15 @@ export async function fetchAllQuizData() {
                     }
                     // Filter out null/undefined questions within the scenario before mapping
                     return item.questions.filter(q => q).map((q) => ({ 
-                        ...q, 
-                        subCategory: q.subCategory || item.subCategory,
+                        ...q,
+                        // Use the question's subCategory, fall back to the scenario's, then to the quiz's main category.
+                        subCategory: q.subCategory || item.subCategory || quiz.category,
                         sourceQuizTitle: quiz.title, // Add source quiz title
                         scenarioId: scenarioId // Link question back to its scenario
                     }));
                 }
-                return { ...item, subCategory: item.subCategory, sourceQuizTitle: quiz.title };
+                // For standalone questions, use its subCategory or fall back to the quiz's main category.
+                return { ...item, subCategory: item.subCategory || quiz.category, sourceQuizTitle: quiz.title };
             });
         } catch (error) {
             console.error(`Error fetching or processing ${scriptPath}:`, error);

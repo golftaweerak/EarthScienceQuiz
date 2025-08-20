@@ -323,8 +323,8 @@ export function initializeCustomQuizHandler() {
                     console.warn(`Details not found for custom quiz category: ${categoryKey}`);
                     return ''; // Skip this category if details are missing
                 }
-                // Use title for a cleaner, Thai-only display in the UI.
-                const displayName = details.title;
+                // Use title for a cleaner, Thai-only display, but fall back to displayName.
+                const displayName = details.title || details.displayName;
                 const maxCount = byCategory[categoryKey]?.length || 0;
                 return createCategoryControlHTML(categoryKey, displayName, details.icon, maxCount);
             }).join('');
@@ -415,8 +415,8 @@ export function initializeCustomQuizHandler() {
             .filter(([, count]) => count > 0) // Filter out categories with 0 questions
             .map(([key, count]) => {
                 const details = allCategoryDetails[key];
-                // Use title for a cleaner, Thai-only display in the description.
-                const title = details?.title || key;
+                // Use title for a cleaner, Thai-only display, but fall back to displayName.
+                const title = details?.title || details?.displayName || key;
                 return `${title}: ${count} ข้อ`;
             });
 
