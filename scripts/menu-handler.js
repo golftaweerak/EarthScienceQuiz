@@ -25,6 +25,8 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
     let progressHtml = '';
     let activeClass = '';
     let titlePrefix = '';
+    let titleFontClass = 'font-medium';
+    let iconContainerExtraClass = ''; // New variable for extra classes
 
     if (progress.isFinished) {
         progressHtml = `
@@ -41,17 +43,20 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
     // Check if this is the currently active quiz
     if (quizId === currentQuizId) {
         activeClass = 'bg-blue-100 dark:bg-blue-900/50';
-        titlePrefix = '<span class="text-blue-500 mr-2" aria-hidden="true">▶️</span>';
+        titlePrefix = '<span class="inline-block h-2 w-2 mr-2 bg-blue-500 rounded-full" aria-hidden="true"></span>';
+        titleFontClass = 'font-bold';
+        // Add classes for glow and scale
+        iconContainerExtraClass = 'scale-110 shadow-lg shadow-blue-500/40';
     }
 
     return `
         <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md ${activeClass}">
             <div class="flex items-start gap-3">
-                <div class="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white dark:bg-gray-200 p-1 mt-0.5">
+                <div class="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white dark:bg-gray-200 p-1 mt-0.5 transition-all duration-300 ${iconContainerExtraClass}">
                     <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                 </div>
                 <div class="flex-grow min-w-0">
-                    <span class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">${titlePrefix}${quiz.title}</span>
+                    <span class="${titleFontClass} whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">${titlePrefix}${quiz.title}</span>
                     ${progressHtml}
                 </div>
             </div>
@@ -169,11 +174,11 @@ export function initializeMenu() {
     }
 
   // 4. Always add the stats link at the end
-  menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
-  menuHTML += `
-      <a href="./stats.html" class="group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
-          <div class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">📊 ดูสถิติทั้งหมด</div>
-      </a>`;
+ // menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
+  //menuHTML += `
+  //    <a href="./stats.html" class="group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+  //        <div class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">📊 ดูสถิติทั้งหมด</div>
+   //   </a>`; 
 
     menuQuizListContainer.innerHTML = menuHTML;
 
