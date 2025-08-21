@@ -257,6 +257,8 @@ function renderOverallChart(summary) {
  * Renders the category and sub-category performance as a series of accordions.
  * @param {object} groupedData - Data from calculateGroupedCategoryPerformance.
  */
+let isAccordionListenerAttached = false;
+
 function renderCategoryAccordions(groupedData) {
     const container = document.getElementById("category-accordion-container");
     if (!container) return;
@@ -338,18 +340,21 @@ function renderCategoryAccordions(groupedData) {
         container.appendChild(accordion);
     });
 
-    // Add event listeners for the new accordions
-    container.addEventListener('click', (e) => {
-        const toggle = e.target.closest('.category-accordion-toggle');
-        if (!toggle) return;
+    // Add event listener for the accordions, but only once.
+    if (!isAccordionListenerAttached && sortedMainCategories.length > 0) {
+        container.addEventListener('click', (e) => {
+            const toggle = e.target.closest('.category-accordion-toggle');
+            if (!toggle) return;
 
-        const content = toggle.nextElementSibling;
-        const icon = toggle.querySelector('.chevron-icon');
-        const isOpen = content.classList.contains('grid-rows-[1fr]');
-        content.classList.toggle('grid-rows-[1fr]', !isOpen);
-        content.classList.toggle('grid-rows-[0fr]', isOpen);
-        icon.classList.toggle('rotate-180', !isOpen);
-    });
+            const content = toggle.nextElementSibling;
+            const icon = toggle.querySelector('.chevron-icon');
+            const isOpen = content.classList.contains('grid-rows-[1fr]');
+            content.classList.toggle('grid-rows-[1fr]', !isOpen);
+            content.classList.toggle('grid-rows-[0fr]', isOpen);
+            icon.classList.toggle('rotate-180', !isOpen);
+        });
+        isAccordionListenerAttached = true;
+    }
 }
 /**
  * Renders the detailed list of completed quizzes.
