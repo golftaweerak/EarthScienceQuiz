@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- marked for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        code { font-family: 'Fira Code', 'Courier New', monospace; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-4 sm:p-8">
+
+    <div class="max-w-5xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+        <h1 class="text-3xl font-bold mb-6 text-center">Quiz Generator</h1>
+
+        <!-- 1. Quiz Metadata -->
+        <fieldset class="border p-4 rounded-lg mb-6">
+            <legend class="text-xl font-semibold px-2">ข้อมูลชุดข้อสอบ</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="quiz-id" class="block text-sm font-medium">Quiz ID (e.g., posn-astro-2566)</label>
+                    <input type="text" id="quiz-id" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                    <p id="quiz-id-validation" class="text-sm mt-1 h-5"></p>
+                </div>
+                <div>
+                    <label for="quiz-title" class="block text-sm font-medium">Quiz Title</label>
+                    <input type="text" id="quiz-title" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                </div>
+                <div>
+                    <label for="quiz-category" class="block text-sm font-medium">Main Category</label>
+                    <select id="quiz-category" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm"></select>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- AI Generation -->
+        <fieldset class="border p-4 rounded-lg mb-6">
+            <legend class="text-xl font-semibold px-2">AI-Powered Generation (Gemini)</legend>
+            <div class="space-y-4">
+                <div>
+                    <label for="gemini-api-key" class="block text-sm font-medium">Your Gemini API Key</label>
+                    <input type="password" id="gemini-api-key" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm" placeholder="Enter your API key here">
+                </div>
+                <div>
+                    <label for="ai-topic" class="block text-sm font-medium">หัวข้อหรือเนื้อหาสำหรับสร้างคำถาม</label>
+                    <textarea id="ai-topic" rows="3" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm" placeholder="เช่น: การเกิดและวิวัฒนาการของดาวฤกษ์, โครงสร้างของโลก, การเกิดเมฆ"></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="ai-num-questions" class="block text-sm font-medium">จำนวนคำถามที่ต้องการ</label>
+                        <input type="number" id="ai-num-questions" value="5" min="1" max="20" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                    </div>
+                    <div>
+                        <label for="ai-subcategory" class="block text-sm font-medium">กำหนดหมวดหมู่ย่อย</label>
+                        <select id="ai-subcategory" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm" disabled>
+                            <option>กรุณาเลือก Main Category ก่อน</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="ai-generate-btn" class="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    <span>Generate with AI</span>
+                </button>
+            </div>
+        </fieldset>
+
+        <!-- 2. Question Form (Simplified) -->
+        <div class="border rounded-lg mb-6 bg-white dark:bg-gray-800 shadow-sm">
+            <div id="question-form-toggle" class="flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-t-lg">
+                <h2 class="text-xl font-semibold">เพิ่มคำถามใหม่</h2>
+                <svg id="question-form-chevron" class="h-6 w-6 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+            <div id="question-form-content" class="grid grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-in-out">
+                <div class="overflow-hidden p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="space-y-4" id="question-form">
+                        <div>
+                            <label for="question-text" class="block text-sm font-medium">คำถาม</label>
+                            <textarea id="question-text" rows="3" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="option-a" class="block text-sm font-medium">ตัวเลือก A</label>
+                                <input type="text" id="option-a" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                            </div>
+                            <div>
+                                <label for="option-b" class="block text-sm font-medium">ตัวเลือก B</label>
+                                <input type="text" id="option-b" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                            </div>
+                            <div>
+                                <label for="option-c" class="block text-sm font-medium">ตัวเลือก C</label>
+                                <input type="text" id="option-c" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                            </div>
+                            <div>
+                                <label for="option-d" class="block text-sm font-medium">ตัวเลือก D</label>
+                                <input type="text" id="option-d" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="correct-answer" class="block text-sm font-medium">คำตอบที่ถูกต้อง</label>
+                                <select id="correct-answer" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm">
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="question-subcategory" class="block text-sm font-medium">Sub-category</label>
+                                <select id="question-subcategory" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm" disabled>
+                                    <option>กรุณาเลือก Main Category ก่อน</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="question-explanation" class="block text-sm font-medium">คำอธิบาย (รองรับ Markdown และ LaTeX)</label>
+                            <textarea id="question-explanation" rows="3" class="mt-1 block w-full rounded-md bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm"></textarea>
+                        </div>
+                        <button id="add-question-btn" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Add Question</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- List of Added Questions -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold mb-2">คำถามที่เพิ่มแล้ว (<span id="added-questions-count">0</span>)</h2>
+            <div id="added-questions-list" class="space-y-2">
+                <p class="text-gray-500">ยังไม่มีคำถามที่เพิ่ม</p>
+            </div>
+        </div>
+
+        <!-- 3. Generate Button & Output -->
+        <div class="mt-6 border-t dark:border-gray-700 pt-6">
+            <div class="flex flex-wrap items-center gap-4 mb-6">
+                <button id="undo-btn" class="px-4 py-3 bg-gray-500 text-white font-bold rounded-md hover:bg-gray-600 transition text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>ย้อนกลับ</button>
+                <button id="redo-btn" class="px-4 py-3 bg-gray-500 text-white font-bold rounded-md hover:bg-gray-600 transition text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>ทำซ้ำ</button>
+                <button id="generate-btn" class="w-full sm:flex-grow px-6 py-3 bg-green-600 text-white font-bold rounded-md hover:bg-green-700 transition text-lg">Generate Quiz File</button>
+                <button id="clear-form-btn" class="w-full sm:w-auto px-4 py-3 bg-red-600 text-white font-bold rounded-md hover:bg-red-700 transition text-lg">Clear All Data</button>
+            </div>
+            <div>
+                <h3 class="font-semibold mb-2">โค้ดสำหรับไฟล์ `[id]-data.js`:</h3>
+                <pre><code id="output-data" class="block text-sm bg-gray-900 dark:bg-black text-white p-4 rounded-md overflow-x-auto">...</code></pre>
+            </div>
+            <div class="mt-4">
+                <h3 class="font-semibold mb-2">โค้ดสำหรับเพิ่มใน `quizzes-list.js`:</h3>
+                <pre><code id="output-list" class="block text-sm bg-gray-900 dark:bg-black text-white p-4 rounded-md overflow-x-auto">...</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./scripts/quiz-generator.js"></script>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center p-4 z-50 transition-opacity duration-300">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-transform duration-300 scale-95">
+            <div class="flex justify-between items-center p-4 border-b dark:border-gray-700 flex-shrink-0">
+                <h2 class="text-xl font-bold font-kanit">ตัวอย่างคำถาม</h2>
+                <button id="preview-modal-close" class="text-2xl text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 leading-none">&times;</button>
+            </div>
+            <div id="preview-modal-content" class="p-6 overflow-y-auto text-lg">
+                <!-- Content will be injected here -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

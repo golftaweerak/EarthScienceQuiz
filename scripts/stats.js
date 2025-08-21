@@ -239,8 +239,8 @@ function renderOverallChart(summary) {
           position: "bottom",
           labels: {
             color: document.body.classList.contains("dark")
-              ? "#e5e7eb" // gray-200 for better contrast in dark mode
-              : "#374151", // gray-700 for better readability
+              ? "#525355ff" // gray-200 for better contrast in dark mode
+              : "#c8c8c8ff", // gray-700 for better readability
             font: { family: "'Kanit', sans-serif", size: 14 },
           },
         },
@@ -293,7 +293,9 @@ function renderCategoryAccordions(groupedData) {
         const accordion = document.createElement('div');
         accordion.className = 'bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden';
 
-        const subCategoryItemsHTML = subCategories.map(data => {
+        const subCategoryItemsHTML = subCategories
+            .filter(data => data.name !== "ภาพรวม")
+            .map(data => {
             const percentage = data.averageScore.toFixed(0);
             const colorClass = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';
             return `
