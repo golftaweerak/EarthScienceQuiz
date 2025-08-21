@@ -2,7 +2,8 @@ import { loadComponent } from './component-loader.js';
 import { initializeCommonComponents } from './common-init.js';
 import { buildStatsPage } from './stats.js';
 import { ModalHandler } from './modal-handler.js';
-import { quizList } from '../data/quizzes-list.js';
+import { quizList } from '../data/quizzes-list.js'; // Standard quizzes
+import { getSavedCustomQuizzes } from './custom-quiz-handler.js'; // Custom quizzes
 
 /**
  * Initializes the stats page.
@@ -42,10 +43,18 @@ async function main() {
 
         if (confirmActionBtn) {
             confirmActionBtn.addEventListener('click', () => {
-                // Iterate through the master quiz list and remove each storage key for a thorough clean-up
+                // Clear standard quizzes from the static list
                 quizList.forEach(quiz => {
                     if (quiz.storageKey) localStorage.removeItem(quiz.storageKey);
                 });
+
+                // Clear custom quizzes retrieved from localStorage
+                const customQuizzes = getSavedCustomQuizzes();
+                customQuizzes.forEach(quiz => {
+                    if (quiz.storageKey) localStorage.removeItem(quiz.storageKey);
+                });
+                localStorage.removeItem('customQuizzesList'); // Also remove the list of custom quizzes
+
                 confirmModal.close();
                 // Reload the page to reflect the cleared stats
                 window.location.reload();

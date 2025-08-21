@@ -365,10 +365,10 @@ function renderDetailedList(stats) {
     .map((stat) => {
       const categoryDetail = categoryDetails[stat.category];
       const borderColorClass = categoryDetail?.color || "border-gray-400";
-      const answeredCount =
-        stat.userAnswers?.filter((a) => a !== null).length || 0;
-      const percentage =
-        answeredCount > 0 ? ((stat.score / answeredCount) * 100).toFixed(0) : 0;
+      const totalQuestions = stat.shuffledQuestions?.length || 0;
+      const answeredCount = stat.userAnswers?.filter((a) => a !== null).length || 0;
+      const progressPercentage = totalQuestions > 0 ? ((answeredCount / totalQuestions) * 100).toFixed(0) : 0;
+      const scorePercentage = answeredCount > 0 ? ((stat.score / answeredCount) * 100).toFixed(0) : 0;
       const link = stat.isFinished
         ? `${stat.url}?action=view_results`
         : stat.url;
@@ -379,24 +379,18 @@ function renderDetailedList(stats) {
       return `
         <a href="${link}" class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors">
             <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
-                <img src="${stat.icon}" alt="${
-        stat.altText
-      }" class="h-full w-full object-contain">
+                <img src="${stat.icon}" alt="${stat.altText}" class="h-full w-full object-contain">
             </div>
             <div class="flex-grow min-w-0">
-                <p class="font-bold text-gray-800 dark:text-gray-200 truncate">${
-                  stat.title
-                }</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">คะแนน: ${
-                  stat.score
-                }/${answeredCount} (${statusText})</p>
+                <p class="font-bold text-gray-800 dark:text-gray-200 truncate">${stat.title}</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">ทำไป ${answeredCount}/${totalQuestions} ข้อ (${progressPercentage}%) | ${statusText}</p>
             </div>
             <div class="flex-shrink-0 text-right">
-                <p class="font-bold font-kanit text-lg ${
-                  percentage >= 50
+                <p class="font-bold font-kanit text-lg ${scorePercentage >= 50
                     ? "text-green-600 dark:text-green-400"
                     : "text-red-600 dark:text-red-500"
-                }">${percentage}%</p>
+                }">${scorePercentage}%</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">คะแนน</p>
             </div>
         </a>
       `;
