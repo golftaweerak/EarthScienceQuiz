@@ -42,10 +42,6 @@ export const categoryDetails = {
     logoGlow: "group-hover:shadow-amber-400/40",
   },
   // Sub-categories used for custom quiz creation
-  Astronomy: {
-    displayName: "ดาราศาสตร์ (Astronomy)",
-    icon: "./assets/icons/astronomy.png",
-  },
   Geology: {
     displayName: "ธรณีวิทยา (Geology)",
     icon: "./assets/icons/geology.png",
