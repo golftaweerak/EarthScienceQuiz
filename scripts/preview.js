@@ -1,10 +1,10 @@
+import { initializeMenu } from './menu-handler.js';
 import { ModalHandler } from './modal-handler.js';
 import { initializeDarkMode } from './dark-mode.js';
 import { initializeDropdown } from './dropdown.js';
-import { initializeMenu } from './menu-handler.js';
 import { quizList } from '../data/quizzes-list.js';
 import { fetchAllQuizData, categoryDetails as allCategoryDetails } from './data-manager.js';
-import { subCategoryData, combinedAstronomyTopics } from '../data/sub-category-data.js';
+import { subCategoryData,} from '../data/sub-category-data.js';
 
 const CONFIG = {
     SEARCH_DEBOUNCE_MS: 300,
@@ -436,6 +436,16 @@ svg" fill="none" viewBox="0 0 24 24">
 
 // Main execution
 export function initializePreviewPage() {
+    // Defensively initialize shared components that might rely on elements
+    // not present on every page. This prevents an error in one component
+    // from breaking the entire page's script execution.
+    try {
+        initializeMenu();
+    } catch (error) {
+        // Log the error for debugging but allow the rest of the page to load.
+        console.error("Failed to initialize menu, but continuing with page load:", error);
+    }
+
     const scriptNameEl = document.getElementById('script-name');
     const container = document.getElementById('preview-container');
     const quizSelector = document.getElementById('quiz-selector');

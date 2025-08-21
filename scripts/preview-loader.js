@@ -15,7 +15,14 @@ async function main() {
     ]);
 
     // Initialize common UI components like header, menu, and footer scripts
-    initializeCommonComponents();
+    // This is wrapped in a try-catch because common components might try to
+    // access elements (e.g., from the main page) that don't exist here.
+    // This prevents an error in a shared script from breaking this specific page.
+    try {
+        initializeCommonComponents();
+    } catch (error) {
+        console.error("Error during common component initialization on preview page (safe to ignore if page works):", error);
+    }
 
     // Initialize the core preview page functionality.
     initializePreviewPage();
