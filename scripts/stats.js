@@ -357,60 +357,84 @@ function renderCategoryAccordions(groupedData) {
     }
 }
 /**
- * Renders the detailed list of completed quizzes.
+ * Renders the detailed list of all quizzes taken, ensuring each item is a functional link
+ * that allows the user to retake the quiz.
  * @param {Array<object>} stats - The array of stats from getAllStats.
  */
 function renderDetailedList(stats) {
-  const container = document.getElementById("detailed-stats-container");
-  if (!container) return;
+    const container = document.getElementById("detailed-stats-container");
+    if (!container) return;
 
-  // Sort by finished status first, then by most recent activity
-  stats.sort((a, b) => {
-    if (a.isFinished !== b.isFinished) {
-      return a.isFinished ? 1 : -1; // In-progress quizzes on top
-    }
-    // For timestamp, use completed time if available, otherwise last answered time
-    const timeA = a.completedTimestamp || a.lastAnsweredTimestamp || 0;
-    const timeB = b.completedTimestamp || b.lastAnsweredTimestamp || 0;
-    return timeB - timeA; // Most recent first
-  });
+    // Sort by finished status first, then by most recent activity
+    stats.sort((a, b) => {
+        if (a.isFinished !== b.isFinished) {
+            return a.isFinished ? 1 : -1; // In-progress quizzes on top
+        }
+        const timeA = a.completedTimestamp || a.lastAnsweredTimestamp || 0;
+        const timeB = b.completedTimestamp || b.lastAnsweredTimestamp || 0;
+        return timeB - timeA; // Most recent first
+    });
 
-  container.innerHTML = stats
-    .map((stat) => {
-      const categoryDetail = categoryDetails[stat.category];
-      const borderColorClass = categoryDetail?.color || "border-gray-400";
-      const totalQuestions = stat.shuffledQuestions?.length || 0;
-      const answeredCount = stat.userAnswers?.filter((a) => a !== null).length || 0;
-      const progressPercentage = totalQuestions > 0 ? ((answeredCount / totalQuestions) * 100).toFixed(0) : 0;
-      const scorePercentage = totalQuestions > 0 ? ((stat.score / totalQuestions) * 100).toFixed(0) : 0;
-      const link = stat.isFinished
-        ? `${stat.url}?action=view_results`
-        : stat.url;
-      const secondaryTextHtml = stat.isFinished
-        ? `<p class="text-sm font-medium text-green-600 dark:text-green-400">ทำเสร็จแล้ว</p>`
-        : `<p class="text-sm text-gray-500 dark:text-gray-400">ทำไป ${answeredCount}/${totalQuestions} ข้อ (${progressPercentage}%)</p>`;
+    container.innerHTML = stats.map((stat) => {
+        const { title, url, isFinished, score, shuffledQuestions, userAnswers, icon, altText, category } = stat;
+        const totalQuestions = shuffledQuestions?.length || 0;
+        const answeredCount = userAnswers?.filter((a) => a !== null).length || 0;
+        const scorePercentage = totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0;
+        const progressPercentage = totalQuestions > 0 ? ((answeredCount / totalQuestions) * 100).toFixed(0) : 0;
 
-      const scoreHtml = answeredCount > 0 ? `
-        <div class="flex-shrink-0 text-right w-14 sm:w-16">
-            <p class="font-bold font-kanit text-base sm:text-lg ${scorePercentage >= 50 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-500"}">${scorePercentage}%</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">คะแนน</p>
-        </div>
-      ` : `<div class="flex-shrink-0 w-14 sm:w-16"></div>`; // Placeholder for alignment
+        const categoryDetail = categoryDetails[category];
+        const borderColorClass = categoryDetail?.color || "border-gray-400";
 
-      return `
-        <a href="${link}" class="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700">
-            <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
-                <img src="${stat.icon}" alt="${stat.altText}" class="h-full w-full object-contain">
+        const secondaryTextHtml = isFinished
+            ? `<p class="text-sm font-medium text-green-600 dark:text-green-400">ทำเสร็จแล้ว</p>`
+            : `<p class="text-sm text-gray-500 dark:text-gray-400">ทำไป ${answeredCount}/${totalQuestions} ข้อ (${progressPercentage}%)</p>`;
+
+        const scoreHtml = answeredCount > 0 ? `
+            <div class="flex-shrink-0 text-right w-14 sm:w-16">
+                <p class="font-bold font-kanit text-base sm:text-lg ${scorePercentage >= 50 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-500"}">${scorePercentage}%</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">คะแนน</p>
             </div>
-            <div class="flex-grow min-w-0">
-                <p class="font-bold text-gray-800 dark:text-gray-200 truncate">${stat.title}</p>
-                ${secondaryTextHtml}
-            </div>
-            ${scoreHtml}
-        </a>
-      `;
-    })
-    .join("");
+        ` : `<div class="flex-shrink-0 w-14 sm:w-16"></div>`;
+
+        return `
+            <a href="${url}" 
+               class="quiz-stat-item flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700"
+               aria-label="ทำแบบทดสอบ: ${title}">
+                <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
+                    <img src="${icon}" alt="${altText || title}" class="h-full w-full object-contain">
+                </div>
+                <div class="flex-grow min-w-0">
+                    <p class="font-bold text-gray-800 dark:text-gray-200 truncate">${title}</p>
+                    ${secondaryTextHtml}
+                </div>
+                ${scoreHtml}
+            </a>
+        `;
+    }).join("");
+}
+
+/**
+ * Sets up a single, unified event listener for all quiz items in the detailed list.
+ * Clicking any item will navigate to the quiz URL to retake it.
+ */
+function setupActionListeners() {
+    const container = document.getElementById("detailed-stats-container");
+    if (!container) return;
+
+    container.addEventListener('click', (e) => {
+        const statItem = e.target.closest('.quiz-stat-item');
+        if (!statItem) return;
+
+        // Prevent the default link behavior to handle navigation via script.
+        e.preventDefault();
+
+        const url = statItem.getAttribute('href');
+        if (url) {
+            window.location.href = url;
+        } else {
+            console.error('No URL found on clicked stat item.', statItem);
+        }
+    });
 }
 
 /**
@@ -418,26 +442,27 @@ function renderDetailedList(stats) {
  * It orchestrates fetching, calculating, and rendering all components.
  */
 export function buildStatsPage() {
-  const loadingSpinner = document.getElementById("loading-spinner");
-  const noStatsMessage = document.getElementById("no-stats-message");
-  const statsContent = document.getElementById("stats-content");
+    const loadingSpinner = document.getElementById("loading-spinner");
+    const noStatsMessage = document.getElementById("no-stats-message");
+    const statsContent = document.getElementById("stats-content");
 
-  const allStats = getAllStats();
-  const totalAvailableQuizzes = quizList.length + getSavedCustomQuizzes().length;
+    const allStats = getAllStats();
+    const totalAvailableQuizzes = quizList.length + getSavedCustomQuizzes().length;
 
-  loadingSpinner.classList.add("hidden");
+    loadingSpinner.classList.add("hidden");
 
-  if (allStats.length === 0) {
-    noStatsMessage.classList.remove("hidden");
-    document.getElementById("clear-stats-btn").disabled = true;
-  } else {
-    const groupedData = calculateGroupedCategoryPerformance(allStats);
-    const summary = calculateSummary(allStats, totalAvailableQuizzes);
-    renderSummaryCards(summary);
-    renderOverallChart(summary);
-    renderCategoryAccordions(groupedData);
-    renderDetailedList(allStats);
-    statsContent.classList.add("anim-fade-in");
-    statsContent.style.opacity = 1;
-  }
+    if (allStats.length === 0) {
+        noStatsMessage.classList.remove("hidden");
+        document.getElementById("clear-stats-btn").disabled = true;
+    } else {
+        const groupedData = calculateGroupedCategoryPerformance(allStats);
+        const summary = calculateSummary(allStats, totalAvailableQuizzes);
+        renderSummaryCards(summary);
+        renderOverallChart(summary);
+        renderCategoryAccordions(groupedData);
+        renderDetailedList(allStats);
+        setupActionListeners();
+        statsContent.classList.add("anim-fade-in");
+        statsContent.style.opacity = 1;
+    }
 }
