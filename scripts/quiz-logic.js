@@ -376,27 +376,34 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   function showResults() {
     stopTimer(); // Stop any running timers.
 
-    // Calculate final statistics
     const totalQuestions = state.shuffledQuestions.length;
     const correctAnswers = state.score;
     const incorrectAnswersCount = totalQuestions - correctAnswers;
-    const percentage =
-      totalQuestions > 0
-        ? Math.round((correctAnswers / totalQuestions) * 100)
-        : 0;
+    const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
 
-    // Calculate time taken
-    const timeTaken = state.startTime ? Date.now() - state.startTime : 0;
-    const minutes = Math.floor(timeTaken / 60000);
-    const seconds = Math.floor((timeTaken % 60000) / 1000);
+    // --- REVISED Time Calculation ---
+    // This new logic accurately tracks time spent, even across browser sessions.
+    let timeTakenInSeconds;
+
+    if (state.timerMode === 'overall' && state.initialTime > 0) {
+      // For 'overall' mode, this is the most accurate measure.
+      timeTakenInSeconds = state.initialTime - state.timeLeft;
+    } else {
+      // For other modes, use the accumulated time.
+      const lastSessionDuration = state.sessionStartTime ? (Date.now() - state.sessionStartTime) / 1000 : 0;
+      timeTakenInSeconds = (state.totalTimeSpent || 0) + lastSessionDuration;
+    }
+
+    timeTakenInSeconds = Math.max(0, timeTakenInSeconds); // Ensure no negative time
+
+    const minutes = Math.floor(timeTakenInSeconds / 60);
+    const seconds = Math.floor(timeTakenInSeconds % 60);
     const formattedTime = `${minutes.toString().padStart(2, "0")}:${seconds
       .toString()
       .padStart(2, "0")}`;
 
-    // Calculate average time per question
-    const averageTimePerQuestion = totalQuestions > 0 ? (timeTaken / 1000 / totalQuestions).toFixed(1) : 0;
+    const averageTimePerQuestion = totalQuestions > 0 ? (timeTakenInSeconds / totalQuestions).toFixed(1) : 0;
     const formattedAverageTime = `${averageTimePerQuestion} วิ/ข้อ`;
-
 
     // Calculate score by subcategory
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
@@ -744,8 +751,9 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   function startQuiz() {
     stopTimer();
     clearSavedState();
-    state.startTime = Date.now(); // Record start time
-
+    state.sessionStartTime = Date.now(); // Record start time for the session
+    state.totalTimeSpent = 0; // Reset total time spent for a new quiz
+    
     // Only read timer mode if the controls are visible (i.e., on the start screen).
     // On restart, it will reuse the previously selected mode.
     const timerModeSelector = document.querySelector(
@@ -924,6 +932,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     state.timerMode = savedState.timerMode || "none";
     state.timeLeft = savedState.timeLeft || 0;
     state.initialTime = savedState.initialTime || 0;
+    state.totalTimeSpent = savedState.totalTimeSpent || 0; // Load accumulated time
 
     // Update the score display on the UI to reflect the loaded score.
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
@@ -931,6 +940,14 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
   function saveQuizState() {
     // Only save the necessary parts of the state to avoid saving large objects like audio elements
+    // --- Update total time spent before saving ---
+    if (state.sessionStartTime) {
+      const sessionDurationInSeconds = (Date.now() - state.sessionStartTime) / 1000;
+      // Ensure totalTimeSpent is a number before adding to it
+      state.totalTimeSpent = (state.totalTimeSpent || 0) + sessionDurationInSeconds;
+      state.sessionStartTime = Date.now(); // Reset session start time for the next interval
+    }
+
     // This is more explicit and safer than spreading the whole state object.
     const stateToSave = {
       currentQuestionIndex: state.currentQuestionIndex,
@@ -940,6 +957,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       timerMode: state.timerMode,
       timeLeft: state.timeLeft,
       initialTime: state.initialTime,
+      totalTimeSpent: state.totalTimeSpent,
       lastAttemptTimestamp: Date.now(), // Add timestamp for recency tracking
     };
     try {
@@ -955,6 +973,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
   function resumeQuiz(savedState) {
     loadStateFromSave(savedState);
+    state.sessionStartTime = Date.now(); // Start tracking time for the new session
 
     switchScreen(elements.quizScreen);
     showQuestion();
