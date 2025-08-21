@@ -62,7 +62,9 @@ function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCou
                 <input ${sliderDataAttr}="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
+                   
                     ${createQuickSelectButton(10)}
+                    ${createQuickSelectButton(20)}
                     ${createQuickSelectButton(25)}
                     ${createQuickSelectButton(50)}
                     ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
@@ -487,6 +489,35 @@ export function initializeCustomQuizHandler() {
             if (!quizDataCache) {
                 quizDataCache = await fetchAllQuizData(); // Fetch and cache the data only if it's not already loaded
             }
+
+            // Re-process all questions to build a reliable `byCategory` map.
+            // This ensures that both the question counts for the UI and the question selection
+            // logic use a consistent data source that respects the new `subCategory` object format.
+            const rebuiltByCategory = quizDataCache.allQuestions.reduce((acc, question) => {
+                if (!question.subCategory) return acc;
+
+                let mainCat = null;
+                let specificCat = 'ภาพรวม'; // Default specific category name
+
+                // Handles new format: subCategory: { main: 'Geology', specific: 'Topic 1' }
+                if (typeof question.subCategory === 'object' && question.subCategory.main) {
+                    mainCat = question.subCategory.main;
+                    specificCat = question.subCategory.specific || specificCat;
+                } 
+                // Handles legacy format: subCategory: 'Geology'
+                else if (typeof question.subCategory === 'string') {
+                    mainCat = question.subCategory;
+                }
+
+                if (mainCat) {
+                    if (!acc[mainCat]) acc[mainCat] = {};
+                    if (!acc[mainCat][specificCat]) acc[mainCat][specificCat] = [];
+                    acc[mainCat][specificCat].push(question);
+                }
+                return acc;
+            }, {});
+            quizDataCache.byCategory = rebuiltByCategory;
+
             const { byCategory, allQuestions } = quizDataCache;
 
             let categoryHTML = Object.keys(allCategoryDetails)
@@ -530,14 +561,14 @@ export function initializeCustomQuizHandler() {
         document.querySelectorAll('#custom-quiz-category-selection input[type="number"]').forEach(input => {
             const count = parseInt(input.value, 10) || 0;
             if (count > 0) {
-                const key = input.dataset.input;
-                if (key) counts[key] = count;
+                // Fix: Correctly get the key from either data-input or data-main-input
+                const key = input.dataset.input || input.dataset.mainInput;
+                if (key) counts[key] = count; 
             }
         });
 
         if (!quizDataCache) {
             console.error("Quiz data has not been loaded. Cannot start quiz.");
-            // Optionally, show an error to the user.
             return;
         }
 
@@ -555,25 +586,31 @@ export function initializeCustomQuizHandler() {
         const { allQuestions, byCategory, scenarios } = quizDataCache; // Use cached data
         let selectedQuestions = [];
 
+        // Fix: Correctly select questions from General, Main, and Specific categories
         Object.entries(counts).forEach(([dataId, count]) => {
             if (count <= 0) return;
 
             let sourcePool = [];
             if (dataId === 'General') {
                 sourcePool = allQuestions;
+            } else if (dataId.includes('__SEP__')) {
+                // Handle specific sub-category, e.g., "Geology__SEP__Topic 1"
+                const [mainCat, specificCat] = dataId.split('__SEP__');
+                if (byCategory[mainCat] && byCategory[mainCat][specificCat]) {
+                    sourcePool = byCategory[mainCat][specificCat];
+                }
             } else if (byCategory[dataId]) {
+                // Handle main category, e.g., "Geology"
                 sourcePool = Object.values(byCategory[dataId]).flat();
             }
 
             if (sourcePool.length > 0) {
                 let chosenQuestions = shuffleArray([...sourcePool]).slice(0, count);
-                // Reconstruct scenario questions for ALL chosen questions.
+                // Reconstruct scenario questions if they are part of a scenario
                 chosenQuestions = chosenQuestions.map(q => {
-                    // If the question has a scenarioId, it means it was part of a scenario.
                     if (q.scenarioId && scenarios.has(q.scenarioId)) {
                         const scenario = scenarios.get(q.scenarioId);
                         const description = (scenario.description || '').replace(/\n/g, '<br>');
-                        // Re-create the full question text with the scenario context.
                         return {
                             ...q,
                             question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${scenario.title}</p><div class="mt-2 text-gray-700 dark:text-gray-300">${description}</div></div>${q.question}`,
@@ -589,18 +626,21 @@ export function initializeCustomQuizHandler() {
         selectedQuestions = Array.from(new Set(selectedQuestions.map(q => JSON.stringify(q)))).map(s => JSON.parse(s));
 
         if (selectedQuestions.length === 0) {
-            // Optionally, show an error message
             return;
         }
 
-        // Create a summarized description by grouping counts by main category.
-        const descriptionParts = Object.entries(counts).map(([key, count]) => {
-            const details = allCategoryDetails[key];
-            const title = details?.displayName || details?.title || key;
-            return `${title}: ${count} ข้อ`;
-        });
+        // Fix: Create a user-friendly, summarized description by grouping counts by main category.
+        const descriptionParts = Object.entries(counts).reduce((acc, [key, count]) => {
+            const mainCategoryKey = key.split('__SEP__')[0]; // "Geology__SEP__Topic 1" -> "Geology"
+            const details = allCategoryDetails[mainCategoryKey];
+            const title = details?.displayName || mainCategoryKey;
+            acc[title] = (acc[title] || 0) + count;
+            return acc;
+        }, {});
 
-        const detailedDescription = descriptionParts.join(' | ');
+        const detailedDescription = Object.entries(descriptionParts).map(([title, count]) => {
+            return `${title}: ${count} ข้อ`;
+        }).join(' | ');
 
         const timestamp = Date.now();
         const customQuiz = {

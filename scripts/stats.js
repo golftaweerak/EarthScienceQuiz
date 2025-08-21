@@ -89,7 +89,7 @@ function calculateGroupedCategoryPerformance(stats) {
             } else if (typeof answer.subCategory === 'string') {
                 // If it's a string, treat it as the main category for grouping.
                 mainCategory = answer.subCategory;
-                subCategoryName = "ภาพรวม"; // Use a generic name for the sub-item.
+                subCategoryName = "อื่น ๆ"; // Use a generic name for the sub-item.
             }
 
             if (!mainCategory) mainCategory = 'Uncategorized';
@@ -296,7 +296,7 @@ function renderCategoryAccordions(groupedData) {
         accordion.className = 'bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden';
 
         const subCategoryItemsHTML = subCategories
-            .filter(data => data.name !== "ภาพรวม")
+           // .filter(data => data.name !== "ภาพรวม")
             .map(data => {
             const percentage = data.averageScore.toFixed(0);
             const colorClass = percentage >= 75 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500';

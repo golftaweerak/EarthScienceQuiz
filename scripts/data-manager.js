@@ -14,7 +14,7 @@ export const categoryDetails = {
     cardGlow: "hover:shadow-sky-400/40",
     logoGlow: "group-hover:shadow-sky-400/40",
   },
-  Astronomy: {
+  AstronomyPOSN: {
     title: "ดาราศาสตร์ (Astronomy)",
     displayName: "ดาราศาสตร์ (Astronomy)",
     icon: "./assets/icons/astronomy.png",
@@ -35,7 +35,7 @@ export const categoryDetails = {
   GeneralKnowledge: {
     title: "ความรู้ทั่วไป",
     displayName: "ความรู้ทั่วไป (General)",
-    icon: "./assets/icons/general.png", // หมายเหตุ: คุณอาจต้องสร้างไฟล์ไอคอนนี้ หรือใช้ study.png แทน
+    icon: "./assets/icons/study.png", // หมายเหตุ: คุณอาจต้องสร้างไฟล์ไอคอนนี้ หรือใช้ study.png แทน
     order: 4,
     color: "border-amber-500",
     cardGlow: "hover:shadow-amber-400/40",
@@ -48,6 +48,12 @@ export const categoryDetails = {
     displayName: "ธรณีวิทยา (Geology)",
     icon: "./assets/icons/geology.png",
     color: "border-orange-500",
+  },
+  Astronomy: {
+    title: "ดาราศาสตร์ (Astronomy)",
+    displayName: "ดาราศาสตร์ (Astronomy)",
+    icon: "./assets/icons/astronomy.png",
+    color: "border-indigo-500",
   },
   Meteorology: {
     title: "อุตุนิยมวิทยา (Meteorology)",
