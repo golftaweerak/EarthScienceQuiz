@@ -187,14 +187,14 @@ function renderSummaryCards(summary) {
     .map((card) => {
       const percentage = card.percentage.toFixed(0);
       return `
-        <div class="bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 flex items-center gap-4">
+        <div class="bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 flex items-start sm:items-center gap-4">
             <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center ${card.iconBgColor}">
                 ${card.icon}
             </div>
             <div class="flex-grow">
-                <div class="flex justify-between items-baseline mb-1">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1 gap-1 sm:gap-0">
                     <span class="font-medium text-gray-700 dark:text-gray-200 text-sm">${card.label}</span>
-                    <span class="font-bold text-xl text-gray-800 dark:text-gray-100 flex-shrink-0 text-sm">${card.value}</span>
+                    <span class="font-bold text-xl text-gray-800 dark:text-gray-100 flex-shrink-0">${card.value}</span>
                 </div>
                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div class="${card.color} h-2 rounded-full" style="width: ${percentage}%"></div>
@@ -311,21 +311,21 @@ function renderCategoryAccordions(groupedData) {
 
         accordion.innerHTML = `
             <div class="category-accordion-toggle flex justify-between items-center cursor-pointer p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <div class="flex items-center flex-grow min-w-0 gap-4">
-                    <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${mainCategoryDetails.color} bg-white p-1.5">
+                <div class="flex items-center flex-grow min-w-0 gap-3 sm:gap-4">
+                    <div class="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 rounded-full flex items-center justify-center border-4 ${mainCategoryDetails.color} bg-white p-1 sm:p-1.5">
                         <img src="${mainCategoryDetails.icon}" alt="${mainCategoryDetails.displayName} Icon" class="h-full w-full object-contain">
                     </div>
                     <div class="flex-grow min-w-0">
                         <div class="flex justify-between items-baseline mb-1">
                             <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 font-kanit truncate pr-2">${mainCategoryDetails.displayName}</h3>
-                            <span class="font-kanit font-semibold text-gray-700 dark:text-gray-300 flex-shrink-0">${mainCatPercentage}%</span>
+                            <span class="font-kanit font-semibold text-gray-700 dark:text-gray-300 flex-shrink-0 text-base sm:text-lg">${mainCatPercentage}%</span>
                         </div>
                         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                             <div class="${mainCatColorClass} h-2.5 rounded-full" style="width: ${mainCatPercentage}%"></div>
                         </div>
                     </div>
                 </div>
-                <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300 flex-shrink-0 ml-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300 flex-shrink-0 ml-2 sm:ml-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
             </div>
             <div class="specific-categories-container grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out">
                 <div class="overflow-hidden">
@@ -375,7 +375,7 @@ function renderDetailedList(stats) {
       const totalQuestions = stat.shuffledQuestions?.length || 0;
       const answeredCount = stat.userAnswers?.filter((a) => a !== null).length || 0;
       const progressPercentage = totalQuestions > 0 ? ((answeredCount / totalQuestions) * 100).toFixed(0) : 0;
-      const scorePercentage = answeredCount > 0 ? ((stat.score / answeredCount) * 100).toFixed(0) : 0;
+      const scorePercentage = totalQuestions > 0 ? ((stat.score / totalQuestions) * 100).toFixed(0) : 0;
       const link = stat.isFinished
         ? `${stat.url}?action=view_results`
         : stat.url;
@@ -384,14 +384,14 @@ function renderDetailedList(stats) {
         : `<p class="text-sm text-gray-500 dark:text-gray-400">ทำไป ${answeredCount}/${totalQuestions} ข้อ (${progressPercentage}%)</p>`;
 
       const scoreHtml = answeredCount > 0 ? `
-        <div class="flex-shrink-0 text-right w-16">
-            <p class="font-bold font-kanit text-lg ${scorePercentage >= 50 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-500"}">${scorePercentage}%</p>
+        <div class="flex-shrink-0 text-right w-14 sm:w-16">
+            <p class="font-bold font-kanit text-base sm:text-lg ${scorePercentage >= 50 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-500"}">${scorePercentage}%</p>
             <p class="text-xs text-gray-500 dark:text-gray-400">คะแนน</p>
         </div>
-      ` : `<div class="flex-shrink-0 w-16"></div>`; // Placeholder for alignment
+      ` : `<div class="flex-shrink-0 w-14 sm:w-16"></div>`; // Placeholder for alignment
 
       return `
-        <a href="${link}" class="flex items-center gap-4 p-3 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700">
+        <a href="${link}" class="flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700">
             <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
                 <img src="${stat.icon}" alt="${stat.altText}" class="h-full w-full object-contain">
             </div>
