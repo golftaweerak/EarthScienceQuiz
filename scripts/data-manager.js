@@ -41,15 +41,21 @@ export const categoryDetails = {
     cardGlow: "hover:shadow-amber-400/40",
     logoGlow: "group-hover:shadow-amber-400/40",
   },
-  // Sub-categories used for custom quiz creation
+  // Categories used for custom quizzes and stats breakdown.
+  // These are conceptually sub-categories of Earth & Space Science.
   Geology: {
+    title: "ธรณีวิทยา (Geology)",
     displayName: "ธรณีวิทยา (Geology)",
     icon: "./assets/icons/geology.png",
+    color: "border-orange-500",
   },
   Meteorology: {
+    title: "อุตุนิยมวิทยา (Meteorology)",
     displayName: "อุตุนิยมวิทยา (Meteorology)",
     icon: "./assets/icons/meteorology.png",
+    color: "border-cyan-500",
   },
+  // This is a special category for the custom quiz creator.
   General: {
     displayName: "สุ่มจากทุกหมวดหมู่ (All)",
     icon: "./assets/icons/study.png",
