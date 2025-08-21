@@ -254,4 +254,27 @@ export const quizList = [
     altText: "ไอคอนสำหรับ ESr4",
     category: "AstronomyReview",
   },
-];
+  {
+      id: "ES7",
+      title: "วิทยาศาสตร์โลกและอวกาศ ชุด 7",
+      amount: 90,
+      description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
+      url: "./quiz/index.html?id=ES7",
+      storageKey: "quizState-ES7",
+      icon: "./assets/icons/geology.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ ES7",
+      category: "EarthScience"
+  },
+  {
+      id: "ES8",
+      title: "วิทยาศาสตร์โลกและอวกาศ ชุด 8",
+      amount: 90,
+      description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
+      url: "./quiz/index.html?id=ES8",
+      storageKey: "quizState-ES8",
+      icon: "./assets/icons/geology.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ ES8",
+      category: "EarthScience"
+  }];

@@ -66,23 +66,22 @@ document.addEventListener('DOMContentLoaded', () => {
      * Initializes the generator page.
      */
     function initialize() {
-        // Populate the main category dropdown first, so loaded values can be set.
         populateMainCategories();
 
-        // Load any saved state from localStorage.
-        loadState();
-        saveHistoryState(); // Save the initial state (either loaded or empty)
+        // Load initial state and set it as the baseline for history
+        const initialState = loadState();
+        applyState(initialState);
+        history = [];
+        historyIndex = -1;
+        saveHistoryState();
 
         // Add event listeners
         quizIdInput.addEventListener('input', () => {
             validateQuizId();
-            saveState();
+            saveHistoryState();
         });
-        quizTitleInput.addEventListener('input', saveState);
-        categorySelect.addEventListener('change', () => {
-            handleCategoryChange();
-            saveState();
-        });
+        quizTitleInput.addEventListener('input', saveHistoryState); // Any input change is undoable
+        categorySelect.addEventListener('change', handleCategoryChange); // This will now also save history
         addQuestionBtn.addEventListener('click', handleAddOrUpdateQuestionClick);
         generateBtn.addEventListener('click', handleGenerateClick);
         clearFormBtn.addEventListener('click', handleClearFormClick);
@@ -139,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedCategory = categorySelect.value;
         populateSubCategories(selectedCategory);
         populateAiSubCategories(selectedCategory);
+        saveHistoryState();
     }
 
     /**
@@ -146,37 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} mainCategory - The key of the selected main category (e.g., 'EarthScience').
      */
     function populateSubCategories(mainCategory) {
-        subCategorySelect.innerHTML = ''; // Clear existing options
-        subCategorySelect.disabled = true;
-        if (!mainCategory) {
-            subCategorySelect.innerHTML = '<option>กรุณาเลือก Main Category ก่อน</option>';
-            return;
-        }
-
-        let optionsHtml = '<option value="">-- เลือกหมวดหมู่ย่อย --</option>';
-
-        if (mainCategory === 'EarthScience') {
-            // Create optgroups for Geology, Meteorology, etc.
-            for (const [groupName, topics] of Object.entries(subCategoryData.EarthAndSpace)) {
-                optionsHtml += `<optgroup label="${groupName}">`;
-                topics.forEach(topic => {
-                    // The value format helps us parse it back later
-                    const value = `${groupName}::${topic}`;
-                    optionsHtml += `<option value="${value}">${topic}</option>`;
-                });
-                optionsHtml += `</optgroup>`;
-            }
-        } else if (mainCategory === 'Astronomy' || mainCategory === 'AstronomyReview') {
-            // For Astronomy and Review, we use the same structured list.
-            // The generator can decide how to handle the 'level' property.
-            subCategoryData.Astronomy.forEach(item => {
-                // The value is the topic string itself.
-                optionsHtml += `<option value="${item.topic}">${item.topic} (${item.level})</option>`;
-            });
-        }
-        
-        subCategorySelect.innerHTML = optionsHtml;
-        subCategorySelect.disabled = false;
+        subCategorySelect.innerHTML = getSubCategoryOptionsHtml(mainCategory);
+        subCategorySelect.disabled = !mainCategory;
     }
 
     /**
@@ -194,14 +165,16 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {string} The HTML string for the options.
      */
     function getSubCategoryOptionsHtml(mainCategory) {
-        if (!mainCategory) {
+        if (!mainCategory || !subCategoryData) {
             return '<option>กรุณาเลือก Main Category ก่อน</option>';
         }
 
         let optionsHtml = '<option value="">-- เลือกหมวดหมู่ย่อย --</option>';
 
-        if (mainCategory === 'EarthScience') {
+    // Add robust checks to prevent script-halting errors if subCategoryData is malformed.
+    if (mainCategory === 'EarthScience' && subCategoryData.EarthAndSpace) {
             for (const [groupName, topics] of Object.entries(subCategoryData.EarthAndSpace)) {
+            if (Array.isArray(topics)) {
                 optionsHtml += `<optgroup label="${groupName}">`;
                 topics.forEach(topic => {
                     const value = `${groupName}::${topic}`;
@@ -209,10 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 optionsHtml += `</optgroup>`;
             }
-        } else if (mainCategory === 'Astronomy' || mainCategory === 'AstronomyReview') {
-            subCategoryData.Astronomy.forEach(item => {
+            }
+    } else if ((mainCategory === 'Astronomy' || mainCategory === 'AstronomyReview') && Array.isArray(subCategoryData.Astronomy)) {
+        subCategoryData.Astronomy.forEach(item => {
+            // Ensure the item has the expected structure before using it.
+            if (item && typeof item.topic === 'string' && typeof item.level === 'string') {
                 optionsHtml += `<option value="${item.topic}">${item.topic} (${item.level})</option>`;
-            });
+            }
+        });
         }
         return optionsHtml;
     }
@@ -223,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {boolean} True if the ID is valid, false otherwise.
      */
     function validateQuizId() {
+        if (!quizIdValidationEl || !quizIdInput) return false;
         const quizId = quizIdInput.value.trim();
         quizIdValidationEl.textContent = '';
         quizIdInput.classList.remove('border-red-500', 'border-green-500', 'dark:border-red-500', 'dark:border-green-500');
@@ -371,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addQuestionBtn.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
 
         setFormCollapsedUI(false); // Expand the form
-        saveState(); // Save the new expanded state
+        saveHistoryState(); // Save this UI change as an undoable action
         questionFormToggle.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -422,12 +400,16 @@ document.addEventListener('DOMContentLoaded', () => {
      * Resets the question form and editing state.
      */
     function resetForm() {
+        if (!questionForm || !addQuestionBtn) return;
         questionForm.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
         editingIndex = null;
         addQuestionBtn.textContent = 'Add Question';
         addQuestionBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
         addQuestionBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-        questionTextInput.focus();
+        // Only focus if the form is visible to prevent errors
+        if (questionFormContent && !questionFormContent.classList.contains('grid-rows-[0fr]')) {
+            questionTextInput.focus();
+        }
     }
 
     /**
@@ -474,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderAddedQuestions();
         resetForm();
-        saveHistoryState(); // Save state after adding/updating
+        saveHistoryState();
     }
 
     /**
@@ -568,68 +550,67 @@ document.addEventListener('DOMContentLoaded', () => {
      * Resets the entire generator state, clearing forms and localStorage.
      */
     function resetGeneratorState() {
-        localStorage.removeItem(STORAGE_KEY);
-        questions = [];
-        quizIdInput.value = '';
-        quizTitleInput.value = '';
-        categorySelect.value = '';
-        handleCategoryChange();
-        resetForm(); // This will clear the question form and reset editingIndex
-        renderAddedQuestions();
-        outputDataEl.textContent = '...';
-        outputListEl.textContent = '...';
-        
-        setFormCollapsedUI(false); // Ensure the form is expanded after clearing
-        
-        history = [];
+        const emptyState = { quizId: '', quizTitle: '', quizCategory: '', questions: [], isFormCollapsed: false };
+        applyState(emptyState);
+        history = []; // Clear history
         historyIndex = -1;
-        saveHistoryState();
-        saveState(); // Also save the cleared state to localStorage
+        saveHistoryState(); // Save the clean state as the new starting point
     }
 
     /**
-     * Saves the current state of the form and questions to localStorage.
+     * Gathers the current state of the application into an object.
+     * @returns {object} The current application state.
      */
-    function saveState() {
-        try {
-            const state = {
-                quizId: quizIdInput.value,
-                quizTitle: quizTitleInput.value,
-                quizCategory: categorySelect.value,
-                questions: questions,
-                isFormCollapsed: questionFormContent.classList.contains('grid-rows-[0fr]'),
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch (e) {
-            console.error("Could not save state to localStorage:", e);
+    function getCurrentState() {
+        return {
+            quizId: quizIdInput.value,
+            quizTitle: quizTitleInput.value,
+            quizCategory: categorySelect.value,
+            questions: questions, // This is a reference, will be deep-copied for history/storage
+            isFormCollapsed: questionFormContent ? questionFormContent.classList.contains('grid-rows-[0fr]') : false,
+        };
+    }
+
+    /**
+     * Applies a given state object to the entire UI.
+     * @param {object} state The state object to apply.
+     */
+    function applyState(state) {
+        const { quizId, quizTitle, quizCategory, questions: stateQuestions, isFormCollapsed } = state;
+        quizIdInput.value = quizId || '';
+        quizTitleInput.value = quizTitle || '';
+        categorySelect.value = quizCategory || '';
+        // Deep copy to prevent state mutations from affecting history directly
+        questions = JSON.parse(JSON.stringify(stateQuestions || [])); 
+
+        // Update UI based on the new state
+        validateQuizId();
+        populateSubCategories(quizCategory);
+        populateAiSubCategories(quizCategory);
+        if (questionFormContent) {
+            setFormCollapsedUI(isFormCollapsed);
         }
+        renderAddedQuestions();
+        resetForm(); // Clears the question input form and resets editingIndex
+        updateUndoRedoButtons();
     }
 
     /**
      * Loads the state from localStorage and populates the form.
      */
     function loadState() {
-        const savedState = localStorage.getItem(STORAGE_KEY);
-        if (!savedState) return;
+        const savedStateJSON = localStorage.getItem(STORAGE_KEY);
+        let initialState = { quizId: '', quizTitle: '', quizCategory: '', questions: [], isFormCollapsed: false };
 
-        try {
-            const state = JSON.parse(savedState);
-            quizIdInput.value = state.quizId || '';
-            quizTitleInput.value = state.quizTitle || '';
-            categorySelect.value = state.quizCategory || '';
-            questions = state.questions || [];
-
-            if (categorySelect.value) {
-                handleCategoryChange();
+        if (savedStateJSON) {
+            try {
+                initialState = JSON.parse(savedStateJSON);
+            } catch (e) {
+                console.error("Failed to parse saved state from localStorage:", e);
+                localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
             }
-            validateQuizId(); // Validate the loaded ID
-
-            setFormCollapsedUI(state.isFormCollapsed);
-            renderAddedQuestions();
-        } catch (e) {
-            console.error("Failed to parse saved state from localStorage:", e);
-            localStorage.removeItem(STORAGE_KEY); // Clear corrupted data
         }
+        return initialState;
     }
     
     /**
@@ -638,7 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleToggleForm() {
         const isCollapsed = questionFormContent.classList.contains('grid-rows-[0fr]');
         setFormCollapsedUI(!isCollapsed);
-        saveState(); // Save the new collapsed state
+        saveHistoryState(); // A UI toggle is an undoable action
     }
 
     /**
@@ -646,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {boolean} shouldBeCollapsed - True to collapse the form, false to expand it.
      */
     function setFormCollapsedUI(shouldBeCollapsed) {
+        if (!questionFormContent || !questionFormChevron) return;
         const isCurrentlyCollapsed = questionFormContent.classList.contains('grid-rows-[0fr]');
         
         if (shouldBeCollapsed === isCurrentlyCollapsed) {
@@ -846,24 +828,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Saves the current state to localStorage.
+     * @param {object} stateToSave The state object to persist.
+     */
+    function saveState(stateToSave) {
+        try {
+            // Deep copy questions for storage to avoid issues with references
+            const stateToStore = { ...stateToSave, questions: JSON.parse(JSON.stringify(stateToSave.questions)) };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToStore));
+        } catch (e) {
+            console.error("Could not save state to localStorage:", e);
+        }
+    }
+
+    /**
      * Saves the current application state to the history stack for undo/redo.
      */
     function saveHistoryState() {
-        // Deep copy of questions is important
-        const currentState = {
-            quizId: quizIdInput.value,
-            quizTitle: quizTitleInput.value,
-            quizCategory: categorySelect.value,
-            questions: JSON.parse(JSON.stringify(questions)),
-            isFormCollapsed: questionFormContent.classList.contains('grid-rows-[0fr]'),
-        };
-
+        const currentState = getCurrentState();
         // If we've undone, and then make a new change, we want to discard the old "redo" path.
         history = history.slice(0, historyIndex + 1);
 
-        history.push(currentState);
+        // Deep copy for history snapshot to prevent mutation
+        history.push(JSON.parse(JSON.stringify(currentState)));
         historyIndex++;
         updateUndoRedoButtons();
+        saveState(currentState); // Also save to local storage whenever history is saved
     }
 
     /**
@@ -871,23 +861,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function restoreStateFromHistory() {
         if (historyIndex < 0 || historyIndex >= history.length) return;
-
         const stateToRestore = history[historyIndex];
-
-        // Restore state
-        quizIdInput.value = stateToRestore.quizId;
-        quizTitleInput.value = stateToRestore.quizTitle;
-        categorySelect.value = stateToRestore.quizCategory;
-        questions = JSON.parse(JSON.stringify(stateToRestore.questions)); // Deep copy back
-        setFormCollapsedUI(stateToRestore.isFormCollapsed);
-
-        // Update UI from restored state
-        // handleCategoryChange is critical here to update both sub-category dropdowns consistently
-        handleCategoryChange();
-        validateQuizId();
-        renderAddedQuestions();
-        resetForm();
-        saveState(); // Save the restored state to localStorage
+        applyState(stateToRestore);
+        saveState(stateToRestore); // Persist the restored state to localStorage
     }
 
     function handleUndo() {
@@ -933,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Save: Ctrl+S
             if (event.key.toLowerCase() === 's') {
                 event.preventDefault();
-                saveState();
+                saveState(getCurrentState());
                 showNotificationModal({
                     title: 'บันทึกแล้ว',
                     message: 'บันทึกข้อมูลลงในเบราว์เซอร์เรียบร้อยแล้ว',
@@ -1014,18 +990,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            const aiResponseText = data.candidates[0].content.parts[0].text;
-            const generatedQuestions = JSON.parse(aiResponseText);
+            const aiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!aiResponseText) {
+                throw new Error("AI response was empty or in an unexpected format.");
+            }
+
+            let generatedQuestions;
+            try {
+                generatedQuestions = JSON.parse(aiResponseText);
+            } catch (e) {
+                throw new Error("AI did not return valid JSON. Please try again.");
+            }
 
             if (!Array.isArray(generatedQuestions)) throw new Error("AI did not return a valid JSON array.");
 
-            questions.push(...generatedQuestions);
+            const validatedQuestions = generatedQuestions.filter(q => 
+                q && typeof q.question === 'string' && typeof q.options === 'object' && q.options !== null && typeof q.answer === 'string'
+            );
+
+            if (validatedQuestions.length === 0) {
+                throw new Error("AI returned data, but none of the questions had the correct format.");
+            }
+
+            questions.push(...validatedQuestions);
             renderAddedQuestions();
             saveHistoryState();
 
             showNotificationModal({
                 title: 'สร้างคำถามสำเร็จ',
-                message: `เพิ่มคำถามที่สร้างโดย AI จำนวน ${generatedQuestions.length} ข้อเรียบร้อยแล้ว`,
+                message: `เพิ่มคำถามที่สร้างโดย AI จำนวน ${validatedQuestions.length} ข้อเรียบร้อยแล้ว`,
                 type: 'alert',
                 autoClose: 3000
             });
