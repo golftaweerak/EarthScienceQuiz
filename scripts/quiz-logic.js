@@ -942,7 +942,11 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       initialTime: state.initialTime,
       lastAttemptTimestamp: Date.now(), // Add timestamp for recency tracking
     };
-    localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
+    try {
+      localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
+    } catch (e) {
+      console.error("Error saving quiz state to local storage:", e);
+    }
   }
 
   function clearSavedState() {
