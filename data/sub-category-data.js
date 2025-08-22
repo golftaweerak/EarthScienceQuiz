@@ -55,7 +55,7 @@ export const subCategoryData = {
    * This provides a clearer overview for curriculum planning and content creation.
    * The `level` property can be used for filtering.
    */
-  Astronomy: [
+  ASTRONOMY_POSN: [
     { topic: "ส่วนประกอบของระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
