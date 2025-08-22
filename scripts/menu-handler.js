@@ -83,6 +83,14 @@ export function initializeMenu() {
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
 
+    // --- JS Patch for Modal Styling ---
+    // This ensures the modal is always centered and looks correct. The ideal fix
+    // is to add these classes directly to the modal's HTML in components/modals_common.html,
+    // but this guarantees correct behavior on all pages.
+    if (completedModal.modal) {
+        completedModal.modal.classList.add('flex', 'items-center', 'justify-center', 'p-4');
+    }
+
     let activeQuizUrl = '';
     let activeStorageKey = '';
 

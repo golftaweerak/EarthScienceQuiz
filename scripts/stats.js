@@ -1,6 +1,7 @@
 import { quizList } from "../data/quizzes-list.js";
 import { getSavedCustomQuizzes } from "./custom-quiz-handler.js";
 import { categoryDetails } from "./data-manager.js";
+import { ModalHandler } from "./modal-handler.js";
 
 /**
  * Retrieves all finished quiz stats from localStorage.
@@ -19,9 +20,18 @@ function getAllStats() {
         const answeredCount = progress.userAnswers?.filter((a) => a !== null).length || 0;
         const isFinished = totalQuestions > 0 && answeredCount >= totalQuestions;
 
+        // Ensure a valid URL exists. Standard quizzes have a `url` property.
+        // Custom quizzes do not, so we must construct it.
+        let finalUrl = quiz.url;
+        if (!finalUrl && quiz.customId) {
+          // The path is relative to the root where stats.html is located.
+          finalUrl = `./quiz/index.html?id=${quiz.customId}`;
+        }
+
         allStats.push({
           ...quiz, // title, category, url, icon etc.
           ...progress, // score, userAnswers, etc.
+          url: finalUrl, // Use the canonical or constructed URL
           isFinished: isFinished, // Add the calculated property
         });
       } catch (e) {
@@ -71,6 +81,9 @@ function calculateSummary(stats, totalAvailableQuizzes) {
  * @returns {Array<object>} An array of objects, each representing a category's performance.
  */
 function calculateGroupedCategoryPerformance(stats) {
+    // This function aggregates performance data across all quizzes.
+    // It gives precedence to the more specific subCategory defined within a question's data
+    // over the general category of the quiz file itself. This allows for more granular stats.
     const performanceByMain = {};
 
     stats.forEach(stat => {
@@ -366,17 +379,16 @@ function renderDetailedList(stats) {
     if (!container) return;
 
     // Sort by finished status first, then by most recent activity
+    // In-progress quizzes (isFinished: false) will appear on top.
     stats.sort((a, b) => {
         if (a.isFinished !== b.isFinished) {
-            return a.isFinished ? 1 : -1; // In-progress quizzes on top
+            return a.isFinished ? 1 : -1;
         }
-        const timeA = a.completedTimestamp || a.lastAnsweredTimestamp || 0;
-        const timeB = b.completedTimestamp || b.lastAnsweredTimestamp || 0;
-        return timeB - timeA; // Most recent first
+        return (b.lastAttemptTimestamp || 0) - (a.lastAttemptTimestamp || 0);
     });
 
     container.innerHTML = stats.map((stat) => {
-        const { title, url, isFinished, score, shuffledQuestions, userAnswers, icon, altText, category } = stat;
+        const { title, url, isFinished, score, shuffledQuestions, userAnswers, icon, altText, category, storageKey } = stat;
         const totalQuestions = shuffledQuestions?.length || 0;
         const answeredCount = userAnswers?.filter((a) => a !== null).length || 0;
         const scorePercentage = totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(0) : 0;
@@ -398,6 +410,9 @@ function renderDetailedList(stats) {
 
         return `
             <a href="${url}" 
+               data-is-finished="${isFinished}"
+               data-storage-key="${storageKey}"
+               data-quiz-title="${title}"
                class="quiz-stat-item flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700"
                aria-label="ทำแบบทดสอบ: ${title}">
                 <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
@@ -411,6 +426,42 @@ function renderDetailedList(stats) {
             </a>
         `;
     }).join("");
+}
+
+/**
+ * Shows a modal asking the user whether to view results or restart a completed quiz.
+ * @param {string} title - The title of the quiz.
+ * @param {string} url - The base URL of the quiz.
+ * @param {string} storageKey - The localStorage key for the quiz's progress.
+ */
+function showFinishedQuizModal(title, url, storageKey) {
+    if (!finishedQuizModalHandler) return;
+
+    const modalTitle = document.getElementById('finished-quiz-modal-title');
+    const viewBtn = document.getElementById('view-results-btn');
+    const restartBtn = document.getElementById('restart-quiz-btn');
+
+    if (!modalTitle || !viewBtn || !restartBtn) return;
+
+    modalTitle.textContent = title;
+
+    // Directly assign onclick handlers. This is simpler and automatically
+    // replaces any previous handlers. The cloneNode pattern is not needed here.
+    viewBtn.onclick = () => {
+        // Construct the URL to view results and navigate.
+        const finalUrl = url.includes('?') ? `${url}&action=view_results` : `${url}?action=view_results`;
+        window.location.href = finalUrl;
+        finishedQuizModalHandler.close();
+    };
+
+    restartBtn.onclick = () => {
+        // Clear the saved state for this quiz and navigate to start it over.
+        localStorage.removeItem(storageKey);
+        window.location.href = url;
+        finishedQuizModalHandler.close();
+    };
+
+    finishedQuizModalHandler.open();
 }
 
 /**
@@ -428,15 +479,27 @@ function setupActionListeners() {
         // Prevent the default link behavior to handle navigation via script.
         e.preventDefault();
 
+        const isFinished = statItem.dataset.isFinished === 'true';
         const url = statItem.getAttribute('href');
-        if (url) {
-            window.location.href = url;
+        const storageKey = statItem.dataset.storageKey;
+        const title = statItem.dataset.quizTitle;
+
+        if (!url || !storageKey) {
+            console.error('Missing URL or storageKey on clicked stat item.', statItem);
+            return;
+        }
+
+        if (isFinished) {
+            // For finished quizzes, show a modal with options.
+            showFinishedQuizModal(title, url, storageKey);
         } else {
-            console.error('No URL found on clicked stat item.', statItem);
+            // For quizzes in progress, navigate directly to resume.
+            window.location.href = url;
         }
     });
 }
 
+let finishedQuizModalHandler;
 /**
  * Main function to build the entire stats page.
  * It orchestrates fetching, calculating, and rendering all components.
@@ -462,6 +525,7 @@ export function buildStatsPage() {
         renderCategoryAccordions(groupedData);
         renderDetailedList(allStats);
         setupActionListeners();
+        finishedQuizModalHandler = new ModalHandler('finished-quiz-modal');
         statsContent.classList.add("anim-fade-in");
         statsContent.style.opacity = 1;
     }
