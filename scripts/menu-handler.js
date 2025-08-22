@@ -50,7 +50,7 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
     }
 
     return `
-        <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md ${activeClass}">
+        <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" data-quiz-title="${quiz.title}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md ${activeClass}">
             <div class="flex items-start gap-3">
                 <div class="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white dark:bg-gray-200 p-1 mt-0.5 transition-all duration-300 ${iconContainerExtraClass}">
                     <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
@@ -205,6 +205,11 @@ export function initializeMenu() {
 
             if (progress.isFinished) {
                 event.preventDefault();
+                const quizTitle = link.dataset.quizTitle || 'แบบทดสอบ';
+                const modalTitleEl = document.getElementById('completed-modal-title');
+                if (modalTitleEl) {
+                    modalTitleEl.textContent = quizTitle;
+                }
                 activeQuizUrl = link.href;
                 activeStorageKey = storageKey;
                 completedModal.open(link);

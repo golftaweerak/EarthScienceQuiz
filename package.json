@@ -1,0 +1,24 @@
+{
+  "name": "earth-science-quiz",
+  "version": "1.0.0",
+  "description": "An interactive quiz application about Earth Science, Geology, Meteorology, and Astronomy.",
+  "type": "module",
+  "scripts": {
+    "start": "live-server --port=8080 --open=./index.html",
+    "test": "echo \"Running data validation...\" && node scripts/validate-subcategories.js",
+    "test:fix": "echo \"Running data validation with auto-fix...\" && node scripts/validate-subcategories.js --fix",
+    "format": "prettier --write \"**/*.{js,json,html,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,json,html,css,md}\""
+  },
+  "keywords": [
+    "quiz",
+    "earth-science",
+    "javascript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "prettier": "^3.2.5"
+  }
+}
