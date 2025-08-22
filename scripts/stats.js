@@ -397,29 +397,29 @@ function renderDetailedList(stats) {
         const categoryDetail = categoryDetails[category];
         const borderColorClass = categoryDetail?.color || "border-gray-400";
 
-        const secondaryTextHtml = isFinished
-            ? `<p class="text-sm font-medium text-green-600 dark:text-green-400">ทำเสร็จแล้ว</p>`
-            : `<p class="text-sm text-gray-500 dark:text-gray-400">ทำไป ${answeredCount}/${totalQuestions} ข้อ (${progressPercentage}%)</p>`;
+        const secondaryTextHtml = isFinished ?
+            `<p class="text-xs font-medium text-green-600 dark:text-green-400">ทำเสร็จแล้ว</p>` :
+            `<p class="text-xs text-gray-500 dark:text-gray-400">ทำไป ${answeredCount}/${totalQuestions} ข้อ (${progressPercentage}%)</p>`;
 
         const scoreHtml = answeredCount > 0 ? `
-            <div class="flex-shrink-0 text-right w-14 sm:w-16">
-                <p class="font-bold font-kanit text-base sm:text-lg ${scorePercentage >= 50 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-500"}">${scorePercentage}%</p>
+            <div class="flex-shrink-0 text-right w-14">
+                <p class="font-bold font-kanit text-base ${scorePercentage >= 50 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-500"}">${scorePercentage}%</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">คะแนน</p>
             </div>
-        ` : `<div class="flex-shrink-0 w-14 sm:w-16"></div>`;
+        ` : `<div class="flex-shrink-0 w-14"></div>`;
 
         return `
             <a href="${url}" 
                data-is-finished="${isFinished}"
                data-storage-key="${storageKey}"
                data-quiz-title="${title}"
-               class="quiz-stat-item flex items-center gap-3 sm:gap-4 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700"
+               class="quiz-stat-item flex items-center gap-3 p-2 rounded-lg bg-white dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-200 dark:border-gray-700"
                aria-label="ทำแบบทดสอบ: ${title}">
-                <div class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
+                <div class="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center border-2 ${borderColorClass} bg-white p-1">
                     <img src="${icon}" alt="${altText || title}" class="h-full w-full object-contain">
                 </div>
                 <div class="flex-grow min-w-0">
-                    <p class="font-bold text-gray-800 dark:text-gray-200 truncate">${title}</p>
+                    <p class="font-bold text-sm text-gray-800 dark:text-gray-200">${title}</p>
                     ${secondaryTextHtml}
                 </div>
                 ${scoreHtml}
