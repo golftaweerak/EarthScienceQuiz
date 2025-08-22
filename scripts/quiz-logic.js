@@ -407,50 +407,28 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
     // Calculate score by subcategory
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
-      if (!answer || !answer.subCategory) return acc;
-
-      let mainCategory = 'ไม่มีหมวดหมู่หลัก';
-      let specificCategory = 'ไม่มีหัวข้อย่อย';
-
-      if (typeof answer.subCategory === 'object' && answer.subCategory.main && answer.subCategory.specific) {
-          mainCategory = answer.subCategory.main;
-          specificCategory = answer.subCategory.specific;
+      if (!answer) return acc;
+      // Handle both string and object formats for subCategory to get a displayable name.
+      let categoryName = 'ไม่มีหมวดหมู่';
+      if (typeof answer.subCategory === 'object' && answer.subCategory.specific) {
+          // If it's an object like { main: '...', specific: '...' }, use the specific name.
+          categoryName = answer.subCategory.specific;
       } else if (typeof answer.subCategory === 'string') {
-          // For old string format, use the string as the main category and a generic specific name.
-          mainCategory = answer.subCategory;
-          specificCategory = 'อื่น ๆ';
-      } else {
-          // Fallback for other unexpected formats
-          return acc;
+          // If it's just a string, use it directly.
+          categoryName = answer.subCategory;
       }
 
-      if (!acc[mainCategory]) {
-          acc[mainCategory] = {};
+      if (!acc[categoryName]) {
+          acc[categoryName] = { correct: 0, total: 0 };
       }
-      if (!acc[mainCategory][specificCategory]) {
-          acc[mainCategory][specificCategory] = { correct: 0, total: 0 };
-      }
-
-      acc[mainCategory][specificCategory].total++;
-      if (answer.isCorrect) {
-          acc[mainCategory][specificCategory].correct++;
-      }
+      acc[categoryName].total++;
+      if (answer.isCorrect) acc[categoryName].correct++;
       return acc;
     }, {});
 
     // --- Performance Analysis ---
-    // Create a flattened summary by main category for the performance analysis.
-    const flatMainCategoryStats = Object.entries(categoryStats).reduce((acc, [mainCat, specificCats]) => {
-        acc[mainCat] = Object.values(specificCats).reduce((mainAcc, data) => {
-            mainAcc.correct += data.correct;
-            mainAcc.total += data.total;
-            return mainAcc;
-        }, { correct: 0, total: 0 });
-        return acc;
-    }, {});
-
     const performanceSummary = { best: null, worst: null };
-    const categoryEntries = Object.entries(flatMainCategoryStats);
+    const categoryEntries = Object.entries(categoryStats);
 
     if (categoryEntries.length > 1) {
         let bestCat = { name: null, score: -1 };
@@ -516,19 +494,6 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     }
     return config.resultMessages.effort;
   }
-
-  /**
-   * Returns a Tailwind CSS color class for the progress bar based on the score percentage.
-   * @param {number} percentage The score percentage (0-100).
-   * @returns {string} The Tailwind CSS background color class.
-   */
-  function getProgressBarColor(percentage) {
-    if (percentage >= 75) return 'bg-green-500'; // Excellent
-    if (percentage >= 50) return 'bg-blue-500'; // Good
-    if (percentage >= 25) return 'bg-yellow-500'; // Needs improvement
-    return 'bg-red-500'; // Critical
-  }
-
 
   /**
    * Cleans up the result screen by hiding static elements and removing old dynamic layouts.
@@ -686,90 +651,33 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     layoutContainer.appendChild(dataContainer);
 
     // --- 3. Category Breakdown ---
-    // Accordion-style breakdown for better UX
-    if (stats.categoryStats && Object.keys(stats.categoryStats).length > 0) {
-      const breakdownContainer = document.createElement('div');
-      breakdownContainer.className = 'w-full max-w-2xl mx-auto mt-8';
-      breakdownContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-4">คะแนนตามหัวข้อ</h3>`;
+    // Only show if there's more than one category to break down.
+    if (stats.categoryStats && Object.keys(stats.categoryStats).length > 1) {
+      const categoryContainer = document.createElement('div');
+      categoryContainer.className = 'w-full max-w-2xl mx-auto mt-8';
+      categoryContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-4">คะแนนตามหมวดหมู่</h3>`;
       
-      const accordionContainer = document.createElement('div');
-      accordionContainer.className = 'space-y-2';
+      const categoryGrid = document.createElement('div');
+      categoryGrid.className = 'space-y-3';
 
-      const sortedMainCategories = Object.keys(stats.categoryStats).sort();
-
-      for (const [index, mainCategory] of sortedMainCategories.entries()) {
-        const specificCategoriesData = stats.categoryStats[mainCategory];
-        
-        const accordionItem = document.createElement('div');
-        accordionItem.className = 'bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden';
-
-        // Calculate overall score for the main category to display in the header
-        const mainCategorySummary = Object.values(specificCategoriesData).reduce((acc, data) => {
-            acc.correct += data.correct;
-            acc.total += data.total;
-            return acc;
-        }, { correct: 0, total: 0 });
-        const mainCategoryPercentage = mainCategorySummary.total > 0 ? Math.round((mainCategorySummary.correct / mainCategorySummary.total) * 100) : 0;
-        const mainProgressBarColor = getProgressBarColor(mainCategoryPercentage);
-
-        const headerButton = document.createElement('button');
-        headerButton.type = 'button';
-        headerButton.className = 'w-full flex justify-between items-center p-4 text-left hover:bg-gray-100 dark:hover:bg-gray-700/60 focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75 transition-colors';
-        headerButton.setAttribute('aria-expanded', 'false');
-        headerButton.setAttribute('aria-controls', `accordion-content-${index}`);
-        headerButton.innerHTML = `
-            <div class="flex-grow pr-4">
-                <span class="font-semibold text-gray-800 dark:text-gray-200">${mainCategory}</span>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1.5">
-                    <div class="${mainProgressBarColor} h-1.5 rounded-full" style="width: ${mainCategoryPercentage}%"></div>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3 flex-shrink-0">
-                <span class="font-semibold text-gray-800 dark:text-gray-100">${mainCategorySummary.correct}/${mainCategorySummary.total}</span>
-                <svg class="w-5 h-5 transform transition-transform duration-300 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </div>
-        `;
-
-        const contentPanel = document.createElement('div');
-        contentPanel.id = `accordion-content-${index}`;
-        contentPanel.className = 'max-h-0 overflow-hidden transition-max-height duration-500 ease-in-out';
-        
-        const contentWrapper = document.createElement('div');
-        contentWrapper.className = 'p-4 border-t border-gray-200 dark:border-gray-700';
-        contentWrapper.innerHTML = Object.keys(specificCategoriesData).sort().map(specificCategory => {
-            const data = specificCategoriesData[specificCategory];
-            const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
-            const progressBarColor = getProgressBarColor(percentage);
-            return `
-              <div class="mb-3">
-                  <div class="flex justify-between items-center text-sm">
-                      <span class="font-medium text-gray-600 dark:text-gray-300">${specificCategory}</span>
-                      <span class="font-semibold text-gray-800 dark:text-gray-100">${data.correct} / ${data.total} <span class="font-normal text-gray-500 dark:text-gray-400">(${percentage}%)</span></span>
-                  </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1.5">
-                      <div class="${progressBarColor} h-2 rounded-full" style="width: ${percentage}%"></div>
-                  </div>
+      for (const [category, data] of Object.entries(stats.categoryStats)) {
+          const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+          const item = document.createElement('div');
+          item.className = 'p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg';
+          item.innerHTML = `
+              <div class="flex justify-between items-center text-sm">
+                  <span class="font-medium text-gray-700 dark:text-gray-200">${category}</span>
+                  <span class="font-semibold text-gray-800 dark:text-gray-100">${data.correct} / ${data.total} <span class="font-normal text-gray-500 dark:text-gray-400">(${percentage}%)</span></span>
               </div>
-            `;
-        }).join('');
-        
-        contentPanel.appendChild(contentWrapper);
-        accordionItem.append(headerButton, contentPanel);
-        accordionContainer.appendChild(accordionItem);
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1.5">
+                  <div class="bg-blue-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+              </div>
+          `;
+          categoryGrid.appendChild(item);
       }
       
-      accordionContainer.addEventListener('click', (e) => {
-          const button = e.target.closest('button[aria-expanded]');
-          if (!button) return;
-          const content = document.getElementById(button.getAttribute('aria-controls'));
-          const isExpanded = button.getAttribute('aria-expanded') === 'true';
-          button.setAttribute('aria-expanded', !isExpanded);
-          button.querySelector('svg').classList.toggle('rotate-180');
-          content.style.maxHeight = isExpanded ? null : `${content.scrollHeight}px`;
-      });
-
-      breakdownContainer.appendChild(accordionContainer);
-      layoutContainer.appendChild(breakdownContainer);
+      categoryContainer.appendChild(categoryGrid);
+      layoutContainer.appendChild(categoryContainer);
     }
 
     // --- 4. Performance Summary ---

@@ -91,7 +91,7 @@ export function initializePage() {
     const actions = [];
     if (progress.hasProgress) {
       actions.push(`
-            <button data-storage-key="${quiz.storageKey}" class="reset-progress-btn text-xs text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
+            <button data-storage-key="${quiz.storageKey}" class="reset-progress-btn text-[11px] text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200 inline-flex items-center font-medium">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                 ล้างข้อมูล
             </button>`);
@@ -101,7 +101,7 @@ export function initializePage() {
       '<span class="text-gray-300 dark:text-gray-600">|</span>'
     );
 
-    return `<div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-sm ${progressTextColor}">${progressText}</span><span class="text-sm text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span><div class="flex items-center gap-2">${footerActionsHTML}</div></div></div>`;
+    return `<div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-xs ${progressTextColor}">${progressText}</span><span class="text-xs text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-[11px] text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span><div class="flex items-center gap-2">${footerActionsHTML}</div></div></div>`;
   }
 
   /**
@@ -122,20 +122,20 @@ export function initializePage() {
     card.dataset.storageKey = quiz.storageKey;
     card.dataset.totalQuestions = totalQuestions;
 
-    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
+    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-3 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
     card.style.animationDelay = `${index * 50}ms`; // Slightly faster animation
     const progress = getQuizProgress(quiz.storageKey, totalQuestions);
     const progressHTML = createProgressHTML(progress, quiz);
 
     card.innerHTML = `
-      <div class="flex-grow flex items-start gap-4">
-        <div class="flex-shrink-0 h-16 w-16 rounded-full flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white dark:bg-white group-hover:shadow-lg ${logoGlowClass}">
+      <div class="flex-grow flex items-start gap-3">
+        <div class="flex-shrink-0 h-14 w-14 rounded-full flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white dark:bg-white group-hover:shadow-lg ${logoGlowClass}">
           <img src="${quiz.icon}" alt="${quiz.altText}" class="h-9 w-9 transition-transform duration-300 group-hover:scale-110">
         </div>
         <div class="flex-grow">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white font-kanit leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">${quiz.title}</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">จำนวน ${totalQuestions} ข้อ</p>
-          <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mt-2">${quiz.description}</p>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white font-kanit leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">${quiz.title}</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">จำนวน ${totalQuestions} ข้อ</p>
+          <p class="text-gray-600 dark:text-gray-300 text-xs leading-relaxed mt-1">${quiz.description}</p>
         </div>
       </div>
       <div class="progress-footer-wrapper">${progressHTML}</div>
@@ -167,14 +167,32 @@ export function initializePage() {
     toggleHeader.className =
       "section-toggle flex justify-between items-center cursor-pointer p-4";
     const sectionBorderColor = details.color || "border-blue-600";
+    
+    // Handle titles with parentheses for better wrapping on small screens.
+    const titleMatch = details.title.match(/(.+)\s+\((.+)\)/);
+    let titleContent;
+
+    if (titleMatch) {
+      const mainTitle = titleMatch[1];
+      const subTitle = titleMatch[2];
+      titleContent = `
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 font-kanit flex flex-wrap items-baseline gap-x-2 leading-tight">
+          <span>${mainTitle}</span>
+          <span class="text-base font-normal text-gray-500 dark:text-gray-400">(${subTitle})</span>
+        </h2>
+      `;
+    } else {
+      titleContent = `<h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 font-kanit">${details.title}</h2>`;
+    }
+
     toggleHeader.innerHTML = `
       <div class="flex items-center min-w-0 gap-4">
         <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300">
           <img src="${details.icon}" alt="${details.title} Icon" class="h-8 w-8">
         </div>
-        <div>
-          <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 font-kanit">${details.title}</h2>
-          <p class="text-sm font-normal text-gray-500 dark:text-gray-400 -mt-1">จำนวน ${quizzes.length} ชุด</p>
+        <div class="min-w-0">
+          ${titleContent}
+          <p class="text-xs font-normal text-gray-500 dark:text-gray-400 -mt-1">${quizzes.length} ชุด</p>
         </div>
       </div>
       <svg class="chevron-icon h-6 w-6 text-gray-500 dark:text-gray-400 transition-transform duration-300 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>

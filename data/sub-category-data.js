@@ -102,12 +102,12 @@ export const quizPrefixInfo = {
   junior: {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
     icon: './assets/icons/astronomy1.png',
-    subCategoryKey: 'Astronomy' // Uses the structured Astronomy list
+    subCategoryKey: 'ASTRONOMY_POSN' // Uses the structured Astronomy list
   },
   senior: {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
     icon: './assets/icons/black-hole.png',
-    subCategoryKey: 'Astronomy' // Also uses the structured Astronomy list
+    subCategoryKey: 'ASTRONOMY_POSN' // Also uses the structured Astronomy list
   },
   default: {
     mainCategory: MAIN_CATEGORIES.GENERAL_KNOWLEDGE,

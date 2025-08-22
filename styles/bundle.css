@@ -1,22 +1,426 @@
-/*
-  This file acts as the main entry point for all application styles.
-  It imports Tailwind's base styles and all custom CSS files in the correct order.
-  This approach centralizes style management and avoids duplicating code.
-*/
-
-/* 1. Import Google Fonts (can also be in HTML) */
 @import url("https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap");
 
-/* 2. Import Tailwind CSS core layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* 3. Import all custom style modules */
-/* Note: The order can be important if there are overriding styles. */
-@import "./main.css"; /* Base styles, body, fonts, etc. */
-@import "./quiz.css"; /* Styles specific to the quiz layout and elements. */
-@import "./animations.css"; /* General animations (modals, fades). */
-@import "./quiz-animations.css"; /* Animations specific to the quiz experience. */
-@import "./custom-scrollbar.css"; /* Custom scrollbar styling. */
-@import "./custom-hovers.css"; /* Custom hover effects for cards. */
+/* === BASE STYLES === */
+@layer base {
+  /* Ensure dropdown options are readable in dark mode on supported browsers */
+  option {
+    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200;
+  }
+}
+
+body {
+  font-family: "Sarabun", sans-serif;
+}
+
+.font-kanit {
+  font-family: "Kanit", sans-serif;
+}
+
+html {
+  overflow-y: scroll; /* Prevent layout shift */
+  scroll-behavior: smooth; /* Enable smooth scrolling for anchor links */
+  /* Add global scroll padding to account for the fixed header.
+     This is often more reliable than scroll-margin on individual elements.
+     Header is 4rem (h-16), so 5rem provides a nice 1rem gap. */
+  scroll-padding-top: 5rem;
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9; /* thumb, track */
+}
+
+/* Custom dark mode background with subtle pattern */
+body.dark {
+  background-color: #020617; /* A very dark blue, tailwind slate-950 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%231e293b' fill-opacity='0.4' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
+  /* Add a subtle moving background effect */
+  animation: move-bg 10s linear infinite;
+}
+
+.dark html {
+  scrollbar-color: #4a5568 #1a202c;
+}
+
+/* === COMPONENTS === */
+@layer components {
+  .btn-icon {
+    @apply p-2 rounded-full bg-white/50 dark:bg-gray-800/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900;
+  }
+
+  .btn-primary {
+    @apply w-full bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 dark:focus:ring-offset-slate-950;
+  }
+
+  .animate-pulse-glow-indigo {
+    animation: pulse-glow-indigo 3s infinite ease-in-out;
+  }
+
+  .animate-pulse-glow-teal {
+    animation: pulse-glow-teal 3s infinite ease-in-out;
+  }
+
+  /* Generator Form Components */
+  .gen-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+  .gen-input {
+    @apply w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 dark:placeholder-gray-400;
+  }
+  .gen-output {
+    @apply w-full p-2 border border-gray-300 dark:border-gray-800 rounded-md bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-mono text-sm resize-none custom-scrollbar;
+  }
+  .gen-copy-btn {
+    @apply absolute top-2 right-2 px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md text-xs hover:bg-gray-300 dark:hover:bg-gray-500 transition;
+  }
+  .gen-radio {
+    @apply h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:focus:ring-blue-600 dark:ring-offset-gray-800;
+  }
+
+  /* Stats Dashboard Components */
+  .stats-card {
+    /* A more minimal, vertical card layout */
+    @apply bg-white dark:bg-gray-800/50 p-4 shadow-md border border-gray-200 dark:border-gray-700 flex flex-col justify-between gap-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+  /*  .stats-card-icon {
+    This class is no longer used for the summary cards, but kept for other potential uses. 
+  }*/
+  .stats-card-value {
+    @apply text-3xl font-bold font-kanit text-gray-800 dark:text-gray-100 self-end; /* Align to the bottom right */
+  }
+  .stats-card-label {
+    @apply text-sm font-medium; /* Color is inherited from the parent container */
+  }
+
+  /* Customize autofill styles for better dark mode compatibility in Webkit browsers */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px theme("colors.white") inset !important;
+    transition: background-color 600000s 0s, color 600000s 0s;
+    -webkit-text-fill-color: theme("colors.black") !important;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px theme("colors.gray.950") inset !important;
+    -webkit-text-fill-color: theme("colors.gray.100") !important;
+    transition: background-color 600000s 0s, color 600000s 0s;
+  }
+}
+
+/* === ANIMATIONS & KEYFRAMES === */
+@keyframes pulse-glow-indigo {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+  }
+}
+
+@keyframes pulse-glow-teal {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(20, 184, 166, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
+  }
+}
+/* Fade-in animation for page load */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes card-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes move-bg {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 80px 80px;
+  }
+}
+
+@keyframes shake-horizontal {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes screenFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.anim-fade-in {
+  animation: screenFadeIn 0.4s ease-out forwards;
+}
+
+.anim-fade-out {
+  animation: screenFadeOut 0.3s ease-in forwards;
+}
+
+/* --- Enhanced Modal Animations --- */
+
+@keyframes backdrop-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.anim-backdrop-fade-in {
+  animation: backdrop-fade-in 0.3s ease-out forwards;
+}
+
+@keyframes backdrop-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.anim-backdrop-fade-out {
+  animation: backdrop-fade-out 0.3s ease-in forwards;
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.anim-modal-pop-in {
+  animation: modal-pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes modal-pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+.anim-modal-pop-out {
+  animation: modal-pop-out 0.25s ease-in forwards;
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dropdown-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+}
+
+.anim-dropdown-in {
+  animation: dropdown-in 0.2s ease-out forwards;
+}
+.anim-dropdown-out {
+  animation: dropdown-out 0.15s ease-in forwards;
+}
+
+@keyframes feedback-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-feedback-in {
+  animation: feedback-slide-in 0.4s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+}
+
+@keyframes pulse-warning {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+.anim-pulse-warning {
+  animation: pulse-warning 1.5s infinite ease-in-out;
+}
+
+/* --- Option Button Selection Animation --- */
+@keyframes option-select-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.anim-option-pop {
+  animation: option-select-pop 0.3s ease-out;
+}
+.option-btn {
+  transition: all 0.3s ease;
+}
+
+.correct {
+  background-color: #22c55e !important;
+  color: white !important;
+  border-color: #16a34a !important;
+}
+
+.incorrect {
+  background-color: #ef4444 !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+}
+
+.feedback-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* === CUSTOM SCROLLBARS === */
+
+/* For Webkit browsers like Chrome, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9; /* slate-100 */
+}
+.dark ::-webkit-scrollbar-track {
+  background: #1a202c; /* gray-900 */
+}
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* slate-300 */
+  border-radius: 10px;
+  border: 2px solid #f1f5f9; /* Creates padding around thumb */
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #4a5568; /* gray-600 */
+  border-radius: 10px;
+  border: 2px solid #1a202c; /* Padding color matches the track */
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8; /* slate-400 */
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #718096; /* gray-500 */
+}
+
+/* Specific Scrollbar for Dropdown Menu & Feedback Content */
+.custom-scrollbar-menu,
+.feedback-content {
+  /* For Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #a0aec0 #e2e8f0; /* gray-400, gray-200 */
+}
+.dark .custom-scrollbar-menu,
+.dark .feedback-content {
+  scrollbar-color: #718096 #2d3748; /* gray-500, gray-700 */
+}
+
+.custom-scrollbar-menu::-webkit-scrollbar,
+.feedback-content::-webkit-scrollbar {
+  width: 8px; /* Make it a bit thinner for menus */
+}
+.custom-scrollbar-menu::-webkit-scrollbar-track,
+.feedback-content::-webkit-scrollbar-track {
+  background: transparent; /* Make track transparent */
+}
+.custom-scrollbar-menu::-webkit-scrollbar-thumb,
+.feedback-content::-webkit-scrollbar-thumb {
+  background-color: #a0aec0; /* gray-400 */
+  border-radius: 20px;
+  border: 2px solid #ffffff; /* white */
+}
+.dark .custom-scrollbar-menu::-webkit-scrollbar-thumb,
+.dark .feedback-content::-webkit-scrollbar-thumb {
+  background-color: #718096; /* gray-500 */
+  border: 2px solid #1f2937; /* gray-800 */
+}
