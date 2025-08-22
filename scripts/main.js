@@ -272,6 +272,11 @@ export function initializePage() {
   // 3. Create and append category sections using a DocumentFragment for performance
   const container = document.getElementById("quiz-categories-container");
   if (container) {
+    // Proactively adjust the spacing between sections for a more compact view.
+    // This assumes the container uses Tailwind's space-y utility.
+    container.classList.remove('space-y-6', 'space-y-8'); // Remove potentially larger spacing
+    container.classList.add('space-y-4'); // Apply a smaller, consistent gap
+
     fragment = document.createDocumentFragment(); // Assign to the already declared fragment
     sortedCategories.forEach((categoryKey) => {
       const quizzes = groupedQuizzes[categoryKey];

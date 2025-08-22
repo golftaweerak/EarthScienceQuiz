@@ -31,8 +31,8 @@ export const quizList = [
     url: "./quiz/index.html?id=Astro3",
     storageKey: "quizState-Astro3",
     icon: "./assets/icons/space.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ Astro3",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนดาราศาสตร์",
     category: "AstronomyReview",
   },
   {
@@ -43,8 +43,8 @@ export const quizList = [
     url: "./quiz/index.html?id=Astro4",
     storageKey: "quizState-Astro4",
     icon: "./assets/icons/space.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ Astro4",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนดาราศาสตร์",
     category: "AstronomyReview",
   },
   {
@@ -95,20 +95,20 @@ export const quizList = [
     storageKey: "quizState-junior3",
     icon: "./assets/icons/astronomy1.png",
     borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ junior3",
+    altText: "ไอคอนดาราศาสตร์ระดับมัธยมต้น",
     category: "AstronomyPOSN",
   },
   {
     id: "junior4",
-    title: "ดาราศาสตร์ ม.ต้น ชุด4",
+    title: "ดาราศาสตร์ ม.ต้น ชุด 4",
     amount: 100,
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior4",
     storageKey: "quizState-junior4",
     icon: "./assets/icons/astronomy1.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ junior4",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนดาราศาสตร์ระดับมัธยมต้น",
     category: "AstronomyPOSN",
   },
   {
@@ -137,7 +137,6 @@ export const quizList = [
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
     category: "AstronomyPOSN",
   },
-
   {
     id: "senior3",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 3",
@@ -147,8 +146,8 @@ export const quizList = [
     url: "./quiz/index.html?id=senior3",
     storageKey: "quizState-senior3",
     icon: "./assets/icons/black-hole.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ senior3",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
     category: "AstronomyPOSN",
   },
 
@@ -161,8 +160,8 @@ export const quizList = [
     url: "./quiz/index.html?id=senior4",
     storageKey: "quizState-senior4",
     icon: "./assets/icons/black-hole.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ senior4",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
     category: "AstronomyPOSN",
   },
   {
@@ -211,9 +210,9 @@ export const quizList = [
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr2",
     storageKey: "quizState-ESr2",
-    icon: "./assets/icons/earth1.png",
+    icon: "./assets/icons/earth1.png", // Corrected altText for consistency
     borderColor: "border-red-500",
-    altText: "ไอคอนสำหรับ ESr2",
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "AstronomyReview",
   },
   {
@@ -225,8 +224,8 @@ export const quizList = [
     url: "./quiz/index.html?id=ES4",
     storageKey: "quizState-ES4",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-green-500",
-    altText: "ไอคอนสำหรับ ES4",
+    borderColor: "border-green-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
   {
@@ -238,11 +237,10 @@ export const quizList = [
     url: "./quiz/index.html?id=ES5",
     storageKey: "quizState-ES5",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-green-500",
-    altText: "ไอคอนสำหรับ ES5",
+    borderColor: "border-green-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-
   {
     id: "ES6",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 6",
@@ -252,11 +250,10 @@ export const quizList = [
     url: "./quiz/index.html?id=ES6",
     storageKey: "quizState-ES6",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-green-500",
-    altText: "ไอคอนสำหรับ ES6",
+    borderColor: "border-green-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-
   {
     id: "ESr3",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 3",
@@ -264,12 +261,11 @@ export const quizList = [
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr3",
     storageKey: "quizState-ESr3",
-    icon: "./assets/icons/earth1.png",
+    icon: "./assets/icons/earth1.png", // Corrected altText for consistency
     borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ESr3",
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "AstronomyReview",
   },
-
   {
     id: "ESr4",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 4",
@@ -277,9 +273,9 @@ export const quizList = [
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr4",
     storageKey: "quizState-ESr4",
-    icon: "./assets/icons/earth1.png",
+    icon: "./assets/icons/earth1.png", // Corrected altText for consistency
     borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ESr4",
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "AstronomyReview",
   },
   {
@@ -291,8 +287,8 @@ export const quizList = [
     url: "./quiz/index.html?id=ES7",
     storageKey: "quizState-ES7",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ES7",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
   {
@@ -304,23 +300,22 @@ export const quizList = [
     url: "./quiz/index.html?id=ES8",
     storageKey: "quizState-ES8",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ES8",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
   {
     id: "ES9",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 9",
     amount: 100,
-    description: "คำอธิบายสำหรับชุดข้อสอบนี้ (โปรดแก้ไข)",
+    description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES9",
     storageKey: "quizState-ES9",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ES9",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-  
   {
     id: "ES10",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 10",
@@ -329,20 +324,20 @@ export const quizList = [
     url: "./quiz/index.html?id=ES10",
     storageKey: "quizState-ES10",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ES10",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
   {
     id: "ES11",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 11",
-    amount: 98,
+    amount: 100,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES11",
     storageKey: "quizState-ES11",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ES11",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
   {
@@ -353,9 +348,8 @@ export const quizList = [
     url: "./quiz/index.html?id=ES12",
     storageKey: "quizState-ES12",
     icon: "./assets/icons/geology.png",
-    borderColor: "border-gray-500",
-    altText: "ไอคอนสำหรับ ES12",
+    borderColor: "border-gray-500", // Corrected altText for consistency
+    altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-
 ];

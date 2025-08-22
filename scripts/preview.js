@@ -161,6 +161,47 @@ function createQuestionElement(item, displayIndex, keyword) {
     return questionDiv;
 }
 
+/**
+ * Finds all images within a given container element, applies modern styling,
+ * and wraps them in a link to view the full-size image.
+ * @param {HTMLElement} container The container to search for images within.
+ */
+function styleContainedImages(container) {
+    container.querySelectorAll('img').forEach(img => {
+        // Skip if the image is already wrapped/styled to prevent re-processing
+        if (img.closest('.image-wrapper')) {
+            return;
+        }
+
+        // Create a wrapper for centering, spacing, and adding a caption.
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-wrapper my-4 text-center';
+
+        // Create a link to open the image in a new tab for a larger view.
+        const link = document.createElement('a');
+        link.href = img.src;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.title = 'คลิกเพื่อดูภาพขยาย';
+        // The 'group' class allows the image to scale on link hover.
+        link.className = 'inline-block group';
+
+        // Apply Tailwind classes for styling the image.
+        img.classList.add(
+            'max-w-full', 'h-auto', 'rounded-lg', 'shadow-md', 'border',
+            'border-gray-200', 'dark:border-gray-700',
+            'transition-transform', 'duration-300', 'group-hover:scale-105', 'cursor-pointer'
+        );
+
+        // Replace the original image with the new structure: wrapper > link > img
+        if (img.parentNode) {
+            img.parentNode.replaceChild(wrapper, img);
+        }
+        link.appendChild(img);
+        wrapper.appendChild(link);
+    });
+}
+
 // Function to render quiz data
 function renderQuizData() {
     const container = document.getElementById('preview-container');
@@ -337,6 +378,9 @@ function renderQuizData() {
             // Change '../' to './' to make it relative to the root for preview.html
             img.src = currentSrc.replace('../', './');
         });
+
+        // Apply consistent styling to all images within the rendered content.
+        styleContainedImages(container);
 
         // --- Populate the jump-to-question dropdown AFTER rendering ---
         if (questionJumper && filteredData.length > 0) {
@@ -529,9 +573,10 @@ export function initializePreviewPage() {
             return acc;
         }, {});
 
-        // Sort quizzes within each group alphabetically by title
+        // Sort quizzes within each group using natural sort for proper numbering
         Object.keys(groupedQuizzes).forEach(categoryKey => {
-            groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th'));
+            // 'numeric: true' enables natural sorting (e.g., "2" before "10")
+            groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th', { numeric: true, sensitivity: 'base' }));
         });
 
         // Create optgroups and options, ensuring a consistent order by sorting category keys
