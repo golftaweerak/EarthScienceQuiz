@@ -10,7 +10,9 @@ import { quizList } from "../data/quizzes-list.js";
 export const toggleAccordion = (toggleElement, forceState) => {
     const content = toggleElement.nextElementSibling;
     const icon = toggleElement.querySelector(".chevron-icon");
+    const innerContent = content?.querySelector(".inner-content-wrapper");
     const iconContainer = toggleElement.querySelector(".section-icon-container");
+    const mainIcon = iconContainer?.querySelector(".section-main-icon");
     if (!content || !icon) return;
 
     const isCurrentlyOpen = toggleElement.getAttribute('aria-expanded') === 'true';
@@ -27,10 +29,23 @@ export const toggleAccordion = (toggleElement, forceState) => {
         iconContainer.classList.toggle("scale-105", shouldBeOpen);
         iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
     }
+    if (mainIcon) {
+        mainIcon.classList.toggle("rotate-12", shouldBeOpen);
+    }
 
     // The grid-rows trick is a clever way to animate height with Tailwind.
     content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
     content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
+
+    // Animate inner content opacity and transform for a smoother "fade and slide in" effect.
+    if (innerContent) {
+        // The delay helps the fade-in feel more natural as the container expands.
+        innerContent.style.transitionDelay = shouldBeOpen ? "150ms" : "0ms";
+        innerContent.classList.toggle("opacity-100", shouldBeOpen);
+        innerContent.classList.toggle("translate-y-0", shouldBeOpen);
+        innerContent.classList.toggle("opacity-0", !shouldBeOpen);
+        innerContent.classList.toggle("-translate-y-2", !shouldBeOpen);
+    }
 };
 
 // A function to get all the toggles, so we don't expose the variable directly
@@ -188,7 +203,7 @@ export function initializePage() {
     toggleHeader.innerHTML = `
       <div class="flex items-center min-w-0 gap-4">
         <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300">
-          <img src="${details.icon}" alt="${details.title} Icon" class="h-8 w-8">
+          <img src="${details.icon}" alt="${details.title} Icon" class="section-main-icon h-8 w-8 transition-transform duration-300 ease-in-out">
         </div>
         <div class="min-w-0">
           ${titleContent}
@@ -204,8 +219,9 @@ export function initializePage() {
     const contentDiv = document.createElement("div");
     contentDiv.className =
       "section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out";
-    const innerContentWrapper = document.createElement("div");
-    innerContentWrapper.className = "overflow-hidden";
+    const innerContentWrapper = document.createElement("div"); // This wrapper will be animated
+    // The inner wrapper handles the fade/slide, while the parent handles the height expansion.
+    innerContentWrapper.className = "inner-content-wrapper overflow-hidden transition-all duration-300 ease-out opacity-0 -translate-y-2";
     const quizGrid = document.createElement("div");
     quizGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-6 p-4";
     // Accessibility: Add ID and ARIA attributes for the content panel
