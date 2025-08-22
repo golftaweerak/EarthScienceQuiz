@@ -87,14 +87,14 @@ export function initializePage() {
     let progressText, progressTextColor, progressBarColor, progressDetails;
 
     if (progress.isFinished) {
-      progressText = "ทำเสร็จแล้ว!";
+      progressText = `<span class="inline-flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>ทำเสร็จแล้ว!</span>`;
       progressTextColor = "text-green-600 dark:text-green-400";
-      progressBarColor = "bg-green-500";
+      progressBarColor = "bg-gradient-to-r from-green-400 to-green-500";
       progressDetails = `คะแนน: ${progress.score}/${progress.totalQuestions}`;
     } else if (progress.hasProgress) {
-      progressText = "ความคืบหน้า";
+      progressText = `<span class="inline-flex items-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>ความคืบหน้า</span>`;
       progressTextColor = "text-blue-600 dark:text-blue-400";
-      progressBarColor = "bg-blue-500";
+      progressBarColor = "bg-gradient-to-r from-blue-400 to-blue-600";
       progressDetails = `คะแนน: ${progress.score} | ${progress.answeredCount}/${progress.totalQuestions} ข้อ`;
     } else {
       progressText = "ยังไม่เริ่ม";

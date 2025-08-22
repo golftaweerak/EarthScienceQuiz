@@ -473,8 +473,44 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     // Switch to the result screen
     switchScreen(elements.resultScreen);
 
+    // It's celebration time!
+    triggerConfetti();
+
     // Save the final state. This is important for the 'view results' feature.
     saveQuizState();
+  }
+
+  /**
+   * Triggers a celebratory confetti effect for 3 seconds.
+   * This creates a festive explosion of confetti from both sides of the screen.
+   */
+  function triggerConfetti() {
+    // Ensure the confetti library is loaded and available
+    if (typeof confetti !== 'function') {
+      console.error("Confetti library is not loaded.");
+      return;
+    }
+
+    const duration = 3 * 1000; // 3 seconds
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+
+    function randomInRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      const particleCount = 50 * (timeLeft / duration);
+      // shoot from the left and right
+      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+    }, 250);
   }
 
   // --- Result Screen Helpers ---
