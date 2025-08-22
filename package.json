@@ -6,7 +6,7 @@
   "scripts": {
     "start": "live-server --port=8080 --open=./index.html",
     "test": "echo \"Running data validation...\" && node scripts/validate-subcategories.js",
-    "test:fix": "echo \"Running data validation with auto-fix...\" && node scripts/validate-subcategories.js --fix",
+    "test:fix": "echo \"Running data validation with auto-fix, followed by formatting...\" && node scripts/validate-subcategories.js --fix && npm run format",
     "format": "prettier --write \"**/*.{js,json,html,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,json,html,css,md}\""
   },

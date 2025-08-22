@@ -64,7 +64,10 @@ async function validateAllDataFiles() {
           const oldSubCategory = question.subCategory;
           const mainCategory = specificToMainMap.get(oldSubCategory);
           if (mainCategory) {
-            const searchRegex = new RegExp(`(subCategory:\\s*)"${oldSubCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`, 'g');
+            // Make the regex more robust: handles optional quotes on the key and single/double quotes on the value.
+            const escapedString = oldSubCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const searchRegex = new RegExp(`(['"]?subCategory['"]?\\s*:\\s*)["']${escapedString}["']`, 'g');
+
             const newSubCategoryObject = `{ main: "${mainCategory}", specific: "${oldSubCategory}" }`;
             const newFileContent = fileContent.replace(searchRegex, `$1${newSubCategoryObject}`);
 
