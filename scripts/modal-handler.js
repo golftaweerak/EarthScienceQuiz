@@ -18,6 +18,7 @@ export class ModalHandler {
         return;
       }
 
+      this.animationDuration = 300; // Match the transition duration in CSS
       this.focusableElements = [];
       this.firstFocusableElement = null;
       this.lastFocusableElement = null;
@@ -47,8 +48,14 @@ export class ModalHandler {
       if (!this.modal) return;
 
       this.triggerElement = triggerElement;
+      // Make the modal part of the layout, but it will be invisible due to opacity: 0
       this.modal.classList.remove("hidden");
       document.body.style.overflow = "hidden";
+
+      // Use a short timeout to ensure the browser has applied the display change
+      // before adding the class that triggers the animation. This prevents the animation from being skipped.
+      setTimeout(() => this.modal.classList.add('is-open'), 10);
+
 
       // Get all focusable elements inside the modal
       const focusableSelector =
@@ -77,13 +84,17 @@ export class ModalHandler {
     close() {
       if (!this.modal) return;
 
-      this.modal.classList.add("hidden");
+      // Trigger the closing animation by removing the class
+      this.modal.classList.remove('is-open');
       document.body.style.overflow = "";
       document.removeEventListener("keydown", this.handleKeyDown);
 
-      if (this.triggerElement) {
-        this.triggerElement.focus();
-      }
+      // After the animation finishes, hide the modal completely with display: none
+      // and restore focus to the element that opened it.
+      setTimeout(() => {
+        this.modal.classList.add('hidden');
+        if (this.triggerElement) this.triggerElement.focus();
+      }, this.animationDuration);
     }
 
     /**
