@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 
 /**
  * A utility script to check for duplicate questions across all data files.
@@ -13,6 +13,23 @@ import { fileURLToPath } from "url";
  * 1. Make sure you have a package.json with "type": "module".
  * 2. Run `node tools/check-duplicates.js` from the project root.
  */
+
+/**
+ * A generator function to flatten the quiz items structure.
+ * It yields each individual question object, whether it's a standalone question
+ * or nested within a scenario.
+ * @param {Array<Object>} quizItems - The array of items from a data file.
+ */
+function* getAllQuestions(quizItems) {
+    for (const item of quizItems) {
+        if (item.type === "scenario" && Array.isArray(item.questions)) {
+            yield* item.questions; // Use yield* to delegate to another generator/iterable
+        } else if (item.type === "question" || item.question) { // Also handle items that are implicitly questions
+            yield item;
+        }
+    }
+}
+
 async function checkDuplicates() {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const dataDir = path.resolve(__dirname, "..", "data");
@@ -27,7 +44,8 @@ async function checkDuplicates() {
     for (const file of dataFiles) {
         const filePath = path.join(dataDir, file);
         // Use a cache-busting query string for dynamic import to get the latest file content
-        const module = await import(`file://${filePath}?v=${Date.now()}`);
+        const fileUrl = `${pathToFileURL(filePath).href}?v=${Date.now()}`;
+        const module = await import(fileUrl);
         const quizItems = module.quizItems;
 
         if (!quizItems) {
@@ -35,32 +53,32 @@ async function checkDuplicates() {
             continue;
         }
 
-        for (const item of quizItems) {
-            // This handles both standalone questions and questions within a scenario
-            const questionsToCheck = item.type === "scenario" ? item.questions || [] : [item];
+        for (const questionItem of getAllQuestions(quizItems)) {
+            // Ensure we are processing a valid question object
+            if (!questionItem.question || !questionItem.options) {
+                continue;
+            }
 
-            for (const questionItem of questionsToCheck) {
-                // Ensure we are processing a valid question object
-                if (!questionItem.question || !questionItem.options) {
-                    continue;
-                }
+            const questionText = questionItem.question.trim();
+            // Normalize options by extracting their text content, then sorting them
+            // to make the check order-independent. This handles both string options
+            // and object options (e.g., { text: '...' }).
+            const optionTexts = questionItem.options.map(opt =>
+                typeof opt === 'object' && opt !== null && opt.text ? opt.text.trim() : String(opt).trim()
+            );
+            const sortedOptions = optionTexts.sort().join("|");
+            const uniqueKey = `${questionText}|${sortedOptions}`;
 
-                const questionText = questionItem.question.trim();
-                // Normalize options by sorting them to make the check order-independent
-                const sortedOptions = [...questionItem.options].sort().map((opt) => String(opt).trim()).join("|");
-                const uniqueKey = `${questionText}|${sortedOptions}`;
-
-                if (seenQuestions.has(uniqueKey)) {
-                    duplicateCount++;
-                    const firstSeen = seenQuestions.get(uniqueKey);
-                    console.error(`\n❗️ DUPLICATE FOUND (#${duplicateCount}):`);
-                    console.error(`  - In File: ${file}, Number: ${questionItem.number}`);
-                    console.error(`  - Question: "${questionText.substring(0, 70)}..."`);
-                    console.error(`  - This is a duplicate of a question in:`);
-                    console.error(`  - File: ${firstSeen.file}, Number: ${firstSeen.number}`);
-                } else {
-                    seenQuestions.set(uniqueKey, { file, number: questionItem.number });
-                }
+            if (seenQuestions.has(uniqueKey)) {
+                duplicateCount++;
+                const firstSeen = seenQuestions.get(uniqueKey);
+                console.error(`\n❗️ DUPLICATE FOUND (#${duplicateCount}):`);
+                console.error(`  - In File: ${file}, Number: ${questionItem.number}`);
+                console.error(`  - Question: "${questionText.substring(0, 70)}..."`);
+                console.error(`  - This is a duplicate of a question in:`);
+                console.error(`  - File: ${firstSeen.file}, Number: ${firstSeen.number}`);
+            } else {
+                seenQuestions.set(uniqueKey, { file, number: questionItem.number });
             }
         }
     }

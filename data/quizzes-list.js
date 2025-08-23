@@ -14,7 +14,7 @@ export const quizList = [
   {
     id: "Astro2",
     title: "ทบทวน ดาราศาสตร์ ชุด 2",
-    amount: 60,
+    amount: 50,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
     url: "./quiz/index.html?id=Astro2",
     storageKey: "quizState-Astro2",
@@ -50,7 +50,7 @@ export const quizList = [
   {
     id: "ESr1",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 1",
-    amount: 50,
+    amount: 60,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr1",
     storageKey: "quizState-ESr1",
@@ -88,7 +88,7 @@ export const quizList = [
   {
     id: "junior3",
     title: "ดาราศาสตร์ ม.ต้น ชุด 3",
-    amount: 90,
+    amount: 100,
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior3",
@@ -114,13 +114,13 @@ export const quizList = [
   {
     id: "junior5",
     title: "ดาราศาสตร์ ม.ต้น ชุด 5",
-    amount: 60,
+    amount: 100,
     description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior5",
     storageKey: "quizState-junior5",
     icon: "./assets/icons/astronomy1.png",
     borderColor: "border-gray-500",
-    altText: "อคอนดาราศาสตร์ระดับมัธยมต้น",
+    altText: "ไอคอนดาราศาสตร์ระดับมัธยมต้น",
     category: "AstronomyPOSN"
   },
   {
@@ -177,6 +177,18 @@ export const quizList = [
     category: "AstronomyPOSN",
   },
   {
+    id: "senior5",
+    title: "ดาราศาสตร์ ม.ปลาย ชุด 5",
+    amount: 100,
+    description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
+    url: "./quiz/index.html?id=senior5",
+    storageKey: "quizState-senior5",
+    icon: "./assets/icons/black-hole.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
+    category: "AstronomyPOSN"
+  },
+  {
     id: "ES1",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
     amount: 150,
@@ -218,7 +230,7 @@ export const quizList = [
   {
     id: "ESr2",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 2",
-    amount: 50,
+    amount: 60,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr2",
     storageKey: "quizState-ESr2",
@@ -230,7 +242,7 @@ export const quizList = [
   {
     id: "ES4",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 4",
-    amount: 90,
+    amount: 100,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES4",
@@ -243,7 +255,7 @@ export const quizList = [
   {
     id: "ES5",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 5",
-    amount: 90,
+    amount: 100,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES5",
@@ -256,7 +268,7 @@ export const quizList = [
   {
     id: "ES6",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 6",
-    amount: 90,
+    amount: 100,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES6",
@@ -269,7 +281,7 @@ export const quizList = [
   {
     id: "ESr3",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 3",
-    amount: 50,
+    amount: 60,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr3",
     storageKey: "quizState-ESr3",
@@ -281,7 +293,7 @@ export const quizList = [
   {
     id: "ESr4",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 4",
-    amount: 50,
+    amount: 60,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางวิทยาศาสตร์โลกและอวกาศ",
     url: "./quiz/index.html?id=ESr4",
     storageKey: "quizState-ESr4",
@@ -319,7 +331,7 @@ export const quizList = [
   {
     id: "ES9",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 9",
-    amount: 100,
+    amount: 90,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES9",
     storageKey: "quizState-ES9",
@@ -355,7 +367,7 @@ export const quizList = [
   {
     id: "ES12",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 12",
-    amount: 90,
+    amount: 100,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES12",
     storageKey: "quizState-ES12",
@@ -364,4 +376,5 @@ export const quizList = [
     altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-  ];
+  
+ ];

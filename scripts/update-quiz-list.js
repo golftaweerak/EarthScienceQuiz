@@ -96,67 +96,113 @@ function getNewQuizEntry(id, questionCount, details) {
  * Main function to update the quiz list.
  */
 function updateQuizList() {
-    console.log('🚀 Checking for new quiz data files...');
+    console.log('🚀 Checking for new and existing quiz data files...');
 
     let quizListContent;
     try {
         quizListContent = fs.readFileSync(quizListPath, 'utf8');
     } catch (error) {
-        console.error(`❌ Could not read ${quizListPath}. Make sure the file exists.`);
+        console.error(`❌ Could not read ${quizListPath}. Please ensure the file exists.`);
         return;
     }
 
     const existingIds = new Set((quizListContent.match(/id:\s*"([^"]+)"/g) || []).map(s => s.split('"')[1]));
     console.log('ℹ️ Found existing quiz IDs:', Array.from(existingIds));
 
-    const allFiles = fs.readdirSync(dataDir);
-    const newDataFiles = allFiles.filter(file => 
+    const dataFiles = fs.readdirSync(dataDir).filter(file => 
         file.endsWith('-data.js') && 
         !file.startsWith('template-') &&
         !file.startsWith('tempCodeRunnerFile') // Exclude temp files
     );
 
+    let updatedContent = quizListContent;
     let newEntriesString = '';
     let quizzesAdded = 0;
+    const addedQuizSummaries = []; // To store summaries of added quizzes
+    let quizzesUpdated = 0;
+    const updatedQuizSummaries = []; // To store summaries of updated quizzes
+    const allQuizSummaries = []; // To store summary of ALL quizzes
 
-    for (const file of newDataFiles) {
+    for (const file of dataFiles) {
         const id = file.replace('-data.js', '');
-        if (!existingIds.has(id)) {
-            try {
-                console.log(`✨ Found new file: ${file}. Processing...`);
-                const filePath = path.join(dataDir, file);
-                const content = fs.readFileSync(filePath, 'utf8');
-                const questionCount = countQuestionsInContent(content);
-                
-                if (questionCount > 0) {
-                    const details = extractDetailsFromContent(content, id);
-                    newEntriesString += getNewQuizEntry(id, questionCount, details);
-                    quizzesAdded++;
-                    console.log(`  - Added "${details.title}" (${id}) with ${questionCount} questions.`);
-                } else {
-                    console.warn(`  - ⚠️ Skipping "${id}" because no questions were found.`);
-                }
-            } catch (error) {
-                console.error(`  - ❌ Error processing ${file}:`, error);
+        try {
+            const filePath = path.join(dataDir, file);
+            const content = fs.readFileSync(filePath, 'utf8');
+            const actualCount = countQuestionsInContent(content);
+
+            if (actualCount === 0) {
+                console.warn(`  - ⚠️ Skipping "${id}" because no questions were found.`);
+                continue;
             }
+
+            if (existingIds.has(id)) {
+                // --- UPDATE LOGIC for existing quizzes ---
+                const amountRegex = new RegExp(`(id:\\s*"${id}"[\\s\\S]*?amount:\\s*)\\d+`);
+                const match = updatedContent.match(amountRegex);
+
+                if (match) {
+                    const currentAmount = parseInt(match[0].match(/amount:\s*(\d+)/)[1], 10);
+                    const titleMatch = match[0].match(/title:\s*"([^"]+)"/);
+                    const title = titleMatch ? titleMatch[1] : `Quiz ${id}`; // Get title from the list itself
+                    allQuizSummaries.push({ id, title, amount: actualCount });
+                    if (currentAmount !== actualCount) {
+                        updatedContent = updatedContent.replace(amountRegex, `$1${actualCount}`);
+                        console.log(`🔄 Updated amount for "${id}": from ${currentAmount} to ${actualCount}.`);
+                        updatedQuizSummaries.push({ id, oldAmount: currentAmount, newAmount: actualCount });
+                        quizzesUpdated++;
+                    }
+                }
+            } else {
+                // --- ADD LOGIC for new quizzes ---
+                console.log(`✨ Found new file: ${file}. Staging for addition...`);
+                const details = extractDetailsFromContent(content, id);
+                allQuizSummaries.push({ id, title: details.title, amount: actualCount });
+                addedQuizSummaries.push({ id, title: details.title, amount: actualCount });
+                newEntriesString += getNewQuizEntry(id, actualCount, details);
+                quizzesAdded++;
+                console.log(`  - Staged "${details.title}" (${id}) with ${actualCount} questions.`);
+            }
+        } catch (error) {
+            console.error(`  - ❌ Error processing ${file}:`, error);
         }
     }
 
-    if (quizzesAdded > 0) {
-        // Find the last occurrence of a closing brace `}` before the closing bracket `];`
-        // This is more robust than just finding the last `];` in case of comments.
-        const closingBracketIndex = quizListContent.lastIndexOf('];');
-        if (closingBracketIndex === -1) {
-            console.error('❌ Could not find the closing "];" in quizzes-list.js. Aborting update.');
-            return;
+    const changesMade = quizzesAdded > 0 || quizzesUpdated > 0;
+
+    if (changesMade) {
+        if (quizzesAdded > 0) {
+            const closingBracketIndex = updatedContent.lastIndexOf('];');
+            if (closingBracketIndex !== -1) {
+                updatedContent = updatedContent.slice(0, closingBracketIndex) + newEntriesString + updatedContent.slice(closingBracketIndex);
+            } else {
+                console.error('❌ Could not find the closing "];" in quizzes-list.js. Cannot add new entries.');
+            }
         }
-        
-        const updatedContent = quizListContent.slice(0, closingBracketIndex) + newEntriesString + quizListContent.slice(closingBracketIndex);
         fs.writeFileSync(quizListPath, updatedContent, 'utf8');
-        console.log(`\n✅ Successfully added ${quizzesAdded} new quiz(zes) to quizzes-list.js.`);
-        console.log('🔔 Please open quizzes-list.js to review and adjust the new entries if needed.');
+        
+        console.log(`\n✅ Successfully updated quizzes-list.js.`);
+        if (quizzesAdded > 0) console.log(`   - Added: ${quizzesAdded} new quiz(zes).`);
+        addedQuizSummaries.forEach(summary => {
+            console.log(`     - "${summary.title}" (${summary.id}): ${summary.amount} questions.`);
+        });
+
+        if (quizzesUpdated > 0) console.log(`   - Updated: ${quizzesUpdated} quiz(zes).`);
+        updatedQuizSummaries.forEach(summary => {
+            console.log(`     - "${summary.id}": ${summary.oldAmount} -> ${summary.newAmount} questions.`);
+        });
+
+        if (quizzesAdded > 0) {
+            console.log('   🔔 Please review the new entries in the file.');
+        }
     } else {
-        console.log('\n👍 No new quizzes to add. Your list is up to date.');
+        console.log('\n👍 No new quizzes to add or update. Your list is up to date.');
+    }
+
+    if (allQuizSummaries.length > 0) {
+        console.log(`\n📊 Summary of all ${allQuizSummaries.length} quiz sets found:`);
+        allQuizSummaries.sort((a, b) => a.id.localeCompare(b.id)).forEach(summary => {
+            console.log(`   - "${summary.title}" (${summary.id}): ${summary.amount} questions.`);
+        });
     }
 }
 
