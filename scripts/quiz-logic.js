@@ -406,48 +406,68 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     const formattedAverageTime = `${averageTimePerQuestion} วิ/ข้อ`;
 
     // Calculate score by subcategory
+    // This new logic groups by main category first, then by specific subcategory.
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
-      if (!answer) return acc;
-      // Handle both string and object formats for subCategory to get a displayable name.
-      let categoryName = 'ไม่มีหมวดหมู่';
-      if (typeof answer.subCategory === 'object' && answer.subCategory.specific) {
-          // If it's an object like { main: '...', specific: '...' }, use the specific name.
-          categoryName = answer.subCategory.specific;
+      if (!answer || !answer.subCategory) return acc;
+
+      let mainCategory, specificCategory;
+
+      // Handle both new object format and old string format for subCategory
+      if (typeof answer.subCategory === 'object' && answer.subCategory.main) {
+          mainCategory = answer.subCategory.main;
+          specificCategory = answer.subCategory.specific || 'ทั่วไป';
       } else if (typeof answer.subCategory === 'string') {
-          // If it's just a string, use it directly.
-          categoryName = answer.subCategory;
+          // Fallback for older data: use the string as the main category.
+          mainCategory = answer.subCategory;
+          specificCategory = '—'; // Use a placeholder for no specific sub-category
+      } else {
+          return acc; // Skip if format is unknown
       }
 
-      if (!acc[categoryName]) {
-          acc[categoryName] = { correct: 0, total: 0 };
+      // Initialize main category if it doesn't exist
+      if (!acc[mainCategory]) {
+          acc[mainCategory] = { correct: 0, total: 0, subcategories: {} };
       }
-      acc[categoryName].total++;
-      if (answer.isCorrect) acc[categoryName].correct++;
+      // Initialize specific subcategory if it doesn't exist
+      if (!acc[mainCategory].subcategories[specificCategory]) {
+          acc[mainCategory].subcategories[specificCategory] = { correct: 0, total: 0 };
+      }
+
+      // Increment counts for both main and sub categories
+      acc[mainCategory].total++;
+      acc[mainCategory].subcategories[specificCategory].total++;
+      if (answer.isCorrect) {
+          acc[mainCategory].correct++;
+          acc[mainCategory].subcategories[specificCategory].correct++;
+      }
       return acc;
     }, {});
 
     // --- Performance Analysis ---
     const performanceSummary = { best: null, worst: null };
-    const categoryEntries = Object.entries(categoryStats);
+    // Filter for categories that actually have questions to get meaningful stats.
+    const categoryEntries = Object.entries(categoryStats).filter(
+      ([, data]) => data.total > 0
+    );
 
     if (categoryEntries.length > 1) {
-        let bestCat = { name: null, score: -1 };
-        let worstCat = { name: null, score: 101 };
+      // Create a new array with calculated percentages for robust sorting.
+      const scoredCategories = categoryEntries.map(([name, data]) => ({
+        name: name,
+        score: (data.correct / data.total) * 100,
+      }));
 
-        categoryEntries.forEach(([name, data]) => {
-            // Only consider categories with a reasonable number of questions for meaningful stats
-            if (data.total >= 3) { 
-                const percentage = (data.correct / data.total) * 100;
-                if (percentage > bestCat.score) {
-                    bestCat = { name, score: percentage };
-                }
-                if (percentage < worstCat.score) {
-                    worstCat = { name, score: percentage };
-                }
-            }
-        });
-        if (bestCat.name && bestCat.score >= 80 && bestCat.name !== worstCat.name) performanceSummary.best = bestCat.name;
-        if (worstCat.name && worstCat.score < 60 && bestCat.name !== worstCat.name) performanceSummary.worst = worstCat.name;
+      // Sort by score, ascending. The first element is the worst, the last is the best.
+      scoredCategories.sort((a, b) => a.score - b.score);
+
+      const worstCat = scoredCategories[0];
+      const bestCat = scoredCategories[scoredCategories.length - 1];
+
+      // Only populate the summary if the scores are actually different.
+      if (bestCat.score > worstCat.score) {
+        performanceSummary.best = bestCat.name;
+        performanceSummary.worst = worstCat.name;
+      }
     }
 
     // Get the appropriate message and icon based on the score
@@ -647,9 +667,8 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
     // --- 2b. Stats List ---
     const statsContainer = document.createElement("div");
-    // Center items on mobile, align to start on medium screens and up.
-    statsContainer.className =
-      "flex flex-col items-center md:items-start gap-4 w-full md:w-auto";
+    // Use a grid layout to ensure two columns even on small screens.
+    statsContainer.className = "grid grid-cols-2 gap-4 w-full";
 
     // Define icons for stats
     const icons = {
@@ -687,32 +706,84 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     layoutContainer.appendChild(dataContainer);
 
     // --- 3. Category Breakdown ---
-    // Only show if there's more than one category to break down.
-    if (stats.categoryStats && Object.keys(stats.categoryStats).length > 1) {
+    // This new section creates an accordion for main categories and their subcategories.
+    if (stats.categoryStats && Object.keys(stats.categoryStats).length > 0) {
       const categoryContainer = document.createElement('div');
       categoryContainer.className = 'w-full max-w-2xl mx-auto mt-8';
       categoryContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-4">คะแนนตามหมวดหมู่</h3>`;
       
-      const categoryGrid = document.createElement('div');
-      categoryGrid.className = 'space-y-3';
+      const accordionContainer = document.createElement('div');
+      accordionContainer.className = 'space-y-2';
 
-      for (const [category, data] of Object.entries(stats.categoryStats)) {
-          const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
-          const item = document.createElement('div');
-          item.className = 'p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg';
-          item.innerHTML = `
-              <div class="flex justify-between items-center text-sm">
-                  <span class="font-medium text-gray-700 dark:text-gray-200">${category}</span>
-                  <span class="font-semibold text-gray-800 dark:text-gray-100">${data.correct} / ${data.total} <span class="font-normal text-gray-500 dark:text-gray-400">(${percentage}%)</span></span>
+      const sortedCategories = Object.entries(stats.categoryStats).sort((a, b) => a[0].localeCompare(b[0]));
+
+      for (const [mainCategory, data] of sortedCategories) {
+          const mainPercentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+          
+          const accordionItem = document.createElement('div');
+          accordionItem.className = 'bg-gray-50 dark:bg-gray-800/50 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700';
+
+          const accordionHeader = document.createElement('div');
+          accordionHeader.className = 'p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors';
+          accordionHeader.innerHTML = `
+              <div>
+                  <span class="font-bold text-gray-800 dark:text-gray-200">${mainCategory}</span>
+                  <span class="ml-2 text-sm font-semibold text-gray-600 dark:text-gray-400">${data.correct} / ${data.total}</span>
               </div>
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1.5">
-                  <div class="bg-blue-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+              <div class="flex items-center gap-3">
+                  <span class="font-bold text-blue-600 dark:text-blue-400">${mainPercentage}%</span>
+                  <svg class="accordion-icon h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
               </div>
           `;
-          categoryGrid.appendChild(item);
+
+          const accordionContent = document.createElement('div');
+          accordionContent.className = 'accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out';
+          
+          const subcategoryList = document.createElement('div');
+          subcategoryList.className = 'p-4 border-t border-gray-200 dark:border-gray-700 space-y-3';
+
+          const sortedSubcategories = Object.entries(data.subcategories).sort((a, b) => a[0].localeCompare(b[0]));
+
+          for (const [specificCategory, subData] of sortedSubcategories) {
+              if (specificCategory === '—') continue; // Skip placeholder for old data format
+              const subPercentage = subData.total > 0 ? Math.round((subData.correct / subData.total) * 100) : 0;
+              const subItem = document.createElement('div');
+              subItem.innerHTML = `
+                  <div class="flex justify-between items-center text-sm">
+                      <span class="font-medium text-gray-700 dark:text-gray-300">${specificCategory}</span>
+                      <span class="font-semibold text-gray-800 dark:text-gray-200">${subData.correct} / ${subData.total} <span class="font-normal text-gray-500 dark:text-gray-400">(${subPercentage}%)</span></span>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 mt-1">
+                      <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${subPercentage}%"></div>
+                  </div>
+              `;
+              subcategoryList.appendChild(subItem);
+          }
+
+          accordionContent.appendChild(subcategoryList);
+          accordionItem.appendChild(accordionHeader);
+          if (subcategoryList.childElementCount > 0) {
+            accordionItem.appendChild(accordionContent);
+            accordionHeader.addEventListener('click', () => {
+                const icon = accordionHeader.querySelector('.accordion-icon');
+                if (accordionContent.style.maxHeight) {
+                    accordionContent.style.maxHeight = null;
+                    icon.classList.remove('rotate-180');
+                } else {
+                    accordionContent.style.maxHeight = accordionContent.scrollHeight + "px";
+                    icon.classList.add('rotate-180');
+                }
+            });
+          } else {
+            // If no subcategories, remove the chevron icon
+            accordionHeader.querySelector('.accordion-icon')?.remove();
+            accordionHeader.style.cursor = 'default';
+          }
+          
+          accordionContainer.appendChild(accordionItem);
       }
       
-      categoryContainer.appendChild(categoryGrid);
+      categoryContainer.appendChild(accordionContainer);
       layoutContainer.appendChild(categoryContainer);
     }
 
