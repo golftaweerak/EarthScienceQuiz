@@ -138,9 +138,12 @@ export function initializeMenu() {
         return orderA - orderB;
     });
 
-    // Sort quizzes within each category alphabetically by title
+    // Use Intl.Collator for natural sorting of numbers within strings (e.g., "ชุดที่ 1", "ชุดที่ 10")
+    const collator = new Intl.Collator('th', { numeric: true, sensitivity: 'base' });
+
+    // Sort quizzes within each category using natural sort
     Object.keys(groupedQuizzes).forEach(categoryKey => {
-        groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th'));
+        groupedQuizzes[categoryKey].sort((a, b) => collator.compare(a.title, b.title));
     });
 
     // --- Build Menu HTML ---
@@ -171,7 +174,7 @@ export function initializeMenu() {
     // 3. Custom Quizzes
     const savedQuizzes = remainingQuizzes
         .filter(q => q.customId) // Filter for custom quizzes only
-        .sort((a, b) => a.title.localeCompare(b.title, 'th')); // Sort custom quizzes alphabetically
+        .sort((a, b) => collator.compare(a.title, b.title)); // Sort custom quizzes using natural sort
     if (savedQuizzes.length > 0) {
         menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
         menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
