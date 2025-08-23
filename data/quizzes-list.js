@@ -112,6 +112,18 @@ export const quizList = [
     category: "AstronomyPOSN",
   },
   {
+    id: "junior5",
+    title: "ดาราศาสตร์ ม.ต้น ชุด 5",
+    amount: 60,
+    description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
+    url: "./quiz/index.html?id=junior5",
+    storageKey: "quizState-junior5",
+    icon: "./assets/icons/astronomy1.png",
+    borderColor: "border-gray-500",
+    altText: "อคอนดาราศาสตร์ระดับมัธยมต้น",
+    category: "AstronomyPOSN"
+  },
+  {
     id: "senior1",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
     amount: 120,
@@ -352,4 +364,4 @@ export const quizList = [
     altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-];
+  ];
