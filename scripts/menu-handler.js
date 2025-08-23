@@ -30,19 +30,19 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
 
     if (progress.isFinished) {
         progressHtml = `
-            <div class="text-xs font-normal text-green-600 dark:text-green-400">
-                ทำเสร็จแล้ว (คะแนน: ${progress.score}/${progress.totalQuestions} - ${progress.percentage}%)
+            <div class="text-[11px] font-medium text-green-600 dark:text-green-400 mt-0.5">
+                ทำเสร็จแล้ว (${progress.score}/${progress.totalQuestions})
             </div>`;
     } else if (progress.hasProgress && progress.answeredCount > 0) {
         progressHtml = `
-            <div class="text-xs font-normal text-blue-600 dark:text-blue-400">
-                ทำต่อ (${progress.answeredCount}/${progress.totalQuestions} ข้อ - ${progress.percentage}%)
+            <div class="text-[11px] font-medium text-blue-600 dark:text-blue-400 mt-0.5">
+                ทำต่อ (${progress.answeredCount}/${progress.totalQuestions} ข้อ)
             </div>`;
     }
 
     // Check if this is the currently active quiz
     if (quizId === currentQuizId) {
-        activeClass = 'bg-blue-100 dark:bg-blue-900/50';
+        activeClass = 'bg-blue-100 dark:bg-blue-900/50 border-blue-500';
         titlePrefix = '<span class="inline-block h-2 w-2 mr-2 bg-blue-500 rounded-full" aria-hidden="true"></span>';
         titleFontClass = 'font-bold';
         // Add classes for glow and scale
@@ -50,9 +50,9 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
     }
 
     return `
-        <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" data-quiz-title="${quiz.title}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md ${activeClass}">
-            <div class="flex items-start gap-3">
-                <div class="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white dark:bg-gray-200 p-1 mt-0.5 transition-all duration-300 ${iconContainerExtraClass}">
+        <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" data-quiz-title="${quiz.title}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 border-l-2 border-transparent hover:border-blue-400 ${activeClass}">
+            <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white dark:bg-gray-200 p-1 transition-all duration-300 group-hover:scale-110 ${iconContainerExtraClass}">
                     <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                 </div>
                 <div class="flex-grow min-w-0">
@@ -151,7 +151,12 @@ export function initializeMenu() {
 
     // 1. Recent Quizzes Section
     if (recentQuizzes.length > 0) {
-        menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ทำล่าสุด</h4>`;
+        menuHTML += `
+            <div class="px-4 pt-2 pb-1 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">ทำล่าสุด</h4>
+            </div>
+        `;
         recentQuizzes.forEach(quiz => {
             menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
         });
@@ -164,7 +169,12 @@ export function initializeMenu() {
         const details = allCategoryDetails[categoryKey];
         if (!details || !quizzes || quizzes.length === 0) return;
 
-        menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>`;
+        menuHTML += `
+            <div class="px-4 pt-2 pb-1 flex items-center gap-2">
+                <img src="${details.icon}" class="h-4 w-4 opacity-70" alt="${details.title} icon">
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>
+            </div>
+        `;
 
         quizzes.forEach(quiz => {
             menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
@@ -177,7 +187,12 @@ export function initializeMenu() {
         .sort((a, b) => collator.compare(a.title, b.title)); // Sort custom quizzes using natural sort
     if (savedQuizzes.length > 0) {
         menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
-        menuHTML += `<h4 class="px-4 pt-2 pb-1 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>`;
+        menuHTML += `
+            <div class="px-4 pt-2 pb-1 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" /></svg>
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>
+            </div>
+        `;
 
         savedQuizzes.forEach((quiz) => {
             menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
