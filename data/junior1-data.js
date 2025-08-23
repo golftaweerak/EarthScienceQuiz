@@ -1,4 +1,4 @@
-export const quizData = [
+export const quizItems = [
   {
     number: 1,
     question:

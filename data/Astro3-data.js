@@ -4,7 +4,7 @@
  * จำนวน: 50 ข้อ
  */
 
-export const quizData = [
+export const quizItems = [
   // --- สถานการณ์ที่ 1: การวิเคราะห์ข้อมูลดาวฤกษ์จากตาราง ---
   {
     type: "scenario",

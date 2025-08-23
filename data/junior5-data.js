@@ -1,4 +1,4 @@
-export const quizData = [
+export const quizItems = [
   // --- เริ่มชุดข้อสอบ ---
   {
     type: "question",
