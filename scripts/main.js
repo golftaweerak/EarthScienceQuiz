@@ -116,7 +116,7 @@ export function initializePage() {
       '<span class="text-gray-300 dark:text-gray-600">|</span>'
     );
 
-    return `<div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-xs ${progressTextColor}">${progressText}</span><span class="text-xs text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-[11px] text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span><div class="flex items-center gap-2">${footerActionsHTML}</div></div></div>`;
+    return `<div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700/80"><div class="flex justify-between items-center mb-1 font-medium"><span class="text-xs ${progressTextColor}">${progressText}</span><span class="text-xs text-gray-500 dark:text-gray-400">${progress.percentage}%</span></div><div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden"><div class="${progressBarColor} h-2.5 rounded-full transition-all duration-500" style="width: ${progress.percentage}%"></div></div><div class="flex justify-between items-center text-[11px] text-gray-500 dark:text-gray-400 mt-1"><span>${progressDetails}</span><div class="flex items-center gap-2">${footerActionsHTML}</div></div></div>`;
   }
 
   /**
@@ -137,15 +137,16 @@ export function initializePage() {
     card.dataset.storageKey = quiz.storageKey;
     card.dataset.totalQuestions = totalQuestions;
 
-    card.className = `quiz-card group flex flex-col h-full bg-gray-50 dark:bg-gray-800 p-3 rounded-lg shadow-md hover:shadow-xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:-translate-y-1 anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
-    card.style.animationDelay = `${index * 50}ms`; // Slightly faster animation
+    // Enhanced card styling for more visual appeal
+    card.className = `quiz-card group flex flex-col h-full bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 p-3 rounded-xl shadow-lg hover:shadow-2xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:scale-[1.02] anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
+    card.style.animationDelay = `${index * 50}ms`;
     const progress = getQuizProgress(quiz.storageKey, totalQuestions);
     const progressHTML = createProgressHTML(progress, quiz);
 
     card.innerHTML = `
       <div class="flex-grow flex items-start gap-3">
-        <div class="flex-shrink-0 h-14 w-14 rounded-full flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white dark:bg-white group-hover:shadow-lg ${logoGlowClass}">
-          <img src="${quiz.icon}" alt="${quiz.altText}" class="h-9 w-9 transition-transform duration-300 group-hover:scale-110">
+        <div class="flex-shrink-0 h-14 w-14 rounded-xl flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white/80 dark:bg-white group-hover:shadow-lg group-hover:scale-105 ${logoGlowClass}">
+          <img src="${quiz.icon}" alt="${quiz.altText}" class="h-9 w-9 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
         </div>
         <div class="flex-grow">
           <h3 class="text-base font-bold text-gray-900 dark:text-white font-kanit leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">${quiz.title}</h3>
@@ -202,7 +203,7 @@ export function initializePage() {
 
     toggleHeader.innerHTML = `
       <div class="flex items-center min-w-0 gap-4">
-        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300">
+        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-gray-800 dark:group-hover:bg-white transition-all duration-300">
           <img src="${details.icon}" alt="${details.title} Icon" class="section-main-icon h-8 w-8 transition-transform duration-300 ease-in-out">
         </div>
         <div class="min-w-0">
