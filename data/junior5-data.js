@@ -436,16 +436,45 @@ export const quizData = [
   {
     type: "scenario",
     title: "สถานการณ์ที่ 3: การวิเคราะห์ข้อมูลดาวฤกษ์",
-    description: "ตารางด้านล่างแสดงข้อมูลของดาวฤกษ์ 4 ดวงที่สังเกตได้บนท้องฟ้า (โชติมาตรสัมบูรณ์ คือความสว่างจริงของดาวเมื่ออยู่ที่ระยะ 10 พาร์เซก)",
-    "table": {
-      "headers": ["ดาว", "โชติมาตรปรากฏ (m)", "โชติมาตรสัมบูรณ์ (M)", "ประเภทสเปกตรัม (สี)"],
-      "rows": [
-        ["A", "0.5", "4.8", "G2 (เหลือง)"],
-        ["B", "1.1", "-7.2", "B8 (ขาวอมน้ำเงิน)"],
-        ["C", "3.0", "3.2", "K0 (ส้ม)"],
-        ["D", "-1.5", "1.4", "A1 (ขาว)"]
-      ]
-    },
+    description: `ตารางด้านล่างแสดงข้อมูลของดาวฤกษ์ 4 ดวงที่สังเกตได้บนท้องฟ้า (โชติมาตรสัมบูรณ์ คือความสว่างจริงของดาวเมื่ออยู่ที่ระยะ 10 พาร์เซก)<div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 my-4">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm text-center">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                    <th scope="col" class="px-4 py-3 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ดาว</th>
+                    <th scope="col" class="px-4 py-3 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">โชติมาตรปรากฏ (m)</th>
+                    <th scope="col" class="px-4 py-3 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">โชติมาตรสัมบูรณ์ (M)</th>
+                    <th scope="col" class="px-4 py-3 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ประเภทสเปกตรัม (สี)</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800/50 divide-y divide-gray-200 dark:divide-gray-700">
+                <tr>
+                    <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-white">A</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">0.5</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">4.8</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">G2 (เหลือง)</td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-white">B</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">1.1</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">-7.2</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">B8 (ขาวอมน้ำเงิน)</td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-white">C</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">3.0</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">3.2</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">K0 (ส้ม)</td>
+                </tr>
+                <tr>
+                    <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900 dark:text-white">D</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">-1.5</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">1.4</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-300">A1 (ขาว)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    `,
     questions: [
       {
         number: 26,
