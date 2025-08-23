@@ -245,9 +245,17 @@ export function initializePage() {
   const quizListHeader = document.getElementById("quiz-list-header");
   const quizCountDisplay = document.getElementById("quiz-count-display");
   if (quizListHeader && quizCountDisplay) {
-    const totalQuizCount = quizList.filter((q) => q).length; // Filter for safety
+    const totalQuizCount = quizList.filter(q => q).length; // Filter for safety
+    const totalQuestionsCount = quizList.reduce((sum, quiz) => sum + (quiz.amount || 0), 0);
+
     if (totalQuizCount > 0) {
-      quizCountDisplay.innerHTML = `<span class="text-base text-xs font-bold">แบบทดสอบทั้งหมด</span> <span class="text-base text-xs font-bold text-teal-600 dark:text-teal-400 ml-2">${totalQuizCount} ชุด</span>`;
+      quizCountDisplay.innerHTML = `
+        <div>
+            <span class="text-base text-xs font-bold">แบบทดสอบทั้งหมด</span> 
+            <span class="text-base text-xs font-bold text-teal-600 dark:text-teal-400 ml-2">${totalQuizCount} ชุด</span>
+        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">จำนวนคำถามทั้งหมด ${totalQuestionsCount.toLocaleString()} ข้อ</div>
+      `;
       quizListHeader.classList.remove('hidden');
     }
   }
