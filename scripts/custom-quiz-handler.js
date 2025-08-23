@@ -518,23 +518,30 @@ export function initializeCustomQuizHandler() {
             }, {});
             quizDataCache.byCategory = rebuiltByCategory;
 
-            const { byCategory, allQuestions } = quizDataCache;
+            const {
+                byCategory,
+                allQuestions
+            } = quizDataCache;
 
-            let categoryHTML = Object.keys(allCategoryDetails)
-                .filter(key => ['Geology', 'Meteorology', 'Astronomy'].includes(key))
-                .map(key => {
-                    const details = allCategoryDetails[key];
-                    const maxCount = byCategory[key] ? Object.values(byCategory[key]).flat().length : 0;
-                    return createGeneralCategoryControlHTML(key, details.displayName, details.icon, maxCount);
-                }).join('');
+            // Sort main categories based on the order defined in data-manager.js
+            const sortedMainCategories = Object.keys(byCategory).sort((a, b) => {
+                const orderA = allCategoryDetails[a]?.order || 99;
+                const orderB = allCategoryDetails[b]?.order || 99;
+                return orderA - orderB;
+            });
+
+            // Create accordion controls for each main category and its sub-categories
+            let categoryHTML = sortedMainCategories.map(mainCatKey => {
+                const specificData = byCategory[mainCatKey];
+                const iconSrc = allCategoryDetails[mainCatKey]?.icon;
+                return createMainCategoryAccordionHTML(mainCatKey, specificData, iconSrc);
+            }).join('');
 
             // Handle the 'General' category separately, which draws from all questions
-            const generalDetails = allCategoryDetails['General']; // This is the key for the "All" category
+            const generalDetails = allCategoryDetails['General'];
             if (generalDetails) {
                 const generalMaxCount = allQuestions.length;
-                categoryHTML += createGeneralCategoryControlHTML('General', generalDetails.displayName, generalDetails.icon, generalMaxCount);
-            } else {
-                console.warn('Details for "General" category not found. Skipping.');
+                categoryHTML += `<hr class="my-6 border-gray-300 dark:border-gray-600"><div class="p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">${createGeneralCategoryControlHTML('General', generalDetails.displayName, generalDetails.icon, generalMaxCount)}</div>`;
             }
             
             if (categorySelectionContainer) {
