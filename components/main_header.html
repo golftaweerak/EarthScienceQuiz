@@ -1,51 +1,82 @@
 <!-- This is the shared header component for all pages. -->
 <header
-        class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md transition-colors duration-300">
-        <div class="container mx-auto flex items-center justify-between h-16 px-4">
-            <!-- Left Side: Menu -->
-            <div class="flex-1 flex justify-start">
-                <nav class="relative" aria-label="Main navigation">
-                    <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
-                        class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                    <div id="main-menu-dropdown"
-                        class="hidden absolute left-0 mt-2 w-80 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-[51] border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu">
-                        <div class="p-2">
-                            <a href="./index.html"
-                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">หน้าหลัก</a>
-                            <a href="./stats.html"
-                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">สถิติของฉัน</a>
-                            <a href="./preview.html"
-                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">แสดงตัวอย่างข้อสอบ</a>
-                            <a href="./about.html"
-                                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">เกี่ยวกับผู้จัดทำ</a>
-                            <hr class="my-2 border-gray-200 dark:border-gray-600">
-                            <div id="menu-quiz-list" class="space-y-px"></div>
-                        </div>
-                    </div>
-                </nav>
-            </div>
-
-            <!-- Center: Title -->
-            <div class="flex-shrink-0">
-                <a href="./index.html" class="block" aria-label="กลับไปหน้าหลัก">
-                    <h1
-                        class="font-kanit text-2xl md:text-4xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
-                        เตรียมความพร้อม สอวน.</h1>
-                </a>
-            </div>
-
-            <!-- Right Side: Dark Mode Toggle -->
-            <div class="flex-1 flex justify-end">
-                <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
+    class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-md transition-colors duration-300">
+    <div class="container mx-auto flex items-center justify-between h-16 px-4">
+        <!-- Left Side: Menu -->
+        <div class="flex-1 flex justify-start">
+            <nav class="relative" aria-label="Main navigation">
+                <button id="main-menu-btn" aria-label="เปิดเมนูหลัก"
                     class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
-                    <!-- Icon will be inserted by JS -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
                 </button>
-            </div>
+                <div id="main-menu-dropdown"
+                    class="hidden absolute left-0 mt-2 w-80 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-[51] border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu">
+                    <div class="p-2">
+                        <a href="./index.html"
+                            class="nav-link text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path
+                                    d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                            </svg>
+                            <span>หน้าหลัก</span>
+                        </a>
+                        <a href="#category-Geology"
+                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                <path fill-rule="evenodd"
+                                    d="M4 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>แสดงตัวอย่างข้อสอบ</span>
+                        </a>
+                        <a href="#" id="open-stats-hub-btn"
+                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path
+                                    d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                            </svg>
+                            <span>สถิติของฉัน</span>
+                        </a>
+                        <a href="#" id="open-about-modal-btn"
+                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            <span>เกี่ยวกับผู้จัดทำ</span>
+                        </a>
+                        <hr class="my-2 border-gray-200 dark:border-gray-600">
+                        <div id="menu-quiz-list" class="space-y-px"></div>
+                    </div>
+                </div>
+            </nav>
         </div>
-    </header>
+
+        <!-- Center: Title -->
+        <div class="flex-shrink-0">
+            <a href="./index.html" class="block" aria-label="กลับไปหน้าหลัก">
+                <h1
+                    class="font-kanit text-2xl md:text-4xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300">
+                    เตรียมความพร้อม สอวน.</h1>
+            </a>
+        </div>
+
+        <!-- Right Side: Dark Mode Toggle -->
+        <div class="flex-1 flex justify-end">
+            <button id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
+                class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                <!-- Icon will be inserted by JS -->
+            </button>
+        </div>
+    </div>
+</header>
 <!-- End of shared header component -->
