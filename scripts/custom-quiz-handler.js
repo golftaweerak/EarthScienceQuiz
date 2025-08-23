@@ -38,37 +38,40 @@ function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCou
     // Helper to generate quick-select buttons
     const createQuickSelectButton = (value, text) => {
         if (maxCount < value) return ''; // Don't show button if max is less than the value
-        return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors">${text || value}</button>`;
+        return `<button type="button" data-quick-select="${category}" data-value="${value}" class="px-2.5 py-1 text-xs font-semibold text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900/50 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors">${text || value}</button>`;
     };
 
     return `
         <div class="transition-all duration-300 ${disabled ? "opacity-50" : ""}">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 min-w-0">
-                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1.5 shadow-sm">
+                    <div class="flex-shrink-0 h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1.5 shadow-sm">
                         <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
                     </div>
-                    <div>
-                        <label for="count-slider-${category}" class="font-bold text-gray-800 dark:text-gray-200 truncate">${displayName}</label>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">มีทั้งหมด ${maxCount} ข้อ</p>
+                    <div class="min-w-0">
+                        <label for="count-slider-${category}" class="block font-bold text-gray-800 dark:text-gray-200 truncate leading-tight">${displayName}</label>
+                        <span class="block text-sm text-gray-500 dark:text-gray-400">(${category})</span>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">มีทั้งหมด ${maxCount} ข้อ</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
-                    <input ${dataAttr}="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-20 p-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-bold text-lg text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
+                    <input ${dataAttr}="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-bold text-base text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
                 </div>
             </div>
 
-            <div class="mt-4 space-y-3 ${disabled ? 'pointer-events-none' : ''}">
+            <div class="mt-3 space-y-3 ${disabled ? 'pointer-events-none' : ''}">
                 <input ${sliderDataAttr}="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">เลือกด่วน:</span>
-                   
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2">เลือกด่วน:</span>
+                    ${createQuickSelectButton(5)}
                     ${createQuickSelectButton(10)}
+                    ${createQuickSelectButton(15)}
                     ${createQuickSelectButton(20)}
                     ${createQuickSelectButton(25)}
+                    ${createQuickSelectButton(30)}
                     ${createQuickSelectButton(50)}
                     ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
-                    <button type="button" data-quick-select="${category}" data-value="0" class="px-3 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
+                    <button type="button" data-quick-select="${category}" data-value="0" class="px-2.5 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
                 </div>
             </div>
         </div>`;

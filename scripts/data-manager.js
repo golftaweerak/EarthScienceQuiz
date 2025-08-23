@@ -45,25 +45,25 @@ export const categoryDetails = {
   // These are conceptually sub-categories of Earth & Space Science.
   Geology: {
     title: "ธรณีวิทยา (Geology)",
-    displayName: "ธรณีวิทยา (Geology)",
+    displayName: "ธรณีวิทยา",
     icon: "./assets/icons/geology.png",
     color: "border-orange-500",
   },
   Astronomy: {
     title: "ดาราศาสตร์ (Astronomy)",
-    displayName: "ดาราศาสตร์ (Astronomy)",
+    displayName: "ดาราศาสตร์",
     icon: "./assets/icons/astronomy.png",
     color: "border-indigo-500",
   },
   Meteorology: {
     title: "อุตุนิยมวิทยา (Meteorology)",
-    displayName: "อุตุนิยมวิทยา (Meteorology)",
+    displayName: "อุตุนิยมวิทยา",
     icon: "./assets/icons/meteorology.png",
     color: "border-cyan-500",
   },
   // This is a special category for the custom quiz creator.
   General: {
-    displayName: "สุ่มจากทุกหมวดหมู่ (All)",
+    displayName: "ทุกหมวดหมู่",
     icon: "./assets/icons/study.png",
   },
 };
