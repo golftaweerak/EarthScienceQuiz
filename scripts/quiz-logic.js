@@ -754,11 +754,11 @@ export function init(quizData, storageKey, quizTitle, customTime) {
               const subPercentage = subData.total > 0 ? Math.round((subData.correct / subData.total) * 100) : 0;
               const subItem = document.createElement('div');
               subItem.innerHTML = `
-                  <div class="flex justify-between items-center text-sm">
-                      <span class="font-medium text-gray-700 dark:text-gray-300">${specificCategory}</span>
-                      <span class="font-semibold text-gray-800 dark:text-gray-200">${subData.correct} / ${subData.total} <span class="font-normal text-gray-500 dark:text-gray-400">(${subPercentage}%)</span></span>
+                  <div class="text-sm leading-tight">
+                      <p class="font-medium text-gray-700 dark:text-gray-300">${specificCategory}</p>
+                      <p class="font-semibold text-gray-500 dark:text-gray-400">${subData.correct} / ${subData.total} (${subPercentage}%)</p>
                   </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 mt-1">
+                  <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 mt-1.5">
                       <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${subPercentage}%"></div>
                   </div>
               `;
