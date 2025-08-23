@@ -53,6 +53,22 @@ export const getSectionToggles = () =>
   document.querySelectorAll(".section-toggle");
 
 export function initializePage() {
+  /**
+   * Sets a CSS custom property for the header's height plus a margin.
+   * This allows the CSS `scroll-padding-top` to be dynamic and responsive.
+   */
+  function setHeaderHeightProperty() {
+    const header = document.querySelector("header"); // Assumes the main header is a <header> tag
+    if (header) {
+      const headerHeight = header.offsetHeight;
+      // Set the value to header height + 16px for a nice margin
+      document.documentElement.style.setProperty(
+        "--header-height-offset",
+        `${headerHeight + 16}px`
+      );
+    }
+  }
+
   // --- 0. Initialize Modals and Cache Elements ---
 
   // Use the new ModalHandler for accessible, reusable modals.
@@ -137,14 +153,14 @@ export function initializePage() {
     card.dataset.storageKey = quiz.storageKey;
     card.dataset.totalQuestions = totalQuestions;
 
-    // Enhanced card styling for more visual appeal
+    // Enhanced card styling for more visual appeal, size back to normal
     card.className = `quiz-card group flex flex-col h-full bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 p-3 rounded-xl shadow-lg hover:shadow-2xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:scale-[1.02] anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
     card.style.animationDelay = `${index * 50}ms`;
     const progress = getQuizProgress(quiz.storageKey, totalQuestions);
     const progressHTML = createProgressHTML(progress, quiz);
 
     card.innerHTML = `
-      <div class="flex-grow flex items-start gap-3">
+      <div class="flex-grow flex items-start gap-4">
         <div class="flex-shrink-0 h-14 w-14 rounded-xl flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white/80 dark:bg-white group-hover:shadow-lg group-hover:scale-105 ${logoGlowClass}">
           <img src="${quiz.icon}" alt="${quiz.altText}" class="h-9 w-9 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
         </div>
@@ -180,6 +196,7 @@ export function initializePage() {
       "section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden";
 
     const toggleHeader = document.createElement("div");
+    toggleHeader.id = `toggle-${categoryKey}`; // Add unique ID for targeting
     toggleHeader.className =
       "section-toggle flex justify-between items-center cursor-pointer p-4";
     const sectionBorderColor = details.color || "border-blue-600";
@@ -203,7 +220,7 @@ export function initializePage() {
 
     toggleHeader.innerHTML = `
       <div class="flex items-center min-w-0 gap-4">
-        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-gray-800 dark:group-hover:bg-white transition-all duration-300">
+        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300">
           <img src="${details.icon}" alt="${details.title} Icon" class="section-main-icon h-8 w-8 transition-transform duration-300 ease-in-out">
         </div>
         <div class="min-w-0">
@@ -240,6 +257,80 @@ export function initializePage() {
     return section;
   }
 
+  /**
+   * Scrolls the page smoothly to a target element, respecting the CSS `scroll-padding-top`.
+   * @param {HTMLElement} targetElement The element to scroll to.
+   */
+  function scrollToElement(targetElement) {
+    targetElement.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  /**
+   * Updates the floating navigation bar based on the currently active section.
+   * @param {HTMLElement|null} activeToggle - The toggle element of the currently open section, or null to hide.
+   */
+  function updateFloatingNav(activeToggle) {
+    const floatingNavContainer = document.getElementById('floating-nav-container');
+    const floatingNavButtons = document.getElementById('floating-nav-buttons');
+    if (!floatingNavContainer || !floatingNavButtons) return;
+
+    if (!activeToggle) {
+      floatingNavContainer.classList.add('translate-y-full');
+      return;
+    }
+
+    floatingNavButtons.innerHTML = ''; // Clear old buttons
+    const allToggles = getSectionToggles();
+    const fragment = document.createDocumentFragment();
+
+    allToggles.forEach(toggle => {
+      if (toggle === activeToggle) return; // Skip the active one
+
+      const section = toggle.closest('section');
+      if (!section) return;
+
+      const categoryKey = section.id.replace('category-', '');
+      const details = categoryDetails[categoryKey];
+      if (!details) return;
+
+      const button = document.createElement('button');
+      button.className = 'floating-nav-btn flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-200/80 dark:bg-gray-800/90 hover:bg-gray-300 dark:hover:bg-gray-700/90 transition-all duration-200 text-sm font-medium text-gray-800 dark:text-gray-200 shadow-md border border-gray-300 dark:border-gray-700';
+      button.dataset.targetId = toggle.id;
+
+      const mainTitle = details.title.split('(')[0].trim();
+      button.innerHTML = `
+        <img src="${details.icon}" class="h-5 w-5">
+        <span class="hidden sm:inline">${mainTitle}</span>
+      `;
+
+      button.addEventListener('click', () => {
+        const targetToggle = document.getElementById(button.dataset.targetId);
+        if (targetToggle) {
+          // The main listener will handle closing the old one.
+          const targetSection = targetToggle.closest("section");
+          targetToggle.click();
+          // Scroll to the parent section for consistency
+          // Use a longer timeout to allow the closing animation of the previous section to complete
+          // The animation duration is 500ms, so we wait slightly longer.
+          if (targetSection) {
+            setTimeout(() => scrollToElement(targetSection), 550);
+          }
+        }
+      });
+
+      fragment.appendChild(button);
+    });
+
+    floatingNavButtons.appendChild(fragment);
+    floatingNavContainer.classList.remove('translate-y-full');
+  }
+
+  // Set the header height property on initial load and on window resize.
+  setHeaderHeightProperty();
+  window.addEventListener("resize", setHeaderHeightProperty);
   // --- Main Rendering Logic ---
 
   // Display total quiz count in the new header for the list
@@ -300,11 +391,72 @@ export function initializePage() {
     console.error("Category container not found!");
   }
 
+  // Create and append the floating navigation container
+  const floatingNavContainer = document.createElement('div');
+  floatingNavContainer.id = 'floating-nav-container';
+  floatingNavContainer.className = 'fixed bottom-0 left-0 right-0 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.4)] transform translate-y-full transition-transform duration-300 z-40';
+  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex justify-center items-center gap-2 flex-wrap"></div>`;
+  document.body.appendChild(floatingNavContainer);
+
   // 4. Attach listeners and set initial state for accordions
   const sectionToggles = getSectionToggles();
+  let currentlyOpenSectionToggle = null;
+
+  // Refactored accordion logic for clarity and robustness.
+  // This ensures that state is managed correctly regardless of how the toggle is triggered.
   sectionToggles.forEach((toggle) => {
-    toggle.addEventListener("click", () => toggleAccordion(toggle));
+    toggle.addEventListener("click", () => {
+      const isThisTheCurrentlyOpen = currentlyOpenSectionToggle === toggle;
+
+      // Case 1: The clicked toggle is the one that's already open, so we close it.
+      if (isThisTheCurrentlyOpen) {
+        toggleAccordion(toggle, "close");
+        currentlyOpenSectionToggle = null;
+      } else {
+        // Case 2: A new section is being opened.
+        // First, close the old one if it exists.
+        if (currentlyOpenSectionToggle) {
+          toggleAccordion(currentlyOpenSectionToggle, "close");
+        }
+        // Then, open the new one and update the state.
+        toggleAccordion(toggle, "open");
+        currentlyOpenSectionToggle = toggle;
+      }
+
+      // After all state changes, update the floating nav based on the new state.
+      updateFloatingNav(currentlyOpenSectionToggle);
+    });
   });
+
+  /**
+   * Handles clicks on navigation links (e.g., in the header) that point to category sections.
+   * This allows opening a specific accordion section from anywhere on the page.
+   * @param {MouseEvent} event
+   */
+  function handleCategoryNavigation(event) {
+    const navLink = event.target.closest('a[href^="#category-"]');
+    if (!navLink) return;
+
+    event.preventDefault();
+    const targetId = navLink.hash;
+    const targetSection = document.querySelector(targetId);
+    if (!targetSection) return;
+
+    const targetToggle = targetSection.querySelector('.section-toggle');
+    if (targetToggle) {
+      const isAlreadyOpen = targetToggle.getAttribute('aria-expanded') === 'true';
+      if (!isAlreadyOpen) {
+        // Programmatically click the toggle to trigger all associated logic
+        // (closing other sections, updating floating nav, etc.)
+        targetToggle.click();
+      }
+      // Use a longer timeout here as well to ensure any closing animation has finished
+      // before scrolling, which gives a more stable final position. The animation
+      // is 500ms, so we wait slightly longer.
+      setTimeout(() => scrollToElement(targetSection), 550);
+    }
+  }
+  document.addEventListener('click', handleCategoryNavigation);
 
   // Display a message if no quizzes were found after processing
   // This check should happen AFTER attempting to append content to the container.
