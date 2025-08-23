@@ -445,28 +445,33 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
     // --- Performance Analysis ---
     const performanceSummary = { best: null, worst: null };
-    // Filter for categories that actually have questions to get meaningful stats.
-    const categoryEntries = Object.entries(categoryStats).filter(
-      ([, data]) => data.total > 0
-    );
+    // Create a flat list of all specific subcategories with their stats.
+    const allSubcategories = [];
+    Object.values(categoryStats).forEach(mainCatData => {
+        Object.entries(mainCatData.subcategories).forEach(([subName, subData]) => {
+            // We only want to analyze specific, named subcategories.
+            // The '—' is a placeholder for questions that only had a main category.
+            if (subName !== '—' && subData.total > 0) {
+                allSubcategories.push({
+                    name: subName,
+                    correct: subData.correct,
+                    total: subData.total,
+                });
+            }
+        });
+    });
 
-    if (categoryEntries.length > 1) {
-      // Create a new array with calculated percentages for robust sorting.
-      const scoredCategories = categoryEntries.map(([name, data]) => ({
-        name: name,
-        score: (data.correct / data.total) * 100,
-      }));
-
-      // Sort by score, ascending. The first element is the worst, the last is the best.
-      scoredCategories.sort((a, b) => a.score - b.score);
-
-      const worstCat = scoredCategories[0];
-      const bestCat = scoredCategories[scoredCategories.length - 1];
+    if (allSubcategories.length > 1) {
+      // Calculate scores and sort subcategories by performance.
+      const scoredSubcategories = allSubcategories.map(subCat => ({
+        name: subCat.name,
+        score: (subCat.correct / subCat.total) * 100,
+      })).sort((a, b) => a.score - b.score);
 
       // Only populate the summary if the scores are actually different.
-      if (bestCat.score > worstCat.score) {
-        performanceSummary.best = bestCat.name;
-        performanceSummary.worst = worstCat.name;
+      if (scoredSubcategories[scoredSubcategories.length - 1].score > scoredSubcategories[0].score) {
+        performanceSummary.best = scoredSubcategories[scoredSubcategories.length - 1].name;
+        performanceSummary.worst = scoredSubcategories[0].name;
       }
     }
 
@@ -901,23 +906,33 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   function showReview() {
     switchScreen(elements.reviewScreen);
     elements.reviewContainer.innerHTML = ""; // Clear previous review
-    
-    const incorrectAnswers = getIncorrectAnswers();
-    const reviewScreenHeader = elements.reviewScreen.querySelector('h2');
 
+    // Get both incorrect and all answers to allow for toggling
+    const allUserAnswers = state.userAnswers.filter(answer => answer); // Filter out any null entries
+    const incorrectAnswers = allUserAnswers.filter(answer => !answer.isCorrect);
+
+    const reviewScreenHeader = elements.reviewScreen.querySelector('h2');
+    
     if (reviewScreenHeader) {
         const headerContainer = reviewScreenHeader.parentElement;
         // Clear previous dynamic elements to prevent duplication
         headerContainer.querySelectorAll('.dynamic-review-element').forEach(el => el.remove());
 
         const subtitle = document.createElement('p');
-        subtitle.className = 'quiz-subtitle text-md text-gray-600 dark:text-gray-400 mt-1 dynamic-review-element';
+        subtitle.className = 'quiz-subtitle text-md text-gray-600 dark:text-gray-400 mt-1 dynamic-review-element font-kanit';
         subtitle.innerHTML = `จากชุดข้อสอบ: <span class="font-semibold text-gray-700 dark:text-gray-300">${state.quizTitle}</span>`;
         reviewScreenHeader.after(subtitle);
 
         // --- Filter UI ---
-        const subCategories = [...new Set(incorrectAnswers.map(a => a.subCategory || 'ไม่มีหมวดหมู่'))];
+        // Build category filter based on the incorrect answers to start with relevant filters
+        const subCategories = [...new Set(incorrectAnswers.map(a => {
+            if (typeof a.subCategory === 'object' && a.subCategory.main) {
+                return a.subCategory.main;
+            }
+            return a.subCategory || 'ไม่มีหมวดหมู่';
+        }))];
         if (subCategories.length > 1) {
+            // Create category dropdown
             const filterContainer = document.createElement('div');
             filterContainer.className = 'mt-4 dynamic-review-element';
             
@@ -934,69 +949,123 @@ export function init(quizData, storageKey, quizTitle, customTime) {
             `;
             subtitle.after(filterContainer);
 
-            const filterSelect = document.getElementById('review-filter');
-            filterSelect.addEventListener('change', (e) => {
-                renderReviewItems(incorrectAnswers, e.target.value);
-            });
         }
+
+        // --- "Show All" Toggle ---
+        const toggleContainer = document.createElement('div');
+        toggleContainer.className = 'mt-3 dynamic-review-element flex items-center';
+        toggleContainer.innerHTML = `
+            <input type="checkbox" id="show-all-toggle" class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+            <label for="show-all-toggle" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">แสดงข้อสอบทั้งหมด (รวมข้อที่ตอบถูก)</label>
+        `;
+        const lastDynamicElement = headerContainer.querySelector('.dynamic-review-element:last-of-type') || subtitle;
+        lastDynamicElement.after(toggleContainer);
 
         const countDisplay = document.createElement('p');
         countDisplay.id = 'review-count-display';
         countDisplay.className = 'text-sm text-gray-500 dark:text-gray-400 mt-3 dynamic-review-element';
         headerContainer.appendChild(countDisplay);
+
+        // --- Event Listeners for Filters ---
+        const filterSelect = document.getElementById('review-filter');
+        const showAllToggle = document.getElementById('show-all-toggle');
+
+        const updateReviewDisplay = () => {
+            const category = filterSelect ? filterSelect.value : 'all';
+            const showAll = showAllToggle.checked;
+            const sourceData = showAll ? allUserAnswers : incorrectAnswers;
+            renderReviewItems(sourceData, category, incorrectAnswers.length);
+        };
+
+        if (filterSelect) filterSelect.addEventListener('change', updateReviewDisplay);
+        if (showAllToggle) showAllToggle.addEventListener('change', updateReviewDisplay);
+
+        // Initial render
+        updateReviewDisplay();
     }
 
-    renderReviewItems(incorrectAnswers, 'all');
     renderMath(elements.reviewContainer); // Render math only in the review container
   }
 
   /**
    * Renders the list of incorrect answers, optionally filtered by category.
-   * @param {Array} allIncorrectAnswers - The full list of incorrect answer objects.
+   * @param {Array} sourceAnswers - The array of answers to display (can be all or just incorrect).
    * @param {string} filterCategory - The category to filter by, or 'all' to show all.
    */
-  function renderReviewItems(allIncorrectAnswers, filterCategory) {
+  function renderReviewItems(sourceAnswers, filterCategory, totalIncorrect) {
       elements.reviewContainer.innerHTML = ""; // Clear previous items
 
-      const filteredAnswers = (filterCategory === 'all')
-          ? allIncorrectAnswers
-          : allIncorrectAnswers.filter(answer => (answer.subCategory || 'ไม่มีหมวดหมู่') === filterCategory);
+      const filteredAnswers =
+        filterCategory === "all" ?
+        sourceAnswers :
+        sourceAnswers.filter((answer) => {
+              let categoryName = "ไม่มีหมวดหมู่";
+              if (typeof answer.subCategory === "object" && answer.subCategory.main) {
+                categoryName = answer.subCategory.main;
+              } else if (typeof answer.subCategory === "string") {
+                categoryName = answer.subCategory;
+              }
+              return categoryName === filterCategory;
+            });
 
       const countDisplay = document.getElementById('review-count-display');
       if (countDisplay) {
-          countDisplay.textContent = `แสดง ${filteredAnswers.length} ข้อจากทั้งหมด ${allIncorrectAnswers.length} ข้อที่ตอบผิด`;
+          countDisplay.textContent = `แสดง ${filteredAnswers.length} ข้อ (จากทั้งหมด ${totalIncorrect} ข้อที่ตอบผิด)`;
       }
 
       if (filteredAnswers.length === 0 && filterCategory !== 'all') {
-          elements.reviewContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-4">ไม่พบข้อที่ตอบผิดในหมวดหมู่นี้</p>`;
+          elements.reviewContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-4">ไม่พบข้อที่ตรงตามเงื่อนไขในหมวดหมู่นี้</p>`;
           return;
       }
 
       filteredAnswers.forEach((answer, index) => {
         const reviewItem = document.createElement("div");
         reviewItem.className = "bg-white dark:bg-gray-800 shadow-md rounded-lg p-5 mb-6 border border-gray-200 dark:border-gray-700";
-
+        
+        // Add a visual indicator for correct answers when "Show All" is active
+        if (answer.isCorrect) {
+            reviewItem.classList.add('border-l-4', 'border-green-500');
+        } else {
+            reviewItem.classList.add('border-l-4', 'border-red-500');
+        }
         const questionHtml = (answer.question || "").replace(/\n/g, "<br>");
         const explanationHtml = answer.explanation ? answer.explanation.replace(/\n/g, "<br>") : "";
-        
-        const tagsHtml = [answer.subCategory, answer.sourceQuizTitle]
-          .filter(Boolean)
-          .map(tag => `<span class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-full">${tag}</span>`)
+
+        // --- Improved Tag Generation ---
+        const tags = [];
+        if (answer.subCategory) {
+            if (typeof answer.subCategory === 'object' && answer.subCategory.main) {
+                const fullCategory = answer.subCategory.specific 
+                    ? `${answer.subCategory.main} &gt; ${answer.subCategory.specific}`
+                    : answer.subCategory.main;
+                tags.push(fullCategory);
+            } else if (typeof answer.subCategory === 'string') {
+                tags.push(answer.subCategory);
+            }
+        }
+
+        const tagsHtml = tags
+          .map(tag => `<span class="inline-block mt-2 px-2.5 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-xs font-semibold rounded-full">${tag}</span>`)
           .join('');
 
         reviewItem.innerHTML = `
             <div class="flex items-start gap-4">
                 <span class="flex-shrink-0 h-8 w-8 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full text-gray-600 dark:text-gray-300 font-bold">${index + 1}</span>
-                <div class="flex-grow text-lg font-semibold text-gray-800 dark:text-gray-200 min-w-0 break-words">${questionHtml}${tagsHtml}</div>
+                <div class="flex-grow min-w-0">
+                    <div class="text-lg font-semibold text-gray-800 dark:text-gray-200 break-words">${questionHtml}</div>
+                    ${tagsHtml ? `<div class="mt-1">${tagsHtml}</div>` : ''}
+                </div>
             </div>
             <div class="mt-4 space-y-3">
-                <div class="flex items-start gap-3 p-3 rounded-md bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700/60">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                    <div>
-                        <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
-                        <p class="text-red-700 dark:text-red-400 font-mono break-words whitespace-pre-wrap">${answer.selectedAnswer || ""}</p>
+                ${!answer.isCorrect ? `
+                    <div class="flex items-start gap-3 p-3 rounded-md bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-red-700/60">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                        <div>
+                            <p class="text-sm font-medium text-red-800 dark:text-red-300">คำตอบของคุณ</p>
+                            <p class="text-red-700 dark:text-red-400 font-mono break-words whitespace-pre-wrap">${answer.selectedAnswer || ""}</p>
+                        </div>
                     </div>
-                </div>
+                ` : ''}
                 <div class="flex items-start gap-3 p-3 rounded-md bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-green-700/60">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
                     <div>
