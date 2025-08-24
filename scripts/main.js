@@ -282,6 +282,28 @@ export function initializePage() {
       return;
     }
 
+    // Get the category details of the ACTIVE section to theme the buttons
+    const activeSection = activeToggle.closest('section');
+    const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
+    const activeCategoryDetails = activeCategoryKey ? categoryDetails[activeCategoryKey] : null;
+
+    // Define default and themed color classes
+    let bgColor = 'bg-gray-200/80 dark:bg-gray-800/90';
+    let hoverBgColor = 'hover:bg-gray-300 dark:hover:bg-gray-700/90';
+    let borderColor = 'border-gray-300 dark:border-gray-700';
+    let textColor = 'text-gray-800 dark:text-gray-200';
+
+    if (activeCategoryDetails && activeCategoryDetails.color) {
+      // e.g., 'border-blue-600' -> 'blue'
+      const colorName = activeCategoryDetails.color.split('-')[1];
+      if (colorName) {
+        bgColor = `bg-${colorName}-100/80 dark:bg-${colorName}-900/50`;
+        hoverBgColor = `hover:bg-${colorName}-200/90 dark:hover:bg-${colorName}-800/70`;
+        borderColor = `border-${colorName}-300 dark:border-${colorName}-600`;
+        textColor = `text-${colorName}-800 dark:text-${colorName}-200`;
+      }
+    }
+
     floatingNavButtons.innerHTML = ''; // Clear old buttons
     const allToggles = getSectionToggles();
     const fragment = document.createDocumentFragment();
@@ -297,7 +319,7 @@ export function initializePage() {
       if (!details) return;
 
       const button = document.createElement('button');
-      button.className = 'floating-nav-btn flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-200/80 dark:bg-gray-800/90 hover:bg-gray-300 dark:hover:bg-gray-700/90 transition-all duration-200 text-sm font-medium text-gray-800 dark:text-gray-200 shadow-md border border-gray-300 dark:border-gray-700';
+      button.className = `floating-nav-btn flex items-center gap-2 px-3 py-1.5 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 text-sm font-medium ${textColor} shadow-md border ${borderColor}`;
       button.dataset.targetId = toggle.id;
 
       const mainTitle = details.title.split('(')[0].trim();
