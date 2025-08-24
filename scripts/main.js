@@ -278,7 +278,7 @@ export function initializePage() {
     if (!floatingNavContainer || !floatingNavButtons) return;
 
     if (!activeToggle) { // If no section is open, hide the nav
-      floatingNavContainer.classList.add('translate-x-full');
+      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none');
       return;
     }
 
@@ -347,7 +347,7 @@ export function initializePage() {
     });
 
     floatingNavButtons.appendChild(fragment);
-    floatingNavContainer.classList.remove('translate-x-full'); // Show the nav
+    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none'); // Show the nav
   }
 
   // Set the header height property on initial load and on window resize.
@@ -416,7 +416,7 @@ export function initializePage() {
   // Create and append the floating navigation container
   const floatingNavContainer = document.createElement('div');
   floatingNavContainer.id = 'floating-nav-container';
-  floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 translate-x-full transition-transform duration-300 z-40';
+  floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 opacity-0 pointer-events-none transition-opacity duration-300 z-40';
   floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-end gap-2"></div>`;
   document.body.appendChild(floatingNavContainer);
 
@@ -609,4 +609,26 @@ export function initializePage() {
       completedModal.close();
     });
   }
+
+  // Floating Nav scroll behavior
+  let lastScrollY = window.scrollY;
+
+  window.addEventListener('scroll', () => {
+    if (!floatingNavContainer) return;
+
+    // Only apply scroll logic when a category is open.
+    const anyAccordionOpen = document.querySelector('.accordion-toggle[aria-expanded="true"]');
+    if (!anyAccordionOpen) {
+      lastScrollY = window.scrollY; // Keep track of position for when it becomes active
+      return;
+    }
+
+    if (window.scrollY > lastScrollY && window.scrollY > 100) { // Scrolling down & not at the top
+      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none');
+    } else { // Scrolling up
+      floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    lastScrollY = window.scrollY <= 0 ? 0 : window.scrollY;
+  }, { passive: true });
 }
