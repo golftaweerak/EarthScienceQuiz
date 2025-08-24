@@ -281,42 +281,55 @@ export function initializePage() {
     const floatingNavButtons = document.getElementById('floating-nav-buttons');
     if (!floatingNavContainer || !floatingNavButtons) return;
 
-    if (!activeToggle) { // If no section is open, hide the nav
-      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none');
-      return;
-    }
+    // --- 1. Determine theme and clean up old theme classes ---
+    const previousColor = floatingNavContainer.dataset.themeColor || 'default';
+    let colorName = 'default';
 
-    // Get the category details of the ACTIVE section to theme the buttons
-    const activeSection = activeToggle.closest('section');
-    const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
-    const activeCategoryDetails = activeCategoryKey ? categoryDetails[activeCategoryKey] : null;
-
-    // Define default and themed color classes
-    let bgColor = 'bg-gray-200/80 dark:bg-gray-800/90';
-    let hoverBgColor = 'hover:bg-gray-300 dark:hover:bg-gray-700/90';
-    let borderColor = 'border-gray-300 dark:border-gray-700';
-    let textColor = 'text-gray-800 dark:text-gray-200';
-
-    if (activeCategoryDetails && activeCategoryDetails.color) {
-      // e.g., 'border-blue-600' -> 'blue'
-      const colorName = activeCategoryDetails.color.split('-')[1];
-      if (colorName) {
-        bgColor = `bg-${colorName}-100/80 dark:bg-${colorName}-900/50`;
-        hoverBgColor = `hover:bg-${colorName}-200/90 dark:hover:bg-${colorName}-800/70`;
-        borderColor = `border-${colorName}-300 dark:border-${colorName}-600`;
-        textColor = `text-${colorName}-800 dark:text-${colorName}-200`;
+    if (activeToggle) {
+      const activeSection = activeToggle.closest('section');
+      const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
+      const activeCategoryDetails = activeCategoryKey ? categoryDetails[activeCategoryKey] : null;
+      if (activeCategoryDetails && activeCategoryDetails.color) {
+        const extractedColor = activeCategoryDetails.color.split('-')[1];
+        if (extractedColor) colorName = extractedColor;
       }
     }
 
+    if (previousColor !== colorName) {
+      // Remove old container colors. The spread syntax (...) is used to pass multiple arguments.
+      const oldContainerBg = previousColor === 'default' ? 'bg-white/60 dark:bg-gray-900/60' : `bg-${previousColor}-50/80 dark:bg-${previousColor}-950/70`;
+      const oldContainerBorder = previousColor === 'default' ? 'border-gray-200 dark:border-gray-700' : `border-${previousColor}-200 dark:border-${previousColor}-800`;
+      floatingNavContainer.classList.remove(...oldContainerBg.split(' '), ...oldContainerBorder.split(' '));
+    }
+
+    // --- 2. Define and apply new theme classes to the container ---
+    const containerBg = colorName === 'default' ? 'bg-white/60 dark:bg-gray-900/60' : `bg-${colorName}-50/80 dark:bg-${colorName}-950/70`;
+    const containerBorder = colorName === 'default' ? 'border-gray-200 dark:border-gray-700' : `border-${colorName}-200 dark:border-${colorName}-800`;
+    floatingNavContainer.classList.add(...containerBg.split(' '), ...containerBorder.split(' '));
+    floatingNavContainer.dataset.themeColor = colorName;
+
+    // --- 3. Handle visibility and button generation ---
+    if (!activeToggle) {
+      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
+      return;
+    }
+
+    // Define button colors based on the same theme
+    const bgColor = colorName === 'default' ? 'bg-gray-200/80 dark:bg-gray-800/90' : `bg-${colorName}-100/80 dark:bg-${colorName}-900/50`;
+    const hoverBgColor = colorName === 'default' ? 'hover:bg-gray-300 dark:hover:bg-gray-700/90' : `hover:bg-${colorName}-200/90 dark:hover:bg-${colorName}-800/70`;
+    const borderColor = colorName === 'default' ? 'border-gray-300 dark:border-gray-700' : `border-${colorName}-300 dark:border-${colorName}-600`;
+    const textColor = colorName === 'default' ? 'text-gray-800 dark:text-gray-200' : `text-${colorName}-800 dark:text-${colorName}-200`;
+
+    // --- 4. Rebuild buttons with the new theme ---
     floatingNavButtons.innerHTML = ''; // Clear old buttons
     const allToggles = getSectionToggles();
     const fragment = document.createDocumentFragment();
 
-    // --- Add Action Buttons (Close & Scroll to Top) at the top ---
     // Close Category Button
     const closeBtn = document.createElement("button");
     closeBtn.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
     closeBtn.setAttribute("aria-label", "ปิดหมวดหมู่");
+    closeBtn.dataset.tooltipText = "ปิด";
     closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
     closeBtn.addEventListener("click", () => {
       if (activeToggle) {
@@ -329,6 +342,7 @@ export function initializePage() {
     const scrollToTopBtn = document.createElement("button");
     scrollToTopBtn.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
     scrollToTopBtn.setAttribute("aria-label", "กลับไปด้านบนสุด");
+    scrollToTopBtn.dataset.tooltipText = "ขึ้นบนสุด";
     scrollToTopBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>`;
     scrollToTopBtn.addEventListener("click", () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -353,24 +367,19 @@ export function initializePage() {
       if (!details) return;
 
       const button = document.createElement('button');
-      // Make the button circular and compact, showing only the icon.
       button.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
       button.dataset.targetId = toggle.id;
 
       const mainTitle = details.title.split('(')[0].trim();
       button.setAttribute('aria-label', `ไปที่หมวดหมู่ ${mainTitle}`);
-      button.setAttribute('title', mainTitle); // Tooltip for desktop users
+      button.dataset.tooltipText = mainTitle;
       button.innerHTML = `<img src="${details.icon}" alt="${mainTitle} icon" class="h-5 w-5">`;
 
       button.addEventListener('click', () => {
         const targetToggle = document.getElementById(button.dataset.targetId);
         if (targetToggle) {
-          // The main listener will handle closing the old one.
           const targetSection = targetToggle.closest("section");
           targetToggle.click();
-          // Scroll to the parent section for consistency
-          // Use a longer timeout to allow the closing animation of the previous section to complete
-          // The animation duration is 500ms, so we wait slightly longer.
           if (targetSection) {
             setTimeout(() => scrollToElement(targetSection), SCROLL_DELAY);
           }
@@ -382,7 +391,7 @@ export function initializePage() {
 
     floatingNavButtons.appendChild(fragment);
 
-    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none'); // Show the nav
+    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full'); // Show the nav
   }
 
   // Set the header height property on initial load and on window resize.
@@ -450,9 +459,41 @@ export function initializePage() {
   // Create and append the floating navigation container
   const floatingNavContainer = document.createElement('div');
   floatingNavContainer.id = 'floating-nav-container';
-  floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 opacity-0 pointer-events-none transition-opacity duration-300 z-40';
+  floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 opacity-0 pointer-events-none translate-x-full transition-all duration-300 z-40 border border-gray-200 dark:border-gray-700';
   floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-center gap-2"></div>`;
   document.body.appendChild(floatingNavContainer);
+
+  // Create a single, shared tooltip element for performance and style consistency.
+  const tooltip = document.createElement('div');
+  tooltip.id = 'custom-tooltip';
+  tooltip.className = 'fixed z-50 px-3 py-1.5 text-sm font-semibold text-white bg-gray-900/80 dark:bg-black/80 backdrop-blur-sm rounded-md shadow-lg opacity-0 pointer-events-none transform transition-all duration-150 scale-95';
+  document.body.appendChild(tooltip);
+
+  // Use event delegation on the container to handle tooltips for all buttons within it.
+  floatingNavContainer.addEventListener('mouseover', (e) => {
+    const button = e.target.closest('.floating-nav-btn[data-tooltip-text]');
+    if (!button) return;
+
+    const tooltipText = button.dataset.tooltipText;
+    tooltip.textContent = tooltipText;
+
+    const btnRect = button.getBoundingClientRect();
+    const top = btnRect.top + btnRect.height / 2;
+    const left = btnRect.left - 12; // 12px gap from the button
+
+    // Position the tooltip and use transform to align it correctly regardless of its width.
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.transform = 'translate(-100%, -50%)'; // Move left by own width, and up by half its height
+
+    tooltip.classList.remove('opacity-0', 'scale-95');
+    tooltip.classList.add('opacity-100', 'scale-100');
+  });
+
+  floatingNavContainer.addEventListener('mouseout', () => {
+    tooltip.classList.remove('opacity-100', 'scale-100');
+    tooltip.classList.add('opacity-0', 'scale-95');
+  });
 
   // 4. Attach listeners and set initial state for accordions
   const sectionToggles = getSectionToggles();
@@ -658,9 +699,9 @@ export function initializePage() {
     }
 
     if (window.scrollY > lastScrollY && window.scrollY > 100) { // Scrolling down & not at the top
-      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none');
+      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
     } else { // Scrolling up
-      floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none');
+      floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full');
     }
 
     lastScrollY = window.scrollY <= 0 ? 0 : window.scrollY;
