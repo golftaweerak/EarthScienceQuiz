@@ -497,26 +497,34 @@ export function initializeCustomQuizHandler() {
             // This ensures that both the question counts for the UI and the question selection
             // logic use a consistent data source that respects the new `subCategory` object format.
             const rebuiltByCategory = quizDataCache.allQuestions.reduce((acc, question) => {
-                if (!question.subCategory) return acc;
-
-                let mainCat = null;
-                let specificCat = 'ภาพรวม'; // Default specific category name
-
-                // Handles new format: subCategory: { main: 'Geology', specific: 'Topic 1' }
-                if (typeof question.subCategory === 'object' && question.subCategory.main) {
-                    mainCat = question.subCategory.main;
-                    specificCat = question.subCategory.specific || specificCat;
-                } 
-                // Handles legacy format: subCategory: 'Geology'
-                else if (typeof question.subCategory === 'string') {
-                    mainCat = question.subCategory;
+                if (!question.subCategory) {
+                    return acc;
                 }
 
-                if (mainCat) {
+                let mainCat, specificCat;
+
+                // Handle new format: { main: 'Geology', specific: 'Topic 1' }
+                if (typeof question.subCategory === 'object' && question.subCategory.main) {
+                    mainCat = question.subCategory.main;
+                    specificCat = question.subCategory.specific || 'ภาพรวม';
+                }
+                // Handle legacy format: 'Geology'
+                else if (typeof question.subCategory === 'string') {
+                    mainCat = question.subCategory;
+                    specificCat = 'ภาพรวม';
+                }
+                // If format is unhandled, skip this question
+                else {
+                    return acc;
+                }
+
+                // Ensure mainCat is a non-empty string before proceeding
+                if (mainCat && typeof mainCat === 'string' && mainCat.trim() !== '') {
                     if (!acc[mainCat]) acc[mainCat] = {};
                     if (!acc[mainCat][specificCat]) acc[mainCat][specificCat] = [];
                     acc[mainCat][specificCat].push(question);
                 }
+                
                 return acc;
             }, {});
             quizDataCache.byCategory = rebuiltByCategory;

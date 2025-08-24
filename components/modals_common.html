@@ -114,38 +114,33 @@
             </button>
         </div>
         <div id="custom-quiz-category-selection" class="space-y-4 my-6"></div>
-        <fieldset class="mb-6 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-            <legend class="text-sm font-bold text-gray-700 dark:text-gray-300 px-2">
-                รูปแบบการจับเวลา
-            </legend>
-            <div class="space-y-3">
-                <label
-                    class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
-                    <input type="radio" name="custom-timer-mode" value="none"
-                        class="h-5 w-5 text-blue-600 focus:ring-blue-500" checked>
-                    <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ไม่จับเวลา</span>
-                </label>
-                <label
-                    class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
-                    <input type="radio" name="custom-timer-mode" value="overall"
-                        class="h-5 w-5 text-blue-600 focus:ring-blue-500">
-                    <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">ทั้งชุด</span>
-                </label>
-                <div id="overall-time-input-container" class="hidden pl-10">
-                    <input type="number" id="custom-timer-overall-minutes" value="20" min="1"
-                        class="gen-input w-24 text-center">
-                    <span class="ml-2 text-gray-600 dark:text-gray-400">นาที</span>
+        <fieldset class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+            <legend class="text-sm font-bold text-gray-800 dark:text-gray-200 px-1 -ml-1">รูปแบบการจับเวลา</legend>
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-3 mt-2">
+                <!-- Option 1: No Timer -->
+                <div class="flex items-center">
+                    <input id="timer-none" type="radio" name="custom-timer-mode" value="none" checked class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="timer-none" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">ไม่จับเวลา</label>
                 </div>
-                <label
-                    class="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-2 border-transparent has-[:checked]:border-blue-500 cursor-pointer transition">
-                    <input type="radio" name="custom-timer-mode" value="perQuestion"
-                        class="h-5 w-5 text-blue-600 focus:ring-blue-500">
-                    <span class="ml-3 font-medium text-gray-700 dark:text-gray-200">เป็นข้อ</span>
-                </label>
-                <div id="per-question-time-input-container" class="hidden pl-10">
-                    <input type="number" id="custom-timer-per-question-seconds" value="90" min="10" step="5"
-                        class="gen-input w-24 text-center">
-                    <span class="ml-2 text-gray-600 dark:text-gray-400">วินาที</span>
+        
+                <!-- Option 2: Overall Timer -->
+                <div class="flex items-center">
+                    <input id="timer-overall" type="radio" name="custom-timer-mode" value="overall" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="timer-overall" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">จับเวลารวม</label>
+                    <div id="overall-time-input-container" class="flex items-center hidden ml-2">
+                        <input type="number" id="custom-timer-overall-minutes" value="20" min="1" class="gen-input w-20 text-center p-1">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 ml-1.5">นาที</span>
+                    </div>
+                </div>
+        
+                <!-- Option 3: Per-Question Timer -->
+                <div class="flex items-center">
+                    <input id="timer-per-question" type="radio" name="custom-timer-mode" value="perQuestion" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600">
+                    <label for="timer-per-question" class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">จับเวลาต่อข้อ</label>
+                    <div id="per-question-time-input-container" class="flex items-center hidden ml-2">
+                        <input type="number" id="custom-timer-per-question-seconds" value="90" min="10" step="5" class="gen-input w-20 text-center p-1">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 ml-1.5">วินาที</span>
+                    </div>
                 </div>
             </div>
         </fieldset>

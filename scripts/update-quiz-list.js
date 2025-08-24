@@ -106,7 +106,11 @@ function updateQuizList() {
         return;
     }
 
-    const existingIds = new Set((quizListContent.match(/id:\s*"([^"]+)"/g) || []).map(s => s.split('"')[1]));
+    // Improved regex to more reliably find IDs within actual quiz objects.
+    // It looks for an 'id' field that is part of an object containing a 'title' field.
+    // This avoids matching IDs in comments or other parts of the file.
+    const idRegex = /{\s*id:\s*"([^"]+)",\s*title:/g;
+    const existingIds = new Set(Array.from(quizListContent.matchAll(idRegex), match => match[1]));
     console.log('ℹ️ Found existing quiz IDs:', Array.from(existingIds));
 
     const dataFiles = fs.readdirSync(dataDir).filter(file => 

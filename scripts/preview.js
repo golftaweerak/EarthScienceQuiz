@@ -110,9 +110,16 @@ function createQuestionElement(item, displayIndex, keyword) {
             const choiceTextDiv = document.createElement('div');
             choiceTextDiv.innerHTML = highlightText(choice.replace(/\n/g, '<br>'), keyword);
 
-            // Highlight the correct answer
-            if (showAnswers && choice === item.answer) {
-                choiceWrapper.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
+            // Highlight the correct answer(s)
+            if (showAnswers) {
+                // Handle both single answer (string) and multiple answers (array)
+                const isCorrect = Array.isArray(item.answer)
+                    ? item.answer.includes(choice)
+                    : choice === item.answer;
+
+                if (isCorrect) {
+                    choiceWrapper.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
+                }
             }
             choiceWrapper.appendChild(numeralSpan);
             choiceWrapper.appendChild(choiceTextDiv);

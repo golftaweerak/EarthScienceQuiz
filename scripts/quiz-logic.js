@@ -200,38 +200,43 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
   /**
    * Creates a single checkbox option element for multiple-select questions.
+   * The entire element is a label, making it fully clickable for better UX.
    * @param {string} optionText - The text content for the option.
    * @param {object|null} previousAnswer - The user's previously recorded answer.
-   * @returns {HTMLElement} The created div wrapper containing the checkbox and label.
+   * @returns {HTMLElement} The created label element which acts as a fully clickable wrapper.
    */
   function createCheckboxOption(optionText, previousAnswer) {
-    const wrapper = document.createElement('div');
-    // Add a class to the wrapper for easier selection and styling
-    wrapper.className = 'option-checkbox-wrapper flex items-center w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-blue-500 dark:hover:border-blue-500';
+    const wrapperLabel = document.createElement('label');
+    // The entire element is now a label, making it fully clickable.
+    // Added cursor-pointer to the wrapper itself and a smooth transition.
+    wrapperLabel.className = 'option-checkbox-wrapper flex items-center w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-blue-500 dark:hover:border-blue-500 cursor-pointer transition-colors duration-150';
 
-    const checkboxId = `option-${Math.random().toString(36).substring(2, 9)}`;
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.id = checkboxId;
     checkbox.value = optionText.trim();
-    checkbox.className = 'h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer';
+    // The checkbox itself doesn't need a pointer cursor and we prevent double-toggling.
+    checkbox.className = 'h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 pointer-events-none';
 
-    const label = document.createElement('label');
-    label.htmlFor = checkboxId;
-    label.innerHTML = optionText.replace(/\n/g, "<br>");
-    label.className = 'ml-3 text-gray-800 dark:text-gray-200 w-full cursor-pointer';
+    const textSpan = document.createElement('span');
+    textSpan.innerHTML = optionText.replace(/\n/g, "<br>");
+    // The text span doesn't need a pointer cursor either.
+    textSpan.className = 'ml-3 text-gray-800 dark:text-gray-200 w-full';
 
-    wrapper.appendChild(checkbox);
-    wrapper.appendChild(label);
+    wrapperLabel.appendChild(checkbox);
+    wrapperLabel.appendChild(textSpan);
 
     if (previousAnswer) {
       checkbox.disabled = true;
+      // When disabled, the wrapper should not look clickable.
+      wrapperLabel.classList.remove('cursor-pointer', 'hover:bg-gray-100', 'dark:hover:bg-gray-700', 'hover:border-blue-500', 'dark:hover:border-blue-500');
+      wrapperLabel.classList.add('cursor-not-allowed', 'opacity-75');
+
       const selectedAnswers = new Set(previousAnswer.selectedAnswer || []);
       if (selectedAnswers.has(optionText.trim())) {
         checkbox.checked = true;
       }
     }
-    return wrapper;
+    return wrapperLabel;
   }
 
   function showQuestion() {

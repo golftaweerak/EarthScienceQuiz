@@ -94,6 +94,21 @@ body.dark {
     @apply text-sm font-medium; /* Color is inherited from the parent container */
   }
 
+  /* Custom Quiz Hub Components */
+  .quiz-grid-container {
+    @apply grid gap-4 sm:gap-6;
+    /* 
+      สร้าง Grid ที่ปรับเปลี่ยนตามขนาดหน้าจออัตโนมัติ
+      - บนจอเล็ก จะแสดง 1 คอลัมน์
+      - เมื่อจอใหญ่ขึ้น จะพยายามใส่การ์ด (กว้างขั้นต่ำ 280px) เข้าไปให้ได้มากที่สุด
+    */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  .quiz-card {
+    @apply bg-white dark:bg-gray-800/50 p-5 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:border-blue-500 dark:hover:border-blue-500 cursor-pointer;
+  }
+
   /* Customize autofill styles for better dark mode compatibility in Webkit browsers */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -423,4 +438,17 @@ body.dark {
 .dark .feedback-content::-webkit-scrollbar-thumb {
   background-color: #718096; /* gray-500 */
   border: 2px solid #1f2937; /* gray-800 */
+}
+/* Fix for custom quiz modal scrolling on landscape mobile */
+#custom-quiz-modal > div {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    overflow: hidden;
+}
+
+#custom-quiz-category-selection {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-bottom: 1rem; 
 }
