@@ -41,6 +41,15 @@ export const categoryDetails = {
     cardGlow: "hover:shadow-amber-400/40",
     logoGlow: "group-hover:shadow-amber-400/40",
   },
+  AstronomyPOSN_Adv: {
+    title: "ชุดท้าทาย (หลายคำตอบ)",
+    displayName: "ชุดท้าทาย (หลายคำตอบ)",
+    icon: "./assets/icons/astronaut.png",
+    order: 4,
+    color: "border-amber-500",
+    cardGlow: "hover:shadow-amber-400/40",
+    logoGlow: "group-hover:shadow-amber-400/40",
+  },
   // Categories used for custom quizzes and stats breakdown.
   // These are conceptually sub-categories of Earth & Space Science.
   Geology: {
