@@ -463,38 +463,6 @@ export function initializePage() {
   floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-center gap-2"></div>`;
   document.body.appendChild(floatingNavContainer);
 
-  // Create a single, shared tooltip element for performance and style consistency.
-  const tooltip = document.createElement('div');
-  tooltip.id = 'custom-tooltip';
-  tooltip.className = 'fixed z-50 px-3 py-1.5 text-sm font-semibold text-white bg-gray-900/80 dark:bg-black/80 backdrop-blur-sm rounded-md shadow-lg opacity-0 pointer-events-none transform transition-all duration-150 scale-95';
-  document.body.appendChild(tooltip);
-
-  // Use event delegation on the container to handle tooltips for all buttons within it.
-  floatingNavContainer.addEventListener('mouseover', (e) => {
-    const button = e.target.closest('.floating-nav-btn[data-tooltip-text]');
-    if (!button) return;
-
-    const tooltipText = button.dataset.tooltipText;
-    tooltip.textContent = tooltipText;
-
-    const btnRect = button.getBoundingClientRect();
-    const top = btnRect.top + btnRect.height / 2;
-    const left = btnRect.left - 12; // 12px gap from the button
-
-    // Position the tooltip and use transform to align it correctly regardless of its width.
-    tooltip.style.top = `${top}px`;
-    tooltip.style.left = `${left}px`;
-    tooltip.style.transform = 'translate(-100%, -50%)'; // Move left by own width, and up by half its height
-
-    tooltip.classList.remove('opacity-0', 'scale-95');
-    tooltip.classList.add('opacity-100', 'scale-100');
-  });
-
-  floatingNavContainer.addEventListener('mouseout', () => {
-    tooltip.classList.remove('opacity-100', 'scale-100');
-    tooltip.classList.add('opacity-0', 'scale-95');
-  });
-
   // 4. Attach listeners and set initial state for accordions
   const sectionToggles = getSectionToggles();
   let currentlyOpenSectionToggle = null;
