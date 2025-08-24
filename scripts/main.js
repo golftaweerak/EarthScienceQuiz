@@ -277,8 +277,8 @@ export function initializePage() {
     const floatingNavButtons = document.getElementById('floating-nav-buttons');
     if (!floatingNavContainer || !floatingNavButtons) return;
 
-    if (!activeToggle) {
-      floatingNavContainer.classList.add('translate-y-full');
+    if (!activeToggle) { // If no section is open, hide the nav
+      floatingNavContainer.classList.add('translate-x-full');
       return;
     }
 
@@ -325,7 +325,7 @@ export function initializePage() {
     });
 
     floatingNavButtons.appendChild(fragment);
-    floatingNavContainer.classList.remove('translate-y-full');
+    floatingNavContainer.classList.remove('translate-x-full'); // Show the nav
   }
 
   // Set the header height property on initial load and on window resize.
@@ -394,8 +394,8 @@ export function initializePage() {
   // Create and append the floating navigation container
   const floatingNavContainer = document.createElement('div');
   floatingNavContainer.id = 'floating-nav-container';
-  floatingNavContainer.className = 'fixed bottom-0 left-0 right-0 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-4px_15px_-5px_rgba(0,0,0,0.4)] transform translate-y-full transition-transform duration-300 z-40';
-  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex justify-center items-center gap-2 flex-wrap"></div>`;
+  floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 translate-x-full transition-transform duration-300 z-40';
+  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-end gap-2"></div>`;
   document.body.appendChild(floatingNavContainer);
 
   // 4. Attach listeners and set initial state for accordions
