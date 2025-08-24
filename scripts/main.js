@@ -53,6 +53,10 @@ export const getSectionToggles = () =>
   document.querySelectorAll(".section-toggle");
 
 export function initializePage() {
+  // Constants for animation timings to avoid "magic numbers"
+  const ACCORDION_ANIMATION_DURATION = 500; // Corresponds to `duration-500` in Tailwind
+  const SCROLL_DELAY = ACCORDION_ANIMATION_DURATION + 50; // Buffer for smooth scrolling after animation
+
   /**
    * Sets a CSS custom property for the header's height plus a margin.
    * This allows the CSS `scroll-padding-top` to be dynamic and responsive.
@@ -308,6 +312,36 @@ export function initializePage() {
     const allToggles = getSectionToggles();
     const fragment = document.createDocumentFragment();
 
+    // --- Add Action Buttons (Close & Scroll to Top) at the top ---
+    // Close Category Button
+    const closeBtn = document.createElement("button");
+    closeBtn.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
+    closeBtn.setAttribute("aria-label", "ปิดหมวดหมู่");
+    closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
+    closeBtn.addEventListener("click", () => {
+      if (activeToggle) {
+        activeToggle.click(); // Triggers the main accordion close logic
+      }
+    });
+    fragment.appendChild(closeBtn);
+
+    // Scroll to Top Button
+    const scrollToTopBtn = document.createElement("button");
+    scrollToTopBtn.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
+    scrollToTopBtn.setAttribute("aria-label", "กลับไปด้านบนสุด");
+    scrollToTopBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>`;
+    scrollToTopBtn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    fragment.appendChild(scrollToTopBtn);
+
+    // Add a separator if there are other buttons to navigate to.
+    if (allToggles.length > 1) {
+      const separator = document.createElement("hr");
+      separator.className = `w-10/12 my-1.5 border-t ${borderColor}`;
+      fragment.appendChild(separator);
+    }
+
     allToggles.forEach(toggle => {
       if (toggle === activeToggle) return; // Skip the active one
 
@@ -319,14 +353,14 @@ export function initializePage() {
       if (!details) return;
 
       const button = document.createElement('button');
-      button.className = `floating-nav-btn flex items-center gap-2 px-3 py-1.5 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 text-sm font-medium ${textColor} shadow-md border ${borderColor}`;
+      // Make the button circular and compact, showing only the icon.
+      button.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
       button.dataset.targetId = toggle.id;
 
       const mainTitle = details.title.split('(')[0].trim();
-      button.innerHTML = `
-        <img src="${details.icon}" class="h-5 w-5">
-        <span class="hidden sm:inline">${mainTitle}</span>
-      `;
+      button.setAttribute('aria-label', `ไปที่หมวดหมู่ ${mainTitle}`);
+      button.setAttribute('title', mainTitle); // Tooltip for desktop users
+      button.innerHTML = `<img src="${details.icon}" alt="${mainTitle} icon" class="h-5 w-5">`;
 
       button.addEventListener('click', () => {
         const targetToggle = document.getElementById(button.dataset.targetId);
@@ -338,7 +372,7 @@ export function initializePage() {
           // Use a longer timeout to allow the closing animation of the previous section to complete
           // The animation duration is 500ms, so we wait slightly longer.
           if (targetSection) {
-            setTimeout(() => scrollToElement(targetSection), 550);
+            setTimeout(() => scrollToElement(targetSection), SCROLL_DELAY);
           }
         }
       });
@@ -347,6 +381,7 @@ export function initializePage() {
     });
 
     floatingNavButtons.appendChild(fragment);
+
     floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none'); // Show the nav
   }
 
@@ -374,7 +409,6 @@ export function initializePage() {
     }
   }
   // 1. Group quizzes by category
-  let fragment; // Declare fragment here so it's accessible later
   const groupedQuizzes = quizList.reduce((acc, quiz) => {
     const category = quiz.category || "Uncategorized";
     if (!acc[category]) {
@@ -399,7 +433,7 @@ export function initializePage() {
     container.classList.remove('space-y-6', 'space-y-8'); // Remove potentially larger spacing
     container.classList.add('space-y-4'); // Apply a smaller, consistent gap
 
-    fragment = document.createDocumentFragment(); // Assign to the already declared fragment
+    const fragment = document.createDocumentFragment();
     sortedCategories.forEach((categoryKey) => {
       const quizzes = groupedQuizzes[categoryKey];
       const section = createCategorySection(categoryKey, quizzes);
@@ -417,7 +451,7 @@ export function initializePage() {
   const floatingNavContainer = document.createElement('div');
   floatingNavContainer.id = 'floating-nav-container';
   floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 opacity-0 pointer-events-none transition-opacity duration-300 z-40';
-  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-end gap-2"></div>`;
+  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-center gap-2"></div>`;
   document.body.appendChild(floatingNavContainer);
 
   // 4. Attach listeners and set initial state for accordions
@@ -475,7 +509,7 @@ export function initializePage() {
       // Use a longer timeout here as well to ensure any closing animation has finished
       // before scrolling, which gives a more stable final position. The animation
       // is 500ms, so we wait slightly longer.
-      setTimeout(() => scrollToElement(targetSection), 550);
+      setTimeout(() => scrollToElement(targetSection), SCROLL_DELAY);
     }
   }
   document.addEventListener('click', handleCategoryNavigation);
