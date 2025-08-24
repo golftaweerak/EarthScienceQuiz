@@ -198,6 +198,41 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     return button;
   }
 
+  /**
+   * Creates a single checkbox option element for multiple-select questions.
+   * @param {string} optionText - The text content for the option.
+   * @param {object|null} previousAnswer - The user's previously recorded answer.
+   * @returns {HTMLElement} The created div wrapper containing the checkbox and label.
+   */
+  function createCheckboxOption(optionText, previousAnswer) {
+    const wrapper = document.createElement('div');
+    // Add a class to the wrapper for easier selection and styling
+    wrapper.className = 'option-checkbox-wrapper flex items-center w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-blue-500 dark:hover:border-blue-500';
+
+    const checkboxId = `option-${Math.random().toString(36).substring(2, 9)}`;
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = checkboxId;
+    checkbox.value = optionText.trim();
+    checkbox.className = 'h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer';
+
+    const label = document.createElement('label');
+    label.htmlFor = checkboxId;
+    label.innerHTML = optionText.replace(/\n/g, "<br>");
+    label.className = 'ml-3 text-gray-800 dark:text-gray-200 w-full cursor-pointer';
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+
+    if (previousAnswer) {
+      checkbox.disabled = true;
+      const selectedAnswers = new Set(previousAnswer.selectedAnswer || []);
+      if (selectedAnswers.has(optionText.trim())) {
+        checkbox.checked = true;
+      }
+    }
+    return wrapper;
+  }
 
   function showQuestion() {
     // Only stop the timer if it's a per-question timer.
@@ -221,19 +256,30 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     elements.question.innerHTML = questionHtml;
 
     const previousAnswer = state.userAnswers?.[state.currentQuestionIndex];
+    // Ensure options is an array before spreading
     const shuffledOptions = shuffleArray([...(currentQuestion?.options || [])]);
 
-    shuffledOptions.forEach((option) => {
+    // Check the question type to render the correct input
+    if (currentQuestion.type === 'multiple-select') {
+      shuffledOptions.forEach((option) => {
+        elements.options.appendChild(createCheckboxOption(option, previousAnswer));
+      });
+      // For multi-select, show a "Submit" button immediately
+      if (!previousAnswer) {
+        elements.nextBtn.textContent = 'ส่งคำตอบ';
+        elements.nextBtn.classList.remove('hidden');
+      }
+    } else {
+      // Default single-choice button behavior
+      shuffledOptions.forEach((option) => {
         elements.options.appendChild(createOptionButton(option, previousAnswer));
-    });
+      });
+    }
 
     if (previousAnswer) {
       // If we are revisiting a question, show the feedback panel without altering the score.
-      showFeedback(
-        previousAnswer.isCorrect,
-        previousAnswer.explanation,
-        previousAnswer.correctAnswer
-      );
+      showFeedback(previousAnswer.isCorrect, previousAnswer.explanation, previousAnswer.correctAnswer);
+      elements.nextBtn.textContent = 'ข้อต่อไป'; // Ensure button text is correct when reviewing
       elements.nextBtn.classList.remove("hidden");
     }
 
@@ -251,6 +297,70 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     renderMath(elements.quizScreen); // Render math only within the quiz screen
   }
 
+  /**
+   * Evaluates the answer for a multiple-select question.
+   */
+  function evaluateMultipleAnswer() {
+    if (state.timerMode === "perQuestion") {
+      stopTimer();
+    }
+
+    const selectedCheckboxes = elements.options.querySelectorAll('input[type="checkbox"]:checked');
+    const selectedValues = Array.from(selectedCheckboxes).map(cb => cb.value.trim());
+
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    // Ensure the answer is an array, default to empty array if not defined
+    const correctAnswers = Array.isArray(currentQuestion.answer)
+      ? currentQuestion.answer.map(a => String(a).trim())
+      : [String(currentQuestion.answer).trim()];
+
+    // Use Sets for robust comparison (order doesn't matter)
+    const selectedSet = new Set(selectedValues);
+    const correctSet = new Set(correctAnswers);
+
+    const isCorrect = selectedSet.size === correctSet.size &&
+                      [...selectedSet].every(value => correctSet.has(value));
+
+    // Store answer
+    state.userAnswers[state.currentQuestionIndex] = {
+      question: currentQuestion.question,
+      selectedAnswer: selectedValues, // Store as array
+      correctAnswer: correctAnswers, // Store as array
+      isCorrect: isCorrect,
+      explanation: currentQuestion.explanation || "",
+      subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+      sourceQuizTitle: currentQuestion.sourceQuizTitle
+    };
+    saveQuizState();
+
+    if (isCorrect) {
+      state.score++;
+      elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
+      if (state.isSoundEnabled) state.correctSound.play().catch(e => console.error("Error playing sound:", e));
+    } else {
+      if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
+    }
+
+    // Show feedback and disable options
+    showFeedback(isCorrect, currentQuestion.explanation, correctAnswers);
+
+    Array.from(elements.options.querySelectorAll('.option-checkbox-wrapper')).forEach(wrapper => {
+      const checkbox = wrapper.querySelector('input');
+      const optionValue = checkbox.value.trim();
+      checkbox.disabled = true;
+
+      if (correctSet.has(optionValue)) {
+        // Add a class to highlight all correct answers
+        wrapper.classList.add('correct');
+      } else if (selectedSet.has(optionValue)) {
+        // Add a class to highlight incorrectly selected answers
+        wrapper.classList.add('incorrect');
+      }
+    });
+
+    elements.nextBtn.textContent = 'ข้อต่อไป';
+    renderMath(elements.feedback);
+  }
   function resetState() {
     elements.nextBtn.classList.add("hidden");
     elements.feedback.classList.add("hidden");
@@ -329,6 +439,9 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     const explanationHtml = explanation
       ? explanation.replace(/\n/g, "<br>")
       : "";
+    
+    // Handle both string and array for correct answer display
+    const correctAnswerDisplay = Array.isArray(correctAnswer) ? correctAnswer.join(', ') : correctAnswer;
 
     if (isCorrect) {
       elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-green-800 dark:text-green-300">ถูกต้อง!</h3><p class="text-green-700 dark:text-green-400 mt-2">${explanationHtml}</p>`;
@@ -340,7 +453,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
         "dark:border-green-700"
       );
     } else {
-      elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-300">ผิดครับ!</h3><p class="text-red-700 dark:text-red-400 mt-1">คำตอบที่ถูกต้องคือ: <strong>${correctAnswer}</strong></p><p class="text-red-700 dark:text-red-400 mt-2">${explanationHtml}</p>`;
+      elements.feedbackContent.innerHTML = `<h3 class="font-bold text-lg text-red-800 dark:text-red-300">ผิดครับ!</h3><p class="text-red-700 dark:text-red-400 mt-1">คำตอบที่ถูกต้องคือ: <strong>${correctAnswerDisplay}</strong></p><p class="text-red-700 dark:text-red-400 mt-2">${explanationHtml}</p>`;
       elements.feedback.classList.add(
         "bg-red-100",
         "dark:bg-red-900/50",
@@ -359,6 +472,21 @@ export function init(quizData, storageKey, quizTitle, customTime) {
       showQuestion();
     } else {
       showResults();
+    }
+  }
+
+  /**
+   * Central handler for the main action button (Next/Submit).
+   */
+  function handleNextButtonClick() {
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    const isMultiSelect = currentQuestion.type === 'multiple-select';
+    const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
+
+    if (isMultiSelect && !isAnswered) {
+      evaluateMultipleAnswer();
+    } else {
+      showNextQuestion();
     }
   }
 
@@ -1299,6 +1427,25 @@ export function init(quizData, storageKey, quizTitle, customTime) {
         return;
       }
       const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+      const isMultiSelect = currentQuestion.type === 'multiple-select';
+
+      // Handle multi-select timeout
+      if (isMultiSelect) {
+          const correctAnswers = (currentQuestion.answer || []).map(a => String(a).trim());
+          state.userAnswers[state.currentQuestionIndex] = {
+              question: currentQuestion.question,
+              selectedAnswer: [], // Record as empty selection
+              correctAnswer: correctAnswers,
+              isCorrect: false,
+              explanation: currentQuestion.explanation,
+          };
+          saveQuizState();
+          showFeedback(false, "หมดเวลา! " + (currentQuestion.explanation || ""), correctAnswers);
+          Array.from(elements.options.querySelectorAll('input[type="checkbox"]')).forEach(cb => cb.disabled = true);
+          elements.nextBtn.textContent = 'ข้อต่อไป';
+          elements.nextBtn.classList.remove('hidden');
+          return; // End here for multi-select
+      }
 
       // Safely get and trim the correct answer
       const correctAnswerValue = currentQuestion.answer;
@@ -1353,8 +1500,11 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   // --- Event Binding ---
 
   function bindEventListeners() {
+    // The main action button now has a central handler.
+    elements.nextBtn.addEventListener("click", handleNextButtonClick);
+
+    // Keep other listeners as they are.
     elements.startBtn.addEventListener("click", startQuiz);
-    elements.nextBtn.addEventListener("click", showNextQuestion);
     elements.prevBtn.addEventListener("click", showPreviousQuestion);    
     elements.restartBtn.addEventListener("click", startQuiz);
     elements.reviewBtn.addEventListener("click", showReview);

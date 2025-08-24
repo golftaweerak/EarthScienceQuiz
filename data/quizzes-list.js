@@ -188,6 +188,18 @@ export const quizList = [
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
     category: "AstronomyPOSN"
   },
+    {
+      id: "senion_adv1",
+      title: "ดาราศาสตร์ ม.ปลาย (ชุดท้าทาย 1)",
+      amount: 40,
+      description: "คำถาม 1 มีได้หลายคำตอบ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+      url: "./quiz/index.html?id=senion_adv1",
+      storageKey: "quizState-senion_adv1",
+      icon: "./assets/icons/advancement.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ senion_adv1",
+      category: "AstronomyPOSN"
+  },
   {
     id: "ES1",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
@@ -376,5 +388,5 @@ export const quizList = [
     altText: "ไอคอนวิทยาศาสตร์โลกและอวกาศ",
     category: "EarthScience",
   },
-  
- ];
+
+];
