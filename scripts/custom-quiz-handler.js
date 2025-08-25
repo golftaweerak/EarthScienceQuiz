@@ -56,31 +56,26 @@ function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCou
         <div class="transition-all duration-300 ${disabled ? "opacity-50" : ""}">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 min-w-0">
-                    <div class="flex-shrink-0 h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1.5 shadow-sm">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-1 shadow-sm">
                         <img src="${finalIconSrc}" alt="ไอคอน${displayName}" class="h-full w-full object-contain">
                     </div>
                     <div class="min-w-0">
-                        <label for="count-slider-${category}" class="block font-bold text-gray-800 dark:text-gray-200 truncate leading-tight">${displayName}</label>
-                        <span class="block text-sm text-gray-500 dark:text-gray-400">(${category})</span>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">มีทั้งหมด ${maxCount} ข้อ</p>
+                        <label for="count-slider-${category}" class="block font-semibold text-gray-800 dark:text-gray-200 truncate leading-tight">${displayName}</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">มีทั้งหมด ${maxCount} ข้อ</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
-                    <input ${dataAttr}="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-bold text-base text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
+                    <input ${dataAttr}="${category}" id="count-input-${category}" type="number" min="0" max="${maxCount}" value="0" class="w-12 py-0.5 px-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-semibold text-xs text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500" ${disabled ? "disabled" : ""}>
                 </div>
             </div>
 
             <div class="mt-3 space-y-3 ${disabled ? 'pointer-events-none' : ''}">
                 <input ${sliderDataAttr}="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
-                <div class="flex flex-wrap items-center justify-end gap-2">
-                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2">เลือกด่วน:</span>
+                <div class="flex flex-wrap items-center justify-start gap-2">
                     ${createQuickSelectButton(5)}
                     ${createQuickSelectButton(10)}
                     ${createQuickSelectButton(15)}
                     ${createQuickSelectButton(20)}
-                    ${createQuickSelectButton(25)}
-                    ${createQuickSelectButton(30)}
-                    ${createQuickSelectButton(50)}
                     ${createQuickSelectButton(maxCount, 'ทั้งหมด')}
                     <button type="button" data-quick-select="${category}" data-value="0" class="px-2.5 py-1 text-xs font-semibold text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
                 </div>
@@ -90,89 +85,7 @@ function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCou
 /**
  * Initializes all functionality related to creating and managing custom quizzes.
  */
-export function initializeCustomQuizHandler() {    
-    /**
-     * Injects CSS into the document's head to style scrollbars for a modern look.
-     * This function ensures the styles are only added once.
-     */
-    function injectModernScrollbarStyles() {
-        if (document.getElementById('modern-scrollbar-styles')) return;
-
-        const style = document.createElement('style');
-        style.id = 'modern-scrollbar-styles';
-        // These styles target elements with the .modern-scrollbar class.
-        // They are compatible with Webkit (Chrome, Safari, Edge) and Firefox.
-        // The colors are chosen to match the existing Tailwind CSS theme.
-        style.textContent = `
-            .modern-scrollbar::-webkit-scrollbar {
-                width: 8px;
-                height: 8px;
-            }
-            .modern-scrollbar::-webkit-scrollbar-track {
-                background: transparent;
-            }
-            .modern-scrollbar::-webkit-scrollbar-thumb {
-                background-color: #d1d5db; /* Tailwind gray-300 */
-                border-radius: 20px;
-                border: 2px solid transparent;
-                background-clip: content-box;
-            }
-            .modern-scrollbar::-webkit-scrollbar-thumb:hover {
-                background-color: #9ca3af; /* Tailwind gray-400 */
-            }
-            .dark .modern-scrollbar::-webkit-scrollbar-thumb {
-                background-color: #4b5563; /* Tailwind gray-600 */
-            }
-            .dark .modern-scrollbar::-webkit-scrollbar-thumb:hover {
-                background-color: #374151; /* Tailwind gray-700 */
-            }
-            .modern-scrollbar {
-                scrollbar-width: thin;
-                scrollbar-color: #d1d5db transparent; /* thumb track */
-            }
-            .dark .modern-scrollbar {
-                scrollbar-color: #4b5563 transparent; /* thumb track */
-            }
-
-            /* Animation for quiz cards appearing in the hub */
-            @keyframes card-appear {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px) scale(0.98);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-            }
-            .quiz-card-appear {
-                animation: card-appear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-                opacity: 0; /* Start transparent, animation will make it visible */
-            }
-
-            /* Modal Animation Styles */
-            .modal {
-                transition: opacity 0.3s ease-in-out;
-            }
-            .modal:not(.is-open) {
-                opacity: 0;
-                pointer-events: none;
-            }
-            .modal.is-open {
-                opacity: 1;
-            }
-            .modal .modal-content {
-                opacity: 0;
-                transform: scale(0.95) translateY(1rem);
-                transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-            }
-            .modal.is-open .modal-content {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        `;
-        document.head.appendChild(style);
-    }
+export function initializeCustomQuizHandler() {
     let quizDataCache = null; // Cache for fetched quiz data
 
     // --- 1. Cache Elements & Initialize Modals ---
@@ -211,6 +124,17 @@ export function initializeCustomQuizHandler() {
             <p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">กำลังโหลดรายการแบบทดสอบ...</p>
         `;
         customQuizListContainer.parentNode.insertBefore(listLoader, customQuizListContainer);
+    }
+
+    // --- UI Enhancements: Adjust padding for floating UI ---
+    function adjustScrollableContentPadding() {
+        const scrollableContent = customQuizModal.modal.querySelector('.overflow-y-auto');
+        if (scrollableContent) {
+            // Add enough padding at the bottom of the scrollable area to ensure
+            // no content is hidden behind the floating controls and FAB.
+            // A fixed value is simpler and sufficient here. 10rem should be plenty.
+            scrollableContent.style.paddingBottom = '10rem';
+        }
     }
 
     // --- State Management ---
@@ -312,14 +236,12 @@ export function initializeCustomQuizHandler() {
         observer.observe(modalElement, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
     }
 
-    // Inject the custom scrollbar styles and apply the class to the modal bodies.
-    // This is a dynamic way to achieve the styling without modifying CSS/HTML files directly.
-    injectModernScrollbarStyles();
+    // Apply the modern scrollbar class to the modal bodies.
     try {
         // We assume the scrollable container within the modal has a class like 'overflow-y-auto'.
         // This is a common pattern with Tailwind CSS modal components.
         document.querySelectorAll('#custom-quiz-modal .overflow-y-auto, #custom-quiz-hub-modal .overflow-y-auto')
-            .forEach(el => el.classList.add('modern-scrollbar'));
+            .forEach(el => el.classList.add('modern-scrollbar')); // Class is now defined in bundle.css
     } catch (error) {
         console.error("Could not apply modern scrollbar class to modals:", error);
     }
@@ -587,7 +509,7 @@ export function initializeCustomQuizHandler() {
                         <p class="text-xs text-gray-500 dark:text-gray-400">มี ${maxCount} ข้อ</p>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <input data-input="${dataId}" id="count-input-${uniqueId}" type="number" min="0" max="${maxCount}" value="0" class="w-16 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-semibold text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500">
+                        <input data-input="${dataId}" id="count-input-${uniqueId}" type="number" min="0" max="${maxCount}" value="0" class="w-12 py-0.5 px-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-semibold text-xs text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
                 <div class="mt-3">
@@ -895,6 +817,8 @@ export function initializeCustomQuizHandler() {
                 categorySelectionContainer.innerHTML = categoryHTML;
                 // จัดเรียงหมวดหมู่เป็น Grid เหมือนหน้า Hub
                 categorySelectionContainer.className = "grid grid-cols-1 lg:grid-cols-2 gap-6";
+                // Adjust padding after content is rendered and elements are in place
+                adjustScrollableContentPadding(); // Adjust padding after content is rendered
                 setupCustomQuizInputListeners(); // Re-bind listeners to new elements
                 updateTotalCount(); // Reset total count display
             }

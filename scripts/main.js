@@ -53,6 +53,9 @@ export const getSectionToggles = () =>
   document.querySelectorAll(".section-toggle");
 
 export function initializePage() {
+  // Apply modern scrollbar styling to the main page body.
+  document.body.classList.add('modern-scrollbar');
+
   // Constants for animation timings to avoid "magic numbers"
   const ACCORDION_ANIMATION_DURATION = 500; // Corresponds to `duration-500` in Tailwind
   const SCROLL_DELAY = ACCORDION_ANIMATION_DURATION + 50; // Buffer for smooth scrolling after animation
@@ -146,30 +149,35 @@ export function initializePage() {
    * @returns {HTMLElement} The created anchor element representing the card.
    */
   function createQuizCard(quiz, index) {
-    const card = document.createElement("a");
-    card.href = quiz.url;
     const categoryDetail = categoryDetails[quiz.category];
     const borderColorClass = categoryDetail?.color || "border-gray-400";
-    const cardGlowClass = categoryDetail?.cardGlow || "";
-    const logoGlowClass = categoryDetail?.logoGlow || "";
+    // Extract color name (e.g., 'lime' from 'border-lime-600') for dynamic background/text colors
+    const colorName = borderColorClass.split('-')[1] || 'gray';
+
+    const card = document.createElement("a");
+    card.href = quiz.url;
     const totalQuestions = quiz.amount || 0;
 
     card.dataset.storageKey = quiz.storageKey;
     card.dataset.totalQuestions = totalQuestions;
 
-    // Enhanced card styling for more visual appeal, size back to normal
-    card.className = `quiz-card group flex flex-col h-full bg-white dark:bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 p-3 rounded-xl shadow-lg hover:shadow-2xl border border-gray-200 dark:border-gray-700/50 transition-all duration-300 transform hover:scale-[1.02] anim-card-pop-in ${borderColorClass} ${cardGlowClass}`;
+    // Refined card styling with softer corners, better spacing, and more integrated color theme.
+    card.className = `quiz-card group flex flex-col h-full bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700/60 hover:border-${colorName}-300 dark:hover:border-${colorName}-600 hover:shadow-2xl hover:shadow-${colorName}-500/10 dark:hover:shadow-black/20 transition-all duration-300 transform hover:-translate-y-1 anim-card-pop-in`;
     card.style.animationDelay = `${index * 50}ms`;
     const progress = getQuizProgress(quiz.storageKey, totalQuestions);
     const progressHTML = createProgressHTML(progress, quiz);
 
+    const iconBgClass = `bg-${colorName}-100 dark:bg-${colorName}-400/20`; // Lighter, glowing background for dark mode
+    const iconBorderClass = `border-${colorName}-200 dark:border-${colorName}-400`;
+    const titleHoverClass = `group-hover:text-${colorName}-600 dark:group-hover:text-${colorName}-400`;
+
     card.innerHTML = `
       <div class="flex-grow flex items-start gap-4">
-        <div class="flex-shrink-0 h-14 w-14 rounded-xl flex items-center justify-center border-4 ${borderColorClass} transition-all duration-300 bg-white/80 dark:bg-white group-hover:shadow-lg group-hover:scale-105 ${logoGlowClass}">
+        <div class="flex-shrink-0 h-14 w-14 rounded-xl flex items-center justify-center ${iconBgClass} border-2 ${iconBorderClass} transition-all duration-300 shadow-md shadow-${colorName}-400/20">
           <img src="${quiz.icon}" alt="${quiz.altText}" class="h-9 w-9 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
         </div>
         <div class="flex-grow">
-          <h3 class="text-base font-bold text-gray-900 dark:text-white font-kanit leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">${quiz.title}</h3>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white font-kanit leading-tight transition-colors ${titleHoverClass}">${quiz.title}</h3>
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">จำนวน ${totalQuestions} ข้อ</p>
           <p class="text-gray-600 dark:text-gray-300 text-xs leading-relaxed mt-1">${quiz.description}</p>
         </div>
@@ -194,17 +202,19 @@ export function initializePage() {
       return null;
     }
 
+    const sectionBorderColor = details.color || "border-blue-600";
+    const colorName = sectionBorderColor.split('-')[1] || 'gray';
+
     const section = document.createElement("section");
     section.id = `category-${categoryKey}`;
-    section.className =
-      "section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden";
+    // Added a thick top border with the category color for better visual grouping.
+    section.className = `section-accordion bg-white/80 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 shadow-md overflow-hidden border-t-4 ${sectionBorderColor}`;
 
     const toggleHeader = document.createElement("div");
     toggleHeader.id = `toggle-${categoryKey}`; // Add unique ID for targeting
-    toggleHeader.className =
-      "section-toggle flex justify-between items-center cursor-pointer p-4";
-    const sectionBorderColor = details.color || "border-blue-600";
-    
+    // Dynamic background color for header based on category, with even more subtle opacity in dark mode.
+    toggleHeader.className = `section-toggle flex justify-between items-center cursor-pointer p-4 bg-${colorName}-50/30 dark:bg-${colorName}-900/10 hover:bg-${colorName}-100/50 dark:hover:bg-${colorName}-900/20 transition-colors duration-200`;
+
     // Handle titles with parentheses for better wrapping on small screens.
     const titleMatch = details.title.match(/(.+)\s+\((.+)\)/);
     let titleContent;
@@ -222,9 +232,12 @@ export function initializePage() {
       titleContent = `<h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 font-kanit">${details.title}</h2>`;
     }
 
+    const iconBgClass = `bg-${colorName}-100 dark:bg-${colorName}-400/20`; // Lighter, glowing background for dark mode
+    const iconBorderClass = `border-${colorName}-300 dark:border-${colorName}-400`;
+
     toggleHeader.innerHTML = `
       <div class="flex items-center min-w-0 gap-4">
-        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-4 ${sectionBorderColor} bg-white dark:bg-white transition-all duration-300">
+        <div class="section-icon-container flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center border-2 ${iconBorderClass} ${iconBgClass} transition-all duration-300 shadow-md shadow-${colorName}-400/30">
           <img src="${details.icon}" alt="${details.title} Icon" class="section-main-icon h-8 w-8 transition-transform duration-300 ease-in-out">
         </div>
         <div class="min-w-0">
@@ -321,34 +334,40 @@ export function initializePage() {
     const textColor = colorName === 'default' ? 'text-gray-800 dark:text-gray-200' : `text-${colorName}-800 dark:text-${colorName}-200`;
 
     // --- 4. Rebuild buttons with the new theme ---
-    floatingNavButtons.innerHTML = ''; // Clear old buttons
-    const allToggles = getSectionToggles();
+    floatingNavButtons.innerHTML = ''; // Clear old buttons first
     const fragment = document.createDocumentFragment();
+    let animationDelay = 0;
+    const delayIncrement = 50; // 50ms between each button
+
+    /** Helper function to create a consistent floating button */
+    const createFloatingButton = (options) => {
+      const button = document.createElement("button");
+      button.className = `floating-nav-btn anim-nav-btn-pop-in flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
+      button.setAttribute("aria-label", options.ariaLabel);
+      button.innerHTML = options.innerHTML;
+      button.style.animationDelay = `${animationDelay}ms`;
+      animationDelay += delayIncrement;
+      button.addEventListener("click", options.onClick);
+      return button;
+    };
 
     // Close Category Button
-    const closeBtn = document.createElement("button");
-    closeBtn.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
-    closeBtn.setAttribute("aria-label", "ปิดหมวดหมู่");
-    closeBtn.dataset.tooltipText = "ปิด";
-    closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
-    closeBtn.addEventListener("click", () => {
-      if (activeToggle) {
-        activeToggle.click(); // Triggers the main accordion close logic
-      }
+    const closeBtn = createFloatingButton({
+      ariaLabel: "ปิดหมวดหมู่",
+      innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`,
+      onClick: () => activeToggle?.click(),
     });
     fragment.appendChild(closeBtn);
 
     // Scroll to Top Button
-    const scrollToTopBtn = document.createElement("button");
-    scrollToTopBtn.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
-    scrollToTopBtn.setAttribute("aria-label", "กลับไปด้านบนสุด");
-    scrollToTopBtn.dataset.tooltipText = "ขึ้นบนสุด";
-    scrollToTopBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>`;
-    scrollToTopBtn.addEventListener("click", () => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    const scrollToTopBtn = createFloatingButton({
+      ariaLabel: "กลับไปด้านบนสุด",
+      innerHTML: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>`,
+      onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }),
     });
     fragment.appendChild(scrollToTopBtn);
 
+    const allToggles = getSectionToggles();
     // Add a separator if there are other buttons to navigate to.
     if (allToggles.length > 1) {
       const separator = document.createElement("hr");
@@ -356,7 +375,7 @@ export function initializePage() {
       fragment.appendChild(separator);
     }
 
-    allToggles.forEach(toggle => {
+    allToggles.forEach((toggle) => {
       if (toggle === activeToggle) return; // Skip the active one
 
       const section = toggle.closest('section');
@@ -366,22 +385,18 @@ export function initializePage() {
       const details = categoryDetails[categoryKey];
       if (!details) return;
 
-      const button = document.createElement('button');
-      button.className = `floating-nav-btn flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
-      button.dataset.targetId = toggle.id;
-
       const mainTitle = details.title.split('(')[0].trim();
-      button.setAttribute('aria-label', `ไปที่หมวดหมู่ ${mainTitle}`);
-      button.dataset.tooltipText = mainTitle;
-      button.innerHTML = `<img src="${details.icon}" alt="${mainTitle} icon" class="h-5 w-5">`;
-
-      button.addEventListener('click', () => {
-        const targetToggle = document.getElementById(button.dataset.targetId);
-        if (targetToggle) {
-          const targetSection = targetToggle.closest("section");
-          targetToggle.click();
-          if (targetSection) {
-            setTimeout(() => scrollToElement(targetSection), SCROLL_DELAY);
+      const button = createFloatingButton({
+        ariaLabel: `ไปที่หมวดหมู่ ${mainTitle}`,
+        innerHTML: `<img src="${details.icon}" alt="${mainTitle} icon" class="h-5 w-5">`,
+        onClick: (e) => {
+          const targetToggle = document.getElementById(toggle.id); // Use closure to get the correct toggle
+          if (targetToggle) {
+            const targetSection = targetToggle.closest("section");
+            targetToggle.click();
+            if (targetSection) {
+              setTimeout(() => scrollToElement(targetSection), SCROLL_DELAY);
+            }
           }
         }
       });
@@ -391,7 +406,9 @@ export function initializePage() {
 
     floatingNavButtons.appendChild(fragment);
 
-    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full'); // Show the nav
+    // Show the nav (the container's transition will handle the fade/slide)
+    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full');
+    // No specific button animation needed here as requested.
   }
 
   // Set the header height property on initial load and on window resize.
@@ -514,6 +531,10 @@ export function initializePage() {
         // Programmatically click the toggle to trigger all associated logic
         // (closing other sections, updating floating nav, etc.)
         targetToggle.click();
+      } else {
+        // If the section is already open, the click won't change the state,
+        // so we need to manually ensure the floating nav is visible and updated.
+        updateFloatingNav(targetToggle);
       }
       // Use a longer timeout here as well to ensure any closing animation has finished
       // before scrolling, which gives a more stable final position. The animation

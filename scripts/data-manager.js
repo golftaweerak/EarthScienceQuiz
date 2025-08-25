@@ -6,16 +6,16 @@
 // Single source of truth for all category metadata.
 export const categoryDetails = {
   // Main categories for the index page accordion
-  // สีเทา (Slate): สื่อถึงความเป็นกลาง ความรู้พื้นฐาน เหมาะสำหรับหมวดทบทวน
+  // สีเทาน้ำเงิน (Blue Gray): สื่อถึงความสุขุม น่าเชื่อถือ เหมาะสำหรับหมวดทบทวน
   AstronomyReview: {
     title: "ทบทวน (Review)",
     icon: "./assets/icons/study.png",
     order: 1,
-    color: "border-slate-500",
-    cardGlow: "hover:shadow-slate-400/40",
-    logoGlow: "group-hover:shadow-slate-400/40",
+    color: "border-gray-500",
+    cardGlow: "hover:shadow-gray-400/40",
+    logoGlow: "group-hover:shadow-gray-400/40",
   },
-  // สีคราม (Indigo): สื่อถึงท้องฟ้ายามค่ำคืนและอวกาศ เหมาะกับดาราศาสตร์
+  // สีฟ้า (Sky): สื่อถึงท้องฟ้าและดาราศาสตร์โดยตรง
   AstronomyPOSN: {
     title: "ดาราศาสตร์ (Astronomy)",
     displayName: "ดาราศาสตร์ (Astronomy)",
@@ -25,35 +25,35 @@ export const categoryDetails = {
     cardGlow: "hover:shadow-indigo-500/30",
     logoGlow: "group-hover:shadow-indigo-500/40",
   },
-  // สีเขียว (Green): สื่อถึง "โลก" และธรรมชาติโดยรวม
+  // สีเขียวมะนาว (Lime): สื่อถึง "โลก" และธรรมชาติที่สดใส
   EarthScience: {
     title: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
     displayName: "วิทยาศาสตร์โลกและอวกาศ (Earth & Space Science)",
     icon: "./assets/icons/earth.png",
     order: 3,
-    color: "border-green-600",
-    cardGlow: "hover:shadow-green-500/30",
-    logoGlow: "group-hover:shadow-green-500/40",
+    color: "border-teal-500",
+    cardGlow: "hover:shadow-teal-500/30",
+    logoGlow: "group-hover:shadow-teal-500/40",
   },
-  // สีเหลืองอำพัน (Amber): สื่อถึงความรู้ทั่วไปที่สดใสและเข้าถึงง่าย
+  // สีส้ม (Orange): สื่อถึงความคิดสร้างสรรค์และความรู้ที่เข้าถึงง่าย
   GeneralKnowledge: {
     title: "ความรู้ทั่วไป",
     displayName: "ความรู้ทั่วไป (General)",
     icon: "./assets/icons/idea.png", // แนะนำให้ใช้ไอคอนใหม่ เช่น รูปหลอดไฟ
     order: 4,
-    color: "border-amber-500",
-    cardGlow: "hover:shadow-amber-500/30",
-    logoGlow: "group-hover:shadow-amber-500/40",
+    color: "border-orange-500",
+    cardGlow: "hover:shadow-orange-500/30",
+    logoGlow: "group-hover:shadow-orange-500/40",
   },
-  // สีม่วง (Purple): สื่อถึงความพิเศษ ความเชี่ยวชาญ และความท้าทาย
+  // สีชมพูกุหลาบ (Rose): สื่อถึงความท้าทายที่น่าตื่นเต้นและโดดเด่น
   ChallengePOSN: {
-    title: "ข้อสอบท้าทาย (มีหลายคำตอบ)",
+    title: "ข้อสอบท้าทาย (มีได้หลายคำตอบ)",
     displayName: "ข้อสอบท้าทาย (มีหลายคำตอบ)",
     icon: "./assets/icons/trophy-star.png", // แนะนำให้ใช้ไอคอนใหม่ เช่น รูปถ้วยรางวัล
     order: 5,
-    color: "border-purple-600",
-    cardGlow: "hover:shadow-purple-500/30",
-    logoGlow: "group-hover:shadow-purple-500/40",
+    color: "border-rose-400",
+    cardGlow: "hover:shadow-rose-400/30",
+    logoGlow: "group-hover:shadow-rose-400/40",
   },
   // Categories used for custom quizzes and stats breakdown.
   // These are conceptually sub-categories of Earth & Space Science.
@@ -67,7 +67,7 @@ export const categoryDetails = {
     title: "ดาราศาสตร์ (Astronomy)",
     displayName: "ดาราศาสตร์",
     icon: "./assets/icons/astronomy.png",
-    color: "border-indigo-500", // สีคราม: สอดคล้องกับหมวดหลัก
+    color: "border-sky-500", // สีฟ้า: สอดคล้องกับหมวดหลัก
   },
   Meteorology: {
     title: "อุตุนิยมวิทยา (Meteorology)",
