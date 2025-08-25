@@ -149,9 +149,119 @@ export function initializeCustomQuizHandler() {
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
 
+    // Create and inject the loader for the custom quiz list
+    let listLoader = null;
+    if (customQuizListContainer) {
+        listLoader = document.createElement('div');
+        listLoader.id = 'custom-quiz-list-loader';
+        listLoader.className = 'hidden w-full py-10 flex flex-col items-center justify-center text-center';
+        listLoader.innerHTML = `
+            <svg class="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-4 text-lg font-semibold text-gray-700 dark:text-gray-300">กำลังโหลดรายการแบบทดสอบ...</p>
+        `;
+        customQuizListContainer.parentNode.insertBefore(listLoader, customQuizListContainer);
+    }
+
     let activeQuizUrl = '';
     let activeStorageKey = '';
     let onConfirmAction = null;
+
+    /**
+     * Manages focus trapping within a modal to improve accessibility.
+     * - Sets initial focus on the first focusable element.
+     * - Traps Tab and Shift+Tab navigation within the modal.
+     * - Allows closing the modal with the Escape key.
+     */
+    const focusTrap = {
+        activeTrapElement: null,
+        closeCallback: null,
+
+        activate(modalElement, closeCallback) {
+            if (this.activeTrapElement) this.deactivate(); // Deactivate any existing trap
+
+            this.activeTrapElement = modalElement;
+            this.closeCallback = closeCallback;
+
+            this.handleKeyDown = this.handleKeyDown.bind(this);
+            document.addEventListener('keydown', this.handleKeyDown, true); // Use capture phase
+
+            // Defer focusing to allow for modal transitions and rendering.
+            setTimeout(() => {
+                if (!this.activeTrapElement) return;
+                const focusableElements = this.getFocusableElements(this.activeTrapElement);
+                if (focusableElements.length > 0) {
+                    focusableElements[0].focus();
+                }
+            }, 100);
+        },
+
+        deactivate() {
+            if (!this.activeTrapElement) return;
+            document.removeEventListener('keydown', this.handleKeyDown, true);
+            this.activeTrapElement = null;
+            this.closeCallback = null;
+        },
+
+        handleKeyDown(e) {
+            if (!this.activeTrapElement) return;
+
+            // If Escape key is pressed, call the close callback.
+            if (e.key === 'Escape') {
+                e.stopPropagation();
+                if (this.closeCallback) this.closeCallback();
+                return;
+            }
+
+            // If Tab key is not pressed, do nothing.
+            if (e.key !== 'Tab') return;
+
+            const focusableElements = this.getFocusableElements(this.activeTrapElement);
+            if (focusableElements.length === 0) {
+                e.preventDefault(); // Prevent tabbing out if no elements are focusable
+                return;
+            }
+
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (e.shiftKey) { // Shift + Tab
+                if (document.activeElement === firstElement) {
+                    lastElement.focus();
+                    e.preventDefault();
+                }
+            } else { // Tab
+                if (document.activeElement === lastElement) {
+                    firstElement.focus();
+                    e.preventDefault();
+                }
+            }
+        },
+
+        getFocusableElements(element) {
+            const selector = 'a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+            return Array.from(element.querySelectorAll(selector))
+                .filter(el => el.offsetParent !== null); // Check for visibility
+        }
+    };
+
+    /**
+     * Sets up a MutationObserver to automatically manage the focus trap for a given modal.
+     * @param {ModalHandler} modalHandler The modal handler instance.
+     */
+    function setupFocusTrapForModal(modalHandler) {
+        if (!modalHandler || !modalHandler.modal) return;
+        const modalElement = modalHandler.modal;
+
+        const observer = new MutationObserver(() => {
+            const isHidden = modalElement.classList.contains('hidden') || modalElement.getAttribute('aria-hidden') === 'true';
+            isHidden ? focusTrap.activeTrapElement === modalElement && focusTrap.deactivate() : focusTrap.activate(modalElement, () => modalHandler.close());
+        });
+
+        observer.observe(modalElement, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
+    }
 
     // Inject the custom scrollbar styles and apply the class to the modal bodies.
     // This is a dynamic way to achieve the styling without modifying CSS/HTML files directly.
@@ -164,6 +274,9 @@ export function initializeCustomQuizHandler() {
     } catch (error) {
         console.error("Could not apply modern scrollbar class to modals:", error);
     }
+
+    // Automatically apply focus trap logic to all modals managed by ModalHandler.
+    [customQuizModal, customQuizHubModal, completedModal, confirmModal].forEach(setupFocusTrapForModal);
 
     /**
      * Updates a range slider's track to show a fill color up to the current value.
@@ -382,6 +495,9 @@ export function initializeCustomQuizHandler() {
             `;
             customQuizListContainer.appendChild(quizItemEl);
         });
+
+        // Hide the loader after the list has been rendered.
+        if (listLoader) listLoader.classList.add('hidden');
     }
 
     /**
@@ -636,8 +752,18 @@ export function initializeCustomQuizHandler() {
 
     // Main button on the index page to open the custom quiz hub
     createCustomQuizBtn.addEventListener("click", (e) => {
-        renderCustomQuizList();
+        // Show loader and clear previous content immediately
+        if (listLoader) listLoader.classList.remove('hidden');
+        if (customQuizListContainer) customQuizListContainer.innerHTML = '';
+        if (noCustomQuizzesMsg) noCustomQuizzesMsg.classList.add('hidden');
+
         customQuizHubModal.open(e.currentTarget);
+
+        // Use a small timeout to ensure the loader is rendered before the synchronous,
+        // potentially blocking renderCustomQuizList() call. This improves UX.
+        setTimeout(() => {
+            renderCustomQuizList();
+        }, 50);
     });
 
     // Button inside the hub to open the creation modal
