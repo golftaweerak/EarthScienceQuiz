@@ -93,7 +93,7 @@ export const subCategoryData = {
     { topic: "ทฤษฎีคลื่นแม่เหล็กไฟฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
   ],
 };
-
+/*
 /**
  * Maps filename prefixes to their corresponding quiz types and metadata.
  * This centralizes logic for scripts like `update-quiz-list.js` (for category/icon assignment)
