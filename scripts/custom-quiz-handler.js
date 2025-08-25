@@ -13,9 +13,20 @@ export function getSavedCustomQuizzes() {
     try {
         const parsed = JSON.parse(savedQuizzesJSON);
         return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-        console.error("Could not parse customQuizzesList from localStorage:", e);
-        // Optionally, clear the corrupted data: localStorage.removeItem("customQuizzesList");
+    } catch (error) {
+        console.error("Could not parse customQuizzesList from localStorage. The data might be corrupted.", error);
+        
+        // Attempt to back up the corrupted data for recovery.
+        try {
+            const backupKey = `customQuizzesList_corrupted_backup_${Date.now()}`;
+            localStorage.setItem(backupKey, savedQuizzesJSON);
+            console.warn(`Backed up corrupted quiz list to localStorage with key: ${backupKey}`);
+        } catch (backupError) {
+            console.error("Failed to back up corrupted quiz list.", backupError);
+        }
+        
+        // Remove the corrupted item to prevent future errors.
+        localStorage.removeItem("customQuizzesList");
         return [];
     }
 }
@@ -122,6 +133,43 @@ export function initializeCustomQuizHandler() {
             .dark .modern-scrollbar {
                 scrollbar-color: #4b5563 transparent; /* thumb track */
             }
+
+            /* Animation for quiz cards appearing in the hub */
+            @keyframes card-appear {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px) scale(0.98);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            .quiz-card-appear {
+                animation: card-appear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+                opacity: 0; /* Start transparent, animation will make it visible */
+            }
+
+            /* Modal Animation Styles */
+            .modal {
+                transition: opacity 0.3s ease-in-out;
+            }
+            .modal:not(.is-open) {
+                opacity: 0;
+                pointer-events: none;
+            }
+            .modal.is-open {
+                opacity: 1;
+            }
+            .modal .modal-content {
+                opacity: 0;
+                transform: scale(0.95) translateY(1rem);
+                transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            }
+            .modal.is-open .modal-content {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         `;
         document.head.appendChild(style);
     }
@@ -144,7 +192,7 @@ export function initializeCustomQuizHandler() {
     const categorySelectionContainer = document.getElementById("custom-quiz-category-selection");
     const totalQuestionCountDisplay = document.getElementById("total-question-count");
     const openCreateQuizModalBtn = document.getElementById("open-create-quiz-modal-btn");
-    const customQuizListContainer = document.getElementById("custom-quiz-list");
+    const customQuizListContainer = document.getElementById("custom-quiz-list-container");
     const noCustomQuizzesMsg = document.getElementById("no-custom-quizzes-msg");
     const viewResultsBtn = document.getElementById('completed-view-results-btn');
     const startOverBtn = document.getElementById('completed-start-over-btn');
@@ -165,6 +213,7 @@ export function initializeCustomQuizHandler() {
         customQuizListContainer.parentNode.insertBefore(listLoader, customQuizListContainer);
     }
 
+    // --- State Management ---
     let activeQuizUrl = '';
     let activeStorageKey = '';
     let onConfirmAction = null;
@@ -406,6 +455,14 @@ export function initializeCustomQuizHandler() {
     function renderCustomQuizList() {
         const savedQuizzes = getSavedCustomQuizzes();
 
+        // Sort quizzes by creation date (newest first)
+        savedQuizzes.sort((a, b) => {
+            const timestampA = parseInt((a.customId || 'custom_0').split('_')[1], 10) || 0;
+            const timestampB = parseInt((b.customId || 'custom_0').split('_')[1], 10) || 0;
+            return timestampB - timestampA;
+        });
+
+
         // Ensure the container is a grid for proper alignment and equal-height cards.
         if (customQuizListContainer) {
             customQuizListContainer.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6";
@@ -414,7 +471,7 @@ export function initializeCustomQuizHandler() {
         noCustomQuizzesMsg.classList.toggle("hidden", savedQuizzes.length > 0);
         customQuizListContainer.innerHTML = "";
 
-        savedQuizzes.forEach((quiz) => {
+        savedQuizzes.forEach((quiz, index) => {
             const totalQuestions = quiz.questions.length;
             const progress = getQuizProgress(quiz.storageKey, totalQuestions);
             const buttonText = progress.hasProgress ? "ทำต่อ" : "เริ่มทำ";
@@ -425,22 +482,27 @@ export function initializeCustomQuizHandler() {
             const creationDate = !isNaN(timestamp) 
                 ? new Date(timestamp).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })
                 : 'ไม่ระบุวันที่';
-
+            
             const detailsHtml = `
-                <div class="mt-4 flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-700/75 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300" title="รูปแบบการจับเวลา">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
-                        ${timerDescription}
-                    </span>
-                    <span class="inline-flex items-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-700/75 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300" title="จำนวนคำถามทั้งหมด">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>
-                        ${totalQuestions} ข้อ
-                    </span>
-                    <span class="inline-flex items-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-700/75 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300" title="วันที่สร้าง">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
-                        ${creationDate}
-                    </span>
+                <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+                    <div class="flex items-start" title="หมวดหมู่">
+                        <svg class="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>
+                        <span class="truncate">${quiz.categoryDisplay || 'ทั่วไป'}</span>
+                    </div>
+                    <div class="flex items-center" title="รูปแบบการจับเวลา">
+                        <svg class="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>${timerDescription}</span>
+                    </div>
+                    <div class="flex items-center" title="จำนวนคำถามทั้งหมด">
+                        <svg class="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                        <span>${totalQuestions} ข้อ</span>
+                    </div>
+                    <div class="flex items-center" title="วันที่สร้าง">
+                        <svg class="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <span>${creationDate}</span>
+                    </div>
                 </div>
+                ${quiz.description ? `<p class="mt-2 text-xs text-gray-500 dark:text-gray-400 italic border-l-2 border-gray-300 dark:border-gray-600 pl-2">"${quiz.description}"</p>` : ''}
             `;
 
             let footerHtml;
@@ -462,7 +524,9 @@ export function initializeCustomQuizHandler() {
 
             const quizItemEl = document.createElement("div");
             quizItemEl.dataset.quizId = quiz.customId;
-            quizItemEl.className = "custom-quiz-item flex flex-col h-full min-h-72 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300";
+            // Add the animation class and a staggered delay for a nice effect.
+            quizItemEl.className = "custom-quiz-item flex flex-col h-full min-h-72 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 quiz-card-appear";
+            quizItemEl.style.animationDelay = `${index * 75}ms`;
             
             const iconUrl = quiz.icon || './assets/icons/dices.png';
             const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบที่สร้างเอง';
@@ -474,8 +538,10 @@ export function initializeCustomQuizHandler() {
                             <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                         </div>
                         <div class="flex-grow min-w-0">
-                            <div data-title-display class="flex justify-between items-start">
-                                <p class="font-bold text-gray-800 dark:text-gray-100 truncate pr-2">${quiz.title}</p>
+                            <div data-title-display class="flex justify-between items-start gap-2">
+                                <div class="flex-grow min-w-0">
+                                    <p class="font-bold text-gray-800 dark:text-gray-100 truncate">${quiz.title}</p>
+                                </div>
                                 <div data-view-controls class="flex items-center gap-1 flex-shrink-0">
                                     <button data-action="edit" aria-label="แก้ไขชื่อ" class="p-2 text-gray-500 hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/50 dark:hover:text-yellow-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
                                     <button data-action="delete" aria-label="ลบแบบทดสอบ" class="p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-400 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg></button>
@@ -486,7 +552,6 @@ export function initializeCustomQuizHandler() {
                                  <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
                             </div>
                             <div data-edit-container class="hidden mt-1"></div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 break-words">${quiz.description}</p>
                             ${detailsHtml}
                         </div>
                     </div>
@@ -577,6 +642,63 @@ export function initializeCustomQuizHandler() {
         if (totalQuestionCountDisplay) totalQuestionCountDisplay.textContent = total;
     }
 
+    /**
+     * Resets the value of a number input and its corresponding range slider to 0.
+     * @param {HTMLInputElement} input The number input element.
+     * @param {HTMLInputElement} slider The range slider element.
+     */
+    function resetControl(input, slider) {
+        if (input && input.value !== '0') input.value = 0;
+        if (slider && slider.value !== '0') {
+            slider.value = 0;
+            updateSliderTrack(slider);
+        }
+    }
+
+    /**
+     * Handles the mutual exclusion logic when a user interacts with a category control.
+     * @param {HTMLElement} target The element that triggered the event.
+     * @param {HTMLElement} container The main container for all category controls.
+     */
+    function handleMutualExclusion(target, container) {
+        const generalInput = container.querySelector('[data-input="General"]');
+        const generalSlider = container.querySelector('[data-slider="General"]');
+
+        // Case 1: User interacts with a Main or Specific category.
+        if (target.matches('[data-main-input], [data-main-slider], [data-input*="__SEP__"]')) {
+            resetControl(generalInput, generalSlider);
+
+            // If it's a Main category, reset its specific sub-categories.
+            if (target.matches('[data-main-input], [data-main-slider]')) {
+                const mainCategory = target.dataset.mainInput || target.dataset.mainSlider;
+                const group = container.querySelector(`[data-main-category-group="${mainCategory}"]`);
+                if (group) {
+                    group.querySelectorAll(`[data-input^="${mainCategory}__SEP__"]`).forEach(specificInput => {
+                        const specificSlider = group.querySelector(`[data-slider="${specificInput.dataset.input}"]`);
+                        resetControl(specificInput, specificSlider);
+                    });
+                }
+            }
+            // If it's a Specific sub-category, reset its Main category.
+            else if (target.matches('[data-input*="__SEP__"]')) {
+                const dataId = target.dataset.input || target.dataset.slider;
+                if (dataId) {
+                    const mainCategory = dataId.split('__SEP__')[0];
+                    const mainInput = container.querySelector(`[data-main-input="${mainCategory}"]`);
+                    const mainSlider = container.querySelector(`[data-main-slider="${mainCategory}"]`);
+                    resetControl(mainInput, mainSlider);
+                }
+            }
+        }
+        // Case 2: User interacts with the "General" category.
+        else if (target.matches('[data-input="General"], [data-slider="General"]')) {
+            // Reset all other categories.
+            container.querySelectorAll('input[type="number"]').forEach(input => {
+                if (input !== generalInput) resetControl(input, container.querySelector(`[data-slider="${input.dataset.input}"], [data-main-slider="${input.dataset.mainInput}"]`));
+            });
+        }
+    }
+
     function setupCustomQuizInputListeners() {
         const container = document.getElementById('custom-quiz-category-selection');
         if (!container) return;
@@ -584,85 +706,36 @@ export function initializeCustomQuizHandler() {
         // Initialize all sliders with the correct track fill on load
         container.querySelectorAll('input[type="range"]').forEach(updateSliderTrack);
 
-        const allInputs = Array.from(container.querySelectorAll('input[type="number"]'));
-        const allSliders = Array.from(container.querySelectorAll('input[type="range"]'));
-        const generalInput = container.querySelector('[data-input="General"]');
-        const generalSlider = container.querySelector('[data-slider="General"]');
-        const categoryInputs = allInputs.filter(el => el !== generalInput);
-        const categorySliders = allSliders.filter(el => el !== generalSlider);
-
         // Use event delegation for better performance
         container.addEventListener('input', (e) => {
             const target = e.target;
 
-            // --- Mutual Exclusion Logic ---
-            if (target.matches('[data-main-input], [data-main-slider], [data-input*="__SEP__"]')) {
-                // User is adjusting a specific or main category. Reset "General".
-                if (generalInput && generalInput.value !== '0') generalInput.value = 0;
-                if (generalSlider && generalSlider.value !== '0') {
-                    generalSlider.value = 0;
-                    updateSliderTrack(generalSlider);
-                }
+            // Handle mutual exclusion first
+            handleMutualExclusion(target, container);
 
-                if (target.matches('[data-main-input], [data-main-slider]')) {
-                    // User is adjusting a MAIN category control. Reset its specific sub-categories.
-                    const mainCategory = target.dataset.mainInput || target.dataset.mainSlider;
-                    const group = container.querySelector(`[data-main-category-group="${mainCategory}"]`);
-                    if (group) {
-                        group.querySelectorAll(`[data-input^="${mainCategory}__SEP__"]`).forEach(input => {
-                            const specificSlider = group.querySelector(`[data-slider="${input.dataset.input}"]`);
-                            if (input.value !== '0') input.value = 0;
-                            if (specificSlider && specificSlider.value !== '0') {
-                                specificSlider.value = 0;
-                                updateSliderTrack(specificSlider);
-                            }
-                        });
-                    }
-                } else if (target.matches('[data-input*="__SEP__"]')) {
-                    // User is adjusting a SPECIFIC sub-category control. Reset its main category.
-                    const dataId = target.dataset.input;
-                    if (dataId) {
-                        const mainCategory = dataId.split('__SEP__')[0];
-                        const mainInput = container.querySelector(`[data-main-input="${mainCategory}"]`);
-                        const mainSlider = container.querySelector(`[data-main-slider="${mainCategory}"]`);
-                        if (mainInput && mainInput.value !== '0') mainInput.value = 0;
-                        if (mainSlider && mainSlider.value !== '0') {
-                            mainSlider.value = 0;
-                            updateSliderTrack(mainSlider);
-                        }
-                    }
-                }
-            } else if (target.matches('[data-input="General"], [data-slider="General"]')) {
-                // User is adjusting "General". Reset all other categories.
-                categoryInputs.forEach(input => { if (input.value !== '0') input.value = 0; });
-                categorySliders.forEach(slider => {
-                    if (slider.value !== '0') {
-                        slider.value = 0;
-                        updateSliderTrack(slider);
-                    }
-                });
-            }
-
+            // Then, handle the value synchronization for the interacted control
             if (target.matches('input[type="range"]') || target.matches('input[type="number"]')) {
                 const dataId = target.dataset.slider || target.dataset.input || target.dataset.mainSlider || target.dataset.mainInput;
                 let value = target.value;
                 const slider = document.querySelector(`[data-slider="${dataId}"], [data-main-slider="${dataId}"]`);
                 const input = document.querySelector(`[data-input="${dataId}"], [data-main-input="${dataId}"]`);
 
+                // Clamp value for number inputs
                 if (target.type === 'number') {
                     const max = parseInt(target.max, 10);
-                    if (parseInt(value, 10) > max) {
+                    const currentValue = parseInt(value, 10);
+                    if (currentValue > max) {
                         value = max;
                         target.value = max;
                     }
                 }
 
                 const finalValue = value === "" ? 0 : value;
-                if (slider) {
-                    slider.value = finalValue;
-                    updateSliderTrack(slider);
-                }
+                if (slider) slider.value = finalValue;
                 if (input) input.value = finalValue;
+
+                // Update the visual track of the slider
+                if (slider) updateSliderTrack(slider);
 
                 updateTotalCount();
             }
@@ -670,46 +743,20 @@ export function initializeCustomQuizHandler() {
 
         container.addEventListener('click', (e) => {
             const target = e.target;
+
             // Handle quick select buttons
             if (target.matches('button[data-quick-select]')) {
                 const category = target.dataset.quickSelect;
                 const value = target.dataset.value;
                 const slider = document.querySelector(`[data-slider="${category}"], [data-main-slider="${category}"]`);
                 const input = document.querySelector(`[data-input="${category}"], [data-main-input="${category}"]`);
-                if (slider) {
-                    slider.value = value;
-                    updateSliderTrack(slider);
-                }
+
+                if (slider) slider.value = value;
                 if (input) input.value = value;
 
-                // Trigger mutual exclusion logic after quick select
-                if (category === 'General') {
-                    categoryInputs.forEach(inp => { if (inp.value !== '0') inp.value = 0; });
-                    categorySliders.forEach(sl => {
-                        if (sl.value !== '0') {
-                            sl.value = 0;
-                            updateSliderTrack(sl);
-                        }
-                    });
-                } else {
-                    if (generalInput && generalInput.value !== '0') generalInput.value = 0;
-                    if (generalSlider && generalSlider.value !== '0') {
-                        generalSlider.value = 0;
-                        updateSliderTrack(generalSlider);
-                    }
-                    // If it's a main category quick select, also reset its sub-categories
-                    const group = container.querySelector(`[data-main-category-group="${category}"]`);
-                    if (group) {
-                        group.querySelectorAll(`[data-input^="${category}__SEP__"]`).forEach(specificInput => {
-                            const specificSlider = group.querySelector(`[data-slider="${specificInput.dataset.input}"]`);
-                            if (specificInput.value !== '0') specificInput.value = 0;
-                            if (specificSlider && specificSlider.value !== '0') {
-                                specificSlider.value = 0;
-                                updateSliderTrack(specificSlider);
-                            }
-                        });
-                    }
-                }
+                // After setting the value, trigger the same exclusion logic and update the slider track
+                handleMutualExclusion(input || slider, container);
+                if (slider) updateSliderTrack(slider);
                 updateTotalCount();
             }
 
