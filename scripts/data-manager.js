@@ -47,8 +47,8 @@ export const categoryDetails = {
   },
   // สีม่วง (Purple): สื่อถึงความพิเศษ ความเชี่ยวชาญ และความท้าทาย
   ChallengePOSN: {
-    title: "ชุดข้อสอบท้าทาย (มีหลายคำตอบ)",
-    displayName: "ชุดข้อสอบท้าทาย (มีหลายคำตอบ)",
+    title: "ข้อสอบท้าทาย (มีหลายคำตอบ)",
+    displayName: "ข้อสอบท้าทาย (มีหลายคำตอบ)",
     icon: "./assets/icons/trophy-star.png", // แนะนำให้ใช้ไอคอนใหม่ เช่น รูปถ้วยรางวัล
     order: 5,
     color: "border-purple-600",

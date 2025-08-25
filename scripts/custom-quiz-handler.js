@@ -298,7 +298,6 @@ export function initializeCustomQuizHandler() {
         const totalQuestionsInMainCategory = Object.values(specificData).reduce((sum, questions) => sum + (questions?.length || 0), 0);
         const finalIconSrc = iconSrc || './assets/icons/study.png';
         const mainCategoryDetails = allCategoryDetails[mainCategory] || { displayName: mainCategory };
-        const disabled = totalQuestionsInMainCategory === 0;
 
         const specificControlsHTML = Object.entries(specificData)
             .sort(([keyA], [keyB]) => keyA.localeCompare(keyB, 'th-TH-u-nu-thai')) // Sort specific categories alphabetically
@@ -306,10 +305,11 @@ export function initializeCustomQuizHandler() {
             .join('');
 
         return `
-            <div class="custom-quiz-control-group bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden" data-main-category-group="${mainCategory}">
+            <div class="custom-quiz-control-group bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700" data-main-category-group="${mainCategory}">
                 <div class="p-4">
                 ${createGeneralCategoryControlHTML(mainCategory, mainCategoryDetails.displayName, finalIconSrc, totalQuestionsInMainCategory, true)}
                 </div>
+                ${specificControlsHTML ? `
                 <div class="main-category-toggle flex items-center justify-between gap-4 px-4 py-2 cursor-pointer bg-gray-50 dark:bg-gray-900/40 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-colors border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="text-sm font-medium text-gray-600 dark:text-gray-400">หรือเลือกตามหัวข้อย่อย...</span>
@@ -321,6 +321,7 @@ export function initializeCustomQuizHandler() {
                         ${specificControlsHTML}
                     </div>
                 </div>
+                ` : ''}
             </div>`;
     }
 
@@ -405,7 +406,7 @@ export function initializeCustomQuizHandler() {
 
         container.addEventListener('click', (e) => {
             const target = e.target;
-            // Handle quick select buttons (only for general category now)
+            // Handle quick select buttons
             if (target.matches('button[data-quick-select]')) {
                 const category = target.dataset.quickSelect;
                 const value = target.dataset.value;
