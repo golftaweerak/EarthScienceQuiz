@@ -123,7 +123,18 @@ export const quizList = [
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมต้น",
     category: "AstronomyPOSN"
   },
-
+  {
+    id: "junior6",
+    title: "ดาราศาสตร์ ม.ต้น ชุด 6",
+    amount: 100,
+    description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
+    url: "./quiz/index.html?id=junior6",
+    storageKey: "quizState-junior6",
+    icon: "./assets/icons/astronomy1.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ junior6",
+    category: "AstronomyPOSN"
+  },
   {
     id: "senior1",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
@@ -189,7 +200,18 @@ export const quizList = [
     altText: "ไอคอนดาราศาสตร์ระดับมัธยมปลาย",
     category: "AstronomyPOSN"
   },
-
+  {
+    id: "senior6",
+    title: "ดาราศาสตร์ ม.ปลาย ชุด 6",
+    amount: 100,
+    description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
+    url: "./quiz/index.html?id=senior6",
+    storageKey: "quizState-senior6",
+    icon: "./assets/icons/black-hole.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ senior6",
+    category: "AstronomyPOSN"
+  },
   {
     id: "ES1",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 1",
@@ -383,7 +405,7 @@ export const quizList = [
   {
     id: "adv_geology1",
     title: "ธรณีวิทยา ชุดท้าทาย 1",
-    amount: 20,
+    amount: 40,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_geology1",
     storageKey: "quizState-adv_geology1",
@@ -391,7 +413,7 @@ export const quizList = [
     borderColor: "border-gray-500",
     altText: "ไอคอนสำหรับ adv_geology1",
     category: "ChallengePOSN"
-  }, 
+  },
 
   {
     id: "adv_geology2",
@@ -429,113 +451,137 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_geology4",
     category: "ChallengePOSN"
   },
-    {
-      id: "adv_meteorology1",
-      title: "อุตุนิยมวิทยา ชุดท้าทาย 1",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_meteorology1",
-      storageKey: "quizState-adv_meteorology1",
-      icon: "./assets/icons/climate.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_meteorology1",
-      category: "ChallengePOSN"
+  {
+    id: "adv_meteorology1",
+    title: "อุตุนิยมวิทยา ชุดท้าทาย 1",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_meteorology1",
+    storageKey: "quizState-adv_meteorology1",
+    icon: "./assets/icons/climate.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_meteorology1",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_meteorology2",
-      title: "อุตุนิยมวิทยา ชุดท้าทาย 2",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_meteorology2",
-      storageKey: "quizState-adv_meteorology2",
-      icon: "./assets/icons/climate.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_meteorology2",
-      category: "ChallengePOSN"
+    id: "adv_meteorology2",
+    title: "อุตุนิยมวิทยา ชุดท้าทาย 2",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_meteorology2",
+    storageKey: "quizState-adv_meteorology2",
+    icon: "./assets/icons/climate.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_meteorology2",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_meteorology3",
-      title: "อุตุนิยมวิทยา ชุดท้าทาย 3",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_meteorology3",
-      storageKey: "quizState-adv_meteorology3",
-      icon: "./assets/icons/climate.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_meteorology3",
-      category: "ChallengePOSN"
+    id: "adv_meteorology3",
+    title: "อุตุนิยมวิทยา ชุดท้าทาย 3",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_meteorology3",
+    storageKey: "quizState-adv_meteorology3",
+    icon: "./assets/icons/climate.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_meteorology3",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_meteorology4",
-      title: "อุตุนิยมวิทยา ชุดท้าทาย 4",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_meteorology4",
-      storageKey: "quizState-adv_meteorology4",
-      icon: "./assets/icons/climate.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_meteorology4",
-      category: "ChallengePOSN"
-  },
-    {
-      id: "adv_oceanography1",
-      title: "สมุทรศาสตร์ ชุดท้าทาย 1",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_oceanography1",
-      storageKey: "quizState-adv_oceanography1",
-      icon: "./assets/icons/ocean (1).png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_oceanography1",
-      category: "ChallengePOSN"
+    id: "adv_meteorology4",
+    title: "อุตุนิยมวิทยา ชุดท้าทาย 4",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_meteorology4",
+    storageKey: "quizState-adv_meteorology4",
+    icon: "./assets/icons/climate.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_meteorology4",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_oceanography2",
-      title: "สมุทรศาสตร์ ชุดท้าทาย 2",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_oceanography2",
-      storageKey: "quizState-adv_oceanography2",
-      icon: "./assets/icons/ocean (1).png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_oceanography2",
-      category: "ChallengePOSN"
+    id: "adv_oceanography1",
+    title: "สมุทรศาสตร์ ชุดท้าทาย 1",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_oceanography1",
+    storageKey: "quizState-adv_oceanography1",
+    icon: "./assets/icons/ocean (1).png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_oceanography1",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_astro1",
-      title: "ดาราศาสตร์ ชุดท้าทาย 1",
-      amount: 20,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_astro1",
-      storageKey: "quizState-adv_astro1",
-      icon: "./assets/icons/space-exploration.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_astro1",
-      category: "ChallengePOSN"
+    id: "adv_oceanography2",
+    title: "สมุทรศาสตร์ ชุดท้าทาย 2",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_oceanography2",
+    storageKey: "quizState-adv_oceanography2",
+    icon: "./assets/icons/ocean (1).png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_oceanography2",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_astro2",
-      title: "ดาราศาสตร์ ชุดท้าทาย 2",
-      amount: 40,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_astro2",
-      storageKey: "quizState-adv_astro2",
-      icon: "./assets/icons/space-exploration.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_astro2",
-      category: "ChallengePOSN"
+    id: "adv_oceanography3",
+    title: "ชสมุทรศาสตร์ ชุดท้าทาย 3",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_oceanography3",
+    storageKey: "quizState-adv_oceanography3",
+    icon: "./assets/icons/ocean (1).png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_oceanography3",
+    category: "ChallengePOSN"
   },
   {
-      id: "adv_astro3",
-      title: "ดาราศาสตร์ ชุดท้าทาย 3",
-      amount: 40,
-      description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
-      url: "./quiz/index.html?id=adv_astro3",
-      storageKey: "quizState-adv_astro3",
-      icon: "./assets/icons/space-exploration.png",
-      borderColor: "border-gray-500",
-      altText: "ไอคอนสำหรับ adv_astro3",
-      category: "ChallengePOSN"
+    id: "adv_oceanography4",
+    title: "สมุทรศาสตร์ ชุดท้าทาย 4",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_oceanography4",
+    storageKey: "quizState-adv_oceanography4",
+    icon: "./assets/icons/ocean (1).png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_oceanography4",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_astro1",
+    title: "ดาราศาสตร์ ชุดท้าทาย 1",
+    amount: 40,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_astro1",
+    storageKey: "quizState-adv_astro1",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro1",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_astro2",
+    title: "ดาราศาสตร์ ชุดท้าทาย 2",
+    amount: 40,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_astro2",
+    storageKey: "quizState-adv_astro2",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro2",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_astro3",
+    title: "ดาราศาสตร์ ชุดท้าทาย 3",
+    amount: 40,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_astro3",
+    storageKey: "quizState-adv_astro3",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro3",
+    category: "ChallengePOSN"
   },
   {
     id: "adv_astro4",
@@ -564,7 +610,7 @@ export const quizList = [
   {
     id: "adv_astro6",
     title: "ดาราศาสตร์ ชุดท้าทาย 6",
-    amount: 20,
+    amount: 30,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_astro6",
     storageKey: "quizState-adv_astro6",
@@ -573,7 +619,30 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_astro6",
     category: "ChallengePOSN"
   },
- 
 
 
+  {
+    id: "adv_astro7",
+    title: "ดาราศาสตร์ ชุดท้าทาย 7",
+    amount: 40,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_astro7",
+    storageKey: "quizState-adv_astro7",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro7",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_astro8",
+    title: "ดาราศาสตร์ ชุดท้าทาย 8",
+    amount: 40,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_astro8",
+    storageKey: "quizState-adv_astro8",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro8",
+    category: "ChallengePOSN"
+  },
 ];
