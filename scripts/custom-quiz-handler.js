@@ -161,6 +161,26 @@ export function initializeCustomQuizHandler() {
     }
 
     /**
+     * Creates a user-friendly string for the quiz's timer settings.
+     * @param {string} timerMode - The timer mode ('none', 'overall', 'perQuestion').
+     * @param {number} customTime - The time value in seconds.
+     * @returns {string} A descriptive string.
+     */
+    function getTimerDescription(timerMode, customTime) {
+        if (timerMode === 'none' || !timerMode) {
+            return 'ไม่จับเวลา';
+        }
+        if (timerMode === 'overall') {
+            const minutes = Math.floor(customTime / 60);
+            return `จับเวลารวม ${minutes} นาที`;
+        }
+        if (timerMode === 'perQuestion') {
+            return `จับเวลาข้อละ ${customTime} วินาที`;
+        }
+        return 'ไม่ระบุ';
+    }
+
+    /**
      * Creates the HTML for the progress bar section of a custom quiz card.
      * @param {object} progress - The progress object from getQuizProgress.
      * @returns {string} The HTML string for the progress section, or an empty string if no progress.
@@ -192,16 +212,40 @@ export function initializeCustomQuizHandler() {
 
         // Ensure the container is a grid for proper alignment and equal-height cards.
         if (customQuizListContainer) {
-            customQuizListContainer.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4";
+            customQuizListContainer.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6";
         }
 
         noCustomQuizzesMsg.classList.toggle("hidden", savedQuizzes.length > 0);
         customQuizListContainer.innerHTML = "";
 
         savedQuizzes.forEach((quiz) => {
-            const progress = getQuizProgress(quiz.storageKey, quiz.questions.length);            
+            const totalQuestions = quiz.questions.length;
+            const progress = getQuizProgress(quiz.storageKey, totalQuestions);
             const buttonText = progress.hasProgress ? "ทำต่อ" : "เริ่มทำ";
             const quizUrl = `./quiz/index.html?id=${quiz.customId}`;
+
+            const timerDescription = getTimerDescription(quiz.timerMode, quiz.customTime);
+            const timestamp = parseInt(quiz.customId.split('_')[1], 10);
+            const creationDate = !isNaN(timestamp) 
+                ? new Date(timestamp).toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' })
+                : 'ไม่ระบุวันที่';
+
+            const detailsHtml = `
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-700/75 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300" title="รูปแบบการจับเวลา">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg>
+                        ${timerDescription}
+                    </span>
+                    <span class="inline-flex items-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-700/75 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300" title="จำนวนคำถามทั้งหมด">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>
+                        ${totalQuestions} ข้อ
+                    </span>
+                    <span class="inline-flex items-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-700/75 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300" title="วันที่สร้าง">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                        ${creationDate}
+                    </span>
+                </div>
+            `;
 
             let footerHtml;
             if (progress.hasProgress) {
@@ -222,7 +266,7 @@ export function initializeCustomQuizHandler() {
 
             const quizItemEl = document.createElement("div");
             quizItemEl.dataset.quizId = quiz.customId;
-            quizItemEl.className = "custom-quiz-item flex flex-col h-full p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors duration-200";
+            quizItemEl.className = "custom-quiz-item flex flex-col h-full min-h-72 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300";
             
             const iconUrl = quiz.icon || './assets/icons/dices.png';
             const iconAlt = quiz.altText || 'ไอคอนแบบทดสอบที่สร้างเอง';
@@ -246,7 +290,8 @@ export function initializeCustomQuizHandler() {
                                  <button data-action="cancel" aria-label="ยกเลิก" class="p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-gray-600 dark:hover:text-gray-200 rounded-full transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
                             </div>
                             <div data-edit-container class="hidden mt-1"></div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">${quiz.description}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 break-words">${quiz.description}</p>
+                            ${detailsHtml}
                         </div>
                     </div>
                 </div>
@@ -558,6 +603,8 @@ export function initializeCustomQuizHandler() {
             
             if (categorySelectionContainer) {
                 categorySelectionContainer.innerHTML = categoryHTML;
+                // จัดเรียงหมวดหมู่เป็น Grid เหมือนหน้า Hub
+                categorySelectionContainer.className = "grid grid-cols-1 lg:grid-cols-2 gap-6";
                 setupCustomQuizInputListeners(); // Re-bind listeners to new elements
                 updateTotalCount(); // Reset total count display
             }
