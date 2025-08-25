@@ -60,7 +60,7 @@ function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCou
             </div>
 
             <div class="mt-3 space-y-3 ${disabled ? 'pointer-events-none' : ''}">
-                <input ${sliderDataAttr}="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500">
+                <input ${sliderDataAttr}="${category}" id="count-slider-${category}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 rounded-lg appearance-none cursor-pointer">
                 <div class="flex flex-wrap items-center justify-end gap-2">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400 mr-2">เลือกด่วน:</span>
                     ${createQuickSelectButton(5)}
@@ -79,7 +79,52 @@ function createGeneralCategoryControlHTML(category, displayName, iconSrc, maxCou
 /**
  * Initializes all functionality related to creating and managing custom quizzes.
  */
-export function initializeCustomQuizHandler() {
+export function initializeCustomQuizHandler() {    
+    /**
+     * Injects CSS into the document's head to style scrollbars for a modern look.
+     * This function ensures the styles are only added once.
+     */
+    function injectModernScrollbarStyles() {
+        if (document.getElementById('modern-scrollbar-styles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'modern-scrollbar-styles';
+        // These styles target elements with the .modern-scrollbar class.
+        // They are compatible with Webkit (Chrome, Safari, Edge) and Firefox.
+        // The colors are chosen to match the existing Tailwind CSS theme.
+        style.textContent = `
+            .modern-scrollbar::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+            .modern-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .modern-scrollbar::-webkit-scrollbar-thumb {
+                background-color: #d1d5db; /* Tailwind gray-300 */
+                border-radius: 20px;
+                border: 2px solid transparent;
+                background-clip: content-box;
+            }
+            .modern-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: #9ca3af; /* Tailwind gray-400 */
+            }
+            .dark .modern-scrollbar::-webkit-scrollbar-thumb {
+                background-color: #4b5563; /* Tailwind gray-600 */
+            }
+            .dark .modern-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: #374151; /* Tailwind gray-700 */
+            }
+            .modern-scrollbar {
+                scrollbar-width: thin;
+                scrollbar-color: #d1d5db transparent; /* thumb track */
+            }
+            .dark .modern-scrollbar {
+                scrollbar-color: #4b5563 transparent; /* thumb track */
+            }
+        `;
+        document.head.appendChild(style);
+    }
     let quizDataCache = null; // Cache for fetched quiz data
 
     // --- 1. Cache Elements & Initialize Modals ---
@@ -107,6 +152,44 @@ export function initializeCustomQuizHandler() {
     let activeQuizUrl = '';
     let activeStorageKey = '';
     let onConfirmAction = null;
+
+    // Inject the custom scrollbar styles and apply the class to the modal bodies.
+    // This is a dynamic way to achieve the styling without modifying CSS/HTML files directly.
+    injectModernScrollbarStyles();
+    try {
+        // We assume the scrollable container within the modal has a class like 'overflow-y-auto'.
+        // This is a common pattern with Tailwind CSS modal components.
+        document.querySelectorAll('#custom-quiz-modal .overflow-y-auto, #custom-quiz-hub-modal .overflow-y-auto')
+            .forEach(el => el.classList.add('modern-scrollbar'));
+    } catch (error) {
+        console.error("Could not apply modern scrollbar class to modals:", error);
+    }
+
+    /**
+     * Updates a range slider's track to show a fill color up to the current value.
+     * This provides a better visual feedback than the default browser styling.
+     * @param {HTMLInputElement} slider The range input element to update.
+     */
+    function updateSliderTrack(slider) {
+        if (!slider) return;
+        const min = +slider.min || 0;
+        const max = +slider.max || 100;
+        const value = +slider.value || 0;
+        // Calculate the percentage of the fill
+        const percentage = max > min ? ((value - min) / (max - min)) * 100 : 0;
+
+        // Define colors for light and dark mode from the Tailwind palette.
+        const trackColorLight = '#e5e7eb'; // Corresponds to gray-200
+        const fillColorLight = '#3b82f6';   // Corresponds to blue-500
+        const trackColorDark = '#4b5563';  // Corresponds to gray-600
+        const fillColorDark = '#60a5fa';   // Corresponds to blue-400
+
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const trackColor = isDarkMode ? trackColorDark : trackColorLight;
+        const fillColor = isDarkMode ? fillColorDark : fillColorLight;
+
+        slider.style.background = `linear-gradient(to right, ${fillColor} ${percentage}%, ${trackColor} ${percentage}%)`;
+    }
 
     if (!createCustomQuizBtn || !customQuizModal.modal || !customQuizHubModal.modal) {
         return; // Exit if essential elements are missing
@@ -327,7 +410,7 @@ export function initializeCustomQuizHandler() {
                     </div>
                 </div>
                 <div class="mt-3">
-                    <input data-slider="${dataId}" id="count-slider-${uniqueId}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-blue-600 dark:accent-blue-500" ${disabled ? "disabled" : ""}>
+                    <input data-slider="${dataId}" id="count-slider-${uniqueId}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 rounded-lg appearance-none cursor-pointer" ${disabled ? "disabled" : ""}>
                 </div>
             </div>`;
     }
@@ -382,6 +465,9 @@ export function initializeCustomQuizHandler() {
         const container = document.getElementById('custom-quiz-category-selection');
         if (!container) return;
 
+        // Initialize all sliders with the correct track fill on load
+        container.querySelectorAll('input[type="range"]').forEach(updateSliderTrack);
+
         const allInputs = Array.from(container.querySelectorAll('input[type="number"]'));
         const allSliders = Array.from(container.querySelectorAll('input[type="range"]'));
         const generalInput = container.querySelector('[data-input="General"]');
@@ -397,7 +483,10 @@ export function initializeCustomQuizHandler() {
             if (target.matches('[data-main-input], [data-main-slider], [data-input*="__SEP__"]')) {
                 // User is adjusting a specific or main category. Reset "General".
                 if (generalInput && generalInput.value !== '0') generalInput.value = 0;
-                if (generalSlider && generalSlider.value !== '0') generalSlider.value = 0;
+                if (generalSlider && generalSlider.value !== '0') {
+                    generalSlider.value = 0;
+                    updateSliderTrack(generalSlider);
+                }
 
                 if (target.matches('[data-main-input], [data-main-slider]')) {
                     // User is adjusting a MAIN category control. Reset its specific sub-categories.
@@ -407,7 +496,10 @@ export function initializeCustomQuizHandler() {
                         group.querySelectorAll(`[data-input^="${mainCategory}__SEP__"]`).forEach(input => {
                             const specificSlider = group.querySelector(`[data-slider="${input.dataset.input}"]`);
                             if (input.value !== '0') input.value = 0;
-                            if (specificSlider && specificSlider.value !== '0') specificSlider.value = 0;
+                            if (specificSlider && specificSlider.value !== '0') {
+                                specificSlider.value = 0;
+                                updateSliderTrack(specificSlider);
+                            }
                         });
                     }
                 } else if (target.matches('[data-input*="__SEP__"]')) {
@@ -418,13 +510,21 @@ export function initializeCustomQuizHandler() {
                         const mainInput = container.querySelector(`[data-main-input="${mainCategory}"]`);
                         const mainSlider = container.querySelector(`[data-main-slider="${mainCategory}"]`);
                         if (mainInput && mainInput.value !== '0') mainInput.value = 0;
-                        if (mainSlider && mainSlider.value !== '0') mainSlider.value = 0;
+                        if (mainSlider && mainSlider.value !== '0') {
+                            mainSlider.value = 0;
+                            updateSliderTrack(mainSlider);
+                        }
                     }
                 }
             } else if (target.matches('[data-input="General"], [data-slider="General"]')) {
                 // User is adjusting "General". Reset all other categories.
                 categoryInputs.forEach(input => { if (input.value !== '0') input.value = 0; });
-                categorySliders.forEach(slider => { if (slider.value !== '0') slider.value = 0; });
+                categorySliders.forEach(slider => {
+                    if (slider.value !== '0') {
+                        slider.value = 0;
+                        updateSliderTrack(slider);
+                    }
+                });
             }
 
             if (target.matches('input[type="range"]') || target.matches('input[type="number"]')) {
@@ -442,7 +542,10 @@ export function initializeCustomQuizHandler() {
                 }
 
                 const finalValue = value === "" ? 0 : value;
-                if (slider) slider.value = finalValue;
+                if (slider) {
+                    slider.value = finalValue;
+                    updateSliderTrack(slider);
+                }
                 if (input) input.value = finalValue;
 
                 updateTotalCount();
@@ -457,23 +560,37 @@ export function initializeCustomQuizHandler() {
                 const value = target.dataset.value;
                 const slider = document.querySelector(`[data-slider="${category}"], [data-main-slider="${category}"]`);
                 const input = document.querySelector(`[data-input="${category}"], [data-main-input="${category}"]`);
-                if (slider) slider.value = value;
+                if (slider) {
+                    slider.value = value;
+                    updateSliderTrack(slider);
+                }
                 if (input) input.value = value;
 
                 // Trigger mutual exclusion logic after quick select
                 if (category === 'General') {
                     categoryInputs.forEach(inp => { if (inp.value !== '0') inp.value = 0; });
-                    categorySliders.forEach(sl => { if (sl.value !== '0') sl.value = 0; });
+                    categorySliders.forEach(sl => {
+                        if (sl.value !== '0') {
+                            sl.value = 0;
+                            updateSliderTrack(sl);
+                        }
+                    });
                 } else {
                     if (generalInput && generalInput.value !== '0') generalInput.value = 0;
-                    if (generalSlider && generalSlider.value !== '0') generalSlider.value = 0;
+                    if (generalSlider && generalSlider.value !== '0') {
+                        generalSlider.value = 0;
+                        updateSliderTrack(generalSlider);
+                    }
                     // If it's a main category quick select, also reset its sub-categories
                     const group = container.querySelector(`[data-main-category-group="${category}"]`);
                     if (group) {
                         group.querySelectorAll(`[data-input^="${category}__SEP__"]`).forEach(specificInput => {
                             const specificSlider = group.querySelector(`[data-slider="${specificInput.dataset.input}"]`);
                             if (specificInput.value !== '0') specificInput.value = 0;
-                            if (specificSlider && specificSlider.value !== '0') specificSlider.value = 0;
+                            if (specificSlider && specificSlider.value !== '0') {
+                                specificSlider.value = 0;
+                                updateSliderTrack(specificSlider);
+                            }
                         });
                     }
                 }
@@ -802,7 +919,10 @@ export function initializeCustomQuizHandler() {
             const inputs = document.querySelectorAll('#custom-quiz-category-selection input[type="number"]');
             const sliders = document.querySelectorAll('#custom-quiz-category-selection input[type="range"]');
             inputs.forEach(input => { input.value = 0; });
-            sliders.forEach(slider => { slider.value = 0; });
+            sliders.forEach(slider => {
+                slider.value = 0;
+                updateSliderTrack(slider);
+            });
             updateTotalCount();
         });
     }
