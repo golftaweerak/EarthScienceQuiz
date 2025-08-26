@@ -22,6 +22,7 @@ export const MAIN_CATEGORIES = {
   ASTRONOMY_REVIEW: 'AstronomyReview',
   ASTRONOMY_POSN: 'AstronomyPOSN',
   GENERAL_KNOWLEDGE: 'GeneralKnowledge',
+  CHALLENGE_POSN: 'ChallengePOSN'
 };
 
 export const subCategoryData = {
@@ -128,7 +129,7 @@ export const quizPrefixInfo = {
     subCategoryKey: 'ASTRONOMY_POSN', // Also uses the structured Astronomy list
   },
   adv: {
-    mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
+    mainCategory: MAIN_CATEGORIES.CHALLENGE_POSN,
     icon: './assets/icons/galaxy.png', // Icon for advanced quizzes
     // As advanced quizzes, topics can be drawn from both EarthAndSpace and ASTRONOMY_POSN.
     subCategoryKey: null, // Uses free-form string subcategories, not a predefined list.
@@ -138,7 +139,7 @@ export const quizPrefixInfo = {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
     icon: './assets/icons/space.png',
     // As review quizzes, topics can be drawn from both EarthAndSpace and ASTRONOMY_POSN.
-    subCategoryKey: null, // Uses free-form string subcategories, not a predefined list.
+    subCategoryKey: MAIN_CATEGORIES.ASTRONOMY_POSN, // Uses free-form string subcategories, not a predefined list.
   },
   default: {
     mainCategory: MAIN_CATEGORIES.GENERAL_KNOWLEDGE,
