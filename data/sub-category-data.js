@@ -97,40 +97,52 @@ export const subCategoryData = {
 };
 /*
 /**
- * Maps filename prefixes to their corresponding quiz types and metadata.
- * This centralizes logic for scripts like `update-quiz-list.js` (for category/icon assignment)
- * and `preview.js` (for the data generator).
- * The keys should be lowercase.
+ * Maps filename prefixes to their corresponding main categories, icons, and sub-category data keys.
+ * This object is the single source of truth for organizing quizzes.
+ * - `es`, `esr`: Earth Science Olympiad (วิทยาศาสตร์โลกและอวกาศ), uses `EarthAndSpace` sub-categories.
+ * - `junior`, `senior`: Astronomy Olympiad (ดาราศาสตร์ สอวน.), uses `ASTRONOMY_POSN` sub-categories.
+ * - `astro`, `adv`: Review and Advanced quizzes that can draw topics from both main categories.
+ *   They use `subCategoryKey: null` for free-form sub-category strings.
  */
 export const quizPrefixInfo = {
+  // --- Earth Science Olympiad ---
   es: {
     mainCategory: MAIN_CATEGORIES.EARTH_SCIENCE,
     icon: './assets/icons/geology.png',
-    subCategoryKey: 'EarthAndSpace'
+    subCategoryKey: 'EarthAndSpace',
   },
   esr: {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
     icon: './assets/icons/earth1.png',
-    subCategoryKey: 'EarthAndSpace'
+    subCategoryKey: 'EarthAndSpace',
   },
-  astro: {
-    mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
-    icon: './assets/icons/space.png',
-    subCategoryKey: null // Uses simple string subcategories, not a predefined list from the generator.
-  },
+  // --- Astronomy Olympiad ---
   junior: {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
     icon: './assets/icons/astronomy1.png',
-    subCategoryKey: 'ASTRONOMY_POSN' // Uses the structured Astronomy list
+    subCategoryKey: 'ASTRONOMY_POSN', // Uses the structured Astronomy list
   },
   senior: {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
     icon: './assets/icons/black-hole.png',
-    subCategoryKey: 'ASTRONOMY_POSN' // Also uses the structured Astronomy list
+    subCategoryKey: 'ASTRONOMY_POSN', // Also uses the structured Astronomy list
+  },
+  adv: {
+    mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
+    icon: './assets/icons/galaxy.png', // Icon for advanced quizzes
+    // As advanced quizzes, topics can be drawn from both EarthAndSpace and ASTRONOMY_POSN.
+    subCategoryKey: null, // Uses free-form string subcategories, not a predefined list.
+  },
+  // --- General & Mixed Topics ---
+  astro: {
+    mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
+    icon: './assets/icons/space.png',
+    // As review quizzes, topics can be drawn from both EarthAndSpace and ASTRONOMY_POSN.
+    subCategoryKey: null, // Uses free-form string subcategories, not a predefined list.
   },
   default: {
     mainCategory: MAIN_CATEGORIES.GENERAL_KNOWLEDGE,
     icon: './assets/icons/study.png',
-    subCategoryKey: null
-  }
+    subCategoryKey: null,
+  },
 };
