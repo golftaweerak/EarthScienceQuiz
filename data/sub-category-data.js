@@ -83,27 +83,26 @@ export const subCategoryData = {
     { topic: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "พลังงานและโมเมนตัม", level: LEVELS.SENIOR_ONLY },
     { topic: "ทฤษฎีคลื่นแม่เหล็กไฟฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
-    // Core Astronomy
-    { topic: "พิกัดและการเคลื่อนที่ของวัตถุท้องฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
-    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ส่วนประกอบของระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ส่วนประกอบของกาแล็กซีและเอกภพ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "กำเนิดของเอกภพ", level: LEVELS.SENIOR_ONLY },
-    // Applied & Modern Topics
-    { topic: "ความก้าวหน้าของเทคโนโลยีอวกาศ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ข่าวสารทางดาราศาสตร์สมัยใหม่", level: LEVELS.JUNIOR_AND_SENIOR },
+    // Core Astronomy - Aligned with EarthAndSpace.Astronomy for consistency
+    { topic: "ทรงกลมท้องฟ้าและระบบพิกัด", level: LEVELS.SENIOR_ONLY },
+    { topic: "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์", level: LEVELS.SENIOR_ONLY },
+    { topic: "ระบบสุริยะและองค์ประกอบ", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ", level: LEVELS.SENIOR_ONLY },
+    { topic: "กาแล็กซีและเอกภพวิทยา", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ", level: LEVELS.JUNIOR_AND_SENIOR },
+    // Foundational & Applied Topics
+    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
   ],
 };
 /*
 /**
- * Maps filename prefixes to their corresponding main categories, icons, and sub-category data keys.
- * This object is the single source of truth for organizing quizzes.
+ * Maps filename prefixes to their corresponding main categories, icons, and sub-category validation keys.
  * - `es`, `esr`: Earth Science Olympiad (วิทยาศาสตร์โลกและอวกาศ), uses `EarthAndSpace` sub-categories.
  * - `junior`, `senior`: Astronomy Olympiad (ดาราศาสตร์ สอวน.), uses `ASTRONOMY_POSN` sub-categories.
- * - `astro`, `adv`: Review and Advanced quizzes that can draw topics from both main categories.
- *   They use `subCategoryKey: null` for free-form sub-category strings.
+ * - `astro`: Astronomy Review quizzes, uses `ASTRONOMY_POSN` sub-categories.
+ * - `adv`: Advanced/Challenge quizzes, uses `EarthAndSpace` sub-categories.
  */
 export const quizPrefixInfo = {
   // --- Earth Science Olympiad ---
@@ -130,16 +129,14 @@ export const quizPrefixInfo = {
   },
   adv: {
     mainCategory: MAIN_CATEGORIES.CHALLENGE_POSN,
-    icon: './assets/icons/galaxy.png', // Icon for advanced quizzes
-    // As advanced quizzes, topics can be drawn from both EarthAndSpace and ASTRONOMY_POSN.
-    subCategoryKey: null, // Uses free-form string subcategories, not a predefined list.
+    icon: './assets/icons/galaxy.png',
+    subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
   },
   // --- General & Mixed Topics ---
   astro: {
     mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
     icon: './assets/icons/space.png',
-    // As review quizzes, topics can be drawn from both EarthAndSpace and ASTRONOMY_POSN.
-    subCategoryKey: MAIN_CATEGORIES.ASTRONOMY_POSN, // Uses free-form string subcategories, not a predefined list.
+    subCategoryKey: 'ASTRONOMY_POSN', // Review quizzes are validated against the ASTRONOMY_POSN list.
   },
   default: {
     mainCategory: MAIN_CATEGORIES.GENERAL_KNOWLEDGE,

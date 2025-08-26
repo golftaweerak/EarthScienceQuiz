@@ -430,23 +430,6 @@ export const quizItems = [
   {
     type: "question",
     number: 25,
-    question: "วัฏจักรมิลานโควิช (Milankovitch Cycles) ซึ่งอธิบายการเปลี่ยนแปลงภูมิอากาศของโลกในระยะยาว ไม่ได้เกิดจากปัจจัยในข้อใด?",
-    options: [
-      "การเปลี่ยนแปลงความรีของวงโคจรโลกรอบดวงอาทิตย์ (Eccentricity)",
-      "การเปลี่ยนแปลงความเอียงของแกนหมุนโลก (Obliquity)",
-      "การส่ายของแกนหมุนโลก (Precession)",
-      "การเปลี่ยนแปลงความเข้มของกิจกรรมบนดวงอาทิตย์ (Solar Activity)",
-    ],
-    answer: "การเปลี่ยนแปลงความเข้มของกิจกรรมบนดวงอาทิตย์ (Solar Activity)",
-    explanation: "วัฏจักรมิลานโควิชเกี่ยวข้องกับการเปลี่ยนแปลงลักษณะทางวงโคจรของโลก 3 ประการ ซึ่งส่งผลต่อปริมาณและการกระจายของรังสีดวงอาทิตย์ที่โลกได้รับในแต่ละช่วงละติจูดและฤดูกาล ส่วนการเปลี่ยนแปลงกิจกรรมของดวงอาทิตย์ (เช่น วัฏจักรจุดมืด 11 ปี) เป็นปัจจัยที่ส่งผลต่อภูมิอากาศในระยะสั้นกว่า",
-    subCategory: {
-      main: "Meteorology",
-      specific: "ภูมิอากาศและการเปลี่ยนแปลง",
-    },
-  },
-  {
-    type: "question",
-    number: 26,
     question: "ค่าอัลบีโด (Albedo) ของพื้นผิวโลกหมายถึงอะไร และพื้นผิวชนิดใดมีค่าอัลบีโดสูงที่สุด?",
     options: [
       "ความสามารถในการดูดกลืนความร้อนของพื้นผิว; มีค่าสูงสุดในมหาสมุทร",
@@ -463,7 +446,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 27,
+    number: 26,
     question: "ค่า 'คงที่สุริยะ' (Solar Constant) ซึ่งมีค่าประมาณ 1,361 W/m² คือปริมาณอะไร?",
     options: [
       "พลังงานทั้งหมดที่ดวงอาทิตย์ผลิตได้ที่แก่นกลางในหนึ่งวินาที",
@@ -480,7 +463,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 28,
+    number: 27,
     question:
       "ปรากฏการณ์ 'Green Flash' ที่สามารถสังเกตเห็นได้ชั่วครู่ขณะดวงอาทิตย์กำลังจะลับขอบฟ้า เกิดจากกลไกใดเป็นหลัก?",
     options: [
@@ -494,12 +477,12 @@ export const quizItems = [
       "เมื่อดวงอาทิตย์อยู่ใกล้ขอบฟ้า แสงจะเกิดการหักเหและกระจายแสงคล้ายปริซึม แสงสีแดงจะลับขอบฟ้าไปก่อน ตามด้วยสีส้ม,เหลือง ส่วนแสงสีน้ำเงินและม่วงจะถูกกระเจิงไปเกือบหมด ทำให้แสงสีเขียวเป็นสีสุดท้ายที่มองเห็นได้ชั่วครู่ก่อนที่ดวงอาทิตย์จะลับขอบฟ้าไปทั้งหมด",
     subCategory: {
       main: "Meteorology",
-      specific: "องค์ประกอบและชั้นบรรยากาศ",
+      specific: "สมดุลพลังงานของโลกและรังสี",
     },
   },
   {
     type: "question",
-    number: 29,
+    number: 28,
     question:
       "กระบวนการ 'ชนและรวมตัวกัน' (Collision-Coalescence) เป็นกลไกหลักในการสร้างเม็ดฝนในเมฆชนิดใด และอาศัยปัจจัยใดเป็นสำคัญ?",
     options: [
@@ -518,7 +501,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 30,
+    number: 29,
     question:
       "เมฆ 'Noctilucent Clouds' (NLCs) หรือเมฆเรืองแสงยามค่ำคืน มีลักษณะเด่นและเกิดขึ้นที่ชั้นบรรยากาศใด?",
     options: [
@@ -537,7 +520,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 31,
+    number: 30,
     question:
       "การแบ่งชั้นบรรยากาศตามเกณฑ์ 'อุณหภูมิ' มีลำดับชั้นจากพื้นดินขึ้นไปอย่างไร?",
     options: [
@@ -556,7 +539,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 32,
+    number: 31,
     question:
       "ปรากฏการณ์ 'ซันด็อก' (Sun Dog) หรือดวงอาทิตย์ทรงกลดข้างเดียว เกิดจากการที่แสงอาทิตย์ทำปฏิกิริยากับผลึกน้ำแข็งในลักษณะใด?",
     options: [
@@ -580,7 +563,7 @@ export const quizItems = [
       "นักพยากรณ์อากาศกำลังวิเคราะห์ข้อมูลสำหรับช่วงบ่าย พบว่าค่า CAPE สูงถึง 4000 J/kg, ค่า Lifted Index (LI) ติดลบมาก, มีลมเฉือนในแนวดิ่ง (Vertical Wind Shear) สูง, และมี Dry Line กำลังเคลื่อนที่เข้ามาจากทิศตะวันตก",
     questions: [
       {
-        number: 33,
+        number: 32,
         question:
           "ในแผนที่อากาศผิวพื้น สัญลักษณ์เส้นสีน้ำเงินที่มีสามเหลี่ยมชี้ไปตามทิศทางการเคลื่อนที่ หมายถึงอะไร?",
         options: [
@@ -598,7 +581,7 @@ export const quizItems = [
         },
       },
       {
-        number: 34,
+        number: 33,
         question:
           "การพยากรณ์อากาศโดยใช้ 'แบบจำลองเชิงตัวเลข' (Numerical Weather Prediction - NWP) อาศัยหลักการใดเป็นพื้นฐาน?",
         options: [
@@ -619,7 +602,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 35,
+    number: 34,
     question:
       "การพยากรณ์อากาศแบบ 'Ensemble Forecasting' คืออะไร และมีประโยชน์อย่างไร?",
     options: [
@@ -638,7 +621,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 36,
+    number: 35,
     question:
       "ลมจีโอสโตรฟิก (Geostrophic Wind) คือลมในอุดมคติที่เกิดจากความสมดุลระหว่างแรงใด?",
     options: [
@@ -657,7 +640,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 37,
+    number: 36,
     question:
       "ทฤษฎีไดนาโม (Dynamo Theory) อธิบายการเกิดสนามแม่เหล็กโลกโดยอาศัยปัจจัยใดเป็นหลัก?",
     options: [
@@ -676,7 +659,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 38,
+    number: 37,
     question:
       "ปรากฏการณ์ 'ไครโอโวแคนิซึม' (Cryovolcanism) ที่พบบนดวงจันทร์บางดวงของดาวเคราะห์ยักษ์ เช่น เอนเซลาดัสและไทรทัน คืออะไร?",
     options: [
@@ -695,7 +678,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 39,
+    number: 38,
     question:
       "ภูเขาไฟโอลิมปัสมอนส์ (Olympus Mons) บนดาวอังคาร ซึ่งเป็นภูเขาไฟที่ใหญ่ที่สุดในระบบสุริยะ สามารถก่อตัวจนมีขนาดมหึมาได้เพราะเหตุใด?",
     options: [
@@ -714,7 +697,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 40,
+    number: 39,
     question:
       "เหตุใดดาวศุกร์จึงมีอุณหภูมิพื้นผิวสูงที่สุดในระบบสุริยะ ทั้งที่อยู่ไกลจากดวงอาทิตย์กว่าดาวพุธ?",
     options: [
@@ -738,7 +721,7 @@ export const quizItems = [
       "นักดาราศาสตร์ใช้กล้องโทรทรรศน์สังเกตดาวฤกษ์ดวงหนึ่งและได้สเปกตรัมของมันมาวิเคราะห์ พบว่า 1) เส้นสเปกตรัมทั้งหมดมีการเลื่อนไปทางสีน้ำเงิน (Blueshift) เล็กน้อย 2) มีเส้นดูดกลืนของฮีเลียมที่แตกตัวเป็นไอออน (He II) ที่เด่นชัด และ 3) เส้นดูดกลืนไฮโดรเจนมีความกว้างมาก (Broad lines)",
     questions: [
       {
-        number: 41,
+        number: 40,
         question:
           "การที่สเปกตรัมมีการเลื่อนไปทางสีน้ำเงิน (Blueshift) บอกอะไรเราเกี่ยวกับดาวดวงนี้?",
         options: [
@@ -756,7 +739,7 @@ export const quizItems = [
         },
       },
       {
-        number: 42,
+        number: 41,
         question:
           "จากข้อมูลเส้นดูดกลืนของฮีเลียม (He II) และไฮโดรเจนที่กว้างมาก เราสามารถอนุมานถึงประเภทและคุณสมบัติของดาวดวงนี้ได้อย่างไร?",
         options: [
@@ -777,7 +760,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 43,
+    number: 42,
     question: "ดาวฤกษ์ใน 'แถบลำดับหลัก' (Main Sequence) มีแหล่งพลังงานหลักมาจากปฏิกิริยาใด?",
     options: [
       "การเผาไหม้ของสารเคมีต่างๆ ที่อยู่บนพื้นผิวของดาว",
@@ -794,7 +777,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 44,
+    number: 43,
     question: "ดาวเคราะห์น้อยในกลุ่ม Centaur มีลักษณะวงโคจรเป็นอย่างไร?",
     options: [
       "วงโคจรอยู่ระหว่างดาวอังคารและดาวพฤหัสบดี",
@@ -811,7 +794,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 45,
+    number: 44,
     question: "คาบซินอดิก (Synodic Period) ของดาวเคราะห์วงนอก แตกต่างจากคาบดาราคติ (Sidereal Period) อย่างไร?",
     options: [
       "คาบซินอดิกคือคาบการโคจรที่แท้จริง, คาบดาราคติคือคาบที่สังเกตได้จากโลก",
@@ -828,7 +811,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 46,
+    number: 45,
     question: "ข้อใดคือสาเหตุหลักที่ทำให้เกิดการเลื่อนไปทางแดงของแสงจากกาแล็กซีที่อยู่ไกล?",
     options: [
       "การเคลื่อนที่ของกาแล็กซีผ่านอวกาศ", "การดูดกลืนแสงโดยฝุ่น", "การขยายตัวของเอกภพ", "การชนกันของกาแล็กซี"],
@@ -842,7 +825,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 47,
+    number: 46,
     question: "ดาวฤกษ์ดวงหนึ่งมีมุมพารัลแลกซ์ (p) เท่ากับ 0.025 ฟิลิปดา (arcseconds) จงหาระยะทางไปยังดาวดวงนี้ในหน่วยพาร์เซก (pc) และปีแสง (ly) (กำหนดให้ 1 pc ≈ 3.26 ly)",
     options: [
       "25 pc, 81.5 ly",
@@ -859,7 +842,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 48,
+    number: 47,
     question: "ณ ตำแหน่งของผู้สังเกตที่ขั้วโลกเหนือ (ละติจูด 90° เหนือ) ดาวโพลาริส (ดาวเหนือ) จะปรากฏอยู่ที่ตำแหน่งใดบนท้องฟ้า?",
     options: [
       "ที่ขอบฟ้าทิศเหนือ",
@@ -876,7 +859,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 49,
+    number: 48,
     question: "เนบิวลาสะท้อนแสง (Reflection Nebula) เช่น เนบิวลาในกระจุกดาวลูกไก่ มีสีน้ำเงินโดดเด่นเพราะเหตุใด?",
     options: [
       "เพราะแก๊สในเนบิวลาถูกกระตุ้นโดยรังสีจากดาวฤกษ์ให้เรืองแสงสีน้ำเงิน",
@@ -893,7 +876,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 50,
+    number: 49,
     question: "เหตุใดเส้นศูนย์สูตรฟ้า (Celestial Equator) และเส้นสุริยวิถี (Ecliptic) จึงทำมุมกันประมาณ 23.5 องศา?",
     options: [
       "เพราะวงโคจรของดวงจันทร์เอียงทำมุมกับระนาบสุริยวิถี",
@@ -910,7 +893,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 51,
+    number: 50,
     question:
       "ข้อใดคือความแตกต่างระหว่างแบบจำลองสมดุลอุทกสถิตของ Airy และ Pratt?",
     options: [
@@ -930,7 +913,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 52,
+    number: 51,
     question:
       "การเกิด 'Knickpoint' หรือ 'จุดเปลี่ยนความลาด' ในร่องน้ำของแม่น้ำ มักเป็นสัญญาณบ่งชี้ถึงกระบวนการใด?",
     options: [
@@ -949,7 +932,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 53,
+    number: 52,
     question:
       "การศึกษาการเปลี่ยนแปลงของอัตราส่วนไอโซโทปของสตรอนเชียม ($^{87}Sr/^{86}Sr$) ในน้ำทะเลตลอดธรณีกาล สามารถใช้บ่งชี้ถึงอะไรได้?",
     options: [
@@ -968,7 +951,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 54,
+    number: 53,
     question:
       "การเกิดแหล่งแร่แบบ 'Mississippi Valley-Type' (MVT) ซึ่งเป็นแหล่งแร่ตะกั่วและสังกะสีที่สำคัญ มีลักษณะเด่นอย่างไร?",
     options: [
@@ -987,7 +970,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 55,
+    number: 54,
     question: "กฎของตัววี (Rule of V's) ในการอ่านแผนที่ภูมิประเทศและธรณีวิทยา กล่าวว่าเมื่อแนวชั้นหินตัดผ่านหุบเขา โดยทั่วไปแล้วแนวชั้นหินจะโค้งเป็นรูปตัว V ชี้ไปในทิศทางใด?",
     options: [
       "ชี้ไปทางต้นน้ำ (Upstream)",
@@ -1005,7 +988,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 56,
+    number: 55,
     question:
       "ในโครงสร้างรอยเลื่อนย้อนซ้อน (Thrust fault system) การพบ 'Klippe' ซึ่งเป็นกลุ่มหินจากแผ่นหินเพดานที่ถูกแยกออกมาโดยการกัดเซาะ บ่งชี้ถึงอะไร?",
     options: [
@@ -1024,7 +1007,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 57,
+    number: 56,
     question:
       "หากอุณหภูมิของโลกสูงขึ้น จะส่งผลต่อกลไกป้อนกลับของ 'Permafrost' หรือชั้นดินเยือกแข็งคงตัวอย่างไร?",
     options: [
@@ -1044,7 +1027,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 58,
+    number: 57,
     question:
       "การเกิดปรากฏการณ์ 'Glory' ซึ่งเป็นวงแหวนสีรุ้งรอบเงาของผู้สังเกต (เช่น เงาของเครื่องบินบนเมฆ) มีสาเหตุมาจากปรากฏการณ์ทางแสงใด?",
     options: [
@@ -1063,7 +1046,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 59,
+    number: 58,
     question:
       "ค่า 'Potential Vorticity' (PV) ในทางอุตุนิยมพลศาสตร์ มีความสำคัญอย่างไร?",
     options: [
@@ -1082,7 +1065,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 60,
+    number: 59,
     question:
       "การถ่ายโอนพลังงานในแก่นกลางของดาวฤกษ์มวลมาก (เช่น > 1.5 เท่าของมวลดวงอาทิตย์) เกิดขึ้นโดยกระบวนการใดเป็นหลัก และเพราะเหตุใด?",
     options: [
@@ -1101,7 +1084,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 61,
+    number: 60,
     question:
       "เหตุใดดาวแปรแสงชนิดเซฟิอิด (Cepheid Variable) จึงถูกใช้เป็น 'เทียนมาตรฐาน' (Standard Candle) ที่สำคัญในการวัดระยะทางไปยังกาแล็กซีอื่น?",
     options: [
@@ -1120,7 +1103,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 62,
+    number: 61,
     question:
       "หากดาวเคราะห์นอกระบบสุริยะดวงหนึ่งโคจรรอบดาวฤกษ์ G ด้วยคาบ 8 ปี และมีระยะห่างเฉลี่ย 4 AU ดาวฤกษ์ G จะมีมวลเป็นกี่เท่าของมวลดวงอาทิตย์ (ตามกฎของเคปเลอร์ฉบับปรับปรุง $P^2 = a^3/M$)?",
     options: ["1 เท่า", "2 เท่า", "4 เท่า", "8 เท่า"],
@@ -1134,7 +1117,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 63,
+    number: 62,
     question:
       "การที่เปลือกโลกมหาสมุทรที่เกิดใหม่ที่สันเขากลางสมุทรมีลักษณะเป็น 'สันเขา' ที่ยกตัวสูงกว่าพื้นมหาสมุทรโดยรอบ มีสาเหตุหลักมาจากอะไร?",
     options: [
@@ -1153,7 +1136,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 64,
+    number: 63,
     question:
       "การเกิดธรณีสัณฐานแบบ 'Hogback' และ 'Cuesta' มีความแตกต่างกันที่ปัจจัยใด?",
     options: [
@@ -1172,7 +1155,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 65,
+    number: 64,
     question:
       "กฎของวอลเทอร์ (Walther's Law of Facies) มีความสำคัญในการตีความลำดับชั้นหินอย่างไร?",
     options: [
@@ -1191,7 +1174,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 66,
+    number: 65,
     question:
       "การศึกษา 'ของเหลวแทรกในแร่' (Fluid Inclusions) สามารถให้ข้อมูลอะไรเกี่ยวกับประวัติของหินและแร่ได้?",
     options: [
@@ -1210,7 +1193,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 67,
+    number: 66,
     question:
       "แผนที่ 'ความผิดปกติของค่าสนามแม่เหล็ก' (Magnetic Anomaly Map) ที่แสดงเป็นลายริ้วขนานกันและสมมาตรกันสองข้างของสันเขากลางสมุทร เป็นหลักฐานสำคัญที่สนับสนุนทฤษฎีใด?",
     options: [
@@ -1229,7 +1212,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 68,
+    number: 67,
     question:
       "เหตุใดแผ่นดินไหวที่เกิดจากรอยเลื่อนย้อน (Thrust/Reverse fault) ในเขตมุดตัวจึงมีโอกาสทำให้เกิดสึนามิได้มากกว่าแผ่นดินไหวที่เกิดจากรอยเลื่อนตามแนวระดับ (Strike-slip fault) ที่มีขนาดเท่ากัน?",
     options: [
@@ -1248,7 +1231,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 69,
+    number: 68,
     question:
       "การศึกษาธรณีวิทยาแผ่นดินไหวบรรพกาล (Paleoseismology) โดยการขุดร่องสำรวจ (Trenching) ตามแนวรอยเลื่อนมีพลัง มีเป้าหมายหลักเพื่ออะไร?",
     options: [
@@ -1267,7 +1250,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 70,
+    number: 69,
     question:
       "โคลนไหลภูเขาไฟ หรือ 'ลาฮาร์' (Lahar) ซึ่งเป็นหนึ่งในภัยพิบัติจากภูเขาไฟที่อันตรายที่สุด เกิดขึ้นได้อย่างไร?",
     options: [
@@ -1286,7 +1269,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 71,
+    number: 70,
     question:
       "ในทางวิศวกรรมแผ่นดินไหว ปรากฏการณ์ 'การสั่นพ้อง' (Resonance) จะเกิดขึ้นเมื่อใด และส่งผลอย่างไรต่ออาคาร?",
     options: [
@@ -1305,7 +1288,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 72,
+    number: 71,
     question:
       "ค่า 'ฟอร์ซิงเชิงรังสี' (Radiative Forcing) ในบริบทของการเปลี่ยนแปลงสภาพภูมิอากาศหมายถึงอะไร?",
     options: [
@@ -1324,7 +1307,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 73,
+    number: 72,
     question:
       "ละอองลอย (Aerosols) ในบรรยากาศส่งผลต่อสมดุลพลังงานของโลกทั้ง 'ผลกระทบโดยตรง' และ 'ผลกระทบโดยอ้อม' ข้อใดอธิบายได้ถูกต้อง?",
     options: [
@@ -1343,7 +1326,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 74,
+    number: 73,
     question:
       "สมการสมดุลพลังงานของดาวเคราะห์ในภาพรวม สามารถเขียนอย่างง่ายได้ว่าอย่างไร (โดย $S$ คือค่าคงที่สุริยะ, $\\alpha$ คืออัลบีโด, $\\sigma$ คือค่าคงที่สเตฟาน-โบลทซ์มันน์, $T_e$ คืออุณหภูมิยังผล)?",
     options: [
@@ -1362,7 +1345,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 75,
+    number: 74,
     question:
       "การไหลเวียนแบบ 'เซลล์แฮดลีย์' (Hadley Cell) ในบรรยากาศเขตร้อนเกิดจากกลไกใด?",
     options: [
@@ -1381,7 +1364,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 76,
+    number: 75,
     question:
       "เหตุใดการแผ่ขยายของทะเลทราย (Desertification) จึงสามารถส่งผลกระทบย้อนกลับ (Feedback) ที่เร่งให้กระบวนการรุนแรงขึ้น?",
     options: [
@@ -1405,7 +1388,7 @@ export const quizItems = [
       "นักอุตุนิยมวิทยาใช้แผนภาพ Skew-T Log-P เพื่อวิเคราะห์ข้อมูลจากการตรวจอากาศชั้นบนด้วยบอลลูน (Radiosonde) เขาสังเกตเห็นว่าเส้นกราฟอุณหภูมิของสิ่งแวดล้อม (Environmental Temperature) ตัดกับเส้นกราฟอุณหภูมิจุดน้ำค้าง (Dew Point) ที่ระดับความสูง 850 hPa และจากระดับนั้นขึ้นไป เส้นกราฟอุณหภูมิของก้อนอากาศอิ่มตัวที่ถูกยกตัวขึ้น (Moist Adiabat) อยู่ทางขวาของเส้นกราฟอุณหภูมิสิ่งแวดล้อม",
     questions: [
       {
-        number: 77,
+        number: 76,
         question:
           "ข้อมูลที่ว่าเส้นกราฟอุณหภูมิสิ่งแวดล้อมตัดกับเส้นกราฟอุณหภูมิจุดน้ำค้างที่ระดับ 850 hPa บอกอะไรเราได้?",
         options: [
@@ -1423,7 +1406,7 @@ export const quizItems = [
         },
       },
       {
-        number: 78,
+        number: 77,
         question:
           "จากข้อมูลในคำบรรยาย สภาวะของบรรยากาศเหนือระดับ LCL (850 hPa) มีเสถียรภาพเป็นอย่างไร และจะส่งผลต่อการพัฒนาของเมฆอย่างไร?",
         options: [
@@ -1444,7 +1427,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 79,
+    number: 78,
     question:
       "อุกกาบาตชนิด 'พัลลาไซต์' (Pallasite) ซึ่งมีผลึกของแร่โอลิวีนฝังอยู่ในเนื้อโลหะผสมเหล็ก-นิกเกิล เชื่อว่าเป็นชิ้นส่วนที่มาจากบริเวณใดของดาวเคราะห์น้อยที่แตกสลาย?",
     options: [
@@ -1463,7 +1446,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 80,
+    number: 79,
     question:
       "การวัด 'ความเร็วในแนวเล็ง' (Radial Velocity) ของดาวฤกษ์โดยใช้ปรากฏการณ์ดอปเพลอร์ สามารถให้ข้อมูลโดยตรงเกี่ยวกับอะไร?",
     options: [
@@ -1482,7 +1465,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 81,
+    number: 80,
     question:
       "ปรากฏการณ์ 'การแดงขึ้นระหว่างดาว' (Interstellar Reddening) เกิดจากอะไร และส่งผลต่อการสังเกตการณ์อย่างไร?",
     options: [
@@ -1502,7 +1485,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 82,
+    number: 81,
     question:
       "สำหรับผู้สังเกตที่ละติจูด 40 องศาเหนือ เส้นศูนย์สูตรฟ้า (Celestial Equator) จะตัดกับเส้นเมริเดียนที่ความสูงกี่องศาจากขอบฟ้าทิศใต้?",
     options: ["40 องศา", "50 องศา", "90 องศา", "23.5 องศา"],
@@ -1516,7 +1499,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 83,
+    number: 82,
     question:
       "จุด 'อายัน' (Solstice) และ 'วิษุวัต' (Equinox) บนทรงกลมท้องฟ้าคือจุดอะไร?",
     options: [
@@ -1535,7 +1518,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 84,
+    number: 83,
     question:
       "มุมชั่วโมง (Hour Angle) ของวัตถุท้องฟ้าคืออะไร และมีความสัมพันธ์กับเวลาดาราคติท้องถิ่น (LST) และไรต์แอสเซนชัน (RA) อย่างไร?",
     options: [
@@ -1554,7 +1537,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 85,
+    number: 84,
     question:
       "ปรากฏการณ์ 'การหักเหของแสงในบรรยากาศ' (Atmospheric Refraction) ส่งผลต่อตำแหน่งปรากฏของดวงอาทิตย์ขณะขึ้นหรือตกอย่างไร?",
     options: [
@@ -1573,7 +1556,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 86,
+    number: 85,
     question:
       "การเกิดปรากฏการณ์ 'แอ็บเบอร์เรชันของแสงดาว' (Aberration of Starlight) เป็นผลโดยตรงจากปัจจัยสองอย่างรวมกันคืออะไร?",
     options: [
@@ -1593,7 +1576,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 87,
+    number: 86,
     question:
       "การค้นพบคลื่นความโน้มถ่วง (Gravitational Waves) โดยตรงจากหอสังเกตการณ์ LIGO และ Virgo เป็นการยืนยันคำทำนายที่สำคัญของทฤษฎีใด?",
     options: [
@@ -1612,7 +1595,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 88,
+    number: 87,
     question:
       "เหตุใดการสังเกตการณ์ทางดาราศาสตร์ในช่วงคลื่นรังสีเอ็กซ์ (X-ray) จึงต้องทำจากนอกชั้นบรรยากาศของโลก?",
     options: [
@@ -1631,7 +1614,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 89,
+    number: 88,
     question:
       "การมีอยู่ของ 'จุดแดงใหญ่' (Great Red Spot) บนดาวพฤหัสบดี ซึ่งเป็นพายุแอนติไซโคลนขนาดมหึมาที่คงอยู่มานานหลายร้อยปี บ่งชี้ถึงคุณสมบัติใดของบรรยากาศดาวเคราะห์แก๊ส?",
     options: [
@@ -1650,7 +1633,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 90,
+    number: 89,
     question:
       "การศึกษา 'ความสัมพันธ์มวล-กำลังส่องสว่าง' (Mass-Luminosity Relation) ของดาวฤกษ์ในแถบลำดับหลัก มีประโยชน์ในการอนุมานสิ่งใด?",
     options: [
@@ -1669,7 +1652,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 91,
+    number: 90,
     question:
       "แผนภาพ 'บีชบอล' (Beach Ball Diagram) หรือ Focal Mechanism Solution ที่แสดงระนาบการไหวสะเทือนสองระนาบที่ตั้งฉากกัน ให้ข้อมูลอะไรเกี่ยวกับแผ่นดินไหว?",
     options: [
@@ -1688,7 +1671,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 92,
+    number: 91,
     question:
       "การพบแร่ไคยาไนต์ (Kyanite), แอนดาลูไซต์ (Andalusite), และซิลลิมาไนต์ (Sillimanite) ซึ่งเป็นแร่ในกลุ่ม Aluminosilicate Polymorphs ในบริเวณใกล้เคียงกัน บ่งชี้ถึงสภาวะการแปรสภาพแบบใด?",
     options: [
@@ -1707,7 +1690,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 93,
+    number: 92,
     question: "การหาอายุด้วยวิธี 'Magnetostratigraphy' อาศัยหลักการใดเป็นสำคัญ?",
     options: [
       "การวัดอัตราการสลายตัวของไอโซโทปกัมมันตรังสีในแร่แม่เหล็ก",
@@ -1725,7 +1708,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 94,
+    number: 93,
     question:
       "ในแนวคิดเรื่อง 'Potential Vorticity (PV) thinking' การที่มวลอากาศที่มีค่า PV สูงจากสตราโตสเฟียร์เคลื่อนตัวต่ำลงมาในโทรโพสเฟียร์ (เรียกว่า PV Anomaly) มักจะส่งผลอย่างไรต่อการพัฒนาของพายุที่ผิวพื้น?",
     options: [
@@ -1744,7 +1727,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 95,
+    number: 94,
     question: "สภาวะ 'เสถียรภาพแบบมีเงื่อนไข' (Conditional Instability) ในบรรยากาศหมายถึงอะไร?",
     options: [
       "อากาศจะไม่มีเสถียรภาพเสมอ ไม่ว่าก้อนอากาศจะอิ่มตัวด้วยไอน้ำหรือไม่ก็ตาม",
@@ -1761,7 +1744,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 96,
+    number: 95,
     question:
       "'ปฏิทรรศน์ดวงอาทิตย์หนุ่มผู้อ่อนแสง' (Faint Young Sun Paradox) คืออะไร และสมมติฐานใดที่ใช้อธิบายว่าเหตุใดโลกในอดีตจึงไม่แข็งตัวเป็นน้ำแข็งทั้งหมด?",
     options: [
@@ -1780,7 +1763,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 97,
+    number: 96,
     question:
       "ในแผนภาพ H-R เส้นทางวิวัฒนาการของดาวฤกษ์ก่อนเข้าสู่แถบลำดับหลัก (Pre-main-sequence) ที่เรียกว่า 'Hayashi track' และ 'Henyey track' แตกต่างกันอย่างไร?",
     options: [
@@ -1799,7 +1782,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 98,
+    number: 97,
     question:
       "ข้อใดคือความแตกต่างที่สำคัญที่สุดในสเปกตรัมของซูเปอร์โนวาประเภท Ia และประเภท II ซึ่งช่วยในการจำแนกประเภท?",
     options: [
@@ -1819,7 +1802,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 99,
+    number: 98,
     question:
       "เวลาดาราคติท้องถิ่น (Local Sidereal Time - LST) คืออะไร และมีความสำคัญอย่างไรต่อนักดาราศาสตร์?",
     options: [
@@ -1838,7 +1821,7 @@ export const quizItems = [
   },
   {
     type: "question",
-    number: 100,
+    number: 99,
     question:
       "การเกิด 'ธารน้ำแย่งสาขา' (Stream Piracy หรือ Stream Capture) คืออะไร?",
     options: [
@@ -1850,6 +1833,25 @@ export const quizItems = [
     answer: "การที่แม่น้ำสายหนึ่งที่มีการกัดกร่อนรุนแรงกว่า (โดยเฉพาะการกัดกร่อนย้อนไปทางต้นน้ำ) กัดเซาะจนทะลุสันปันน้ำและแย่งเอาต้นน้ำของแม่น้ำอีกสายหนึ่งมาเป็นของตน",
     explanation:
       "กระบวนการนี้มักเกิดขึ้นเมื่อแม่น้ำสายหนึ่งมีระดับฐานการกัดเซาะที่ต่ำกว่าหรือไหลผ่านหินที่อ่อนกว่า ทำให้สามารถกัดกร่อนย้อนกลับไปทางต้นน้ำ (Headward erosion) ได้เร็วกว่าแม่น้ำข้างเคียง จนในที่สุดก็สามารถ 'ขโมย' ลำน้ำสาขาของแม่น้ำอีกสายหนึ่งมาได้",
+    subCategory: {
+      main: "Geology",
+      specific: "ธรณีสัณฐานและกระบวนการบนพื้นผิวโลก",
+    },
+  },
+  {
+    type: "question",
+    number: 100,
+    question:
+      "ที่ราบสูงโคราช ซึ่งเป็นลักษณะทางธรณีวิทยาที่สำคัญของภาคตะวันออกเฉียงเหนือของประเทศไทย มีต้นกำเนิดหลักมาจากอะไร?",
+    options: [
+      "การยกตัวของแผ่นเปลือกโลกและการสะสมตัวของตะกอนจากแม่น้ำโบราณ",
+      "การระเบิดของภูเขาไฟขนาดใหญ่ที่ทิ้งแอ่งภูเขาไฟไว้",
+      "การกัดเซาะของธารน้ำแข็งในยุคน้ำแข็ง",
+      "การตกกระทบของอุกกาบาตขนาดใหญ่เมื่อหลายล้านปีก่อน",
+    ],
+    answer: "การยกตัวของแผ่นเปลือกโลกและการสะสมตัวของตะกอนจากแม่น้ำโบราณ",
+    explanation:
+      "ที่ราบสูงโคราชเกิดจากการสะสมตัวของตะกอนทรายและตะกอนดินเหนียวสีแดงในยุคมีโซโซอิก (Mesozoic Era) ซึ่งเรียกรวมกันว่า 'กลุ่มหินโคราช' (Khorat Group) ต่อมาเกิดการเคลื่อนที่ของแผ่นเปลือกโลกชาน-ไทยและอินโดจีนที่ชนกัน ทำให้พื้นที่ทั้งหมดถูกยกตัวขึ้นเป็นที่ราบสูงอย่างที่เห็นในปัจจุบัน",
     subCategory: {
       main: "Geology",
       specific: "ธรณีสัณฐานและกระบวนการบนพื้นผิวโลก",
