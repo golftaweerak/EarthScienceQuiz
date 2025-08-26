@@ -33,7 +33,7 @@ const CORE_ASTRONOMY_TOPICS = {
   SPHERICAL_ASTRONOMY: "ทรงกลมท้องฟ้าและระบบพิกัด",
   CELESTIAL_MECHANICS: "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์",
   SOLAR_SYSTEM: "ระบบสุริยะและองค์ประกอบ",
-  STARS: "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ",
+  STARS: "สมบัติและวิวัฒนาการของดาวฤกษ์",
   GALAXIES: "กาแล็กซีและเอกภพวิทยา",
   TELESCOPES: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
 };
@@ -135,26 +135,28 @@ export const quizPrefixInfo = {
     icon: './assets/icons/black-hole.png',
     subCategoryKey: 'ASTRONOMY_POSN', // Also uses the structured Astronomy list
   },
-  adv: {
+  adv_astro: {
     mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (ดาราศาสตร์)
     icon: './assets/icons/galaxy.png',
-    subCategoryKey: 'ASTRONOMY_POSN', // Validates against the ASTRONOMY_POSN sub-category list.
+    subCategoryKey: 'ASTRONOMY_POSN',
   },
-  adv_geo: {
+  adv_geology: {
     mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (ธรณีวิทยา)
-    icon: './assets/icons/rock.png', // Suggest using a geology-related icon
-    subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
+    icon: './assets/icons/rock.png',
+    subCategoryKey: 'EarthAndSpace',
+    inferredMainCategory: 'Geology', // For files that omit the main category
   },
-  
-  adv_mete: {
+  adv_meteorology: { // Corrected from adv_mete to match filenames
     mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (อุตุนิยมวิทยา)
-    icon: './assets/icons/rock.png', // Suggest using a geology-related icon
-    subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
+    icon: './assets/icons/cloud.png', // Changed icon
+    subCategoryKey: 'EarthAndSpace',
+    inferredMainCategory: 'Meteorology', // For files that omit the main category
   },
-  adv_ocean: {
+  adv_oceanography: { // Corrected from adv_ocean to match filenames
     mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (มหาสมุทรวิทยา)
-    icon: './assets/icons/rock.png', // Suggest using a geology-related icon
-    subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
+    icon: './assets/icons/wave.png', // Changed icon
+    subCategoryKey: 'EarthAndSpace',
+    inferredMainCategory: 'Oceanography', // For files that omit the main category
   },
   // --- General & Mixed Topics ---
   astro: {
