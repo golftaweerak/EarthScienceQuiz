@@ -367,7 +367,7 @@ export const quizList = [
   {
     id: "ES10",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 10",
-    amount: 90,
+    amount: 100,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES10",
     storageKey: "quizState-ES10",

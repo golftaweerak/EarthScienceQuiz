@@ -87,7 +87,6 @@ export const subCategoryData = {
     { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ส่วนประกอบของระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "สมบัติของดาวฤกษ์", level: LEVELS.SENIOR_ONLY },
     { topic: "ส่วนประกอบของกาแล็กซีและเอกภพ", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "กำเนิดของเอกภพ", level: LEVELS.SENIOR_ONLY },
     // Applied & Modern Topics
