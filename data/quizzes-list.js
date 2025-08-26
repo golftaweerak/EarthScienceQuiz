@@ -48,6 +48,30 @@ export const quizList = [
     category: "AstronomyReview",
   },
   {
+    id: "Astro5",
+    title: "ทบทวน ดาราศาสตร์ ชุด 5",
+    amount: 50,
+    description: "ครอบคลุมเนื้อหา: พื้นฐานดาราศาสตร์, ปฏิสัมพันธ์โลก-ดวงจันทร์-ดวงอาทิตย์, กลุ่มดาว, คลื่น, ข่าวสาร",
+    url: "./quiz/index.html?id=Astro5",
+    storageKey: "quizState-Astro5",
+    icon: "./assets/icons/space.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ Astro5",
+    category: "AstronomyReview"
+  },
+  {
+    id: "Astro6",
+    title: "ทบทวน ดาราศาสตร์ ชุด 6",
+    amount: 50,
+    description: "ครอบคลุมเนื้อหา: การประยุกต์ใช้, กลศาสตร์ท้องฟ้า, เทคโนโลยีอวกาศ, ข่าวสาร",
+    url: "./quiz/index.html?id=Astro6",
+    storageKey: "quizState-Astro6",
+    icon: "./assets/icons/space.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ Astro6",
+    category: "AstronomyReview"
+  },
+  {
     id: "ESr1",
     title: "ทบทวน วิทยาศาสตร์โลกและอวกาศ ชุด 1",
     amount: 60,
@@ -418,7 +442,7 @@ export const quizList = [
   {
     id: "adv_geology2",
     title: "ธรณีวิทยา ชุดท้าทาย 2",
-    amount: 20,
+    amount: 40,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_geology2",
     storageKey: "quizState-adv_geology2",
@@ -449,6 +473,30 @@ export const quizList = [
     icon: "./assets/icons/geology2.png",
     borderColor: "border-gray-500",
     altText: "ไอคอนสำหรับ adv_geology4",
+    category: "ChallengePOSN"
+  },
+    {
+    id: "adv_geology5",
+    title: "ธรณีวิทยา ชุดท้าทาย 5",
+    amount: 20,
+    description: "ครอบคลุมเนื้อหา: ธรณีวิทยาโครงสร้าง, ทรัพยากรธรณี, ธรณีพิบัติภัย",
+    url: "./quiz/index.html?id=adv_geology5",
+    storageKey: "quizState-adv_geology5",
+    icon: "./assets/icons/geology2.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_geology5",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_geology6",
+    title: "ธรณีวิทยา ชุดท้าทาย 6",
+    amount: 20,
+    description: "ครอบคลุมเนื้อหา: การประยุกต์ธรณีวิทยาโครงสร้าง, การจัดการทรัพยากรและพิบัติภัย",
+    url: "./quiz/index.html?id=adv_geology6",
+    storageKey: "quizState-adv_geology6",
+    icon: "./assets/icons/geology2.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_geology6",
     category: "ChallengePOSN"
   },
   {
@@ -545,6 +593,30 @@ export const quizList = [
     icon: "./assets/icons/ocean (1).png",
     borderColor: "border-gray-500",
     altText: "ไอคอนสำหรับ adv_oceanography4",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_oceanography5",
+    title: "สมุทรศาสตร์ ชุดท้าทาย 5",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_oceanography5",
+    storageKey: "quizState-adv_oceanography5",
+    icon: "./assets/icons/ocean (1).png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_oceanography5",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_oceanography6",
+    title: "สมุทรศาสตร์ ชุดท้าทาย 6",
+    amount: 20,
+    description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
+    url: "./quiz/index.html?id=adv_oceanography6",
+    storageKey: "quizState-adv_oceanography6",
+    icon: "./assets/icons/ocean (1).png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_oceanography6",
     category: "ChallengePOSN"
   },
   {
@@ -645,4 +717,31 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_astro8",
     category: "ChallengePOSN"
   },
+    {
+    id: "adv_astro9",
+    title: "ดาราศาสตร์ ชุดท้าทาย 9",
+    amount: 30,
+    description: "ครอบคลุมเนื้อหา: ทรงกลมท้องฟ้า, ปฏิสัมพันธ์โลก-ดวงจันทร์-ดวงอาทิตย์, ข่าวสาร, กลุ่มดาว",
+    url: "./quiz/index.html?id=adv_astro9",
+    storageKey: "quizState-adv_astro9",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro9",
+    category: "ChallengePOSN"
+  },
+  {
+    id: "adv_astro10",
+    title: "ดาราศาสตร์ ชุดท้าทาย 10",
+    amount: 30,
+    description: "ครอบคลุมเนื้อหา: การประยุกต์ทรงกลมท้องฟ้า, กลไกในระบบสุริยะ, เทคโนโลยี, การใช้กลุ่มดาว",
+    url: "./quiz/index.html?id=adv_astro10",
+    storageKey: "quizState-adv_astro10",
+    icon: "./assets/icons/space-exploration.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ adv_astro10",
+    category: "ChallengePOSN"
+  },
+
+
+
 ];
