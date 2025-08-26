@@ -19,10 +19,23 @@ export const LEVELS = {
  */
 export const MAIN_CATEGORIES = {
   EARTH_SCIENCE: 'EarthScience',
-  ASTRONOMY_REVIEW: 'AstronomyReview',
-  ASTRONOMY_POSN: 'AstronomyPOSN',
+  ASTRONOMY_GENERAL: 'AstronomyGeneral', // Formerly ASTRONOMY_REVIEW
+  ASTRONOMY_OLYMPIAD: 'AstronomyOlympiad', // Formerly ASTRONOMY_POSN
   GENERAL_KNOWLEDGE: 'GeneralKnowledge',
-  CHALLENGE_POSN: 'ChallengePOSN'
+  CHALLENGE: 'Challenge', // Formerly CHALLENGE_POSN
+};
+
+/**
+ * Centralized constants for core astronomy topics to avoid duplication
+ * and ensure consistency between EarthAndSpace and ASTRONOMY_POSN lists.
+ */
+const CORE_ASTRONOMY_TOPICS = {
+  SPHERICAL_ASTRONOMY: "ทรงกลมท้องฟ้าและระบบพิกัด",
+  CELESTIAL_MECHANICS: "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์",
+  SOLAR_SYSTEM: "ระบบสุริยะและองค์ประกอบ",
+  STARS: "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ",
+  GALAXIES: "กาแล็กซีและเอกภพวิทยา",
+  TELESCOPES: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
 };
 
 export const subCategoryData = {
@@ -50,12 +63,7 @@ export const subCategoryData = {
       "ภูมิอากาศและการเปลี่ยนแปลง",
     ],
     Astronomy: [
-      "ทรงกลมท้องฟ้าและระบบพิกัด",
-      "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์",
-      "ระบบสุริยะและองค์ประกอบ",
-      "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ",
-      "กาแล็กซีและเอกภพวิทยา",
-      "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
+      ...Object.values(CORE_ASTRONOMY_TOPICS)
     ],
     Oceanography: [
       "คุณสมบัติทางกายภาพและเคมีของน้ำทะเล",
@@ -84,12 +92,12 @@ export const subCategoryData = {
     { topic: "พลังงานและโมเมนตัม", level: LEVELS.SENIOR_ONLY },
     { topic: "ทฤษฎีคลื่นแม่เหล็กไฟฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
     // Core Astronomy - Aligned with EarthAndSpace.Astronomy for consistency
-    { topic: "ทรงกลมท้องฟ้าและระบบพิกัด", level: LEVELS.SENIOR_ONLY },
-    { topic: "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์", level: LEVELS.SENIOR_ONLY },
-    { topic: "ระบบสุริยะและองค์ประกอบ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ", level: LEVELS.SENIOR_ONLY },
-    { topic: "กาแล็กซีและเอกภพวิทยา", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: CORE_ASTRONOMY_TOPICS.SPHERICAL_ASTRONOMY, level: LEVELS.SENIOR_ONLY },
+    { topic: CORE_ASTRONOMY_TOPICS.CELESTIAL_MECHANICS, level: LEVELS.SENIOR_ONLY },
+    { topic: CORE_ASTRONOMY_TOPICS.SOLAR_SYSTEM, level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: CORE_ASTRONOMY_TOPICS.STARS, level: LEVELS.SENIOR_ONLY },
+    { topic: CORE_ASTRONOMY_TOPICS.GALAXIES, level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: CORE_ASTRONOMY_TOPICS.TELESCOPES, level: LEVELS.JUNIOR_AND_SENIOR },
     // Foundational & Applied Topics
     { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์", level: LEVELS.JUNIOR_AND_SENIOR },
@@ -107,34 +115,50 @@ export const subCategoryData = {
 export const quizPrefixInfo = {
   // --- Earth Science Olympiad ---
   es: {
-    mainCategory: MAIN_CATEGORIES.EARTH_SCIENCE,
+    mainCategory: MAIN_CATEGORIES.EARTH_SCIENCE, // วิทยาศาสตร์โลกและอวกาศ
     icon: './assets/icons/geology.png',
     subCategoryKey: 'EarthAndSpace',
   },
   esr: {
-    mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
+    mainCategory: MAIN_CATEGORIES.ASTRONOMY_GENERAL, // ทบทวนดาราศาสตร์ (ส่วนหนึ่งของโลกและอวกาศ)
     icon: './assets/icons/earth1.png',
     subCategoryKey: 'EarthAndSpace',
   },
   // --- Astronomy Olympiad ---
   junior: {
-    mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
+    mainCategory: MAIN_CATEGORIES.ASTRONOMY_OLYMPIAD, // ดาราศาสตร์ สอวน.
     icon: './assets/icons/astronomy1.png',
     subCategoryKey: 'ASTRONOMY_POSN', // Uses the structured Astronomy list
   },
   senior: {
-    mainCategory: MAIN_CATEGORIES.ASTRONOMY_POSN,
+    mainCategory: MAIN_CATEGORIES.ASTRONOMY_OLYMPIAD, // ดาราศาสตร์ สอวน.
     icon: './assets/icons/black-hole.png',
     subCategoryKey: 'ASTRONOMY_POSN', // Also uses the structured Astronomy list
   },
   adv: {
-    mainCategory: MAIN_CATEGORIES.CHALLENGE_POSN,
+    mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (ดาราศาสตร์)
     icon: './assets/icons/galaxy.png',
+    subCategoryKey: 'ASTRONOMY_POSN', // Validates against the ASTRONOMY_POSN sub-category list.
+  },
+  adv_geo: {
+    mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (ธรณีวิทยา)
+    icon: './assets/icons/rock.png', // Suggest using a geology-related icon
+    subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
+  },
+  
+  adv_mete: {
+    mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (อุตุนิยมวิทยา)
+    icon: './assets/icons/rock.png', // Suggest using a geology-related icon
+    subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
+  },
+  adv_ocean: {
+    mainCategory: MAIN_CATEGORIES.CHALLENGE, // ข้อสอบท้าทาย (มหาสมุทรวิทยา)
+    icon: './assets/icons/rock.png', // Suggest using a geology-related icon
     subCategoryKey: 'EarthAndSpace', // Validates against the EarthAndSpace sub-category list.
   },
   // --- General & Mixed Topics ---
   astro: {
-    mainCategory: MAIN_CATEGORIES.ASTRONOMY_REVIEW,
+    mainCategory: MAIN_CATEGORIES.ASTRONOMY_GENERAL, // ทบทวนดาราศาสตร์ (ทั่วไป)
     icon: './assets/icons/space.png',
     subCategoryKey: 'ASTRONOMY_POSN', // Review quizzes are validated against the ASTRONOMY_POSN list.
   },

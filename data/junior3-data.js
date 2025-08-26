@@ -22,7 +22,7 @@ export const quizItems = [
       "ตามนิยามของ IAU ดาวเคราะห์แคระมีคุณสมบัติคล้ายดาวเคราะห์แต่ไม่สามารถควบคุมวงโคจรของตนให้ปลอดโปร่งจากวัตถุอื่นได้",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -39,7 +39,7 @@ export const quizItems = [
     answer: "บริเวณทรงกลมที่ห่อหุ้มระบบสุริยะไว้อย่างไกลโพ้น",
     subCategory: {
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -52,7 +52,7 @@ export const quizItems = [
       "อีริส (Eris) ถูกจัดให้เป็นดาวเคราะห์แคระ เนื่องจากมีมวลมากพอที่จะมีรูปทรงเกือบกลม แต่โคจรอยู่ในแถบไคเปอร์",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -64,7 +64,7 @@ export const quizItems = [
     answer: "โปรตอนและอิเล็กตรอน",
     subCategory: {
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -81,7 +81,7 @@ export const quizItems = [
     answer: "มีหลักฐานของมหาสมุทรใต้พื้นผิวน้ำแข็ง",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -92,7 +92,7 @@ export const quizItems = [
     answer: "ดาวพฤหัสบดี",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -103,7 +103,7 @@ export const quizItems = [
     answer: "แถบดาวเคราะห์น้อย",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
 
@@ -129,8 +129,7 @@ export const quizItems = [
           "เมื่อดวงอาทิตย์และดวงจันทร์ทำมุม 90° ต่อกัน (ช่วงขึ้น 8 ค่ำ และแรม 8 ค่ำ) แรงไทดัลของทั้งสองจะหักล้างกันบางส่วน ทำให้เกิดน้ำค้าง",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+          specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
         },
       },
       {
@@ -148,8 +147,7 @@ export const quizItems = [
           "สนามแม่เหล็กโลกทำหน้าที่เป็นเกราะป้องกันอนุภาคอันตรายจากอวกาศไม่ให้มาถึงพื้นผิวโลกโดยตรง",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+          specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
         },
       },
       {
@@ -167,8 +165,7 @@ export const quizItems = [
           "การเอียงของแกนโลกเป็นสาเหตุหลักที่ทำให้เกิดฤดูกาล หากแกนไม่เอียง ทุกพื้นที่บนโลกจะได้รับแสงอาทิตย์ในมุมเดิมตลอดทั้งปี",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+          specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
         },
       },
       {
@@ -186,8 +183,7 @@ export const quizItems = [
           "ออโรราเกิดจากอนุภาคในลมสุริยะชนกับอะตอมของแก๊สในชั้นบรรยากาศเทอร์โมสเฟียร์ ซึ่งเป็นชั้นบรรยากาศที่สูงและเบาบาง",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+          specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
         },
       },
     ],
@@ -203,8 +199,7 @@ export const quizItems = [
       "เนื่องจากการอนุรักษ์โมเมนตัมเชิงมุมในระบบโลก-ดวงจันทร์ เมื่อดวงจันทร์ห่างออกไป (โมเมนตัมเชิงมุมเพิ่ม) โลกจะต้องหมุนช้าลงเพื่อรักษาสมดุล",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+      specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     },
   },
   {
@@ -221,8 +216,7 @@ export const quizItems = [
     answer: "การเกิดยุคน้ำแข็ง",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+      specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     },
   },
   {
@@ -239,8 +233,7 @@ export const quizItems = [
     answer: "ไม่ใช่ เพราะเงามืดของดวงจันทร์มีขนาดเล็กมาก",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+      specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     },
   },
   {
@@ -257,8 +250,7 @@ export const quizItems = [
     answer: "ดาวเทียมสื่อสารและระบบสายส่งไฟฟ้า",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+      specific: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     },
   },
 
@@ -283,8 +275,7 @@ export const quizItems = [
           "การเห็นดาวศุกร์ในเวลาหัวค่ำทางทิศตะวันตก แสดงว่ามันอยู่ทางตะวันออกของดวงอาทิตย์บนท้องฟ้า",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+          specific: "ระบบสุริยะและองค์ประกอบ",
         },
       },
       {
@@ -301,8 +292,7 @@ export const quizItems = [
           "ดาวเคราะห์ที่ขึ้นเวลาเที่ยงคืน จะอยู่ในตำแหน่งที่ทำมุม 90° ไปทางตะวันตกของแนวโลก-ดวงอาทิตย์",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+          specific: "ระบบสุริยะและองค์ประกอบ",
         },
       },
       {
@@ -319,8 +309,7 @@ export const quizItems = [
           "ดาวเคราะห์ที่ขึ้นพร้อมดวงอาทิตย์ตกและเห็นได้ทั้งคืน คือดาวที่อยู่ในตำแหน่งตรงข้ามกับดวงอาทิตย์เมื่อมองจากโลก",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+          specific: "ระบบสุริยะและองค์ประกอบ",
         },
       },
     ],
@@ -339,8 +328,7 @@ export const quizItems = [
     answer: "เพราะอยู่ใกล้ดวงอาทิตย์มากจึงสังเกตได้ยาก",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -357,8 +345,7 @@ export const quizItems = [
     answer: "การมีหลักฐานว่าเคยมีน้ำในสถานะของเหลว",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -375,8 +362,7 @@ export const quizItems = [
     answer: "การหมุนรอบตัวเองอย่างรวดเร็ว",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -393,8 +379,7 @@ export const quizItems = [
     answer: "วงแหวนของดาวพฤหัสบดีประกอบด้วยฝุ่นที่มืดกว่า",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
   {
@@ -411,8 +396,7 @@ export const quizItems = [
     answer: "ดาวศุกร์, เพราะปรากฏการณ์เรือนกระจกขั้นรุนแรง",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
 
@@ -437,8 +421,7 @@ export const quizItems = [
           "ในเดือนมกราคม กลุ่มดาวนายพรานซึ่งเป็นกลุ่มดาวฤดูหนาวจะอยู่สูงเด่นบนท้องฟ้าในเวลาหัวค่ำ",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+          specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
         },
       },
       {
@@ -455,8 +438,7 @@ export const quizItems = [
           "ในซีกโลกเหนือ สามารถใช้ดาว 2 ดวงท้ายของกระบวยในกลุ่มดาวหมีใหญ่ลากเส้นต่อไปเพื่อหาดาวเหนือได้",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+          specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
         },
       },
       {
@@ -472,8 +454,7 @@ export const quizItems = [
           "ไม่เห็น เพราะจะอยู่บนฟ้าเวลาเดียวกับดวงอาทิตย์",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+          specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
         },
       },
       {
@@ -491,8 +472,7 @@ export const quizItems = [
           "การโคจรของโลกทำให้เราเห็นกลุ่มดาวต่างๆ เปลี่ยนไปในแต่ละฤดูกาล",
         subCategory: { // Corrected subCategory.specific
           main: "Astronomy",
-          specific:
-            "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+          specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
         },
       },
     ],
@@ -511,8 +491,7 @@ export const quizItems = [
     answer: "ไม่จำเป็น เป็นเพียงดาวที่ปรากฏในทิศเดียวกัน",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
     },
   },
   {
@@ -528,8 +507,7 @@ export const quizItems = [
     answer: "กลุ่มดาวหญิงสาว",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
     },
   },
   {
@@ -548,8 +526,7 @@ export const quizItems = [
       "กลุ่มดาวทั้งสองเป็นกลุ่มดาวรอบขั้วฟ้าเหนือและอยู่ตรงข้ามกันโดยมีดาวเหนืออยู่ระหว่างกลาง",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
     },
   },
   {
@@ -565,8 +542,7 @@ export const quizItems = [
     answer: "ดาวอาร์คตุรุส (Arcturus)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
     },
   },
 
@@ -584,7 +560,7 @@ export const quizItems = [
     answer: "แขนกังหัน (Spiral Arm)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
   {
@@ -600,7 +576,7 @@ export const quizItems = [
     answer: "กาแล็กซีแอนดรอเมดา",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
   {
@@ -616,7 +592,7 @@ export const quizItems = [
     answer: "มีรูปร่างกลมหรือรีและมีแต่ดาวฤกษ์เก่า",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
   {
@@ -631,9 +607,9 @@ export const quizItems = [
       "กาแล็กซีมีอายุมาก",
     ],
     answer: "กาแล็กซีกำลังเคลื่อนที่ถอยห่างจากเรา",
-    subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
+    subCategory: {
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
   {
@@ -650,7 +626,7 @@ export const quizItems = [
     answer: "ซูเปอร์คลัสเตอร์ (Supercluster)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
   {
@@ -667,7 +643,7 @@ export const quizItems = [
     answer: "หลุมดำมวลยิ่งยวด",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
   {
@@ -676,9 +652,9 @@ export const quizItems = [
     question: "เอกภพเริ่มต้นขึ้นเมื่อประมาณกี่ปีที่แล้วตามทฤษฎีบิกแบง?",
     options: ["4,600 ล้านปี", "13,800 ล้านปี", "1 แสนล้านปี", "1 ล้านล้านปี"],
     answer: "13,800 ล้านปี",
-    subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
+    subCategory: {
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
+      specific: "กาแล็กซีและเอกภพวิทยา",
     },
   },
 
@@ -698,7 +674,7 @@ export const quizItems = [
       "เพื่อหลีกเลี่ยงผลกระทบจากชั้นบรรยากาศโลก",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
   {
@@ -715,7 +691,7 @@ export const quizItems = [
     answer: "รังสีอินฟราเรด, เพื่อมองทะลุกลุ่มฝุ่นและศึกษาอดีต",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
   {
@@ -734,7 +710,7 @@ export const quizItems = [
       "RTG ใช้ความร้อนจากการสลายตัวของพลูโทเนียมมาผลิตไฟฟ้า ทำให้ยานทำงานได้ทั้งกลางวันกลางคืนและในฤดูหนาวที่มีแสงน้อย",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
   {
@@ -751,7 +727,7 @@ export const quizItems = [
     answer: "ใช้วัดอุณหภูมิ องค์ประกอบ และความเร็ว",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
   {
@@ -768,7 +744,7 @@ export const quizItems = [
     answer: "เพื่อเพิ่มความเร็วโดยใช้เชื้อเพลิงน้อยลง",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
   {
@@ -784,7 +760,7 @@ export const quizItems = [
     answer: "วงโคจรต่ำ (Low Earth Orbit)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
   {
@@ -801,7 +777,7 @@ export const quizItems = [
       "เพราะคลื่นวิทยุทะลุผ่านบรรยากาศได้ดี",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ความก้าวหน้าของเทคโนโลยีอวกาศ",
+      specific: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
     },
   },
 
@@ -935,14 +911,14 @@ export const quizItems = [
     question:
       "ระยะทาง 2.5 ปีแสง มีค่าประมาณกี่กิโลเมตร? (กำหนดให้ 1 ปีแสง $\\approx 9.5 \\times 10^{12}$ km)",
     options: [
-      "$2.375 \\times 10^{12}$ km",
-      "$2.375 \\times 10^{13}$ km",
-      "$23.75 \\times 10^{13}$ km",
-      "$9.5 \\times 10^{12}$ km",
+      "\\(2.375 \\times 10^{12}\\) km",
+      "\\(2.375 \\times 10^{13}\\) km",
+      "\\(23.75 \\times 10^{13}\\) km",
+      "\\(9.5 \\times 10^{12}\\) km",
     ],
-    answer: "$2.375 \\times 10^{13}$ km",
+    answer: "\\(2.375 \\times 10^{13}\\) km",
     explanation:
-      "$2.5 \\times (9.5 \\times 10^{12}) = 23.75 \\times 10^{12} = 2.375 \\times 10^{13}$ km.",
+      "\\(2.5 \\times (9.5 \\times 10^{12}) = 23.75 \\times 10^{12} = 2.375 \\times 10^{13}\\) km.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์",
@@ -955,7 +931,7 @@ export const quizItems = [
     options: ["10 m/s", "60 m/s", "100 m/s", "360 m/s"],
     answer: "100 m/s",
     explanation:
-      "$360 \\text{ km/h} = 360 \\times \\frac{1000 \\text{ m}}{3600 \\text{ s}} = 100$ m/s.",
+      "\\(360 \\text{ km/h} = 360 \\times \\frac{1000 \\text{ m}}{3600 \\text{ s}} = 100\\) m/s.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์",
@@ -965,14 +941,14 @@ export const quizItems = [
     type: "question",
     number: 55,
     question:
-      "มวลของโลกมีค่าประมาณ $5.97 \\times 10^{24}$ kg. ข้อใดเขียนในรูปสัญกรณ์วิทยาศาสตร์ที่ถูกต้อง?",
+      "มวลของโลกมีค่าประมาณ \\(5.97 \\times 10^{24}\\) kg. ข้อใดเขียนในรูปสัญกรณ์วิทยาศาสตร์ที่ถูกต้อง?",
     options: [
-      "$59.7 \\times 10^{23}$ kg",
-      "$0.597 \\times 10^{25}$ kg",
-      "$5.97 \\times 10^{24}$ kg",
+      "\\(59.7 \\times 10^{23}\\) kg",
+      "\\(0.597 \\times 10^{25}\\) kg",
+      "\\(5.97 \\times 10^{24}\\) kg",
       "597000... kg (มี 0 ทั้งหมด 21 ตัว)",
     ],
-    answer: "$5.97 \\times 10^{24}$ kg",
+    answer: "\\(5.97 \\times 10^{24}\\) kg",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์",
@@ -992,9 +968,9 @@ export const quizItems = [
   {
     type: "question",
     number: 57,
-    question: "คำอุปสรรค 'นาโน' (nano) หมายถึง $10$ ยกกำลังเท่าใด?",
-    options: ["$10^{-3}$", "$10^{-6}$", "$10^{-9}$", "$10^{-12}$"],
-    answer: "$10^{-9}$",
+    question: "คำอุปสรรค 'นาโน' (nano) หมายถึง \\(10\\) ยกกำลังเท่าใด?",
+    options: ["\\(10^{-3}\\)", "\\(10^{-6}\\)", "\\(10^{-9}\\)", "\\(10^{-12}\\)"],
+    answer: "\\(10^{-9}\\)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์",
@@ -1004,10 +980,10 @@ export const quizItems = [
     type: "question",
     number: 58,
     question: "พื้นที่ 1 ตารางกิโลเมตร เท่ากับกี่ตารางเมตร?",
-    options: ["$10^3$ ตร.ม.", "$10^4$ ตร.ม.", "$10^6$ ตร.ม.", "$10^9$ ตร.ม."],
-    answer: "$10^6$ ตร.ม.",
+    options: ["\\(10^3\\) ตร.ม.", "\\(10^4\\) ตร.ม.", "\\(10^6\\) ตร.ม.", "\\(10^9\\) ตร.ม."],
+    answer: "\\(10^6\\) ตร.ม.",
     explanation:
-      "$1 \\text{ km}^2 = (1000 \\text{ m})^2 = 1,000,000 \\text{ m}^2 = 10^6 \\text{ m}^2$.",
+      "\\(1 \\text{ km}^2 = (1000 \\text{ m})^2 = 1,000,000 \\text{ m}^2 = 10^6 \\text{ m}^2\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์",
@@ -1017,11 +993,11 @@ export const quizItems = [
     type: "question",
     number: 59,
     question:
-      "ถ้า 1 ไมล์ $\\approx 1.6$ กิโลเมตร, รถยนต์ที่วิ่งด้วยความเร็ว 100 กิโลเมตรต่อชั่วโมง จะมีความเร็วประมาณกี่ไมล์ต่อชั่วโมง?",
+      "ถ้า 1 ไมล์ \\(\\approx 1.6\\) กิโลเมตร, รถยนต์ที่วิ่งด้วยความเร็ว 100 กิโลเมตรต่อชั่วโมง จะมีความเร็วประมาณกี่ไมล์ต่อชั่วโมง?",
     options: ["62.5 mph", "100 mph", "160 mph", "1.6 mph"],
     answer: "62.5 mph",
     explanation:
-      "$100 \\text{ km/h} \\times \\frac{1 \\text{ mile}}{1.6 \\text{ km}} = 62.5$ mph.",
+      "\\(100 \\text{ km/h} \\times \\frac{1 \\text{ mile}}{1.6 \\text{ km}} = 62.5\\) mph.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์",
@@ -1046,11 +1022,11 @@ export const quizItems = [
     type: "question",
     number: 61,
     question:
-      "สนามวงกลมมีเส้นผ่านศูนย์กลาง 40 เมตร จะมีพื้นที่ประมาณเท่าใด? (ใช้ $\\pi \\approx 3.14$)",
+      "สนามวงกลมมีเส้นผ่านศูนย์กลาง 40 เมตร จะมีพื้นที่ประมาณเท่าใด? (ใช้ \\(\\pi \\approx 3.14\\))",
     options: ["125.6 ตร.ม.", "1,256 ตร.ม.", "5,024 ตร.ม.", "12,560 ตร.ม."],
     answer: "1,256 ตร.ม.",
     explanation:
-      "รัศมี $r = 40/2 = 20$ ม. พื้นที่ $A = \\pi r^2 = 3.14 \\times (20)^2 = 3.14 \\times 400 = 1256$ ตร.ม.",
+      "รัศมี \\(r = 40/2 = 20\\) ม. พื้นที่ \\(A = \\pi r^2 = 3.14 \\times (20)^2 = 3.14 \\times 400 = 1256\\) ตร.ม.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "เรขาคณิตวงกลม วงรี",
@@ -1077,7 +1053,7 @@ export const quizItems = [
     options: ["50 รอบ", "100 รอบ", "250 รอบ", "500 รอบ"],
     answer: "500 รอบ",
     explanation:
-      "ระยะทาง = $1.1 \\text{ km} = 1100$ ม. จำนวนรอบ = ระยะทางทั้งหมด / เส้นรอบวง = $1100 / 2.2 = 500$ รอบ.",
+      "ระยะทาง = \\(1.1 \\text{ km} = 1100\\) ม. จำนวนรอบ = ระยะทางทั้งหมด / เส้นรอบวง = \\(1100 / 2.2 = 500\\) รอบ.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "เรขาคณิตวงกลม วงรี",
@@ -1132,7 +1108,7 @@ export const quizItems = [
     options: ["2 เท่า", "4 เท่า", "8 เท่า", "16 เท่า"],
     answer: "2 เท่า",
     explanation:
-      "พื้นที่ $A \\propto r^2$. ถ้า $A_1/A_2 = 4$, ดังนั้น $(r_1/r_2)^2 = 4$, และ $r_1/r_2 = 2$.",
+      "พื้นที่ \\(A \\propto r^2\\). ถ้า \\(A_1/A_2 = 4\\), ดังนั้น \\((r_1/r_2)^2 = 4\\), และ \\(r_1/r_2 = 2\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "เรขาคณิตวงกลม วงรี",
@@ -1146,7 +1122,7 @@ export const quizItems = [
     question: "ถ้า $3x + 7 = 22$ แล้ว $x$ มีค่าเท่าใด?",
     options: ["3", "5", "7", "9"],
     answer: "5",
-    explanation: "$3x = 22 - 7 = 15$. $x = 15 / 3 = 5$.",
+    explanation: "\\(3x = 22 - 7 = 15\\). \\(x = 15 / 3 = 5\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1155,10 +1131,10 @@ export const quizItems = [
   {
     type: "question",
     number: 69,
-    question: "ถ้า $y = 2a - 5$ และ $a = 4$ แล้ว $y$ มีค่าเท่าใด?",
+    question: "ถ้า \\(y = 2a - 5\\) และ \\(a = 4\\) แล้ว \\(y\\) มีค่าเท่าใด?",
     options: ["1", "3", "8", "13"],
     answer: "3",
-    explanation: "$y = 2(4) - 5 = 8 - 5 = 3$.",
+    explanation: "\\(y = 2(4) - 5 = 8 - 5 = 3\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1172,7 +1148,7 @@ export const quizItems = [
     options: ["10 บาท", "11 บาท", "12 บาท", "13 บาท"],
     answer: "11 บาท",
     explanation:
-      "ราคาปากกา 2 ด้าม = $2 \\times 15 = 30$ บาท. ราคาสมุด 5 เล่ม = $85 - 30 = 55$ บาท. ราคาสมุด 1 เล่ม = $55 / 5 = 11$ บาท.",
+      "ราคาปากกา 2 ด้าม = \\(2 \\times 15 = 30\\) บาท. ราคาสมุด 5 เล่ม = \\(85 - 30 = 55\\) บาท. ราคาสมุด 1 เล่ม = \\(55 / 5 = 11\\) บาท.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1181,10 +1157,10 @@ export const quizItems = [
   {
     type: "question",
     number: 71,
-    question: "ถ้า $\\frac{x}{4} + 3 = 8$ แล้ว $x$ มีค่าเท่าใด?",
+    question: "ถ้า \\(\\frac{x}{4} + 3 = 8\\) แล้ว \\(x\\) มีค่าเท่าใด?",
     options: ["12", "16", "20", "24"],
     answer: "20",
-    explanation: "$\\frac{x}{4} = 8 - 3 = 5$. $x = 5 \\times 4 = 20$.",
+    explanation: "\\(\\frac{x}{4} = 8 - 3 = 5\\). \\(x = 5 \\times 4 = 20\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1193,11 +1169,11 @@ export const quizItems = [
   {
     type: "question",
     number: 72,
-    question: "ค่าเฉลี่ยของตัวเลข 10, 15, และ $x$ คือ 14. $x$ คือเลขอะไร?",
+    question: "ค่าเฉลี่ยของตัวเลข 10, 15, และ \\(x\\) คือ 14. \\(x\\) คือเลขอะไร?",
     options: ["13", "15", "17", "19"],
     answer: "17",
     explanation:
-      "ผลรวม = $10 + 15 + x = 25 + x$. ค่าเฉลี่ย = $(25+x)/3 = 14$. $25+x = 42$. $x = 42 - 25 = 17$.",
+      "ผลรวม = \\(10 + 15 + x = 25 + x\\). ค่าเฉลี่ย = \\((25+x)/3 = 14\\). \\(25+x = 42\\). \\(x = 42 - 25 = 17\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1206,10 +1182,10 @@ export const quizItems = [
   {
     type: "question",
     number: 73,
-    question: "ถ้า $2(a - 3) = 10$ แล้ว $a$ มีค่าเท่าใด?",
+    question: "ถ้า \\(2(a - 3) = 10\\) แล้ว \\(a\\) มีค่าเท่าใด?",
     options: ["5", "7", "8", "10"],
     answer: "8",
-    explanation: "$a - 3 = 10 / 2 = 5$. $a = 5 + 3 = 8$.",
+    explanation: "\\(a - 3 = 10 / 2 = 5\\). \\(a = 5 + 3 = 8\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1223,7 +1199,7 @@ export const quizItems = [
     options: ["10 ซม.", "15 ซม.", "20 ซม.", "25 ซม."],
     answer: "10 ซม.",
     explanation:
-      "ความยาวรอบรูป = $2(กว้าง + ยาว)$. $30 = 2(5 + ยาว)$. $15 = 5 + ยาว$. $ยาว = 10$ ซม.",
+      "ความยาวรอบรูป = \\(2(กว้าง + ยาว)\\). \\(30 = 2(5 + ยาว)\\). \\(15 = 5 + ยาว\\). \\(ยาว = 10\\) ซม.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1232,11 +1208,11 @@ export const quizItems = [
   {
     type: "question",
     number: 75,
-    question: "ถ้า $a+b=10$ และ $a-b=4$, ค่าของ $a$ คือเท่าใด?",
+    question: "ถ้า \\(a+b=10\\) และ \\(a-b=4\\), ค่าของ \\(a\\) คือเท่าใด?",
     options: ["3", "5", "7", "8"],
     answer: "7",
     explanation:
-      "นำสองสมการบวกกัน: $(a+b)+(a-b) = 10+4 \\implies 2a = 14 \\implies a=7$.",
+      "นำสองสมการบวกกัน: \\((a+b)+(a-b) = 10+4 \\implies 2a = 14 \\implies a=7\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "พีชคณิตเบื้องต้น",
@@ -1248,11 +1224,11 @@ export const quizItems = [
     type: "question",
     number: 76,
     question:
-      "นักเรียนยืนห่างจากต้นไม้ 30 เมตร มองไปยังยอดต้นไม้เป็นมุมเงย 30°. ต้นไม้สูงเท่าใด? (กำหนดให้ $\\tan(30°) \\approx 0.577$ และไม่คิดความสูงของนักเรียน)",
+      "นักเรียนยืนห่างจากต้นไม้ 30 เมตร มองไปยังยอดต้นไม้เป็นมุมเงย 30°. ต้นไม้สูงเท่าใด? (กำหนดให้ \\(\\tan(30°) \\approx 0.577\\) และไม่คิดความสูงของนักเรียน)",
     options: ["15 เมตร", "17.3 เมตร", "26.0 เมตร", "30 เมตร"],
     answer: "17.3 เมตร",
     explanation:
-      "$\\tan(\\theta) = \\frac{สูง}{ฐาน}$. สูง = $ฐาน \\times \\tan(30°) = 30 \\times 0.577 \\approx 17.3$ เมตร.",
+      "\\(\\tan(\\theta) = \\frac{สูง}{ฐาน}\\). สูง = \\(ฐาน \\times \\tan(30°) = 30 \\times 0.577 \\approx 17.3\\) เมตร.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1262,11 +1238,11 @@ export const quizItems = [
     type: "question",
     number: 77,
     question:
-      "บันไดยาว 10 เมตร วางพาดกำแพงโดยทำมุมกับพื้น 60°. เชิงบันไดอยู่ห่างจากกำแพงเท่าใด? (กำหนดให้ $\\cos(60°) = 0.5$)",
+      "บันไดยาว 10 เมตร วางพาดกำแพงโดยทำมุมกับพื้น 60°. เชิงบันไดอยู่ห่างจากกำแพงเท่าใด? (กำหนดให้ \\(\\cos(60°) = 0.5\\))",
     options: ["5 เมตร", "8.66 เมตร", "10 เมตร", "20 เมตร"],
     answer: "5 เมตร",
     explanation:
-      "$\\cos(\\theta) = \\frac{ชิด}{ฉาก}$. ระยะห่าง (ชิด) = ฉาก $\\times \\cos(60°) = 10 \\times 0.5 = 5$ เมตร.",
+      "\\(\\cos(\\theta) = \\frac{ชิด}{ฉาก}\\). ระยะห่าง (ชิด) = ฉาก \\(\\times \\cos(60°) = 10 \\times 0.5 = 5\\) เมตร.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1276,11 +1252,11 @@ export const quizItems = [
     type: "question",
     number: 78,
     question:
-      "ในสามเหลี่ยมมุมฉาก หากด้านตรงข้ามมุม A ยาว 3 หน่วย และด้านประชิดมุม A ยาว 4 หน่วย ค่าของ $\\sin(A)$ คือเท่าใด?",
+      "ในสามเหลี่ยมมุมฉาก หากด้านตรงข้ามมุม A ยาว 3 หน่วย และด้านประชิดมุม A ยาว 4 หน่วย ค่าของ \\(\\sin(A)\\) คือเท่าใด?",
     options: ["3/4", "4/3", "3/5", "4/5"],
     answer: "3/5",
     explanation:
-      "หาด้านตรงข้ามมุมฉาก (c) จากทฤษฎีบทพีทาโกรัส: $c^2 = 3^2 + 4^2 = 9 + 16 = 25$, ดังนั้น $c=5$. $\\sin(A) = \\frac{ข้าม}{ฉาก} = 3/5$.",
+      "หาด้านตรงข้ามมุมฉาก (c) จากทฤษฎีบทพีทาโกรัส: \\(c^2 = 3^2 + 4^2 = 9 + 16 = 25\\), ดังนั้น \\(c=5\\). \\(\\sin(A) = \\frac{ข้าม}{ฉาก} = 3/5\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1294,7 +1270,7 @@ export const quizItems = [
     options: ["30°", "45°", "60°", "90°"],
     answer: "45°",
     explanation:
-      "$\\tan(\\theta) = \\frac{สูง}{ฐาน} = 20/20 = 1$. มุมที่ค่า tan เท่ากับ 1 คือ 45°.",
+      "\\(\\tan(\\theta) = \\frac{สูง}{ฐาน} = 20/20 = 1\\). มุมที่ค่า tan เท่ากับ 1 คือ 45°.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1304,11 +1280,11 @@ export const quizItems = [
     type: "question",
     number: 80,
     question:
-      "ถ้า $\\sin(x) = 0.8$, ค่าของ $\\cos(x)$ คือเท่าใด (สำหรับมุมแหลม)?",
+      "ถ้า \\(\\sin(x) = 0.8\\), ค่าของ \\(\\cos(x)\\) คือเท่าใด (สำหรับมุมแหลม)?",
     options: ["0.2", "0.4", "0.6", "1.0"],
     answer: "0.6",
     explanation:
-      "จากเอกลักษณ์ $\\sin^2(x) + \\cos^2(x) = 1$. $\\cos^2(x) = 1 - (0.8)^2 = 1 - 0.64 = 0.36$. $\\cos(x) = \\sqrt{0.36} = 0.6$.",
+      "จากเอกลักษณ์ \\(\\sin^2(x) + \\cos^2(x) = 1\\). \\(\\cos^2(x) = 1 - (0.8)^2 = 1 - 0.64 = 0.36\\). \\(\\cos(x) = \\sqrt{0.36} = 0.6\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1322,7 +1298,7 @@ export const quizItems = [
     options: ["0.5 km", "1.0 km", "1.732 km", "2.0 km"],
     answer: "1.0 km",
     explanation:
-      "ความสูง = ระยะทาง $\\times \\sin(30°) = 2 \\times 0.5 = 1.0$ km.",
+      "ความสูง = ระยะทาง \\(\\times \\sin(30°) = 2 \\times 0.5 = 1.0\\) km.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1331,11 +1307,11 @@ export const quizItems = [
   {
     type: "question",
     number: 82,
-    question: "ค่าของ $\\sin(30°) + \\cos(60°)$ คือเท่าใด?",
-    options: ["0.5", "1", "1.5", "$\\sqrt{3}$"],
+    question: "ค่าของ \\(\\sin(30°) + \\cos(60°)\\) คือเท่าใด?",
+    options: ["0.5", "1", "1.5", "\\(\\sqrt{3}\\)"],
     answer: "1",
     explanation:
-      "$\\sin(30°) = 0.5$ และ $\\cos(60°) = 0.5$. ผลรวมคือ $0.5 + 0.5 = 1$.",
+      "\\(\\sin(30°) = 0.5\\) และ \\(\\cos(60°) = 0.5\\). ผลรวมคือ \\(0.5 + 0.5 = 1\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
       specific: "ฟังก์ชันตรีโกณมิติ",
@@ -1347,9 +1323,9 @@ export const quizItems = [
     question: "มุมเงยของดาวเหนือที่ผู้สังเกตเห็น จะเท่ากับค่าใดของผู้สังเกต?",
     options: ["ลองจิจูด", "ละติจูด", "ความสูง", "เวลาท้องถิ่น"],
     answer: "ละติจูด",
-    subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
+    subCategory: {
       main: "Astronomy",
-      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+      specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
     },
   },
 
@@ -1368,8 +1344,7 @@ export const quizItems = [
     answer: "วัตถุจะเคลื่อนที่ด้วยความเร็วคงที่",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
   {
@@ -1380,11 +1355,10 @@ export const quizItems = [
     options: ["0.2 m/s²", "5 m/s²", "40 m/s²", "500 m/s²"],
     answer: "5 m/s²",
     explanation:
-      "จาก $F=ma$, $a = F/m = 50 \\text{ N} / 10 \\text{ kg} = 5$ m/s².",
+      "จาก \\(F=ma\\), \\(a = F/m = 50 \\text{ N} / 10 \\text{ kg} = 5\\) m/s².",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
   {
@@ -1401,8 +1375,7 @@ export const quizItems = [
     answer: "เพราะสถานีอวกาศกำลังตกอย่างอิสระ",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
   {
@@ -1416,8 +1389,7 @@ export const quizItems = [
       "ดวงจันทร์มีมวลและขนาดเล็กกว่าโลก ทำให้มีแรงโน้มถ่วงที่พื้นผิวน้อยกว่า (ประมาณ 1/6 ของโลก)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
   {
@@ -1427,10 +1399,10 @@ export const quizItems = [
       "รถยนต์คันหนึ่งเคลื่อนที่จากหยุดนิ่งจนมีความเร็ว 20 m/s ในเวลา 5 วินาที รถยนต์มีความเร่งเฉลี่ยเท่าใด?",
     options: ["2 m/s²", "4 m/s²", "5 m/s²", "100 m/s²"],
     answer: "4 m/s²",
-    explanation: "ความเร่ง $a = \\Delta v / t = (20 - 0) / 5 = 4$ m/s².",
-    subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
+    explanation: "ความเร่ง \\(a = \\Delta v / t = (20 - 0) / 5 = 4\\) m/s².",
+    subCategory: {
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง",
     },
   },
   {
@@ -1449,8 +1421,7 @@ export const quizItems = [
       "จรวดพ่นแก๊สร้อนออกไปด้านหลัง (แรงกิริยา) ทำให้ตัวจรวดเคลื่อนที่ไปข้างหน้า (แรงปฏิกิริยา)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific:
-        "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
   {
@@ -1467,9 +1438,9 @@ export const quizItems = [
     answer: "มี เพราะทิศทางของความเร็วเปลี่ยนแปลง",
     explanation:
       "ความเร่งคือการเปลี่ยนแปลงของ 'ความเร็ว' ซึ่งเป็นปริมาณเวกเตอร์ การเปลี่ยนทิศทางถือเป็นการเปลี่ยนความเร็ว จึงมีความเร่ง (ความเร่งสู่ศูนย์กลาง)",
-    subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
+    subCategory: {
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง",
     },
   },
 
@@ -1629,8 +1600,7 @@ export const quizItems = [
       "การที่ซีกโลกเหนือเอียงเข้าหาดวงอาทิตย์ทำให้ได้รับแสงอาทิตย์เป็นเวลานานขึ้นและในมุมที่ชันขึ้น ซึ่งเป็นสาเหตุของฤดูร้อนในซีกโลกเหนือ",
     subCategory: {
       main: "Astronomy",
-      specific:
-        "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก",
+      specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
     },
   },
   {
@@ -1649,7 +1619,7 @@ export const quizItems = [
       "เพื่อให้เงาเคลื่อนที่ในอัตราสม่ำเสมอตลอดทั้งวัน แผ่นเงาของนาฬิกาแดดจะต้องชี้ขนานไปกับแกนหมุนของโลก ซึ่งหมายความว่ามันต้องทำมุมกับพื้นราบเท่ากับละติจูดของสถานที่นั้นๆ",
     subCategory: {
       main: "Astronomy",
-      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
+      specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
     },
   },
   {
@@ -1669,8 +1639,7 @@ export const quizItems = [
       "ดาวศุกร์ (ดาวเคราะห์วงใน) จะเห็นสว่างที่สุดในเวลาเช้ามืดเมื่อมีมุมห่างจากดวงอาทิตย์ไปทางตะวันตกมากที่สุด ส่วนดาวอังคาร (ดาวเคราะห์วงนอก) จะสว่างที่สุดและเห็นได้ตลอดคืนเมื่อโคจรมาอยู่ตำแหน่งตรงข้ามกับดวงอาทิตย์พอดี",
     subCategory: {
       main: "Astronomy",
-      specific:
-        "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ",
+      specific: "ระบบสุริยะและองค์ประกอบ",
     },
   },
 ];
