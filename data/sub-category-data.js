@@ -73,24 +73,27 @@ export const subCategoryData = {
    * The `level` property can be used for filtering.
    */
   ASTRONOMY_POSN: [
-    { topic: "ส่วนประกอบของระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ส่วนประกอบของกาแล๊กซีและเอกภพ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ความก้าวหน้าของเทคโนโลยีอวกาศ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ข่าวสารทางดาราศาสตร์สมัยใหม่", level: LEVELS.JUNIOR_AND_SENIOR },
+    // Foundational Math & Physics
     { topic: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "เรขาคณิตวงกลม วงรี", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "พีชคณิตเบื้องต้น", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "เรขาคณิตวงกลม วงรี", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ฟังก์ชันตรีโกณมิติ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "พิกัดและการเคลื่อนที่ของวัตถุท้องฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
-    { topic: "สมบัติของดาวฤกษ์", level: LEVELS.SENIOR_ONLY },
-    { topic: "กำเนิดของเอกภพ", level: LEVELS.SENIOR_ONLY },
     { topic: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง", level: LEVELS.SENIOR_ONLY },
+    { topic: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "พลังงานและโมเมนตัม", level: LEVELS.SENIOR_ONLY },
     { topic: "ทฤษฎีคลื่นแม่เหล็กไฟฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
+    // Core Astronomy
+    { topic: "พิกัดและการเคลื่อนที่ของวัตถุท้องฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
+    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ส่วนประกอบของระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "สมบัติของดาวฤกษ์", level: LEVELS.SENIOR_ONLY },
+    { topic: "ส่วนประกอบของกาแล็กซีและเอกภพ", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "กำเนิดของเอกภพ", level: LEVELS.SENIOR_ONLY },
+    // Applied & Modern Topics
+    { topic: "ความก้าวหน้าของเทคโนโลยีอวกาศ", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "ข่าวสารทางดาราศาสตร์สมัยใหม่", level: LEVELS.JUNIOR_AND_SENIOR },
   ],
 };
 /*
