@@ -584,7 +584,7 @@ export const quizItems = [
     answer: "แขนกังหัน (Spiral Arm)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล๊กซีและเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
   {
@@ -600,7 +600,7 @@ export const quizItems = [
     answer: "กาแล็กซีแอนดรอเมดา",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล๊กซีและเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
   {
@@ -616,7 +616,7 @@ export const quizItems = [
     answer: "มีรูปร่างกลมหรือรีและมีแต่ดาวฤกษ์เก่า",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล๊กซีและเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
   {
@@ -633,7 +633,7 @@ export const quizItems = [
     answer: "กาแล็กซีกำลังเคลื่อนที่ถอยห่างจากเรา",
     subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
       main: "Astronomy",
-      specific: "กำเนิดของเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
   {
@@ -650,7 +650,7 @@ export const quizItems = [
     answer: "ซูเปอร์คลัสเตอร์ (Supercluster)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล๊กซีและเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
   {
@@ -667,7 +667,7 @@ export const quizItems = [
     answer: "หลุมดำมวลยิ่งยวด",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ส่วนประกอบของกาแล๊กซีและเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
   {
@@ -678,7 +678,7 @@ export const quizItems = [
     answer: "13,800 ล้านปี",
     subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
       main: "Astronomy",
-      specific: "กำเนิดของเอกภพ",
+      specific: "ส่วนประกอบของกาแล็กซีและเอกภพ",
     },
   },
 
@@ -1349,7 +1349,7 @@ export const quizItems = [
     answer: "ละติจูด",
     subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
       main: "Astronomy",
-      specific: "พิกัดและการเคลื่อนที่ของวัตถุท้องฟ้าเบื้องต้น",
+      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
     },
   },
 
@@ -1430,7 +1430,7 @@ export const quizItems = [
     explanation: "ความเร่ง $a = \\Delta v / t = (20 - 0) / 5 = 4$ m/s².",
     subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
       main: "Astronomy",
-      specific: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
   {
@@ -1469,7 +1469,7 @@ export const quizItems = [
       "ความเร่งคือการเปลี่ยนแปลงของ 'ความเร็ว' ซึ่งเป็นปริมาณเวกเตอร์ การเปลี่ยนทิศทางถือเป็นการเปลี่ยนความเร็ว จึงมีความเร่ง (ความเร่งสู่ศูนย์กลาง)",
     subCategory: { // Corrected subCategory.specific (Note: This topic is SENIOR_ONLY in sub-category-data.js)
       main: "Astronomy",
-      specific: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง",
+      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
     },
   },
 
@@ -1649,7 +1649,7 @@ export const quizItems = [
       "เพื่อให้เงาเคลื่อนที่ในอัตราสม่ำเสมอตลอดทั้งวัน แผ่นเงาของนาฬิกาแดดจะต้องชี้ขนานไปกับแกนหมุนของโลก ซึ่งหมายความว่ามันต้องทำมุมกับพื้นราบเท่ากับละติจูดของสถานที่นั้นๆ",
     subCategory: {
       main: "Astronomy",
-      specific: "พิกัดและการเคลื่อนที่ของวัตถุท้องฟ้าเบื้องต้น",
+      specific: "กลุ่มดาวฤกษ์และการใช้ประโยชน์จากกลุ่มดาวฤกษ์",
     },
   },
   {

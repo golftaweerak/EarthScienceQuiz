@@ -525,7 +525,7 @@ export const quizList = [
   },
   {
     id: "adv_oceanography3",
-    title: "ชสมุทรศาสตร์ ชุดท้าทาย 3",
+    title: "สมุทรศาสตร์ ชุดท้าทาย 3",
     amount: 20,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_oceanography3",
