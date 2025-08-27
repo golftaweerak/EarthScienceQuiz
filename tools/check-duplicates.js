@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { performance } from "perf_hooks";
 import { fileURLToPath, pathToFileURL } from "url";
 
 /**
@@ -100,6 +101,8 @@ function calculateSetSimilarity(set1, set2) {
 }
 
 async function checkDuplicatesAndSimilarities() {
+    const startTime = performance.now();
+
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const dataDir = path.resolve(__dirname, "..", "data");
 
@@ -129,6 +132,7 @@ async function checkDuplicatesAndSimilarities() {
     const seenQuestions = new Map();
     const uniqueQuestions = []; // To store unique questions for similarity check
     let duplicateCount = 0;
+    let checkedFileCount = 0;
 
     console.log("\n🔍 PASS 1: Checking for EXACT DUPLICATES across relevant data files...");
 
@@ -154,6 +158,8 @@ async function checkDuplicatesAndSimilarities() {
                 continue; // Skip this file as it doesn't match the prefix criteria
             }
         }
+
+        checkedFileCount++;
 
         const quizItems = module.quizItems;
 
@@ -226,6 +232,7 @@ async function checkDuplicatesAndSimilarities() {
     }
 
     console.log("\n--- Check complete ---");
+    console.log(`ℹ️  Checked a total of ${checkedFileCount} files.`);
     if (duplicateCount === 0) {
         console.log("✅ No duplicate questions found. All questions are unique.");
     } else {
@@ -237,6 +244,10 @@ async function checkDuplicatesAndSimilarities() {
     } else {
         console.log(`⚠️  Found a total of ${similarPairCount} pairs of similar questions.`);
     }
+
+    const endTime = performance.now();
+    const duration = (endTime - startTime) / 1000; // in seconds
+    console.log(`\n⏱️  Script finished in ${duration.toFixed(3)} seconds.`);
 }
 
 checkDuplicatesAndSimilarities().catch((error) => {

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { performance } from "perf_hooks";
 import { fileURLToPath, pathToFileURL } from "url";
 
 // Since this is an ES module, __dirname is not available.
@@ -111,15 +112,16 @@ function validateQuestionSubCategory(question, info, { validEarthAndSpace, valid
 
 async function main() {
   console.log("--- Starting Sub-category Validation and Correction Script ---");
+  const startTime = performance.now();
 
   // 1. Load the master sub-category data
   const { subCategoryData, quizPrefixInfo } = await import(pathToFileURL(path.join(DATA_DIR, "sub-category-data.js")).href);
 
   // Pre-process data into Sets for efficient O(1) lookups
-  const { validEarthAndSpace, validAstronomyPosn } = preprocessValidationData(subCategoryData);
+  const validationData = preprocessValidationData(subCategoryData);
 
   // Get and sort prefix keys by length (descending) to find the longest match first
-  // e.g., ensure 'adv_geology' is checked before 'adv'
+  // e.g., ensure 'adv_geology' is checked before 'adv_astro'
   const sortedPrefixKeys = Object.keys(quizPrefixInfo).sort((a, b) => b.length - a.length);
 
   // 2. Get all quiz data files
@@ -128,52 +130,44 @@ async function main() {
     (file) => file.endsWith("-data.js") && file !== "sub-category-data.js"
   );
 
-  let correctionCount = 0;
-  let errorCount = 0;
-  const unfixableErrors = [];
-
-  // 3. Iterate over each quiz file to validate and correct
-  for (const fileName of quizFiles) {
-    // Find the longest matching prefix for the current file
+  // 3. Process all files in parallel
+  const processingPromises = quizFiles.map(async (fileName) => {
     const prefix = sortedPrefixKeys.find(key => fileName.toLowerCase().startsWith(key));
-
-    // Get validation rules for this prefix, or use default
     const info = quizPrefixInfo[prefix] || quizPrefixInfo.default;
+
+    const fileCorrections = [];
+    const fileErrors = [];
 
     if (!info || !info.subCategoryKey) {
       console.log(`\n- Skipping validation for ${fileName} (no subCategoryKey defined in quizPrefixInfo).`);
-      continue;
+      return { fileName, corrections: fileCorrections, errors: fileErrors, fileModified: false, newContent: null };
     }
 
     const filePath = path.join(DATA_DIR, fileName);
     const quizDataModule = await import(pathToFileURL(filePath).href);
     const quizData = findQuizArrayInModule(quizDataModule);
 
-    let fileContent = null; // Lazily read file content only if needed for correction
-    let fileModified = false;
-
     if (!quizData) {
-      console.error(`\n- ❗️ WARNING: Skipping ${fileName}. Could not find an iterable quizData array. Please check the file's export structure.`);
-      continue;
+      fileErrors.push(`- ❗️ WARNING in ${fileName}: Could not find an iterable quizData array. Please check the file's export structure.`);
+      return { fileName, corrections: fileCorrections, errors: fileErrors, fileModified: false, newContent: null };
     }
+
+    let fileContent = null;
+    let fileModified = false;
 
     for (const item of quizData) {
       // Handle nested questions (case-study)
-      // Correctly handle both "scenario" and "case-study" types.
-      // This ensures we only validate the inner questions, not the container object.
       const questions = (item.type === "scenario" || item.type === "case-study") && Array.isArray(item.questions) ? item.questions : [item];
 
       for (const question of questions) {
         const questionIdentifier = `(ID: ${question.id || 'N/A'}, Number: ${question.number || 'N/A'})`;
-        const { isValid, specificCat } = validateQuestionSubCategory(question, info, { validEarthAndSpace, validAstronomyPosn });
+        const { isValid, specificCat } = validateQuestionSubCategory(question, info, validationData);
 
         if (specificCat === null) {
-          errorCount++;
-          unfixableErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Missing or incomplete subCategory object.`);
+          fileErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Missing or incomplete subCategory object.`);
           continue;
         }
 
-        // --- Auto-correction Logic ---
         if (!isValid) {
           const correction = correctionMap[info.subCategoryKey]?.[specificCat];
           if (correction) {
@@ -181,49 +175,64 @@ async function main() {
               fileContent = fs.readFileSync(filePath, "utf-8");
             }
             const escapedOldCat = escapeRegExp(specificCat);
-            // Regex to find 'specific: "category"' or 'specific: 'category''
             const oldCategoryRegex = new RegExp(`(specific:\\s*['"])${escapedOldCat}(['"])`);
 
             if (oldCategoryRegex.test(fileContent)) {
               fileContent = fileContent.replace(oldCategoryRegex, `$1${correction}$2`);
               fileModified = true;
-              correctionCount++;
-              console.log(`- 🔧 Auto-corrected in ${fileName} ${questionIdentifier}: "${specificCat}" -> "${correction}"`);
+              fileCorrections.push(`- 🔧 Auto-corrected in ${fileName} ${questionIdentifier}: "${specificCat}" -> "${correction}"`);
             } else {
-              errorCount++;
-              unfixableErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Invalid category "${specificCat}". (Auto-correction failed to find string)`);
+              fileErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Invalid category "${specificCat}". (Auto-correction failed to find string)`);
             }
           } else {
-            errorCount++;
-            unfixableErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Invalid category "${specificCat}". (No correction mapping found)`);
+            fileErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Invalid category "${specificCat}". (No correction mapping found)`);
           }
         }
       }
     }
+    return { fileName, corrections: fileCorrections, errors: fileErrors, fileModified, newContent: fileContent };
+  });
 
-    if (fileModified) {
-      fs.writeFileSync(filePath, fileContent, "utf-8");
-      console.log(`- ✅ Saved changes to ${fileName}\n`);
+  const results = await Promise.all(processingPromises);
+
+  // 4. Aggregate results and perform file writes
+  let totalCorrections = 0;
+  const allUnfixableErrors = [];
+
+  for (const result of results) {
+    result.corrections.forEach(c => console.log(c));
+    totalCorrections += result.corrections.length;
+    allUnfixableErrors.push(...result.errors);
+
+    if (result.fileModified) {
+      const filePath = path.join(DATA_DIR, result.fileName);
+      fs.writeFileSync(filePath, result.newContent, "utf-8");
+      console.log(`- ✅ Saved changes to ${result.fileName}\n`);
     }
   }
 
-  // 4. Report results
+  // 5. Report final results
   console.log("\n--- Validation Complete ---");
-  if (correctionCount > 0) {
-    console.log(`🔧 Successfully auto-corrected ${correctionCount} instance(s).`);
+  if (totalCorrections > 0) {
+    console.log(`🔧 Successfully auto-corrected ${totalCorrections} instance(s).`);
   }
 
-  if (errorCount === 0 && correctionCount === 0) {
+  const totalErrors = allUnfixableErrors.length;
+  if (totalErrors === 0 && totalCorrections === 0) {
     console.log("✅ All sub-categories are already consistent. No changes needed.");
-  } else if (errorCount === 0) {
+  } else if (totalErrors === 0) {
     console.log("✅ All sub-categories are now consistent after corrections.");
   } else {
-    console.log(`\n🔴 Found ${errorCount} unfixable inconsistencies:\n`);
-    unfixableErrors.forEach((detail) => console.log(detail));
+    console.log(`\n🔴 Found ${totalErrors} unfixable inconsistencies:\n`);
+    allUnfixableErrors.forEach((detail) => console.log(detail));
     console.log("\nPlease review the errors above and correct the data files or update the correction map.");
     process.exit(1); // Exit with an error code to signal failure in CI/CD pipelines
   }
-  console.log("---------------------------\n");
+
+  const endTime = performance.now();
+  const duration = (endTime - startTime) / 1000; // in seconds
+  console.log(`\n⏱️  Script finished in ${duration.toFixed(3)} seconds.`);
+  console.log("------------------------------------------------------------\n");
 }
 
 main().catch((err) => {
