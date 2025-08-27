@@ -37,6 +37,11 @@ const config = {
         colorClass: "text-gray-500",
       },
     },
+    icons: {
+        next: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`,
+        prev: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`,
+        submit: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`,
+    },
     timerDefaults: {
       perQuestion: 90, // 90 วินาทีต่อข้อ
       overallMultiplier: 75, // 75 วินาที * จำนวนข้อ สำหรับเวลาทั้งชุด
@@ -106,6 +111,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
         timerId: null,
         initialTime: 0,
         activeScreen: null,
+        isFloatingNav: false, // To track the nav state
     };
 
     // --- 3. Initial Setup ---
@@ -116,28 +122,66 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 }
 
 /**
- * Toggles the floating state for the main quiz action buttons container.
- * This makes the Next/Previous buttons stick to the bottom of the screen.
+ * Updates the appearance of the "Next" button (icon and title) based on its required action.
+ * @param {'next' | 'submit'} action - The action the button should perform.
+ */
+function updateNextButtonAppearance(action) {
+    if (!elements.nextBtn) return;
+
+    if (state.isFloatingNav) {
+        const isSubmit = action === 'submit';
+        elements.nextBtn.innerHTML = isSubmit ? config.icons.submit : config.icons.next;
+        elements.nextBtn.title = isSubmit ? 'ส่งคำตอบ' : 'ข้อต่อไป';
+    } else {
+        elements.nextBtn.innerHTML = ''; // Clear icons
+        elements.nextBtn.textContent = action === 'submit' ? 'ส่งคำตอบ' : 'ข้อต่อไป';
+    }
+}
+
+/**
+ * Toggles the floating state for the main quiz action buttons.
+ * This changes the Next/Previous buttons from standard text buttons to floating
+ * circular icon buttons in the bottom-right corner of the screen.
  * @param {boolean} active - Whether to activate or deactivate the floating navigation.
  */
 function setFloatingNav(active) {
-    if (!elements.actionContainer) return;
+    if (!elements.actionContainer || !elements.nextBtn || !elements.prevBtn) return;
 
-    const floatingClasses = [
-        'fixed', 'bottom-0', 'left-0', 'right-0', 'z-20',
-        'p-4', 'bg-white/90', 'dark:bg-gray-800/90',
-        'backdrop-blur-sm', 'border-t', 'border-gray-200', 'dark:border-gray-700',
-        'shadow-[0_-2px_10px_rgba(0,0,0,0.05)]', 'dark:shadow-[0_-2px_10px_rgba(0,0,0,0.2)]'
-    ];
+    state.isFloatingNav = active;
+
+    const containerFloatingClasses = ['fixed', 'bottom-4', 'right-4', 'z-20', 'gap-3'];
+    const buttonFloatingClasses = ['w-14', 'h-14', 'rounded-full', 'flex', 'items-center', 'justify-center', 'shadow-lg', 'hover:shadow-xl', 'transition', 'p-0', 'border-0'];
 
     if (active) {
-        elements.actionContainer.classList.add(...floatingClasses);
+        // --- 1. Configure Container ---
+        elements.actionContainer.classList.remove('justify-between', 'mt-8');
+        elements.actionContainer.classList.add(...containerFloatingClasses);
+
+        // --- 2. Configure Buttons ---
+        elements.prevBtn.classList.add(...buttonFloatingClasses);
+        elements.prevBtn.innerHTML = config.icons.prev;
+        elements.prevBtn.title = "ข้อก่อนหน้า";
+
+        elements.nextBtn.classList.add(...buttonFloatingClasses);
+        updateNextButtonAppearance('next'); // Set default icon
+
         // Add padding to the bottom of the quiz screen to prevent content overlap
         if (elements.quizScreen) {
-            elements.quizScreen.style.paddingBottom = '6.5rem'; // Adjust to match button container height
+            elements.quizScreen.style.paddingBottom = '6rem'; // 96px
         }
     } else {
-        elements.actionContainer.classList.remove(...floatingClasses);
+        // --- 1. Revert Container ---
+        elements.actionContainer.classList.remove(...containerFloatingClasses);
+        elements.actionContainer.classList.add('justify-between', 'mt-8');
+
+        // --- 2. Revert Buttons ---
+        elements.prevBtn.classList.remove(...buttonFloatingClasses);
+        elements.prevBtn.innerHTML = "ข้อก่อนหน้า";
+        elements.prevBtn.title = "";
+
+        elements.nextBtn.classList.remove(...buttonFloatingClasses);
+        updateNextButtonAppearance('next'); // Revert to text
+
         // Reset padding
         if (elements.quizScreen) {
             elements.quizScreen.style.paddingBottom = '';
@@ -303,7 +347,7 @@ function setFloatingNav(active) {
       });
       // For multi-select, show a "Submit" button immediately
       if (!previousAnswer) {
-        elements.nextBtn.textContent = 'ส่งคำตอบ';
+        updateNextButtonAppearance('submit');
         elements.nextBtn.classList.remove('hidden');
       }
     } else {
@@ -316,7 +360,7 @@ function setFloatingNav(active) {
     if (previousAnswer) {
       // If we are revisiting a question, show the feedback panel without altering the score.
       showFeedback(previousAnswer.isCorrect, previousAnswer.explanation, previousAnswer.correctAnswer);
-      elements.nextBtn.textContent = 'ข้อต่อไป'; // Ensure button text is correct when reviewing
+      updateNextButtonAppearance('next'); // Ensure button is in 'next' state
       elements.nextBtn.classList.remove("hidden");
     }
 
@@ -395,7 +439,7 @@ function setFloatingNav(active) {
       }
     });
 
-    elements.nextBtn.textContent = 'ข้อต่อไป';
+    updateNextButtonAppearance('next');
     renderMath(elements.feedback);
   }
   function resetState() {
@@ -469,6 +513,7 @@ function setFloatingNav(active) {
     });
 
     elements.nextBtn.classList.remove("hidden");
+    updateNextButtonAppearance('next');
     renderMath(elements.feedback); // Render math only in the new feedback element
   }
 
@@ -1482,7 +1527,7 @@ function setFloatingNav(active) {
           saveQuizState();
           showFeedback(false, "หมดเวลา! " + (currentQuestion.explanation || ""), correctAnswers);
           Array.from(elements.options.querySelectorAll('input[type="checkbox"]')).forEach(cb => cb.disabled = true);
-          elements.nextBtn.textContent = 'ข้อต่อไป';
+      updateNextButtonAppearance('next');
           elements.nextBtn.classList.remove('hidden');
           return; // End here for multi-select
       }
@@ -1508,6 +1553,7 @@ function setFloatingNav(active) {
         (button) => (button.disabled = true)
       );
       elements.nextBtn.classList.remove("hidden");
+      updateNextButtonAppearance('next');
       saveQuizState();
     } else if (state.timerMode === "overall") {
       showResults();
