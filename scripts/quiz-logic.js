@@ -84,6 +84,8 @@ export function init(quizData, storageKey, quizTitle, customTime) {
         soundToggleBtn: document.getElementById("sound-toggle-btn"),
         timerDisplay: document.getElementById("timer-display"),
         timerValue: document.getElementById("timer-value"),
+        // Cache the container for the main action buttons (Next/Prev)
+        actionContainer: document.getElementById("next-btn")?.parentElement,
     };
 
     // --- 2. State Initialization ---
@@ -111,6 +113,36 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     bindEventListeners();
     initializeSound();
     checkForSavedQuiz(); // This will check localStorage and either show the start screen or a resume prompt.
+}
+
+/**
+ * Toggles the floating state for the main quiz action buttons container.
+ * This makes the Next/Previous buttons stick to the bottom of the screen.
+ * @param {boolean} active - Whether to activate or deactivate the floating navigation.
+ */
+function setFloatingNav(active) {
+    if (!elements.actionContainer) return;
+
+    const floatingClasses = [
+        'fixed', 'bottom-0', 'left-0', 'right-0', 'z-20',
+        'p-4', 'bg-white/90', 'dark:bg-gray-800/90',
+        'backdrop-blur-sm', 'border-t', 'border-gray-200', 'dark:border-gray-700',
+        'shadow-[0_-2px_10px_rgba(0,0,0,0.05)]', 'dark:shadow-[0_-2px_10px_rgba(0,0,0,0.2)]'
+    ];
+
+    if (active) {
+        elements.actionContainer.classList.add(...floatingClasses);
+        // Add padding to the bottom of the quiz screen to prevent content overlap
+        if (elements.quizScreen) {
+            elements.quizScreen.style.paddingBottom = '6.5rem'; // Adjust to match button container height
+        }
+    } else {
+        elements.actionContainer.classList.remove(...floatingClasses);
+        // Reset padding
+        if (elements.quizScreen) {
+            elements.quizScreen.style.paddingBottom = '';
+        }
+    }
 }
 
   // --- UI / Rendering Functions ---
@@ -508,6 +540,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   // --- NEW: Function to display the final results screen ---
   function showResults() {
     stopTimer(); // Stop any running timers.
+    setFloatingNav(false); // Deactivate the floating navigation bar
 
     const totalQuestions = state.shuffledQuestions.length;
     const correctAnswers = state.score;
@@ -995,6 +1028,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
   function startQuiz() {
     stopTimer();
+    setFloatingNav(true); // Activate the floating navigation bar
     clearSavedState();
     state.sessionStartTime = Date.now(); // Record start time for the session
     state.totalTimeSpent = 0; // Reset total time spent for a new quiz
@@ -1282,6 +1316,7 @@ export function init(quizData, storageKey, quizTitle, customTime) {
 
   function resumeQuiz(savedState) {
     loadStateFromSave(savedState);
+    setFloatingNav(true); // Activate the floating navigation bar for the resumed session
     state.sessionStartTime = Date.now(); // Start tracking time for the new session
 
     switchScreen(elements.quizScreen);
