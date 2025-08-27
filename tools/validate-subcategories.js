@@ -67,6 +67,47 @@ function preprocessValidationData(subCategoryData) {
   return { validEarthAndSpace, validAstronomyPosn };
 }
 
+/**
+ * Finds the primary quiz data array within an imported module.
+ * It checks for a default export, a named 'quizData' export, or the first exported array.
+ * @param {object} quizModule - The imported module object.
+ * @returns {Array|null} The quiz data array or null if not found.
+ */
+function findQuizArrayInModule(quizModule) {
+  if (quizModule.default && Array.isArray(quizModule.default)) {
+    return quizModule.default;
+  }
+  if (quizModule.quizData && Array.isArray(quizModule.quizData)) {
+    return quizModule.quizData;
+  }
+  // Fallback to find the first exported array in the module
+  return Object.values(quizModule).find(val => Array.isArray(val)) || null;
+}
+
+/**
+ * Validates a single question's sub-category.
+ * @param {object} question - The question object.
+ * @param {object} info - The validation rules from quizPrefixInfo.
+ * @param {{validEarthAndSpace: Map<string, Set<string>>, validAstronomyPosn: Set<string>}} validationData - The pre-processed validation data.
+ * @returns {{isValid: boolean, specificCat: string|null}}
+ */
+function validateQuestionSubCategory(question, info, { validEarthAndSpace, validAstronomyPosn }) {
+  const { subCategory } = question;
+  if (!subCategory || typeof subCategory.specific !== 'string') {
+    return { isValid: false, specificCat: null };
+  }
+
+  const specificCat = subCategory.specific.trim();
+  let isValid = false;
+
+  if (info.subCategoryKey === "EarthAndSpace") {
+    const effectiveMainCat = subCategory.main || info.inferredMainCategory;
+    isValid = effectiveMainCat ? (validEarthAndSpace.get(effectiveMainCat)?.has(specificCat) ?? false) : [...validEarthAndSpace.values()].some(categorySet => categorySet.has(specificCat));
+  } else if (info.subCategoryKey === "ASTRONOMY_POSN") {
+    isValid = validAstronomyPosn.has(specificCat);
+  }
+  return { isValid, specificCat };
+}
 
 async function main() {
   console.log("--- Starting Sub-category Validation and Correction Script ---");
@@ -106,19 +147,12 @@ async function main() {
 
     const filePath = path.join(DATA_DIR, fileName);
     const quizDataModule = await import(pathToFileURL(filePath).href);
-    let quizData = quizDataModule.default || quizDataModule.quizData; // Support both default and named export
-
-    // If standard exports are not found, search for the first exported array in the module.
-    // This makes the script more robust against varying export conventions.
-    if (!Array.isArray(quizData)) {
-      quizData = Object.values(quizDataModule).find(val => Array.isArray(val));
-    }
+    const quizData = findQuizArrayInModule(quizDataModule);
 
     let fileContent = null; // Lazily read file content only if needed for correction
     let fileModified = false;
 
-    // Add a guard clause to ensure quizData is an array before iterating
-    if (!Array.isArray(quizData)) {
+    if (!quizData) {
       console.error(`\n- ❗️ WARNING: Skipping ${fileName}. Could not find an iterable quizData array. Please check the file's export structure.`);
       continue;
     }
@@ -130,35 +164,13 @@ async function main() {
       const questions = (item.type === "scenario" || item.type === "case-study") && Array.isArray(item.questions) ? item.questions : [item];
 
       for (const question of questions) {
-        const subCategory = question.subCategory;
         const questionIdentifier = `(ID: ${question.id || 'N/A'}, Number: ${question.number || 'N/A'})`;
+        const { isValid, specificCat } = validateQuestionSubCategory(question, info, { validEarthAndSpace, validAstronomyPosn });
 
-        if (!subCategory || !subCategory.specific) {
+        if (specificCat === null) {
           errorCount++;
           unfixableErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Missing or incomplete subCategory object.`);
           continue;
-        }
-
-        const { main: mainCat, specific: specificCatRaw } = subCategory;
-        // Trim whitespace from the specific category to handle data entry errors.
-        const specificCat = typeof specificCatRaw === 'string' ? specificCatRaw.trim() : specificCatRaw;
-        let isValid = false;
-
-        // --- Validation Logic using pre-processed Sets ---
-        if (info.subCategoryKey === "EarthAndSpace") {
-          // If main category is missing in data (common in 'adv' files), use the one inferred from the filename.
-          // This fixes a bug where the inferred category was not being used correctly.
-          const effectiveMainCat = mainCat || info.inferredMainCategory;
-          if (effectiveMainCat) {
-            // If we have a main category (from data or inference), check it directly.
-            isValid = validEarthAndSpace.get(effectiveMainCat)?.has(specificCat) ?? false;
-          } else {
-            // If no main category is specified, search across all EarthAndSpace categories.
-            // This makes the script more robust for mixed-topic files like ES*.
-            isValid = [...validEarthAndSpace.values()].some(categorySet => categorySet.has(specificCat));
-          }
-        } else if (info.subCategoryKey === "ASTRONOMY_POSN") {
-          isValid = validAstronomyPosn.has(specificCat);
         }
 
         // --- Auto-correction Logic ---
