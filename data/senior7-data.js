@@ -1,9 +1,3 @@
-/**
- * @file Contains quiz items for the Senior Level Astronomy Olympiad preparation, focusing on analytical questions.
- * @description This set includes 100 questions with a higher emphasis on scenarios and "why" questions to promote deeper understanding.
- * The questions are designed to be unique and cover a balanced distribution of topics from sub-category-data.js.
- */
-
 export const quizItems = [
   {
     number: 1,
