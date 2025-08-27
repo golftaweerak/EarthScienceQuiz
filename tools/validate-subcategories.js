@@ -11,21 +11,19 @@ const DATA_DIR = path.join(__dirname, "../data");
 
 // --- Auto-correction Mapping ---
 // Maps old/incorrect sub-categories to the correct ones.
-// This helps fix common, recurring errors automatically.
+
 const correctionMap = {
   EarthAndSpace: {
     "ธรณีวิทยาโครงสร้าง และธรณีพิบัติภัย": "ธรณีพิบัติภัย",
     "สมดุลพลังงานของโลก และดวงอาทิตย์": "สมดุลพลังงานของโลกและรังสี",
-    "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ": "สมบัติและวิวัฒนาการของดาวฤกษ์", // Add this new rule
-    "แผนที่อากาศ และการพยากรณ์อากาศ": "แผนที่อากาศและการพยากรณ์อากาศ", // Fix extra space
-    // Add other known old -> new mappings for EarthAndSpace here
+    "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ": "สมบัติและวิวัฒนาการของดาวฤกษ์",
+    "แผนที่อากาศ และการพยากรณ์อากาศ": "แผนที่อากาศและการพยากรณ์อากาศ",
     "ภาวะเรือนกระจก": "สมดุลพลังงานของโลกและรังสี",
     "ธรณีวิทยาโครงสร้าง": "ธรณีสัณฐานและกระบวนการบนพื้นผิวโลก"
   },
   ASTRONOMY_POSN: {
-    "ปรากฏการณ์บนท้องฟ้า": "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์", // Existing
+    "ปรากฏการณ์บนท้องฟ้า": "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     "พิกัดและการเคลื่อนที่ของวัตถุท้องฟ้าเบื้องต้น": "ทรงกลมท้องฟ้าและระบบพิกัด",
-    // The key should be the *old/incorrect* name, and the value the *new/correct* one.
     "สมบัติของดาวฤกษ์": "สมบัติและวิวัฒนาการของดาวฤกษ์",
     "ส่วนประกอบของกาแล็กซีและเอกภพ": "กาแล็กซีและเอกภพวิทยา",
     "ตำแหน่งและลักษณะของดาวเคราะห์ในระบบสุริยะ": "ระบบสุริยะและองค์ประกอบ",
@@ -35,7 +33,7 @@ const correctionMap = {
     "ประวัติศาสตร์ดาราศาสตร์": "ข่าวสารและความก้าวหน้าทางดาราศาสตร์",
     "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก": "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     // Add other known old -> new mappings for ASTRONOMY_POSN here
-    "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ": "สมบัติและวิวัฒนาการของดาวฤกษ์" // Cleaned up duplicate entries
+    "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ": "สมบัติและวิวัฒนาการของดาวฤกษ์" 
   },
 };
 
@@ -150,7 +148,7 @@ async function main() {
         if (info.subCategoryKey === "EarthAndSpace") {
           // If main category is missing in data (common in 'adv' files), use the one inferred from the filename.
           // This fixes a bug where the inferred category was not being used correctly.
-          const effectiveMainCat = mainCat || info.inferredMainCategory;          
+          const effectiveMainCat = mainCat || info.inferredMainCategory;
           if (effectiveMainCat) {
             // If we have a main category (from data or inference), check it directly.
             isValid = validEarthAndSpace.get(effectiveMainCat)?.has(specificCat) ?? false;
@@ -204,7 +202,7 @@ async function main() {
   }
 
   if (errorCount === 0 && correctionCount === 0) {
-      console.log("✅ All sub-categories are already consistent. No changes needed.");
+    console.log("✅ All sub-categories are already consistent. No changes needed.");
   } else if (errorCount === 0) {
     console.log("✅ All sub-categories are now consistent after corrections.");
   } else {
