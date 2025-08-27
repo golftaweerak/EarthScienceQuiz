@@ -17,6 +17,44 @@ const CONFIG = {
 
 let currentQuizData = []; // Store the full data for the selected quiz to be rendered
 
+/**
+ * Populates the category filter dropdown with all unique sub-categories from all quizzes.
+ */
+async function populateCategoryFilter() {
+    const categorySelector = document.getElementById('category-selector');
+    if (!categorySelector) return;
+
+    // Add a placeholder while loading
+    categorySelector.innerHTML = '<option>กำลังโหลดหมวดหมู่...</option>';
+    categorySelector.disabled = true;
+
+    try {
+        const { allQuestions } = await fetchAllQuizData();
+        const categories = new Set();
+        
+        allQuestions.forEach(q => {
+            if (q.subCategory) {
+                const subCat = q.subCategory;
+                const subCatDisplay = (typeof subCat === 'object' && subCat.main) 
+                    ? (subCat.specific || subCat.main) 
+                    : (typeof subCat === 'string' ? subCat : '');
+                if (subCatDisplay) {
+                    categories.add(subCatDisplay);
+                }
+            }
+        });
+
+        const sortedCategories = Array.from(categories).sort((a, b) => a.localeCompare(b, 'th'));
+        
+        categorySelector.innerHTML = '<option value="">-- ค้นหาจากทุกหมวดหมู่ --</option>'; // Reset and add default
+        sortedCategories.forEach(cat => categorySelector.add(new Option(cat, cat)));
+        categorySelector.disabled = false;
+    } catch (error) {
+        console.error("Failed to populate category filter:", error);
+        categorySelector.innerHTML = '<option value="">ไม่สามารถโหลดหมวดหมู่ได้</option>';
+    }
+}
+
 // Helper function to highlight keywords in a text
 function highlightText(text, keyword) {
     if (!keyword || !text) {
@@ -434,13 +472,15 @@ async function handleGlobalSearch() {
     const searchInput = document.getElementById('search-input');
     const container = document.getElementById('preview-container');
     const keyword = searchInput.value.trim();
+    const categorySelector = document.getElementById('category-selector');
+    const selectedCategory = categorySelector ? categorySelector.value : '';
     const countContainer = document.getElementById('question-count-container');
 
     if (countContainer) {
         countContainer.innerHTML = '';
     }
 
-    if (keyword.length < CONFIG.MIN_SEARCH_LENGTH) {
+    if (keyword.length < CONFIG.MIN_SEARCH_LENGTH && !selectedCategory) {
         currentQuizData = []; // Clear previous results when search term is too short
         container.innerHTML = `<div class="bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-r-lg" role="alert">
                                    <p class="font-bold">ค้นหาในทุกชุดข้อสอบ</p>
@@ -458,14 +498,27 @@ svg" fill="none" viewBox="0 0 24 24">
                                 <p>กำลังค้นหาจากข้อสอบทั้งหมด...</p>
                             </div>`;
     try {
-        // Use the centralized data manager to fetch all questions
         const { allQuestions, scenarios } = await fetchAllQuizData();
         if (countContainer) {
             countContainer.innerHTML = `กำลังค้นหาจากข้อสอบทั้งหมด <span class="font-bold">${allQuestions.length}</span> ข้อ...`;
         }
 
+        let dataToProcess = allQuestions;
+
+        // Filter by category FIRST, if one is selected
+        if (selectedCategory) {
+            dataToProcess = dataToProcess.filter(item => {
+                if (!item.subCategory) return false;
+                const subCat = item.subCategory;
+                const subCatDisplay = (typeof subCat === 'object' && subCat.main) 
+                    ? (subCat.specific || subCat.main) 
+                    : (typeof subCat === 'string' ? subCat : '');
+                return subCatDisplay === selectedCategory;
+            });
+        }
+
         // Add scenario info back to each question item for easier rendering
-        const allDataWithScenarios = allQuestions.map(item => {
+        const allDataWithScenarios = dataToProcess.map(item => {
             if (item.scenarioId && scenarios.has(item.scenarioId)) {
                 const scenario = scenarios.get(item.scenarioId);
                 return { ...item, scenarioTitle: scenario.title, scenarioDescription: scenario.description };
@@ -473,9 +526,8 @@ svg" fill="none" viewBox="0 0 24 24">
             return item;
         });
 
-        // Use the data with scenarios directly. Path correction will happen after rendering.
         currentQuizData = allDataWithScenarios;
-        renderQuizData(); // renderQuizData will use the keyword from the input to filter
+        renderQuizData();
     } catch (error) {
         console.error("Global search failed:", error);
         container.innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 rounded-r-lg" role="alert">
@@ -502,6 +554,7 @@ export function initializePreviewPage() {
     const quizSelector = document.getElementById('quiz-selector');
     const searchInput = document.getElementById('search-input');
     const showAnswersToggle = document.getElementById('show-answers-toggle');
+    const categorySelector = document.getElementById('category-selector');
     const questionJumper = document.getElementById('question-jumper');
 
     // --- Modal Setup ---
@@ -567,6 +620,9 @@ export function initializePreviewPage() {
             renderQuizData();
         });
     }
+
+    // Populate the new category filter dropdown
+    populateCategoryFilter();
 
     // Populate dropdown from quizList with categories
     if (typeof quizList !== 'undefined' && Array.isArray(quizList)) {
@@ -691,10 +747,22 @@ export function initializePreviewPage() {
         }, CONFIG.SEARCH_DEBOUNCE_MS);
     });
 
+    if (categorySelector) {
+        categorySelector.addEventListener('change', () => {
+            // Selecting a category implies a global search.
+            if (quizSelector.value) {
+                quizSelector.value = ''; // Clear the specific quiz selection
+            }
+            // We don't need to clear the search input, they can be combined.
+            handleGlobalSearch(); // Trigger a new global search with the category filter
+        });
+    }
+
     quizSelector.addEventListener('change', (event) => {
         const selectedScript = event.target.value;
         const url = new URL(window.location);
         if (selectedScript) {
+            if (categorySelector) categorySelector.value = ''; // Reset category dropdown
             url.searchParams.set('script', selectedScript);
             window.history.pushState({}, '', url);
             loadAndRenderQuiz(selectedScript);
