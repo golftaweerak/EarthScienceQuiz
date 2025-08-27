@@ -160,6 +160,19 @@ export const quizList = [
     category: "AstronomyPOSN"
   },
   {
+    id: "junior7",
+    title: "ดาราศาสตร์ ม.ต้น ชุด 7",
+    amount: 100,
+    description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
+    url: "./quiz/index.html?id=junior7",
+    storageKey: "quizState-junior7",
+    icon: "./assets/icons/astronomy1.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ junior7",
+    category: "AstronomyPOSN"
+  },
+
+  {
     id: "senior1",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 1",
     amount: 120,
@@ -234,6 +247,18 @@ export const quizList = [
     icon: "./assets/icons/black-hole.png",
     borderColor: "border-gray-500",
     altText: "ไอคอนสำหรับ senior6",
+    category: "AstronomyPOSN"
+  },
+  {
+    id: "senior7",
+    title: "ดาราศาสตร์ ม.ปลาย ชุด 7",
+    amount: 100,
+    description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
+    url: "./quiz/index.html?id=senior7",
+    storageKey: "quizState-senior7",
+    icon: "./assets/icons/black-hole.png",
+    borderColor: "border-gray-500",
+    altText: "ไอคอนสำหรับ senior7",
     category: "AstronomyPOSN"
   },
   {
@@ -475,7 +500,7 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_geology4",
     category: "ChallengePOSN"
   },
-    {
+  {
     id: "adv_geology5",
     title: "ธรณีวิทยา ชุดท้าทาย 5",
     amount: 20,
@@ -658,7 +683,7 @@ export const quizList = [
   {
     id: "adv_astro4",
     title: "ดาราศาสตร์ ชุดท้าทาย 4",
-    amount: 20,
+    amount: 30,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_astro4",
     storageKey: "quizState-adv_astro4",
@@ -670,7 +695,7 @@ export const quizList = [
   {
     id: "adv_astro5",
     title: "ดาราศาสตร์ ชุดท้าทาย 5",
-    amount: 20,
+    amount: 30,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_astro5",
     storageKey: "quizState-adv_astro5",
@@ -717,7 +742,7 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_astro8",
     category: "ChallengePOSN"
   },
-    {
+  {
     id: "adv_astro9",
     title: "ดาราศาสตร์ ชุดท้าทาย 9",
     amount: 30,
@@ -741,7 +766,4 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_astro10",
     category: "ChallengePOSN"
   },
-
-
-
 ];
