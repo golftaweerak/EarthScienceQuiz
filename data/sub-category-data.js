@@ -38,41 +38,47 @@ const CORE_ASTRONOMY_TOPICS = {
   TELESCOPES: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
 };
 
+export const GEOLOGY_TOPICS = Object.freeze({
+  STRUCTURE_AND_TECTONICS: "โครงสร้างโลกและธรณีแปรสัณฐาน",
+  MINERALS_ROCKS_CYCLE: "แร่ หิน และวัฏจักรหิน",
+  GEOHISTORY_STRATIGRAPHY: "ธรณีประวัติและลำดับชั้นหิน",
+  GEOMORPHOLOGY_SURFACE_PROCESSES: "ธรณีสัณฐานและกระบวนการบนพื้นผิวโลก",
+  GEOHAZARDS: "ธรณีพิบัติภัย",
+  GEORESOURCES_ENVIRONMENT: "ทรัพยากรธรณีและธรณีวิทยาสิ่งแวดล้อม",
+  MAPS_SURVEYING: "แผนที่และการสำรวจทางธรณีวิทยา",
+});
+
+export const METEOROLOGY_TOPICS = Object.freeze({
+  COMPOSITION_LAYERS: "องค์ประกอบและชั้นบรรยากาศ",
+  ENERGY_BALANCE_RADIATION: "สมดุลพลังงานของโลกและรังสี",
+  TEMP_PRESSURE_WIND: "อุณหภูมิ ความกดอากาศ และลม",
+  HUMIDITY_CLOUDS_PRECIPITATION: "ความชื้น เมฆ และหยาดน้ำฟ้า",
+  AIR_MASSES_FRONTS: "มวลอากาศและแนวปะทะอากาศ",
+  STORMS_SEVERE_WEATHER: "พายุและสภาพอากาศรุนแรง",
+  WEATHER_MAPS_FORECASTING: "แผนที่อากาศและการพยากรณ์อากาศ",
+  CLIMATE_CHANGE: "ภูมิอากาศและการเปลี่ยนแปลง",
+});
+
+export const OCEANOGRAPHY_TOPICS = Object.freeze({
+  PHYSICAL_CHEMICAL_PROPERTIES: "คุณสมบัติทางกายภาพและเคมีของน้ำทะเล",
+  WAVES_TIDES_CURRENTS: "คลื่น น้ำขึ้นน้ำลง และการหมุนเวียนของกระแสน้ำ",
+  OCEAN_ATMOSPHERE_INTERACTION: "ปฏิสัมพันธ์ระหว่างมหาสมุทรและบรรยากาศ",
+  MARINE_LIFE_ECOSYSTEMS: "สิ่งมีชีวิตและระบบนิเวศทางทะเล",
+  SEAFLOOR_GEOLOGY_MORPHOLOGY: "ธรณีวิทยาและสัณฐานพื้นสมุทร",
+  MARINE_RESOURCES_POLLUTION: "ทรัพยากรและมลพิษทางทะเล",
+});
+
 export const subCategoryData = {
   // Sub-categories for "วิทยาศาสตร์โลกและอวกาศ" (Earth & Space Science)
   // These are grouped by main topic (Geology, Meteorology, Astronomy)
   // and are typically used in the `specific` field of the subCategory object.
   EarthAndSpace: {
-    Geology: [
-      "โครงสร้างโลกและธรณีแปรสัณฐาน",
-      "แร่ หิน และวัฏจักรหิน",
-      "ธรณีประวัติและลำดับชั้นหิน",
-      "ธรณีสัณฐานและกระบวนการบนพื้นผิวโลก",
-      "ธรณีพิบัติภัย",
-      "ทรัพยากรธรณีและธรณีวิทยาสิ่งแวดล้อม",
-      "แผนที่และการสำรวจทางธรณีวิทยา",
-    ],
-    Meteorology: [
-      "องค์ประกอบและชั้นบรรยากาศ",
-      "สมดุลพลังงานของโลกและรังสี",
-      "อุณหภูมิ ความกดอากาศ และลม",
-      "ความชื้น เมฆ และหยาดน้ำฟ้า",
-      "มวลอากาศและแนวปะทะอากาศ",
-      "พายุและสภาพอากาศรุนแรง",
-      "แผนที่อากาศและการพยากรณ์อากาศ",
-      "ภูมิอากาศและการเปลี่ยนแปลง",
-    ],
+    Geology: [...Object.values(GEOLOGY_TOPICS)],
+    Meteorology: [...Object.values(METEOROLOGY_TOPICS)],
     Astronomy: [
       ...Object.values(CORE_ASTRONOMY_TOPICS)
     ],
-    Oceanography: [
-      "คุณสมบัติทางกายภาพและเคมีของน้ำทะเล",
-      "คลื่น น้ำขึ้นน้ำลง และการหมุนเวียนของกระแสน้ำ",
-      "ปฏิสัมพันธ์ระหว่างมหาสมุทรและบรรยากาศ",
-      "สิ่งมีชีวิตและระบบนิเวศทางทะเล",
-      "ธรณีวิทยาและสัณฐานพื้นสมุทร",
-      "ทรัพยากรและมลพิษทางทะเล",
-    ],
+    Oceanography: [...Object.values(OCEANOGRAPHY_TOPICS)],
   },
 
   /**
