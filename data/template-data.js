@@ -71,6 +71,8 @@ export const quizItems = [
   // ... คุณสามารถเพิ่ม Scenario หรือ Question ต่อไปได้เรื่อยๆ ...
   {
   // 1. เพิ่ม type: 'multiple-select'
+  // (ไม่บังคับ) ใส่ number หากเป็นคำถามระดับบนสุด (ไม่ใช่คำถามย่อยใน scenario)
+  number: 4,
   type: 'multiple-select', 
   question: "จากตัวเลือกต่อไปนี้ ข้อใดคือแก๊สเรือนกระจก (Greenhouse Gas)? (เลือกตอบได้มากกว่า 1 ข้อ)",
   options: [
