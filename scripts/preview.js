@@ -460,9 +460,11 @@ function renderQuizData() {
 
     } else if (document.getElementById('quiz-selector').value) {
         // This case handles when a script was selected but it was empty or invalid
+        const quizSelector = document.getElementById('quiz-selector');
+        const selectedQuizTitle = quizSelector.options[quizSelector.selectedIndex].text;
         container.innerHTML = `<div class="bg-yellow-100 dark:bg-yellow-900/50 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-300 p-4 rounded-r-lg" role="alert">
-                                   <p class="font-bold">ไม่พบข้อมูล</p>
-                                   <p>ไม่พบตัวแปร <strong>quizData</strong> หรือ <strong>quizItems</strong> ในไฟล์สคริปต์ที่ระบุ. โปรดตรวจสอบว่าไฟล์มีตัวแปรนี้อยู่</p>
+                                   <p class="font-bold">ไม่พบข้อมูลคำถาม</p>
+                                   <p>ไม่พบคำถามสำหรับชุดข้อสอบ: <strong>"${selectedQuizTitle}"</strong>. อาจเป็นเพราะข้อมูลยังไม่ถูกเพิ่มหรือมีข้อผิดพลาดในการจับคู่ชื่อชุดข้อสอบ</p>
                                </div>`;
     }
 }
@@ -728,9 +730,9 @@ export function initializePreviewPage() {
             renderQuizData();
         } catch (error) {
             console.error(`Failed to load or render quiz ${scriptName}:`, error);
-            container.innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 rounded-r-lg" role="alert">
+            container.innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4" role="alert">
                                        <p class="font-bold">เกิดข้อผิดพลาด</p>
-                                       <p>ไม่สามารถโหลดหรือประมวลผลไฟล์ <strong>${scriptPath}</strong> ได้. โปรดตรวจสอบว่าไฟล์ถูกต้องและไม่มีข้อผิดพลาด. (${error.message})</p>
+                                       <p>ไม่สามารถโหลดข้อมูลสำหรับชุดข้อสอบ <strong>${scriptName}</strong> ได้. (${error.message})</p>
                                    </div>`;
         }
     }

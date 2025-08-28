@@ -104,6 +104,12 @@ export const subCategoryData = {
     { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
   ],
 };
+
+/**
+ * @deprecated This is for backward compatibility with modules that still import combinedAstronomyTopics.
+ * Please update imports to use `subCategoryData.ASTRONOMY_POSN` instead.
+ */
+export const combinedAstronomyTopics = subCategoryData.ASTRONOMY_POSN;
 /*
 /**
  * Maps filename prefixes to their corresponding main categories, icons, and sub-category validation keys.
