@@ -288,8 +288,9 @@ export function initializePage() {
   /**
    * Updates the floating navigation bar based on the currently active section.
    * @param {HTMLElement|null} activeToggle - The toggle element of the currently open section, or null to hide.
+   * @param {NodeListOf<Element>} allToggles - A collection of all section toggle elements.
    */
-  function updateFloatingNav(activeToggle) {
+  function updateFloatingNav(activeToggle, allToggles) {
     const floatingNavContainer = document.getElementById('floating-nav-container');
     const floatingNavButtons = document.getElementById('floating-nav-buttons');
     if (!floatingNavContainer || !floatingNavButtons) return;
@@ -367,7 +368,6 @@ export function initializePage() {
     });
     fragment.appendChild(scrollToTopBtn);
 
-    const allToggles = getSectionToggles();
     // Add a separator if there are other buttons to navigate to.
     if (allToggles.length > 1) {
       const separator = document.createElement("hr");
@@ -506,7 +506,7 @@ export function initializePage() {
       }
 
       // After all state changes, update the floating nav based on the new state.
-      updateFloatingNav(currentlyOpenSectionToggle);
+      updateFloatingNav(currentlyOpenSectionToggle, sectionToggles);
     });
   });
 
@@ -534,7 +534,7 @@ export function initializePage() {
       } else {
         // If the section is already open, the click won't change the state,
         // so we need to manually ensure the floating nav is visible and updated.
-        updateFloatingNav(targetToggle);
+        updateFloatingNav(targetToggle, sectionToggles);
       }
       // Use a longer timeout here as well to ensure any closing animation has finished
       // before scrolling, which gives a more stable final position. The animation
