@@ -13,7 +13,7 @@ export const quizItems = [
       นักดาราศาสตร์ได้รวบรวมข้อมูลของดาวฤกษ์ 5 ดวงที่น่าสนใจ ดังตารางด้านล่าง ให้นักเรียนใช้ข้อมูลนี้เพื่อตอบคำถาม 5 ข้อถัดไป (กำหนดให้ \\(M_\\odot \\approx +4.8\\), \\(T_\\odot \\approx 5800\\) K)
       <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
         <table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
-          <thead class="bg-slate-100 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+          <thead class="bg-slate-100 text-xs uppercase text-slate-700 dark:bg-slate-700 dark:text-slate-300">
             <tr>
               <th scope="col" class="px-6 py-3">ดาวฤกษ์</th>
               <th scope="col" class="px-6 py-3 text-center">โชติมาตรปรากฏ (m)</th>
