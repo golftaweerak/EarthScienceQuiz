@@ -40,7 +40,7 @@ export const toggleAccordion = (toggleElement, forceState) => {
     // Animate inner content opacity and transform for a smoother "fade and slide in" effect.
     if (innerContent) {
         // The delay helps the fade-in feel more natural as the container expands.
-        innerContent.style.transitionDelay = shouldBeOpen ? "150ms" : "0ms";
+        innerContent.style.transitionDelay = shouldBeOpen ? "150ms" : "0ms"; 
         innerContent.classList.toggle("opacity-100", shouldBeOpen);
         innerContent.classList.toggle("translate-y-0", shouldBeOpen);
         innerContent.classList.toggle("opacity-0", !shouldBeOpen);
