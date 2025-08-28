@@ -1,7 +1,7 @@
 
 export const quizList = [
   {
-    id: "Astro1",
+    id : "Astro1",
     title: "ทบทวน ดาราศาสตร์ ชุด 1",
     amount: 50,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
