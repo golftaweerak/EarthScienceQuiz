@@ -29,7 +29,7 @@ export const MAIN_CATEGORIES = {
  * Centralized constants for core astronomy topics to avoid duplication
  * and ensure consistency between EarthAndSpace and ASTRONOMY_POSN lists.
  */
-const CORE_ASTRONOMY_TOPICS = {
+export const CORE_ASTRONOMY_TOPICS = {
   SPHERICAL_ASTRONOMY: "ทรงกลมท้องฟ้าและระบบพิกัด",
   CELESTIAL_MECHANICS: "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์",
   SOLAR_SYSTEM: "ระบบสุริยะและองค์ประกอบ",
