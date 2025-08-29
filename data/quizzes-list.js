@@ -684,7 +684,7 @@ export const quizList = [
   {
     id: "adv_astro4",
     title: "ดาราศาสตร์ ชุดท้าทาย 4",
-    amount: 30,
+    amount: 40,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_astro4",
     storageKey: "quizState-adv_astro4",
