@@ -29,14 +29,14 @@ export const MAIN_CATEGORIES = {
  * Centralized constants for core astronomy topics to avoid duplication
  * and ensure consistency between EarthAndSpace and ASTRONOMY_POSN lists.
  */
-export const CORE_ASTRONOMY_TOPICS = {
+export const CORE_ASTRONOMY_TOPICS = Object.freeze({
   SPHERICAL_ASTRONOMY: "ทรงกลมท้องฟ้าและระบบพิกัด",
   CELESTIAL_MECHANICS: "กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์",
   SOLAR_SYSTEM: "ระบบสุริยะและองค์ประกอบ",
   STARS: "สมบัติและวิวัฒนาการของดาวฤกษ์",
   GALAXIES: "กาแล็กซีและเอกภพวิทยา",
   TELESCOPES: "กล้องโทรทรรศน์และเทคโนโลยีอวกาศ",
-};
+});
 
 export const GEOLOGY_TOPICS = Object.freeze({
   STRUCTURE_AND_TECTONICS: "โครงสร้างโลกและธรณีแปรสัณฐาน",

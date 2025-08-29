@@ -151,7 +151,7 @@ export const quizList = [
   {
     id: "junior6",
     title: "ดาราศาสตร์ ม.ต้น ชุด 6",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior6",
     storageKey: "quizState-junior6",
@@ -163,7 +163,7 @@ export const quizList = [
   {
     id: "junior7",
     title: "ดาราศาสตร์ ม.ต้น ชุด 7",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior7",
     storageKey: "quizState-junior7",
@@ -202,7 +202,7 @@ export const quizList = [
   {
     id: "senior3",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 3",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior3",
@@ -216,7 +216,7 @@ export const quizList = [
   {
     id: "senior4",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 4",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior4",
@@ -229,7 +229,7 @@ export const quizList = [
   {
     id: "senior5",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 5",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior5",
     storageKey: "quizState-senior5",
@@ -241,7 +241,7 @@ export const quizList = [
   {
     id: "senior6",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 6",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior6",
     storageKey: "quizState-senior6",
@@ -253,7 +253,7 @@ export const quizList = [
   {
     id: "senior7",
     title: "ดาราศาสตร์ ม.ปลาย ชุด 7",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=senior7",
     storageKey: "quizState-senior7",
