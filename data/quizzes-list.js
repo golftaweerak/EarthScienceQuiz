@@ -1,7 +1,7 @@
 
 export const quizList = [
   {
-    id : "Astro1",
+    id: "Astro1",
     title: "ทบทวน ดาราศาสตร์ ชุด 1",
     amount: 50,
     description: "แบบฝึกหัด ทบทวนความเข้าใจทางดาราศาสตร์",
@@ -767,16 +767,4 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_astro10",
     category: "ChallengePOSN"
   },
-,
-  {
-      "id": "Astro1",
-      "title": "ชุดข้อสอบ: Astro1 (โปรดแก้ไข)",
-      "amount": 50,
-      "description": "คำอธิบายสำหรับชุดข้อสอบนี้ (โปรดแก้ไข)",
-      "url": "./quiz/index.html?id=Astro1",
-      "storageKey": "quizState-Astro1",
-      "icon": "./assets/icons/space.png",
-      "borderColor": "border-gray-500",
-      "altText": "ไอคอนสำหรับ Astro1",
-      "category": "AstronomyGeneral"
-  }];
+];
