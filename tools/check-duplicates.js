@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import path from "path";
 import { performance } from "perf_hooks";
 import { fileURLToPath, pathToFileURL } from "url";
+import chalk from "chalk";
 
 /**
  * A utility script to check for duplicate and similar questions across all data files.
@@ -14,6 +15,7 @@ import { fileURLToPath, pathToFileURL } from "url";
  * To run:
  * 1. Make sure you have a package.json with "type": "module".
  * 2. Run `node tools/check-duplicates.js` from the project root.
+ * 3. To force checking all files, run `node tools/check-duplicates.js --all`.
  */
 
 // --- Configuration for Similarity Check ---
@@ -101,6 +103,7 @@ function calculateSetSimilarity(set1, set2) {
 }
 
 async function checkDuplicatesAndSimilarities() {
+    const checkAllFiles = process.argv.includes('--all');
     const startTime = performance.now();
 
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -108,20 +111,26 @@ async function checkDuplicatesAndSimilarities() {
 
     // --- Load Filtering Criteria from sub-category-data.js ---
     let validPrefixes = null; // null indicates to check all files
-    try {
-        const subCategoryDataPath = path.join(dataDir, "sub-category-data.js");
-        const subCategoryFileUrl = `${pathToFileURL(subCategoryDataPath).href}?v=${Date.now()}`;
-        const subCategoryModule = await import(subCategoryFileUrl);
-        if (subCategoryModule.subCategoryData && Array.isArray(subCategoryModule.subCategoryData)) {
-            validPrefixes = new Set(subCategoryModule.subCategoryData.map(item => item.prefix));
-            console.log(`ℹ️  Loaded ${validPrefixes.size} valid prefixes. Will only check files matching these prefixes.`);
-        } else {
-            console.warn("⚠️  Could not find 'subCategoryData' array in sub-category-data.js. Checking all files.");
-        }
-    } catch (e) {
-        // If the file doesn't exist, that's fine. We just check all files.
-        if (e.code !== 'ERR_MODULE_NOT_FOUND') {
-            console.warn("⚠️  Could not load or parse sub-category-data.js. Checking all files.");
+
+    if (checkAllFiles) {
+        console.log("ℹ️  `--all` flag detected. Checking all `-data.js` files.");
+    } else {
+        try {
+            const subCategoryDataPath = path.join(dataDir, "sub-category-data.js");
+            const subCategoryFileUrl = `${pathToFileURL(subCategoryDataPath).href}?v=${Date.now()}`;
+            const subCategoryModule = await import(subCategoryFileUrl);
+            // Correctly target the 'quizPrefixInfo' array which contains the prefixes.
+            if (subCategoryModule.quizPrefixInfo && Array.isArray(subCategoryModule.quizPrefixInfo)) {
+                validPrefixes = new Set(subCategoryModule.quizPrefixInfo.map(item => item.prefix));
+                console.log(chalk.blue(`ℹ️  Loaded ${validPrefixes.size} valid prefixes. Will only check files matching these prefixes.`));
+            } else {
+                console.warn(chalk.yellow("⚠️  Could not find 'quizPrefixInfo' array in sub-category-data.js. Checking all files."));
+            }
+        } catch (e) {
+            // If the file doesn't exist, that's fine. We just check all files.
+            if (e.code !== 'ERR_MODULE_NOT_FOUND') {
+                console.warn(chalk.yellow("⚠️  Could not load or parse sub-category-data.js. Checking all files."));
+            }
         }
     }
 
@@ -134,10 +143,21 @@ async function checkDuplicatesAndSimilarities() {
     let duplicateCount = 0;
     let checkedFileCount = 0;
 
-    console.log("\n🔍 PASS 1: Checking for EXACT DUPLICATES across relevant data files...");
+    console.log(chalk.bold("\n🔍 PASS 1: Checking for EXACT DUPLICATES across relevant data files..."));
 
     // --- PASS 1: Find Duplicates and Collect Unique Questions ---
     for (const file of dataFiles) {
+        // --- Apply Prefix Filter ---
+        // If validPrefixes is a Set and --all is not used, we apply the filter.
+        if (validPrefixes && !checkAllFiles) {
+            // Check if the filename starts with any of the valid prefixes.
+            const fileMatchesPrefix = [...validPrefixes].some(prefix => file.startsWith(prefix));
+            if (!fileMatchesPrefix) {
+                continue; // Skip this file as it doesn't match the prefix criteria
+            }
+        }
+
+        checkedFileCount++;
         const filePath = path.join(dataDir, file);
         // Use a cache-busting query string for dynamic import to get the latest file content
         const fileUrl = `${pathToFileURL(filePath).href}?v=${Date.now()}`;
@@ -145,26 +165,15 @@ async function checkDuplicatesAndSimilarities() {
         try {
             module = await import(fileUrl);
         } catch (e) {
-            console.error(`\n❌ Error importing file: ${file}`);
+            console.error(chalk.red(`\n❌ Error importing file: ${file}`));
             console.error(e);
             continue;
         }
 
-        // --- Apply Prefix Filter ---
-        // If validPrefixes is a Set, we apply the filter. Otherwise (if it's null), we check all files.
-        if (validPrefixes) {
-            const quizPrefixInfo = module.quizPrefixInfo;
-            if (!quizPrefixInfo || !quizPrefixInfo.prefix || !validPrefixes.has(quizPrefixInfo.prefix)) {
-                continue; // Skip this file as it doesn't match the prefix criteria
-            }
-        }
-
-        checkedFileCount++;
-
         const quizItems = module.quizItems;
 
         if (!quizItems) {
-            console.warn(`⚠️  Could not find 'quizItems' array in ${file}. Skipping.`);
+            console.warn(chalk.yellow(`⚠️  Could not find 'quizItems' array in ${file}. Skipping.`),);
             continue;
         }
 
@@ -183,14 +192,16 @@ async function checkDuplicatesAndSimilarities() {
                 duplicateCount++;
                 const firstSeen = seenQuestions.get(uniqueKey);
                 if (duplicateCount === 1) {
-                    console.log("\n--- Found Duplicates ---");
+                    console.log(chalk.red.bold("\n--- Found Duplicates ---"));
                 }
-                console.error(`\n❗️ DUPLICATE #${duplicateCount}:`);
-                console.error(`  - Question: "${questionText.substring(0, 80)}..."`);
-                console.error(`  - Found in: ${file} (#${questionItem.number})`);
-                console.error(`  - First seen in: ${firstSeen.file} (#${firstSeen.number})`);
+                console.error(chalk.red.bold(`\n❗️ DUPLICATE #${duplicateCount}:`));
+                console.error(`  - First instance: ${chalk.cyan(`${firstSeen.file} (ID: ${firstSeen.id}, #${firstSeen.number})`)}`);
+                console.error(`    > ${chalk.gray(firstSeen.questionText)}`);
+                console.error(`  - Duplicate instance: ${chalk.cyan(`${file} (ID: ${questionItem.id || 'N/A'}, #${questionItem.number})`)}`);
+                console.error(`    > ${chalk.gray(questionText)}`);
             } else {
                 const questionInfo = {
+                    id: questionItem.id || 'N/A',
                     file,
                     number: questionItem.number,
                     questionText,
@@ -205,8 +216,8 @@ async function checkDuplicatesAndSimilarities() {
 
     // --- PASS 2: Find Similarities among Unique Questions ---
     let similarPairCount = 0;
-    console.log(`\n🔍 PASS 2: Checking for SIMILAR questions among ${uniqueQuestions.length} unique items...`);
-    console.log(`   (Thresholds: Question > ${SIMILARITY_THRESHOLD_QUESTION*100}%, Options > ${SIMILARITY_THRESHOLD_OPTIONS*100}%)`);
+    console.log(chalk.bold(`\n🔍 PASS 2: Checking for SIMILAR questions among ${uniqueQuestions.length} unique items...`));
+    console.log(chalk.gray(`   (Thresholds: Question > ${SIMILARITY_THRESHOLD_QUESTION*100}%, Options > ${SIMILARITY_THRESHOLD_OPTIONS*100}%)`));
 
     for (let i = 0; i < uniqueQuestions.length; i++) {
         for (let j = i + 1; j < uniqueQuestions.length; j++) {
@@ -220,29 +231,33 @@ async function checkDuplicatesAndSimilarities() {
 
                 if (optionsSimilarity >= SIMILARITY_THRESHOLD_OPTIONS) {
                     similarPairCount++;
+                    const qSim = (questionSimilarity * 100).toFixed(1);
+                    const oSim = (optionsSimilarity * 100).toFixed(1);
                     if (similarPairCount === 1) {
-                        console.log("\n--- Found Similar Questions ---");
+                        console.log(chalk.yellow.bold("\n--- Found Similar Questions ---"));
                     }
-                    console.warn(`\n⚠️  SIMILAR PAIR #${similarPairCount} (Q:${(questionSimilarity*100).toFixed(1)}%, O:${(optionsSimilarity*100).toFixed(1)}%):`);
-                    console.warn(`  - Q1: "${q1.questionText.substring(0, 80)}..." (in ${q1.file} #${q1.number})`);
-                    console.warn(`  - Q2: "${q2.questionText.substring(0, 80)}..." (in ${q2.file} #${q2.number})`);
+                    console.warn(chalk.yellow.bold(`\n⚠️  SIMILAR PAIR #${similarPairCount} (Question: ${qSim}%, Options: ${oSim}%):`));
+                    console.warn(`  - Q1: ${chalk.cyan(`${q1.file} (ID: ${q1.id}, #${q1.number})`)}`);
+                    console.warn(`    > ${chalk.gray(q1.questionText)}`);
+                    console.warn(`  - Q2: ${chalk.cyan(`${q2.file} (ID: ${q2.id}, #${q2.number})`)}`);
+                    console.warn(`    > ${chalk.gray(q2.questionText)}`);
                 }
             }
         }
     }
 
-    console.log("\n--- Check complete ---");
-    console.log(`ℹ️  Checked a total of ${checkedFileCount} files.`);
+    console.log(chalk.bold("\n--- Check complete ---"));
+    console.log(chalk.blue(`ℹ️  Checked a total of ${checkedFileCount} files.`));
     if (duplicateCount === 0) {
-        console.log("✅ No duplicate questions found. All questions are unique.");
+        console.log(chalk.green("✅ No duplicate questions found. All questions are unique."));
     } else {
-        console.log(`❌ Found a total of ${duplicateCount} duplicate question instances.`);
+        console.error(chalk.red.bold(`❌ Found a total of ${duplicateCount} duplicate question instances.`));
     }
 
     if (similarPairCount === 0) {
-        console.log("✅ No highly similar question pairs found.");
+        console.log(chalk.green("✅ No highly similar question pairs found."));
     } else {
-        console.log(`⚠️  Found a total of ${similarPairCount} pairs of similar questions.`);
+        console.warn(chalk.yellow.bold(`⚠️  Found a total of ${similarPairCount} pairs of similar questions.`));
     }
 
     const endTime = performance.now();
