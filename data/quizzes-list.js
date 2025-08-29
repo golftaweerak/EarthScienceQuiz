@@ -113,7 +113,7 @@ export const quizList = [
   {
     id: "junior3",
     title: "ดาราศาสตร์ ม.ต้น ชุด 3",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior3",
@@ -126,7 +126,7 @@ export const quizList = [
   {
     id: "junior4",
     title: "ดาราศาสตร์ ม.ต้น ชุด 4",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบความเข้าใจพื้นฐานทางดาราศาสตร์และฟิสิกส์ที่เกี่ยวข้อง",
     url: "./quiz/index.html?id=junior4",
