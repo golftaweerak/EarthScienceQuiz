@@ -49,6 +49,29 @@ const config = {
   };
 
 /**
+ * Parses the subCategory property from a question object and returns a standardized format.
+ * This centralizes the logic for handling both old (string) and new (object) formats.
+ * @param {object|string} subCategory - The subCategory property from a question.
+ * @returns {{main: string, specific: string|null}} An object with main and specific category names.
+ */
+function getCategoryNames(subCategory) {
+    if (!subCategory) {
+        return { main: 'ไม่มีหมวดหมู่', specific: null };
+    }
+    if (typeof subCategory === 'object' && subCategory.main) {
+        return {
+            main: subCategory.main,
+            specific: subCategory.specific || null // Return null if not present
+        };
+    }
+    if (typeof subCategory === 'string') {
+        // Legacy format, treat the whole string as the main category
+        return { main: subCategory, specific: null };
+    }
+    return { main: 'ไม่มีหมวดหมู่', specific: null }; // Fallback for unknown formats
+}
+
+/**
  * Initializes the entire quiz application.
  * This function is the main entry point for the quiz logic, called by quiz-loader.js.
  * @param {Array} quizData - The array of question objects for the quiz.
@@ -619,21 +642,9 @@ function setFloatingNav(active) {
     // Calculate score by subcategory
     // This new logic groups by main category first, then by specific subcategory.
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
-      if (!answer || !answer.subCategory) return acc;
-
-      let mainCategory, specificCategory;
-
-      // Handle both new object format and old string format for subCategory
-      if (typeof answer.subCategory === 'object' && answer.subCategory.main) {
-          mainCategory = answer.subCategory.main;
-          specificCategory = answer.subCategory.specific || 'ทั่วไป';
-      } else if (typeof answer.subCategory === 'string') {
-          // Fallback for older data: use the string as the main category.
-          mainCategory = answer.subCategory;
-          specificCategory = '—'; // Use a placeholder for no specific sub-category
-      } else {
-          return acc; // Skip if format is unknown
-      }
+      if (!answer) return acc;
+      const { main: mainCategory, specific: specificName } = getCategoryNames(answer.subCategory);
+      const specificCategory = specificName || '—'; // Use a placeholder for grouping
 
       // Initialize main category if it doesn't exist
       if (!acc[mainCategory]) {
@@ -1137,12 +1148,7 @@ function setFloatingNav(active) {
 
         // --- Filter UI ---
         // Build category filter based on the incorrect answers to start with relevant filters
-        const subCategories = [...new Set(incorrectAnswers.map(a => {
-            if (typeof a.subCategory === 'object' && a.subCategory.main) {
-                return a.subCategory.main;
-            }
-            return a.subCategory || 'ไม่มีหมวดหมู่';
-        }))];
+        const subCategories = [...new Set(incorrectAnswers.map(a => getCategoryNames(a.subCategory).main))];
         if (subCategories.length > 1) {
             // Create category dropdown
             const filterContainer = document.createElement('div');
@@ -1207,25 +1213,17 @@ function setFloatingNav(active) {
   function renderReviewItems(sourceAnswers, filterCategory, totalIncorrect) {
       elements.reviewContainer.innerHTML = ""; // Clear previous items
 
-      const filteredAnswers =
-        filterCategory === "all" ?
-        sourceAnswers :
-        sourceAnswers.filter((answer) => {
-              let categoryName = "ไม่มีหมวดหมู่";
-              if (typeof answer.subCategory === "object" && answer.subCategory.main) {
-                categoryName = answer.subCategory.main;
-              } else if (typeof answer.subCategory === "string") {
-                categoryName = answer.subCategory;
-              }
-              return categoryName === filterCategory;
-            });
+      const filteredAnswers = sourceAnswers.filter(answer => {
+          if (filterCategory === 'all') return true;
+          return getCategoryNames(answer.subCategory).main === filterCategory;
+      });
 
       const countDisplay = document.getElementById('review-count-display');
       if (countDisplay) {
           countDisplay.textContent = `แสดง ${filteredAnswers.length} ข้อ (จากทั้งหมด ${totalIncorrect} ข้อที่ตอบผิด)`;
       }
 
-      if (filteredAnswers.length === 0 && filterCategory !== 'all') {
+      if (filteredAnswers.length === 0) {
           elements.reviewContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-4">ไม่พบข้อที่ตรงตามเงื่อนไขในหมวดหมู่นี้</p>`;
           return;
       }
@@ -1244,16 +1242,11 @@ function setFloatingNav(active) {
         const explanationHtml = answer.explanation ? answer.explanation.replace(/\n/g, "<br>") : "";
 
         // --- Improved Tag Generation ---
+        const { main: mainCategory, specific: specificName } = getCategoryNames(answer.subCategory);
         const tags = [];
-        if (answer.subCategory) {
-            if (typeof answer.subCategory === 'object' && answer.subCategory.main) {
-                const fullCategory = answer.subCategory.specific 
-                    ? `${answer.subCategory.main} &gt; ${answer.subCategory.specific}`
-                    : answer.subCategory.main;
-                tags.push(fullCategory);
-            } else if (typeof answer.subCategory === 'string') {
-                tags.push(answer.subCategory);
-            }
+        if (mainCategory && mainCategory !== 'ไม่มีหมวดหมู่') {
+            const fullCategory = specificName ? `${mainCategory} &gt; ${specificName}` : mainCategory;
+            tags.push(fullCategory);
         }
 
         const tagsHtml = tags
