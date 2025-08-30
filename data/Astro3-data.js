@@ -13,20 +13,20 @@ export const quizItems = [
       นักดาราศาสตร์ได้รวบรวมข้อมูลของดาวฤกษ์ 5 ดวงที่น่าสนใจ ดังตารางด้านล่าง ให้นักเรียนใช้ข้อมูลนี้เพื่อตอบคำถาม 5 ข้อถัดไป (กำหนดให้ \\(M_\\odot \\approx +4.8\\), \\(T_\\odot \\approx 5800\\) K)
       <div class="mt-4 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
         <table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
-          <thead class="bg-slate-100 text-xs uppercase text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+          <thead class="bg-slate-100 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-300">
             <tr>
-              <th scope="col" class="px-6 py-3">ดาวฤกษ์</th>
-              <th scope="col" class="px-6 py-3 text-center">โชติมาตรปรากฏ (m)</th>
-              <th scope="col" class="px-6 py-3 text-center">มุมพารัลแลกซ์ (p) (พิลิปดา)</th>
-              <th scope="col" class="px-6 py-3 text-center">ชนิดสเปกตรัม</th>
+              <th scope="col" class="px-4 py-3">ดาวฤกษ์</th>
+              <th scope="col" class="px-4 py-3 text-center">โชติมาตรปรากฏ (m)</th>
+              <th scope="col" class="px-4 py-3 text-center">พารัลแลกซ์ (p)</th>
+              <th scope="col" class="px-4 py-3 text-center">สเปกตรัม</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Sirius A</th><td class="px-6 py-4 text-center font-mono">-1.46</td><td class="px-6 py-4 text-center font-mono">0.379</td><td class="px-6 py-4 text-center font-mono">A1V</td></tr>
-            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Betelgeuse</th><td class="px-6 py-4 text-center font-mono">+0.50 (แปรแสง)</td><td class="px-6 py-4 text-center font-mono">0.005</td><td class="px-6 py-4 text-center font-mono">M1Iab</td></tr>
-            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Proxima Centauri</th><td class="px-6 py-4 text-center font-mono">+11.13</td><td class="px-6 py-4 text-center font-mono">0.772</td><td class="px-6 py-4 text-center font-mono">M5.5Ve</td></tr>
-            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Vega</th><td class="px-6 py-4 text-center font-mono">+0.03</td><td class="px-6 py-4 text-center font-mono">0.130</td><td class="px-6 py-4 text-center font-mono">A0V</td></tr>
-            <tr class="bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">Barnard's Star</th><td class="px-6 py-4 text-center font-mono">+9.53</td><td class="px-6 py-4 text-center font-mono">0.549</td><td class="px-6 py-4 text-center font-mono">M4V</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-4 py-4 font-medium text-slate-900 dark:text-white">Sirius A</th><td class="px-4 py-4 text-center font-mono">-1.46</td><td class="px-4 py-4 text-center font-mono">0.379</td><td class="px-4 py-4 text-center font-mono">A1V</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-4 py-4 font-medium text-slate-900 dark:text-white">Betelgeuse</th><td class="px-4 py-4 text-center font-mono">+0.50 (แปรแสง)</td><td class="px-4 py-4 text-center font-mono">0.005</td><td class="px-4 py-4 text-center font-mono">M1Iab</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-4 py-4 font-medium text-slate-900 dark:text-white">Proxima Centauri</th><td class="px-4 py-4 text-center font-mono">+11.13</td><td class="px-4 py-4 text-center font-mono">0.772</td><td class="px-4 py-4 text-center font-mono">M5.5Ve</td></tr>
+            <tr class="border-b bg-white dark:border-slate-700 dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-4 py-4 font-medium text-slate-900 dark:text-white">Vega</th><td class="px-4 py-4 text-center font-mono">+0.03</td><td class="px-4 py-4 text-center font-mono">0.130</td><td class="px-4 py-4 text-center font-mono">A0V</td></tr>
+            <tr class="bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-700/60"><th scope="row" class="whitespace-nowrap px-4 py-4 font-medium text-slate-900 dark:text-white">Barnard's Star</th><td class="px-4 py-4 text-center font-mono">+9.53</td><td class="px-4 py-4 text-center font-mono">0.549</td><td class="px-4 py-4 text-center font-mono">M4V</td></tr>
           </tbody>
         </table>
       </div>
