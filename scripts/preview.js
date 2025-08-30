@@ -4,6 +4,7 @@ import { quizList } from '../data/quizzes-list.js';
 import { fetchAllQuizData, categoryDetails as allCategoryDetails } from './data-manager.js';
 import { subCategoryData,} from '../data/sub-category-data.js';
 import { initializeGenerator } from './generator.js';
+import { exportQuizToDocx } from './docx-exporter.js';
 
 
 const CONFIG = {
@@ -571,8 +572,42 @@ export function initializePreviewPage() {
     const dataInspectorSaveBtn = document.getElementById('data-inspector-save-btn');
     const dataInspectorCopyBtn = document.getElementById('data-inspector-copy-btn');
     const dataInspectorFeedback = document.getElementById('data-inspector-feedback');
+    const exportDocxBtn = document.getElementById('export-docx-btn');
+    const loadingModal = new ModalHandler('loading-modal');
 
     let currentlyInspectedItem = null; // To hold a reference to the object being edited
+
+    // --- DOCX Export ---
+    if (exportDocxBtn) {
+        exportDocxBtn.addEventListener('click', () => {
+            const selectedOption = quizSelector.options[quizSelector.selectedIndex];
+            const quizTitle = selectedOption ? selectedOption.text : 'Exported Quiz';
+            const quizId = selectedOption ? selectedOption.value.replace('-data.js', '') : 'custom-quiz';
+
+            if (currentQuizData.length === 0) {
+                alert('ไม่มีข้อมูลคำถามให้ส่งออก');
+                return;
+            }
+
+            loadingModal.open();
+
+            // Use a timeout to allow the UI to update and show the modal
+            setTimeout(() => {
+                try {
+                    exportQuizToDocx({
+                        id: quizId,
+                        title: quizTitle,
+                        questions: currentQuizData
+                    });
+                } catch (error) {
+                    console.error("Error during DOCX export:", error);
+                    alert('เกิดข้อผิดพลาดระหว่างการส่งออกไฟล์ DOCX');
+                } finally {
+                    loadingModal.close();
+                }
+            }, 50); // 50ms delay is usually enough for the UI to repaint
+        });
+    }
 
     // Zoom functionality
     const zoomInBtn = document.getElementById('zoom-in-btn');
