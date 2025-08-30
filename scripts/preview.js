@@ -2,9 +2,10 @@ import { initializeMenu } from './menu-handler.js';
 import { ModalHandler } from './modal-handler.js';
 import { quizList } from '../data/quizzes-list.js';
 import { fetchAllQuizData, categoryDetails as allCategoryDetails } from './data-manager.js';
-import { subCategoryData,} from '../data/sub-category-data.js';
+import { subCategoryData, } from '../data/sub-category-data.js';
 import { initializeGenerator } from './generator.js';
-import { exportQuizToDocx } from './docx-exporter.js';
+
+import { exportQuizToTxt } from './txt-exporter.js';
 
 
 const CONFIG = {
@@ -32,12 +33,12 @@ async function populateCategoryFilter() {
     try {
         const { allQuestions } = await fetchAllQuizData();
         const categories = new Set();
-        
+
         allQuestions.forEach(q => {
             if (q.subCategory) {
                 const subCat = q.subCategory;
-                const subCatDisplay = (typeof subCat === 'object' && subCat.main) 
-                    ? (subCat.specific || subCat.main) 
+                const subCatDisplay = (typeof subCat === 'object' && subCat.main)
+                    ? (subCat.specific || subCat.main)
                     : (typeof subCat === 'string' ? subCat : '');
                 if (subCatDisplay) {
                     categories.add(subCatDisplay);
@@ -46,7 +47,7 @@ async function populateCategoryFilter() {
         });
 
         const sortedCategories = Array.from(categories).sort((a, b) => a.localeCompare(b, 'th'));
-        
+
         categorySelector.innerHTML = '<option value="">-- ค้นหาจากทุกหมวดหมู่ --</option>'; // Reset and add default
         sortedCategories.forEach(cat => categorySelector.add(new Option(cat, cat)));
         categorySelector.disabled = false;
@@ -85,7 +86,7 @@ function createQuestionElement(item, displayIndex, keyword) {
     const questionHeader = document.createElement('h2');
     // Use flex to align title and button
     questionHeader.className = 'flex justify-between items-center text-xl font-bold text-gray-800 dark:text-gray-200 mb-3';
-    
+
     const titleSpan = document.createElement('span');
     titleSpan.textContent = `ข้อที่ ${displayIndex}`;
     questionHeader.appendChild(titleSpan);
@@ -144,7 +145,7 @@ function createQuestionElement(item, displayIndex, keyword) {
 
             const numeralSpan = document.createElement('span');
             numeralSpan.className = 'font-semibold';
-            numeralSpan.textContent = `${thaiNumerals[index] || (index + 1)}.`;
+            numeralSpan.textContent = `${thaiNumerals[index] || (index + 1)}.`
 
             const choiceTextDiv = document.createElement('div');
             choiceTextDiv.innerHTML = highlightText(choice.replace(/\n/g, '<br>'), keyword);
@@ -182,7 +183,7 @@ function createQuestionElement(item, displayIndex, keyword) {
         explanationDiv.appendChild(content);
         questionDiv.appendChild(explanationDiv);
     }
-    
+
     // If the item has a source (from a global search), display it.
     if (item.sourceQuizTitle) {
         const sourceInfo = document.createElement('div');
@@ -192,8 +193,8 @@ function createQuestionElement(item, displayIndex, keyword) {
         if (item.subCategory) {
             // Handle both string and object structures for display
             const subCat = item.subCategory;
-            const subCatDisplay = (typeof subCat === 'object' && subCat.main) 
-                ? (subCat.specific || subCat.main) 
+            const subCatDisplay = (typeof subCat === 'object' && subCat.main)
+                ? (subCat.specific || subCat.main)
                 : (typeof subCat === 'string' ? subCat : '');
             if (subCatDisplay) {
                 // Use a line break for better readability instead of a pipe separator.
@@ -277,11 +278,11 @@ function renderQuizData() {
             const sourceQuizTitleText = item.sourceQuizTitle?.toLowerCase() || '';
 
             return questionText.includes(filterKeyword) ||
-                   choicesText.includes(filterKeyword) ||
-                   explanationText.includes(filterKeyword) ||
-                   scenarioTitleText.includes(filterKeyword) ||
-                   scenarioDescriptionText.includes(filterKeyword) ||
-                   sourceQuizTitleText.includes(filterKeyword);
+                choicesText.includes(filterKeyword) ||
+                explanationText.includes(filterKeyword) ||
+                scenarioTitleText.includes(filterKeyword) ||
+                scenarioDescriptionText.includes(filterKeyword) ||
+                sourceQuizTitleText.includes(filterKeyword);
         }) : currentQuizData;
 
         // Update the question count display
@@ -384,8 +385,8 @@ function renderQuizData() {
                 const questionsInnerDiv = document.createElement('div');
                 questionsInnerDiv.className = 'overflow-hidden space-y-6 px-4 sm:px-6 pb-6';
                 group.questions.forEach(questionItem => {
-                            questionDisplayCounter++;
-                            const questionElement = createQuestionElement(questionItem, questionDisplayCounter, filterKeyword);
+                    questionDisplayCounter++;
+                    const questionElement = createQuestionElement(questionItem, questionDisplayCounter, filterKeyword);
                     questionsInnerDiv.appendChild(questionElement);
                 });
                 questionsContainer.appendChild(questionsInnerDiv);
@@ -409,8 +410,8 @@ function renderQuizData() {
             } else {
                 // It's a standalone question, just create and append it.
                 const questionItem = group.questions[0];
-                        questionDisplayCounter++;
-                        const questionElement = createQuestionElement(questionItem, questionDisplayCounter, filterKeyword);
+                questionDisplayCounter++;
+                const questionElement = createQuestionElement(questionItem, questionDisplayCounter, filterKeyword);
                 container.appendChild(questionElement);
             }
         });
@@ -448,10 +449,10 @@ function renderQuizData() {
         if (window.renderMathInElement) {
             renderMathInElement(container, {
                 delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false},
-                    {left: '\\[', right: '\\]', display: true}
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\(', right: '\)', display: false },
+                    { left: '\\\\[', right: '\\\\\]', display: true }
                 ],
                 throwOnError: false
             });
@@ -513,8 +514,8 @@ svg" fill="none" viewBox="0 0 24 24">
             dataToProcess = dataToProcess.filter(item => {
                 if (!item.subCategory) return false;
                 const subCat = item.subCategory;
-                const subCatDisplay = (typeof subCat === 'object' && subCat.main) 
-                    ? (subCat.specific || subCat.main) 
+                const subCatDisplay = (typeof subCat === 'object' && subCat.main)
+                    ? (subCat.specific || subCat.main)
                     : (typeof subCat === 'string' ? subCat : '');
                 return subCatDisplay === selectedCategory;
             });
@@ -572,14 +573,15 @@ export function initializePreviewPage() {
     const dataInspectorSaveBtn = document.getElementById('data-inspector-save-btn');
     const dataInspectorCopyBtn = document.getElementById('data-inspector-copy-btn');
     const dataInspectorFeedback = document.getElementById('data-inspector-feedback');
-    const exportDocxBtn = document.getElementById('export-docx-btn');
+    const exportTxtBtn = document.getElementById('export-txt-btn');
+    const exportTxtKeyBtn = document.getElementById('export-txt-key-btn');   // New
     const loadingModal = new ModalHandler('loading-modal');
 
     let currentlyInspectedItem = null; // To hold a reference to the object being edited
 
-    // --- DOCX Export ---
-    if (exportDocxBtn) {
-        exportDocxBtn.addEventListener('click', () => {
+    // --- TXT Export ---
+    if (exportTxtBtn) {
+        exportTxtBtn.addEventListener('click', () => {
             const selectedOption = quizSelector.options[quizSelector.selectedIndex];
             const quizTitle = selectedOption ? selectedOption.text : 'Exported Quiz';
             const quizId = selectedOption ? selectedOption.value.replace('-data.js', '') : 'custom-quiz';
@@ -591,21 +593,50 @@ export function initializePreviewPage() {
 
             loadingModal.open();
 
-            // Use a timeout to allow the UI to update and show the modal
             setTimeout(() => {
                 try {
-                    exportQuizToDocx({
+                    exportQuizToTxt({
                         id: quizId,
                         title: quizTitle,
                         questions: currentQuizData
                     });
                 } catch (error) {
-                    console.error("Error during DOCX export:", error);
-                    alert('เกิดข้อผิดพลาดระหว่างการส่งออกไฟล์ DOCX');
+                    console.error("Error during TXT export:", error);
+                    alert('เกิดข้อผิดพลาดระหว่างการส่งออกไฟล์ TXT');
                 } finally {
                     loadingModal.close();
                 }
-            }, 50); // 50ms delay is usually enough for the UI to repaint
+            }, 50);
+        });
+    }
+
+    if (exportTxtKeyBtn) {
+        exportTxtKeyBtn.addEventListener('click', () => {
+            const selectedOption = quizSelector.options[quizSelector.selectedIndex];
+            const quizTitle = selectedOption ? selectedOption.text : 'Exported Quiz';
+            const quizId = selectedOption ? selectedOption.value.replace('-data.js', '') : 'custom-quiz';
+
+            if (currentQuizData.length === 0) {
+                alert('ไม่มีข้อมูลคำถามให้ส่งออก');
+                return;
+            }
+
+            loadingModal.open();
+
+            setTimeout(() => {
+                try {
+                    exportQuizToTxt({
+                        id: quizId,
+                        title: quizTitle,
+                        questions: currentQuizData
+                    }, true); // Pass true for includeKeyInFilename
+                } catch (error) {
+                    console.error("Error during TXT export:", error);
+                    alert('เกิดข้อผิดพลาดระหว่างการส่งออกไฟล์ TXT');
+                } finally {
+                    loadingModal.close();
+                }
+            }, 50);
         });
     }
 
@@ -700,7 +731,7 @@ export function initializePreviewPage() {
             const optgroup = document.createElement('optgroup');
             // Use the display title from the imported allCategoryDetails, or the key itself as a fallback
             optgroup.label = allCategoryDetails[categoryKey]?.title || categoryKey;
-            
+
             groupedQuizzes[categoryKey].forEach(quiz => {
                 const option = document.createElement('option');
                 option.value = `${quiz.id}-data.js`;
@@ -731,14 +762,15 @@ export function initializePreviewPage() {
         const scriptPath = `../data/${scriptName}`;
         //scriptNameEl.textContent = `กำลังแสดงผลจาก: ${scriptPath}`;
         container.innerHTML = `<div class="text-center p-8 text-gray-500 dark:text-gray-400">
-                                    <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg class="animate-spin h-8 w-8 mx-auto mb-4" xmlns="http://www.w3.org/2000/
+svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                     <p>กำลังโหลดข้อมูล...</p>
                                 </div>`;
 
-        try {            
+        try {
             // Use the centralized data manager to fetch all questions
             const { allQuestions, scenarios } = await fetchAllQuizData();
             const quizId = scriptName.replace('-data.js', '');
@@ -751,7 +783,7 @@ export function initializePreviewPage() {
 
             // Filter the questions for the selected quiz
             const flattenedData = allQuestions.filter(q => q.sourceQuizTitle === quizTitle);
-            
+
             // Add scenario info back to each question item for easier rendering
             const dataWithScenarios = flattenedData.map(item => {
                 if (item.scenarioId && scenarios.has(item.scenarioId)) {
@@ -854,18 +886,18 @@ export function initializePreviewPage() {
 
             try {
                 const newQuestionData = JSON.parse(dataInspectorTextarea.value);
-                
+
                 // Find the index of the original object in the main data array
                 const index = currentQuizData.findIndex(q => q === currentlyInspectedItem);
 
                 if (index > -1) {
                     currentQuizData[index] = newQuestionData; // Replace the old object with the new one
                     currentlyInspectedItem = newQuestionData; // Update the reference
-                    
+
                     if (dataInspectorFeedback) {
                         dataInspectorFeedback.innerHTML = `<span class="text-green-500">บันทึกข้อมูลสำเร็จ! กำลังรีเฟรช...</span>`;
                     }
-                    
+
                     setTimeout(() => {
                         dataInspectorModal.close();
                         renderQuizData(); // Re-render the entire list to reflect changes

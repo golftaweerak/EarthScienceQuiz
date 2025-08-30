@@ -29,10 +29,8 @@
         xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
         onload="console.log('KaTeX auto-render loaded.')">
         </script>
-    <!-- Mammoth.js for DOCX import -->
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
-    <!-- docx for DOCX export -->
-    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+    
+    
 
 </head>
 
@@ -77,8 +75,9 @@
             <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">เครื่องมือ:</span>
                 <div class="flex items-center gap-2">
-                    <button id="export-docx-btn" aria-label="ส่งออกเป็น .docx"
-                        class="px-3 py-1 bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-700/50 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">ส่งออกเป็น .docx</button>
+                    
+                    <button id="export-txt-btn" aria-label="ส่งออกเป็น .txt"
+                        class="px-3 py-1 bg-green-100 dark:bg-green-800/50 text-green-700 dark:text-green-300 rounded-md hover:bg-green-200 dark:hover:bg-green-700/50 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">ส่งออกเป็น .txt</button>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">ปรับขนาดตัวอักษร:</span>
@@ -112,42 +111,6 @@
         <div id="footer-placeholder" class="mt-12"></div>
     </div>
 
-    <!-- Scenario Details Modal -->
-    <div id="scenario-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div id="scenario-modal-content"
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full anim-modal-pop-in">
-            <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
-            </h3>
-            <div id="scenario-modal-description"
-                class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-4">
-            </div>
-            <button id="scenario-modal-close" data-modal-close aria-label="ปิด"
-                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Loading Modal -->
-    <div id="loading-modal"
-        class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun">
-        <div
-            class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-sm w-full text-center">
-            <svg class="animate-spin h-8 w-8 mx-auto mb-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 font-kanit">
-                กำลังสร้างไฟล์ .docx
-            </h3>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">กรุณารอสักครู่...</p>
-        </div>
-    </div>
-
     <!-- Scroll to Top Button -->
     <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
         class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
@@ -156,8 +119,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
         </svg>
     </button>
+    <!-- Placeholder for all common modals -->
+    <div id="modals-placeholder"></div>
 
-    <script src="./scripts/preview-loader.js" type="module"></script>
+    <script src="./scripts/preview-data-loader.js" type="module"></script>
 </body>
 
 </html>

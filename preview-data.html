@@ -29,8 +29,8 @@
         xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
         onload="console.log('KaTeX auto-render loaded.')">
     </script>
-    <!-- Add mammoth.js for DOCX import -->
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    
+    
 
 </head>
 
@@ -69,6 +69,11 @@
                         <div>
                             <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 font-kanit">
                                 แสดงตัวอย่างชุดข้อสอบ</h1>
+                        </div>
+                        <div class="flex items-center gap-2"> <!-- Wrapper for buttons -->
+                            
+                            <button id="export-txt-key-btn" aria-label="ส่งออกเป็น .txt (พร้อมเฉลย)"
+                                class="px-3 py-1 bg-green-100 dark:bg-green-800/50 text-green-700 dark:text-green-300 rounded-md hover:bg-green-200 dark:hover:bg-green-700/50 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed">ส่งออกเป็น .txt (พร้อมเฉลย)</button>
                         </div>
                     </div>
                     <div class="mt-6">
@@ -173,14 +178,7 @@
                                     </svg>
                                     เพิ่มสถานการณ์
                                 </button>
-                                <button type="button" id="gen-import-docx-btn"
-                                    class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition text-sm font-bold inline-flex items-center gap-2 shadow-sm hover:shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                    นำเข้าจาก .docx
-                                </button>
-                                <input type="file" id="gen-docx-input" class="hidden" accept=".docx">
+                                
                             </div>
                             <div class="mt-4">
                                 <details class="group">
