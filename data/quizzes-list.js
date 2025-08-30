@@ -316,7 +316,7 @@ export const quizList = [
   {
     id: "ES4",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 4",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES4",
@@ -329,7 +329,7 @@ export const quizList = [
   {
     id: "ES5",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 5",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES5",
@@ -342,7 +342,7 @@ export const quizList = [
   {
     id: "ES6",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 6",
-    amount: 100,
+    amount: 120,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES6",
@@ -379,7 +379,7 @@ export const quizList = [
   {
     id: "ES7",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 7",
-    amount: 90,
+    amount: 120,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES7",
@@ -392,7 +392,7 @@ export const quizList = [
   {
     id: "ES8",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 8",
-    amount: 90,
+    amount: 120,
     description:
       "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES8",
@@ -405,7 +405,7 @@ export const quizList = [
   {
     id: "ES9",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 9",
-    amount: 90,
+    amount: 120,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES9",
     storageKey: "quizState-ES9",
@@ -417,7 +417,7 @@ export const quizList = [
   {
     id: "ES10",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 10",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES10",
     storageKey: "quizState-ES10",
@@ -441,7 +441,7 @@ export const quizList = [
   {
     id: "ES12",
     title: "วิทยาศาสตร์โลกและอวกาศ ชุด 12",
-    amount: 100,
+    amount: 120,
     description: "แบบทดสอบครอบคลุมเนื้อหา ธรณีวิทยา อุตุนิยมวิทยา และดาราศาสตร์",
     url: "./quiz/index.html?id=ES12",
     storageKey: "quizState-ES12",
@@ -576,7 +576,7 @@ export const quizList = [
   {
     id: "adv_oceanography1",
     title: "สมุทรศาสตร์ ชุดท้าทาย 1",
-    amount: 20,
+    amount: 40,
     description: "คำตอบมอาจมีมากกว่า 1 ข้อ ต้องตอบถูกทั้งหมดจึงจะได้คะแนน",
     url: "./quiz/index.html?id=adv_oceanography1",
     storageKey: "quizState-adv_oceanography1",
