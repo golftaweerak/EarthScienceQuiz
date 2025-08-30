@@ -92,7 +92,15 @@ export async function initializeQuiz() {
             if (item.type === 'scenario' && Array.isArray(item.questions)) {
                 // It's a scenario, prepend its title and description to each of its questions.
                 const title = item.title || '';
-                const description = (item.description || '').replace(/\n/g, '<br>');
+                
+                // Process description: fix relative paths for assets.
+                // Since quiz-loader.js is used by quiz/index.html, asset paths need to be adjusted.
+                // The convention is to write paths in data files relative to the project root (e.g., "assets/images/pic.jpg").
+                // This script will prepend "../" to make the path correct for the quiz page's location.
+                // This more robust regex handles paths written with or without a leading slash (e.g., "src='assets/...' or src="/assets/...").
+                const rawDescription = item.description || '';
+                const description = rawDescription.replace(/(src\s*=\s*["'])\/?assets\//g, '$1../assets/').replace(/\n/g, '<br>');
+
                 // Filter out any potential null/undefined questions within the scenario's questions array.
                 return item.questions.filter(q => q).map(question => ({
                     ...question, // This is safe now because we filtered out falsy values
