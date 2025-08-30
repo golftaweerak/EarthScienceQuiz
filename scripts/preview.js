@@ -686,9 +686,10 @@ export function initializePreviewPage() {
         if (!scriptName) {
             scriptNameEl.textContent = 'ไม่ได้ระบุไฟล์สคริปต์';
             container.innerHTML = `<div class="bg-blue-100 dark:bg-blue-900/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-300 p-4 rounded-r-lg" role="alert">
-                                       <p class="font-bold">คำแนะนำ</p>
-                                       <p>โปรดเลือกชุดข้อสอบจากเมนูด้านบน หรือใช้ช่องค้นหาเพื่อค้นจากข้อสอบทั้งหมด</p>
-                                   </div>`;
+                                   <p class="font-bold">คำแนะนำ</p>
+                                   <p>โปรดเลือกชุดข้อสอบจากเมนูด้านบน หรือใช้ช่องค้นหาเพื่อค้นจากข้อสอบทั้งหมด</p>
+                               </div>`;
+            exportDocxBtn.disabled = true;
             return;
         }
 
