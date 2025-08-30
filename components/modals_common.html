@@ -12,15 +12,20 @@
 
 <script>
     /**
-     * Sets up a MutationObserver to automatically render KaTeX formulas
-     * inside the scenario details modal whenever its content changes.
-     * This function is called by the onload attribute of the KaTeX auto-render script.
+     * This function MUST be defined before the auto-render script that calls it via onload.
+     * It sets up a sophisticated, two-stage observer system to robustly render KaTeX
+     * in the dynamically-loaded scenario modal.
      */
-    function setupKatexObserver() {
+    function setupKatexObserverForScenarioModal() {
+        const scenarioModal = document.getElementById('scenario-modal');
         const scenarioDescription = document.getElementById('scenario-modal-description');
-        if (scenarioDescription && typeof renderMathInElement === 'function') {
-            const observer = new MutationObserver(() => {
-                renderMathInElement(scenarioDescription, {
+
+        if (!scenarioModal || !scenarioDescription) return;
+
+        const renderMath = () => {
+            // Check if KaTeX's rendering function is available before calling it.
+            if (typeof window.renderMathInElement === 'function') {
+                window.renderMathInElement(scenarioDescription, {
                     delimiters: [
                         { left: '$$', right: '$$', display: true },
                         { left: '$', right: '$', display: false },
@@ -29,32 +34,41 @@
                     ],
                     throwOnError: false
                 });
-            });
-            observer.observe(scenarioDescription, { childList: true, subtree: true });
-        }
+            }
+        };
+
+        // This observer watches for changes *inside* the description div.
+        // This handles cases where content is loaded asynchronously after the modal is already visible.
+        const contentObserver = new MutationObserver(renderMath);
+
+        // This observer watches for the modal itself to become visible.
+        const modalVisibilityObserver = new MutationObserver(() => {
+            if (!scenarioModal.classList.contains('hidden')) {
+                // Modal is now visible. Do an initial render in case content is already present.
+                renderMath();
+                // Then, start observing the content div for any subsequent changes.
+                contentObserver.observe(scenarioDescription, {
+                    childList: true, // observe direct children additions/removals
+                    subtree: true    // observe all descendants
+                });
+            } else {
+                // Modal is hidden. Stop observing content to save resources.
+                contentObserver.disconnect();
+            }
+        });
+
+        // Start observing the modal for visibility changes (when 'class' attribute changes).
+        modalVisibilityObserver.observe(scenarioModal, { attributes: true, attributeFilter: ['class'] });
     }
 </script>
 
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="setupKatexObserver()"></script>
+    xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+    onload="setupKatexObserverForScenarioModal()"></script>
 <link rel="stylesheet" href="../styles/bundle.css">
 <style>
-    /* Custom styles to improve subscript and superscript rendering in prose text */
-    .prose sub,
-    .prose sup {
-        font-size: 0.75em;
-        line-height: 0;
-        position: relative;
-        vertical-align: baseline;
-    }
-
-    .prose sub {
-        bottom: -0.25em;
-    }
-
-    .prose sup {
-        top: -0.5em;
-    }
+    /* Custom styles for KaTeX to prevent layout shifts */
+    .katex { line-height: normal; }
 </style>
 
 <!-- Generic Confirmation Modal (for clearing stats, etc.) -->
@@ -319,7 +333,6 @@
         </button>
     </div>
 </div>
-
 <!-- Data Inspector Modal (for preview-data page) -->
 <div id="data-inspector-modal"
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun"
