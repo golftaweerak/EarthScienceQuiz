@@ -12,7 +12,7 @@ export const quizItems = [
     description: `
       นักดาราศาสตร์กำลังวิเคราะห์ภาพถ่าย "Webb's First Deep Field" (SMACS 0723) ที่ได้จากกล้องโทรทรรศน์อวกาศเจมส์ เวบบ์ (JWST) ซึ่งเผยให้เห็นกระจุกกาแล็กซีและวัตถุที่อยู่ไกลโพ้นจำนวนมาก ให้นักเรียนใช้ความรู้เพื่อตอบคำถาม 5 ข้อถัดไป
       <div class="mt-4 overflow-x-auto rounded-lg">
-        <img src="/assets/images/smacs0723.jpg" alt="Webb's First Deep Field" class="w-full h-auto rounded-lg shadow-md">
+        <img src="../assets/images/smacs0723.jpg" alt="Webb's First Deep Field" class="w-full h-auto rounded-lg shadow-md">
         <p class="text-xs text-center mt-1 text-slate-500 dark:text-slate-400">Image Credit: NASA, ESA, CSA, and STScI</p>
       </div>
     `,
