@@ -96,7 +96,8 @@
 <div id="custom-quiz-modal"
     class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" 
     role="dialog" aria-modal="true" aria-labelledby="custom-quiz-modal-title">
-    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto text-left">
+    <div
+        class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto text-left flex flex-col max-h-[90vh]">
         <button data-modal-close aria-label="ปิด"
             class="absolute top-4 right-4 z-10 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -105,7 +106,7 @@
             </svg>
         </button>
         <!-- Single scrollable container -->
-        <div class="overflow-y-auto p-6 modern-scrollbar max-h-[90vh]">
+        <div class="overflow-y-auto p-6 modern-scrollbar flex-1">
             <!-- Header Content -->
             <div class="mb-6 pr-10"> <!-- Add padding-right to avoid overlap with close button -->
                 <h3 id="custom-quiz-modal-title" class="text-xl font-bold text-gray-900 dark:text-gray-100 font-kanit">
@@ -120,53 +121,84 @@
             </div>
         </div>
 
-        <!-- Floating UI Container -->
-        <div class="absolute bottom-6 right-6 z-20 flex flex-col items-end gap-3">
-            <!-- Floating Controls Panel -->
-            <div id="custom-quiz-floating-controls" class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-lg p-2 space-y-1 w-auto transition-all duration-300">
-                <!-- Timer Options -->
-                <fieldset>
-                    <div class="flex flex-col items-center gap-1">
-                        <label for="timer-none" title="ไม่จับเวลา" class="cursor-pointer">
-                            <input id="timer-none" type="radio" name="custom-timer-mode" value="none" checked class="peer sr-only">
-                            <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75l10.5 10.5" /></svg>
-                        </label>
-                        <label for="timer-overall" title="จับเวลารวม" class="cursor-pointer">
-                            <input id="timer-overall" type="radio" name="custom-timer-mode" value="overall" class="peer sr-only">
-                            <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </label>
-                        <label for="timer-per-question" title="จับเวลาต่อข้อ" class="cursor-pointer">
-                            <input id="timer-per-question" type="radio" name="custom-timer-mode" value="perQuestion" class="peer sr-only">
-                            <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
-                        </label>
-                    </div>
-                    <!-- Hidden inputs for timer values -->
-                    <div id="overall-time-input-container" class="hidden items-center justify-center mt-2">
-                        <input type="number" id="custom-timer-overall-minutes" value="20" min="1" class="gen-input w-14 text-center p-0.5 text-xs">
-                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">นาที</span>
-                    </div>
-                    <div id="per-question-time-input-container" class="hidden items-center justify-center mt-2">
-                        <input type="number" id="custom-timer-per-question-seconds" value="90" min="10" step="5" class="gen-input w-14 text-center p-0.5 text-xs">
-                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-1">วินาที</span>
-                    </div>
-                </fieldset>
-                <!-- Total Count -->
-                <div class="flex flex-col items-center gap-1 text-xs font-bold text-gray-800 dark:text-gray-100 border-t border-gray-200 dark:border-gray-600 pt-2">
-                    <div class="flex items-center gap-2">
+        <!-- Compact Footer with controls -->
+        <div
+            class="flex-shrink-0 p-3 border-t border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
+            <div class="max-w-full mx-auto flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
+
+                <!-- Left Side: Timer Options -->
+                <div class="flex items-center justify-center sm:justify-start gap-2">
+                    <fieldset class="flex items-center gap-2">
+                        <legend class="sr-only">ตัวเลือกการจับเวลา</legend>
+                        <!-- Timer Radios in a neat group -->
+                        <div class="flex items-center gap-1 p-1 bg-gray-200 dark:bg-gray-700 rounded-full">
+                            <label for="timer-none" title="ไม่จับเวลา" class="cursor-pointer">
+                                <input id="timer-none" type="radio" name="custom-timer-mode" value="none" checked
+                                    class="peer sr-only">
+                                <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75l10.5 10.5" />
+                                </svg>
+                            </label>
+                            <label for="timer-overall" title="จับเวลารวม" class="cursor-pointer">
+                                <input id="timer-overall" type="radio" name="custom-timer-mode" value="overall"
+                                    class="peer sr-only">
+                                <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </label>
+                            <label for="timer-per-question" title="จับเวลาต่อข้อ" class="cursor-pointer">
+                                <input id="timer-per-question" type="radio" name="custom-timer-mode"
+                                    value="perQuestion" class="peer sr-only">
+                                <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                </svg>
+                            </label>
+                        </div>
+                        <!-- Timer Inputs -->
+                        <div class="relative h-7 w-24">
+                            <div id="overall-time-input-container" class="hidden absolute inset-0 items-center">
+                                <input type="number" id="custom-timer-overall-minutes" value="20" min="1"
+                                    class="gen-input w-14 text-center p-1 text-sm">
+                                <span class="text-sm text-gray-500 dark:text-gray-400 ml-1.5">นาที</span>
+                            </div>
+                            <div id="per-question-time-input-container" class="hidden absolute inset-0 items-center">
+                                <input type="number" id="custom-timer-per-question-seconds" value="90" min="10"
+                                    step="5" class="gen-input w-14 text-center p-1 text-sm">
+                                <span class="text-sm text-gray-500 dark:text-gray-400 ml-1.5">วิ</span>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Right Side: Total and Start Button -->
+                <div class="flex items-center justify-center sm:justify-end gap-4 flex-grow w-full sm:w-auto">
+                    <div class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                         <span>รวม:</span>
-                        <span id="total-question-count" class="font-sarabun text-base text-teal-600 dark:text-teal-400">0</span>
+                        <span id="total-question-count"
+                            class="font-sarabun text-lg text-teal-600 dark:text-teal-400 w-8 text-center">0</span>
+                        <button id="custom-quiz-clear-btn" type="button"
+                            class="px-3 py-1.5 rounded-md text-xs text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 font-medium transition-colors">ล้าง</button>
                     </div>
-                    <button id="custom-quiz-clear-btn" type="button" class="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 font-medium">ล้าง</button>
+                    <button id="custom-quiz-start-btn" title="เริ่มทำแบบทดสอบ"
+                        class="h-12 w-12 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-800 transition-all duration-200 flex items-center justify-center btn-press-anim flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.75 21.5l14.5-9.5L4.75 2.5v19z" />
+                        </svg>
+                        <span class="sr-only">เริ่ม</span>
+                    </button>
                 </div>
             </div>
-
-            <!-- Floating Start Button (FAB) -->
-            <button id="custom-quiz-start-btn" class="h-16 w-16 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-800 transition-all duration-200 flex items-center justify-center btn-press-anim" title="เริ่มทำแบบทดสอบ">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.75 21.5l14.5-9.5L4.75 2.5v19z" />
-                </svg>
-                <span class="sr-only">เริ่มทำแบบทดสอบ</span>
-            </button>
         </div>
     </div>
 </div>
