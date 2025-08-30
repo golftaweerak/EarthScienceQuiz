@@ -10,6 +10,21 @@
   option {
     @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200;
   }
+
+  /* 
+    Improve Thai text justification for prose content.
+    This enables justification and allows browsers to automatically break lines 
+    according to Thai language rules, which prevents large, ugly gaps between words.
+    NOTE: This requires the <html> tag to have the lang="th" attribute.
+  */
+  .prose {
+    /* Justify text for a block-like appearance. */
+    text-align: justify;
+    /* Enable automatic hyphenation based on the document's language (lang="th"). This is crucial for improving justification in Thai by allowing line breaks at appropriate points within words. */
+    hyphens: auto;
+    /* A fallback to prevent long, unbreakable strings (like URLs) from overflowing their container. */
+    overflow-wrap: break-word;
+  }
 }
 
 body {
@@ -524,5 +539,3 @@ body.dark {
     /* Enhance the existing shadow-md to look like a subtle glow */
     box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.2), 0 4px 8px -4px rgba(0, 0, 0, 0.15);
 }
-
-
