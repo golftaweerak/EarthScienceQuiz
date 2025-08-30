@@ -258,7 +258,7 @@ export function initializePage() {
     // The inner wrapper handles the fade/slide, while the parent handles the height expansion.
     innerContentWrapper.className = "inner-content-wrapper overflow-hidden transition-all duration-300 ease-out opacity-0 -translate-y-2";
     const quizGrid = document.createElement("div");
-   quizGrid.className = "quiz-grid-container p-4 md:p-6";
+   quizGrid.className = "quiz-grid-container p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2";
     // Accessibility: Add ID and ARIA attributes for the content panel
     contentDiv.id = `content-${categoryKey}`;
     contentDiv.setAttribute("role", "region");
