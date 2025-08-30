@@ -123,18 +123,18 @@
 
         <!-- Compact Footer with controls -->
         <div
-            class="flex-shrink-0 p-3 border-t border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm">
-            <div class="max-w-full mx-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+            class="flex-shrink-0 p-2 border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+            <div class="max-w-full mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 ">
 
                 <!-- Timer Options -->
                 <fieldset class="flex items-center gap-2">
                     <legend class="sr-only">ตัวเลือกการจับเวลา</legend>
                     <!-- Timer Radios in a neat group -->
-                    <div class="flex items-center gap-1 p-1 bg-gray-200 dark:bg-gray-700 rounded-full">
+                    <div class="flex items-center p-0.5 bg-gray-200 dark:bg-gray-700 rounded-full">
                         <label for="timer-none" title="ไม่จับเวลา" class="cursor-pointer">
                             <input id="timer-none" type="radio" name="custom-timer-mode" value="none" checked
                                 class="peer sr-only">
-                            <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
+                            <svg class="h-6 w-6 p-0.5 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -145,7 +145,7 @@
                         <label for="timer-overall" title="จับเวลารวม" class="cursor-pointer">
                             <input id="timer-overall" type="radio" name="custom-timer-mode" value="overall"
                                 class="peer sr-only">
-                            <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
+                            <svg class="h-6 w-6 p-0.5 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -155,7 +155,7 @@
                         <label for="timer-per-question" title="จับเวลาต่อข้อ" class="cursor-pointer">
                             <input id="timer-per-question" type="radio" name="custom-timer-mode" value="perQuestion"
                                 class="peer sr-only">
-                            <svg class="h-7 w-7 p-1 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
+                            <svg class="h-6 w-6 p-0.5 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -164,7 +164,7 @@
                         </label>
                     </div>
                     <!-- Timer Inputs -->
-                    <div class="relative h-7 w-24">
+                    <div class="relative h-6 w-24">
                         <div id="overall-time-input-container" class="hidden absolute inset-0 items-center">
                             <input type="number" id="custom-timer-overall-minutes" value="20" min="1"
                                 class="gen-input w-14 text-center p-1 text-sm">
@@ -182,15 +182,15 @@
                 <div class="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
                     <span>รวม:</span>
                     <span id="total-question-count"
-                        class="font-sarabun text-lg text-teal-600 dark:text-teal-400 w-8 text-center">0</span>
+                        class="font-sarabun text-base text-teal-600 dark:text-teal-400 w-8 text-center">0</span>
                     <button id="custom-quiz-clear-btn" type="button"
-                        class="px-3 py-1.5 rounded-md text-xs text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 font-medium transition-colors">ล้าง</button>
+                        class="px-2.5 py-1 rounded-md text-xs text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 font-medium transition-colors">ล้าง</button>
                 </div>
 
                 <!-- Start Button -->
                 <button id="custom-quiz-start-btn" title="เริ่มทำแบบทดสอบ"
-                    class="h-12 w-12 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-800 transition-all duration-200 flex items-center justify-center btn-press-anim flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    class="h-10 w-10 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-300 dark:focus:ring-teal-800 transition-all duration-200 flex items-center justify-center btn-press-anim flex-shrink-0 animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.75 21.5l14.5-9.5L4.75 2.5v19z" />
                     </svg>
