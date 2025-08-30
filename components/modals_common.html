@@ -4,6 +4,59 @@
     This approach reduces code duplication and simplifies maintenance.
 -->
 
+<!-- KaTeX for beautiful math rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    xintegrity="sha384-n8MVd4RsNIU0KOV5nYqrHGjWp7MVxG/FLECzfAnnotations.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEh3iZapBXpdJvA/LV7Ck8gAALw8DbqL" crossorigin="anonymous"></script>
+
+<script>
+    /**
+     * Sets up a MutationObserver to automatically render KaTeX formulas
+     * inside the scenario details modal whenever its content changes.
+     * This function is called by the onload attribute of the KaTeX auto-render script.
+     */
+    function setupKatexObserver() {
+        const scenarioDescription = document.getElementById('scenario-modal-description');
+        if (scenarioDescription && typeof renderMathInElement === 'function') {
+            const observer = new MutationObserver(() => {
+                renderMathInElement(scenarioDescription, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            });
+            observer.observe(scenarioDescription, { childList: true, subtree: true });
+        }
+    }
+</script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="setupKatexObserver()"></script>
+<link rel="stylesheet" href="../styles/bundle.css">
+<style>
+    /* Custom styles to improve subscript and superscript rendering in prose text */
+    .prose sub,
+    .prose sup {
+        font-size: 0.75em;
+        line-height: 0;
+        position: relative;
+        vertical-align: baseline;
+    }
+
+    .prose sub {
+        bottom: -0.25em;
+    }
+
+    .prose sup {
+        top: -0.5em;
+    }
+</style>
+
 <!-- Generic Confirmation Modal (for clearing stats, etc.) -->
 <div id="confirm-action-modal"
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun"
@@ -94,8 +147,8 @@
 
 <!-- Custom Quiz Creation Modal -->
 <div id="custom-quiz-modal"
-    class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" 
-    role="dialog" aria-modal="true" aria-labelledby="custom-quiz-modal-title">
+    class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
+    aria-modal="true" aria-labelledby="custom-quiz-modal-title">
     <div
         class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto text-left flex flex-col max-h-[90vh]">
         <button data-modal-close aria-label="ปิด"
@@ -178,7 +231,8 @@
             </fieldset>
 
             <!-- Total Count -->
-            <div class="flex items-center gap-1.5 text-sm font-bold text-gray-800 dark:text-gray-100 flex-shrink-0 py-1">
+            <div
+                class="flex items-center gap-1.5 text-sm font-bold text-gray-800 dark:text-gray-100 flex-shrink-0 py-1">
                 <span>รวม:</span>
                 <span id="total-question-count"
                     class="font-sarabun text-base text-teal-600 dark:text-teal-400 w-8 text-center">0</span>
@@ -201,8 +255,8 @@
 
 <!-- Custom Quiz Hub Modal -->
 <div id="custom-quiz-hub-modal"
-    class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
-    role="dialog" aria-modal="true" aria-labelledby="custom-quiz-hub-modal-title">
+    class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
+    aria-modal="true" aria-labelledby="custom-quiz-hub-modal-title">
     <div
         class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl mx-auto text-left flex flex-col max-h-[90vh]">
         <div class="flex justify-between items-start p-6 pb-4 flex-shrink-0">
@@ -210,8 +264,8 @@
                 แบบทดสอบที่สร้างเอง</h3>
             <button data-modal-close aria-label="ปิด"
                 class="p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke-width="2" stroke="currentColor">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
@@ -221,11 +275,15 @@
                 <!-- Custom quiz cards will be injected here by JS -->
             </div>
             <div id="no-custom-quizzes-msg" class="hidden text-center text-gray-500 dark:text-gray-400 py-10">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    aria-hidden="true">
+                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                 </svg>
                 <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">ไม่มีแบบทดสอบที่สร้างเอง</h3>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">เริ่มต้นสร้างแบบทดสอบแรกของคุณโดยกดปุ่มด้านล่าง</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">เริ่มต้นสร้างแบบทดสอบแรกของคุณโดยกดปุ่มด้านล่าง
+                </p>
             </div>
         </div>
         <div class="p-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
@@ -245,7 +303,8 @@
 <div id="scenario-modal"
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun"
     role="dialog" aria-modal="true" aria-labelledby="scenario-modal-title">
-    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full">
+    <div
+        class="modal-content relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full">
         <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
         </h3>
         <div id="scenario-modal-description"
@@ -263,8 +322,8 @@
 
 <!-- Data Inspector Modal (for preview-data page) -->
 <div id="data-inspector-modal"
-    class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun" role="dialog"
-    aria-modal="true" aria-labelledby="data-inspector-title">
+    class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun"
+    role="dialog" aria-modal="true" aria-labelledby="data-inspector-title">
     <div
         class="modal-content relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full flex flex-col">
         <button data-modal-close aria-label="ปิด"
@@ -298,7 +357,8 @@
 <div id="dev-password-modal"
     class="modal hidden fixed inset-0 z-[65] flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-labelledby="dev-password-modal-title">
-    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm m-4 p-6 text-left">
+    <div
+        class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm m-4 p-6 text-left">
         <button data-modal-close aria-label="ปิด"
             class="absolute top-4 right-4 -mt-0 -mr-0 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
