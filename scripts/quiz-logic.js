@@ -642,27 +642,34 @@ function setFloatingNav(active) {
     // Calculate score by subcategory
     // This new logic groups by main category first, then by specific subcategory.
     const categoryStats = state.userAnswers.reduce((acc, answer) => {
-      if (!answer) return acc;
-      const { main: mainCategory, specific: specificName } = getCategoryNames(answer.subCategory);
-      const specificCategory = specificName || '—'; // Use a placeholder for grouping
+        if (!answer) return acc;
+        const { main: mainCategory, specific: specificNames } = getCategoryNames(answer.subCategory);
 
-      // Initialize main category if it doesn't exist
-      if (!acc[mainCategory]) {
-          acc[mainCategory] = { correct: 0, total: 0, subcategories: {} };
-      }
-      // Initialize specific subcategory if it doesn't exist
-      if (!acc[mainCategory].subcategories[specificCategory]) {
-          acc[mainCategory].subcategories[specificCategory] = { correct: 0, total: 0 };
-      }
+        // Ensure main category exists
+        if (!acc[mainCategory]) {
+            acc[mainCategory] = { correct: 0, total: 0, subcategories: {} };
+        }
 
-      // Increment counts for both main and sub categories
-      acc[mainCategory].total++;
-      acc[mainCategory].subcategories[specificCategory].total++;
-      if (answer.isCorrect) {
-          acc[mainCategory].correct++;
-          acc[mainCategory].subcategories[specificCategory].correct++;
-      }
-      return acc;
+        // Increment total for the main category once per question
+        acc[mainCategory].total++;
+        if (answer.isCorrect) {
+            acc[mainCategory].correct++;
+        }
+
+        // Handle specific categories, which can be an array or a single string/null
+        const specificCats = Array.isArray(specificNames) ? specificNames : [specificNames || '—'];
+
+        specificCats.forEach(specificCategory => {
+            if (!acc[mainCategory].subcategories[specificCategory]) {
+                acc[mainCategory].subcategories[specificCategory] = { correct: 0, total: 0 };
+            }
+            acc[mainCategory].subcategories[specificCategory].total++;
+            if (answer.isCorrect) {
+                acc[mainCategory].subcategories[specificCategory].correct++;
+            }
+        });
+
+        return acc;
     }, {});
 
     // --- Performance Analysis ---
@@ -1242,11 +1249,19 @@ function setFloatingNav(active) {
         const explanationHtml = answer.explanation ? answer.explanation.replace(/\n/g, "<br>") : "";
 
         // --- Improved Tag Generation ---
-        const { main: mainCategory, specific: specificName } = getCategoryNames(answer.subCategory);
+        const { main: mainCategory, specific: specificNames } = getCategoryNames(answer.subCategory);
         const tags = [];
         if (mainCategory && mainCategory !== 'ไม่มีหมวดหมู่') {
-            const fullCategory = specificName ? `${mainCategory} &gt; ${specificName}` : mainCategory;
-            tags.push(fullCategory);
+            const specificCats = Array.isArray(specificNames) ? specificNames : [specificNames];
+            specificCats.forEach(specificCat => {
+                if (specificCat) {
+                    tags.push(`${mainCategory} &gt; ${specificCat}`);
+                }
+            });
+            // If there were no specific categories, just show the main one.
+            if (tags.length === 0) {
+                tags.push(mainCategory);
+            }
         }
 
         const tagsHtml = tags
