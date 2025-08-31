@@ -8,44 +8,44 @@ import { quizList } from "../data/quizzes-list.js";
  * @param {'open'|'close'|undefined} forceState - Force the accordion to open, close, or toggle.
  */
 export const toggleAccordion = (toggleElement, forceState) => {
-    const content = toggleElement.nextElementSibling;
-    const icon = toggleElement.querySelector(".chevron-icon");
-    const innerContent = content?.querySelector(".inner-content-wrapper");
-    const iconContainer = toggleElement.querySelector(".section-icon-container");
-    const mainIcon = iconContainer?.querySelector(".section-main-icon");
-    if (!content || !icon) return;
+  const content = toggleElement.nextElementSibling;
+  const icon = toggleElement.querySelector(".chevron-icon");
+  const innerContent = content?.querySelector(".inner-content-wrapper");
+  const iconContainer = toggleElement.querySelector(".section-icon-container");
+  const mainIcon = iconContainer?.querySelector(".section-main-icon");
+  if (!content || !icon) return;
 
-    const isCurrentlyOpen = toggleElement.getAttribute('aria-expanded') === 'true';
-    // Determine the target state. If forceState is provided, use it. Otherwise, toggle.
-    const shouldBeOpen = forceState !== undefined ? forceState === 'open' : !isCurrentlyOpen;
+  const isCurrentlyOpen = toggleElement.getAttribute('aria-expanded') === 'true';
+  // Determine the target state. If forceState is provided, use it. Otherwise, toggle.
+  const shouldBeOpen = forceState !== undefined ? forceState === 'open' : !isCurrentlyOpen;
 
-    // If the state is already what we want, do nothing.
-    if (shouldBeOpen === isCurrentlyOpen) return;
+  // If the state is already what we want, do nothing.
+  if (shouldBeOpen === isCurrentlyOpen) return;
 
-    toggleElement.setAttribute("aria-expanded", shouldBeOpen);
-    icon.classList.toggle("rotate-180", shouldBeOpen);
+  toggleElement.setAttribute("aria-expanded", shouldBeOpen);
+  icon.classList.toggle("rotate-180", shouldBeOpen);
 
-    if (iconContainer) {
-        iconContainer.classList.toggle("scale-105", shouldBeOpen);
-        iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
-    }
-    if (mainIcon) {
-        mainIcon.classList.toggle("rotate-12", shouldBeOpen);
-    }
+  if (iconContainer) {
+    iconContainer.classList.toggle("scale-105", shouldBeOpen);
+    iconContainer.classList.toggle("shadow-lg", shouldBeOpen);
+  }
+  if (mainIcon) {
+    mainIcon.classList.toggle("rotate-12", shouldBeOpen);
+  }
 
-    // The grid-rows trick is a clever way to animate height with Tailwind.
-    content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
-    content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
+  // The grid-rows trick is a clever way to animate height with Tailwind.
+  content.classList.toggle("grid-rows-[1fr]", shouldBeOpen);
+  content.classList.toggle("grid-rows-[0fr]", !shouldBeOpen);
 
-    // Animate inner content opacity and transform for a smoother "fade and slide in" effect.
-    if (innerContent) {
-        // The delay helps the fade-in feel more natural as the container expands.
-        innerContent.style.transitionDelay = shouldBeOpen ? "150ms" : "0ms"; 
-        innerContent.classList.toggle("opacity-100", shouldBeOpen);
-        innerContent.classList.toggle("translate-y-0", shouldBeOpen);
-        innerContent.classList.toggle("opacity-0", !shouldBeOpen);
-        innerContent.classList.toggle("-translate-y-2", !shouldBeOpen);
-    }
+  // Animate inner content opacity and transform for a smoother "fade and slide in" effect.
+  if (innerContent) {
+    // The delay helps the fade-in feel more natural as the container expands.
+    innerContent.style.transitionDelay = shouldBeOpen ? "150ms" : "0ms";
+    innerContent.classList.toggle("opacity-100", shouldBeOpen);
+    innerContent.classList.toggle("translate-y-0", shouldBeOpen);
+    innerContent.classList.toggle("opacity-0", !shouldBeOpen);
+    innerContent.classList.toggle("-translate-y-2", !shouldBeOpen);
+  }
 };
 
 // A function to get all the toggles, so we don't expose the variable directly
@@ -188,6 +188,59 @@ export function initializePage() {
   }
 
   /**
+   * Creates a nested accordion element for a sub-category.
+   * @param {string} subCategoryTitle - The title for the sub-category accordion.
+   * @param {Array<object>} quizzes - An array of quiz objects for this sub-category.
+   * @param {string} colorName - The base color name (e.g., 'blue') for styling.
+   * @returns {HTMLElement} The created accordion element.
+   */
+  function createSubCategoryAccordion(subCategoryTitle, quizzes, colorName) {
+    const accordion = document.createElement('div');
+    accordion.className = 'sub-accordion py-1';
+
+    const toggleHeader = document.createElement('div');
+    // A slightly different style for the sub-header
+    toggleHeader.className = `sub-section-toggle flex justify-between items-center cursor-pointer p-3 rounded-lg bg-${colorName}-100/40 dark:bg-${colorName}-900/20 hover:bg-${colorName}-100/70 dark:hover:bg-${colorName}-900/40 transition-colors`;
+    toggleHeader.setAttribute('aria-expanded', 'false');
+
+    toggleHeader.innerHTML = `
+        <h4 class="font-bold text-sm text-${colorName}-800 dark:text-${colorName}-300">${subCategoryTitle}</h4>
+        <svg class="chevron-icon h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+    `;
+
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "sub-section-content grid grid-rows-[0fr] transition-[grid-template-rows] duration-500 ease-in-out";
+
+    const innerContentWrapper = document.createElement("div");
+    innerContentWrapper.className = "inner-content-wrapper overflow-hidden";
+
+    const quizGrid = document.createElement("div");
+    quizGrid.className = "quiz-grid-container pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2";
+
+    quizzes.forEach((quiz, index) => {
+      const card = createQuizCard(quiz, index);
+      quizGrid.appendChild(card);
+    });
+
+    innerContentWrapper.appendChild(quizGrid);
+    contentDiv.appendChild(innerContentWrapper);
+    accordion.append(toggleHeader, contentDiv);
+
+    toggleHeader.addEventListener('click', () => {
+      const wasOpen = toggleHeader.getAttribute('aria-expanded') === 'true';
+      toggleAccordion(toggleHeader);
+
+      // If the accordion was closed and is now opening, scroll to it.
+      if (!wasOpen) {
+        setTimeout(() => {
+          scrollToElement(toggleHeader);
+        }, 150); // A short delay for a better visual experience.
+      }
+    });
+    return accordion;
+  }
+
+  /**
    * Creates a full category section element, including its header and quiz cards.
    * @param {string} categoryKey - The key for the category (e.g., 'Senior').
    * @param {Array<object>} quizzes - An array of quiz objects for this category.
@@ -257,18 +310,78 @@ export function initializePage() {
     const innerContentWrapper = document.createElement("div"); // This wrapper will be animated
     // The inner wrapper handles the fade/slide, while the parent handles the height expansion.
     innerContentWrapper.className = "inner-content-wrapper overflow-hidden transition-all duration-300 ease-out opacity-0 -translate-y-2";
-    const quizGrid = document.createElement("div");
-   quizGrid.className = "quiz-grid-container p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2";
     // Accessibility: Add ID and ARIA attributes for the content panel
     contentDiv.id = `content-${categoryKey}`;
     contentDiv.setAttribute("role", "region");
 
-    quizzes.forEach((quiz, index) => {
-      const card = createQuizCard(quiz, index);
-      quizGrid.appendChild(card);
-    });
+    const hasSubCategories = ['AstronomyPOSN', 'ChallengePOSN'].includes(categoryKey);
 
-    innerContentWrapper.appendChild(quizGrid);
+    if (hasSubCategories) {
+      const subCategoryContainer = document.createElement('div');
+      subCategoryContainer.className = 'p-2 md:p-4 space-y-2';
+
+      if (categoryKey === 'AstronomyPOSN') {
+        const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
+          let subCategoryKey = 'general';
+          if (quiz.id.startsWith('senior') || quiz.id.startsWith('senior')) {
+            subCategoryKey = 'senior';
+          } else if (quiz.id.startsWith('junior')) {
+            subCategoryKey = 'junior';
+          }
+          if (!acc[subCategoryKey]) acc[subCategoryKey] = [];
+          acc[subCategoryKey].push(quiz);
+          return acc;
+        }, {});
+
+        const mainCategoryTitle = details.title.split('(')[0].trim();
+        const subCategoryDetails = {
+          junior: { title: `${mainCategoryTitle} ม.ต้น (Junior)`, order: 1 },
+          senior: { title: `${mainCategoryTitle} ม.ปลาย (Senior)`, order: 2 },
+          general: { title: `${mainCategoryTitle} ทั่วไป (General)`, order: 3 }
+          
+        };
+
+        Object.keys(subGroupedQuizzes).sort((a, b) => subCategoryDetails[a].order - subCategoryDetails[b].order).forEach(subKey => {
+          const subAccordion = createSubCategoryAccordion(subCategoryDetails[subKey].title, subGroupedQuizzes[subKey], colorName);
+          subCategoryContainer.appendChild(subAccordion);
+        });
+      } else if (categoryKey === 'ChallengePOSN') {
+        const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
+          // Map the quiz ID prefix to the correct sub-discipline key from categoryDetails
+          let subDisciplineKey = 'GeneralKnowledge'; // A fallback key
+          if (quiz.id.startsWith('adv_geology')) {
+            subDisciplineKey = 'Geology';
+          } else if (quiz.id.startsWith('adv_astro')) {
+            subDisciplineKey = 'Astronomy';
+          } else if (quiz.id.startsWith('adv_meteorology')) {
+            subDisciplineKey = 'Meteorology';
+          } else if (quiz.id.startsWith('adv_oceanography')) {
+            subDisciplineKey = 'Oceanography';
+          }
+          if (!acc[subDisciplineKey]) acc[subDisciplineKey] = [];
+          acc[subDisciplineKey].push(quiz);
+          return acc;
+
+        }, {});
+
+
+        Object.keys(subGroupedQuizzes).sort((a, b) => (categoryDetails[a]?.order || 99) - (categoryDetails[b]?.order || 99)).forEach(subKey => {
+          const subAccordionTitle = categoryDetails[subKey]?.title || subKey;
+          const subAccordion = createSubCategoryAccordion(subAccordionTitle, subGroupedQuizzes[subKey], colorName);
+          subCategoryContainer.appendChild(subAccordion);
+        });
+      }
+      innerContentWrapper.appendChild(subCategoryContainer);
+    } else {
+      const quizGrid = document.createElement("div");
+      quizGrid.className = "quiz-grid-container p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2";
+      quizzes.forEach((quiz, index) => {
+        const card = createQuizCard(quiz, index);
+        quizGrid.appendChild(card);
+      });
+      innerContentWrapper.appendChild(quizGrid);
+    }
+
     contentDiv.appendChild(innerContentWrapper);
     section.append(toggleHeader, contentDiv);
     return section;
@@ -299,8 +412,8 @@ export function initializePage() {
     const previousColor = floatingNavContainer.dataset.themeColor || 'default';
     let colorName = 'default';
 
+    const activeSection = activeToggle ? activeToggle.closest('section') : null;
     if (activeToggle) {
-      const activeSection = activeToggle.closest('section');
       const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
       const activeCategoryDetails = activeCategoryKey ? categoryDetails[activeCategoryKey] : null;
       if (activeCategoryDetails && activeCategoryDetails.color) {
@@ -340,10 +453,10 @@ export function initializePage() {
     let animationDelay = 0;
     const delayIncrement = 50; // 50ms between each button
 
-    /** Helper function to create a consistent floating button */
     const createFloatingButton = (options) => {
       const button = document.createElement("button");
-      button.className = `floating-nav-btn anim-nav-btn-pop-in flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
+      const classList = options.classList || `flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-md border ${borderColor}`;
+      button.className = `floating-nav-btn-base anim-nav-btn-pop-in ${classList}`;
       button.setAttribute("aria-label", options.ariaLabel);
       button.innerHTML = options.innerHTML;
       button.style.animationDelay = `${animationDelay}ms`;
@@ -403,6 +516,55 @@ export function initializePage() {
 
       fragment.appendChild(button);
     });
+
+    // --- NEW: Add Sub-category buttons if applicable, AFTER main category buttons ---
+    const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
+    if (['AstronomyPOSN', 'ChallengePOSN'].includes(activeCategoryKey) && activeSection) {
+      const subToggles = activeSection.querySelectorAll('.sub-section-toggle');
+      if (subToggles.length > 0) {
+        const subSeparator = document.createElement("hr");
+        subSeparator.className = `w-10/12 my-1.5 border-t ${borderColor}`;
+        fragment.appendChild(subSeparator);
+
+        subToggles.forEach(subToggle => {
+          const subTitle = subToggle.querySelector('h4').textContent;
+          let shortTitle;
+          if (subTitle.includes('ม.ปลาย')) {
+            shortTitle = 'ม.ปลาย';
+          } else if (subTitle.includes('ม.ต้น')) {
+            shortTitle = 'ม.ต้น';
+          } else if (subTitle.includes('ธรณีวิทยา')) {
+            shortTitle = 'ธรณีฯ';
+          } else if (subTitle.includes('อุตุนิยมวิทยา')) {
+            shortTitle = 'อุตุฯ';
+          } else if (subTitle.includes('สมุทรศาสตร์')) {
+            shortTitle = 'สมุทรฯ';
+          } else if (subTitle.includes('ดาราศาสตร์')) { // For the sub-discipline
+            shortTitle = 'ดาราฯ';
+          } else {
+            shortTitle = 'ทั่วไป';
+          }
+
+          const subButton = createFloatingButton({
+            ariaLabel: `ไปที่ ${subTitle}`,
+            innerHTML: `<span class="text-xs font-bold">${shortTitle}</span>`,
+            classList: `flex items-center justify-center h-7 w-10 rounded-lg ${bgColor} ${hoverBgColor} transition-all duration-200 ${textColor} shadow-sm border ${borderColor}`,
+            onClick: () => {
+              const isAlreadyOpen = subToggle.getAttribute('aria-expanded') === 'true';
+              if (!isAlreadyOpen) {
+                toggleAccordion(subToggle, 'open');
+              }
+              setTimeout(() => {
+                scrollToElement(subToggle); // Use the consistent scroll function
+                subToggle.classList.add('ring-2', 'ring-offset-2', `ring-${colorName}-500`, `dark:ring-offset-gray-900`);
+                setTimeout(() => subToggle.classList.remove('ring-2', 'ring-offset-2', `ring-${colorName}-500`, `dark:ring-offset-gray-900`), 2000);
+              }, isAlreadyOpen ? 0 : 150); // No delay if already open, small delay if just opened.
+            }
+          });
+          fragment.appendChild(subButton);
+        });
+      }
+    }
 
     floatingNavButtons.appendChild(fragment);
 
