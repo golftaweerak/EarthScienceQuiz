@@ -38,11 +38,12 @@ async function main() {
   // 1. Get all quiz data files
   const allFiles = fs.readdirSync(DATA_DIR);
   const quizFiles = allFiles.filter(
-    (file) => file.endsWith("-data.js") && file !== "sub-category-data.js"
+    (file) =>
+      file.endsWith("-data.js") && !["sub-category-data.js", "template-data.js"].includes(file)
   );
 
-  // Structure to hold counts: Map<MainCategory, Map<SpecificCategory, Count>>
-  const categoryCounts = new Map();
+  // Structure to hold questions: Map<MainCategory, Map<SpecificCategory, Array<Question>>>
+  const categoryData = new Map();
   let totalQuestions = 0;
   let uncategorizedCount = 0;
 
@@ -67,14 +68,28 @@ async function main() {
       totalQuestions += allQuestions.length;
 
       for (const question of allQuestions) {
-        const { main, specific } = question.subCategory || {};
+        const subCat = question.subCategory || {};
+        const main = subCat.main;
+        const specific = subCat.specific;
 
         if (main && specific) {
-          if (!categoryCounts.has(main)) {
-            categoryCounts.set(main, new Map());
+          if (!categoryData.has(main)) {
+            categoryData.set(main, new Map());
           }
-          const specificCounts = categoryCounts.get(main);
-          specificCounts.set(specific, (specificCounts.get(specific) || 0) + 1);
+          const specificData = categoryData.get(main);
+          if (Array.isArray(specific)) {
+            specific.forEach(specCat => {
+              if (!specificData.has(specCat)) {
+                specificData.set(specCat, []);
+              }
+              specificData.get(specCat).push(question);
+            });
+          } else if (typeof specific === 'string') {
+            if (!specificData.has(specific)) {
+              specificData.set(specific, []);
+            }
+            specificData.get(specific).push(question);
+          }
         } else {
           uncategorizedCount++;
         }
@@ -85,28 +100,37 @@ async function main() {
   }
 
   // 3. Report the final summary
-  console.log("\n--- Question Category Summary ---");
+  console.log("\n--- Question Category Summary (Markdown) ---");
 
-  const sortedMainCategories = [...categoryCounts.keys()].sort((a, b) => a.localeCompare(b, 'th'));
+  let markdownOutput = "## 📊 สรุปหมวดหมู่คำถาม\n\n";
+  markdownOutput += "| หมวดหมู่หลัก (Main) | หมวดหมู่ย่อย (Specific) | จำนวนข้อ |\n";
+  markdownOutput += "|:-------------------|:-------------------------|:---------|\n";
+  
+  const sortedMainCategories = [...categoryData.keys()].sort((a, b) => a.localeCompare(b, 'th'));
 
   for (const mainCat of sortedMainCategories) {
-    const specificCounts = categoryCounts.get(mainCat);
-    const sortedSpecifics = [...specificCounts.keys()].sort((a, b) => a.localeCompare(b, 'th'));
+    const specificData = categoryData.get(mainCat);
+    const sortedSpecifics = [...specificData.keys()].sort((a, b) => a.localeCompare(b, 'th'));
     
-    const mainTotal = [...specificCounts.values()].reduce((sum, count) => sum + count, 0);
-    console.log(`\n📁 ${mainCat} (Total: ${mainTotal})`);
+    // To get the unique total for the main category, flatten all question arrays and use a Set.
+    const allQuestionsInMain = [...specificData.values()].flat();
+    const uniqueQuestions = new Set(allQuestionsInMain);
+    const mainTotal = uniqueQuestions.size;
+
+    // Add a header row for the main category with its total
+    markdownOutput += `| **${mainCat}** | | **${mainTotal}** |\n`;
 
     for (const specificCat of sortedSpecifics) {
-      console.log(`  - ${specificCat}: ${specificCounts.get(specificCat)}`);
+      const questionCount = specificData.get(specificCat).length;
+      markdownOutput += `| | ${specificCat} | ${questionCount} |\n`;
     }
   }
 
-  console.log("\n-----------------------------------");
-  console.log(`📊 Total Questions Processed: ${totalQuestions}`);
+  markdownOutput += `| **รวมทั้งหมด** | | **${totalQuestions}** |\n`;
   if (uncategorizedCount > 0) {
-    console.log(`⚠️ Uncategorized Questions: ${uncategorizedCount}`);
+    markdownOutput += `\n**⚠️ หมายเหตุ:** มีคำถามที่ไม่ได้ระบุหมวดหมู่ ${uncategorizedCount} ข้อ\n`;
   }
-  console.log("-----------------------------------\n");
+  console.log(markdownOutput);
 }
 
 main().catch((err) => {

@@ -86,31 +86,6 @@ function findQuizArrayInModule(quizModule) {
   return Object.values(quizModule).find(val => Array.isArray(val)) || null;
 }
 
-/**
- * Validates a single question's sub-category.
- * @param {object} question - The question object.
- * @param {object} info - The validation rules from quizPrefixInfo.
- * @param {{validEarthAndSpace: Map<string, Set<string>>, validAstronomyPosn: Set<string>}} validationData - The pre-processed validation data.
- * @returns {{isValid: boolean, specificCat: string|null}}
- */
-function validateQuestionSubCategory(question, info, { validEarthAndSpace, validAstronomyPosn }) {
-  const { subCategory } = question;
-  if (!subCategory || typeof subCategory.specific !== 'string') {
-    return { isValid: false, specificCat: null };
-  }
-
-  const specificCat = subCategory.specific.trim();
-  let isValid = false;
-
-  if (info.subCategoryKey === "EarthAndSpace") {
-    const effectiveMainCat = subCategory.main || info.inferredMainCategory;
-    isValid = effectiveMainCat ? (validEarthAndSpace.get(effectiveMainCat)?.has(specificCat) ?? false) : [...validEarthAndSpace.values()].some(categorySet => categorySet.has(specificCat));
-  } else if (info.subCategoryKey === "ASTRONOMY_POSN") {
-    isValid = validAstronomyPosn.has(specificCat);
-  }
-  return { isValid, specificCat };
-}
-
 async function main() {
   console.log("--- Starting Sub-category Validation and Correction Script ---");
   const startTime = performance.now();
@@ -120,6 +95,9 @@ async function main() {
 
   // Pre-process data into Sets for efficient O(1) lookups
   const validationData = preprocessValidationData(subCategoryData);
+
+  let subCategoryFileModified = false;
+  const newCategoriesAdded = new Set();
 
   // Get and sort prefix keys by length (descending) to find the longest match first
   // e.g., ensure 'adv_geology' is checked before 'adv_astro'
@@ -161,32 +139,73 @@ async function main() {
       const questions = (item.type === "scenario" || item.type === "case-study") && Array.isArray(item.questions) ? item.questions : [item];
 
       for (const question of questions) {
-        const questionIdentifier = `(ID: ${question.id || 'N/A'}, Number: ${question.number || 'N/A'})`;
-        const { isValid, specificCat } = validateQuestionSubCategory(question, info, validationData);
-
-        if (specificCat === null) {
-          fileErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Missing or incomplete subCategory object.`);
+        const questionIdForTable = question.number || question.id || 'N/A';
+        
+        const { subCategory } = question;
+        if (!subCategory || !subCategory.specific) {
+          fileErrors.push({ File: fileName, ID: questionIdForTable, Error: 'Missing or incomplete subCategory object' });
           continue;
         }
 
-        if (!isValid) {
-          const correction = correctionMap[info.subCategoryKey]?.[specificCat];
-          if (correction) {
-            if (!fileContent) {
-              fileContent = fs.readFileSync(filePath, "utf-8");
-            }
-            const escapedOldCat = escapeRegExp(specificCat);
-            const oldCategoryRegex = new RegExp(`(specific:\\s*['"])${escapedOldCat}(['"])`);
+        const specificCats = Array.isArray(subCategory.specific) ? subCategory.specific : [subCategory.specific];
 
-            if (oldCategoryRegex.test(fileContent)) {
-              fileContent = fileContent.replace(oldCategoryRegex, `$1${correction}$2`);
-              fileModified = true;
-              fileCorrections.push(`- 🔧 Auto-corrected in ${fileName} ${questionIdentifier}: "${specificCat}" -> "${correction}"`);
+        for (const specificCat of specificCats) {
+          if (typeof specificCat !== 'string') {
+            fileErrors.push({ File: fileName, ID: questionIdForTable, Error: `subCategory.specific contains non-string: ${specificCat}` });
+            continue;
+          }
+
+          const trimmedCat = specificCat.trim();
+          let isValid = false;
+
+          // Perform validation
+          if (info.subCategoryKey === "EarthAndSpace") {
+            const effectiveMainCat = subCategory.main || info.inferredMainCategory;
+            isValid = effectiveMainCat ? (validationData.validEarthAndSpace.get(effectiveMainCat)?.has(trimmedCat) ?? false) : [...validationData.validEarthAndSpace.values()].some(categorySet => categorySet.has(trimmedCat));
+          } else if (info.subCategoryKey === "ASTRONOMY_POSN") {
+            isValid = validationData.validAstronomyPosn.has(trimmedCat);
+          }
+
+          // Handle invalid categories
+          if (!isValid) {
+            const correction = correctionMap[info.subCategoryKey]?.[trimmedCat];
+            if (correction) {
+              if (!fileContent) {
+                fileContent = fs.readFileSync(filePath, "utf-8");
+              }
+              const escapedOldCat = escapeRegExp(trimmedCat);
+              const oldCategoryRegex = new RegExp(`(['"])${escapedOldCat}(['"])`);
+
+              if (oldCategoryRegex.test(fileContent)) {
+                fileContent = fileContent.replace(oldCategoryRegex, `$1${correction}$2`);
+                fileModified = true;
+                fileCorrections.push({ File: fileName, ID: questionIdForTable, Change: `"${trimmedCat}" -> "${correction}"` });
+              } else {
+                fileErrors.push({ File: fileName, ID: questionIdForTable, Error: `Invalid category "${trimmedCat}"`, Details: 'Auto-correction failed to find string' });
+              }
             } else {
-              fileErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Invalid category "${specificCat}". (Auto-correction failed to find string)`);
+              // --- NEW LOGIC: Add the new category ---
+              let added = false;
+              if (info.subCategoryKey === "EarthAndSpace") {
+                const effectiveMainCat = subCategory.main || info.inferredMainCategory;
+                if (subCategoryData.EarthAndSpace[effectiveMainCat]) {
+                  subCategoryData.EarthAndSpace[effectiveMainCat].push(trimmedCat);
+                  validationData.validEarthAndSpace.get(effectiveMainCat).add(trimmedCat); // Update live validation data
+                  added = true;
+                }
+              } else if (info.subCategoryKey === "ASTRONOMY_POSN") {
+                subCategoryData.ASTRONOMY_POSN.push({ topic: trimmedCat, description: "หมวดหมู่ที่เพิ่มโดยอัตโนมัติ" });
+                validationData.validAstronomyPosn.add(trimmedCat); // Update live validation data
+                added = true;
+              }
+
+              if (added) {
+                subCategoryFileModified = true;
+                newCategoriesAdded.add(`"${trimmedCat}" (under main category: ${subCategory.main || info.inferredMainCategory || 'ASTRONOMY_POSN'})`);
+              } else {
+                fileErrors.push({ File: fileName, ID: questionIdForTable, Error: `Invalid category "${trimmedCat}"`, Details: 'Could not auto-add' });
+              }
             }
-          } else {
-            fileErrors.push(`- ❗️ ERROR in ${fileName} ${questionIdentifier}: Invalid category "${specificCat}". (No correction mapping found)`);
           }
         }
       }
@@ -197,43 +216,65 @@ async function main() {
   const results = await Promise.all(processingPromises);
 
   // 4. Aggregate results and perform file writes
-  let totalCorrections = 0;
+  const allCorrections = [];
   const allUnfixableErrors = [];
 
   for (const result of results) {
-    result.corrections.forEach(c => console.log(c));
-    totalCorrections += result.corrections.length;
+    allCorrections.push(...result.corrections);
     allUnfixableErrors.push(...result.errors);
 
     if (result.fileModified) {
       const filePath = path.join(DATA_DIR, result.fileName);
       fs.writeFileSync(filePath, result.newContent, "utf-8");
-      console.log(`- ✅ Saved changes to ${result.fileName}\n`);
     }
   }
 
-  // 5. Report final results
-  console.log("\n--- Validation Complete ---");
-  if (totalCorrections > 0) {
-    console.log(`🔧 Successfully auto-corrected ${totalCorrections} instance(s).`);
+  // 4.5 Write back the updated sub-category data if modified
+  if (subCategoryFileModified) {
+    // Sort the categories alphabetically before writing for consistency
+    for (const mainCat in subCategoryData.EarthAndSpace) {
+      // Use Set to remove duplicates before sorting
+      const uniqueCats = [...new Set(subCategoryData.EarthAndSpace[mainCat])];
+      subCategoryData.EarthAndSpace[mainCat] = uniqueCats.sort((a, b) => a.localeCompare(b, 'th'));
+    }
+    // Use Map to handle uniqueness for objects, then convert back to array
+    const uniqueAstroTopics = new Map();
+    subCategoryData.ASTRONOMY_POSN.forEach(item => uniqueAstroTopics.set(item.topic, item));
+    subCategoryData.ASTRONOMY_POSN = [...uniqueAstroTopics.values()].sort((a, b) => a.topic.localeCompare(b.topic, 'th'));
+
+    const subCategoryFileContent = `export const subCategoryData = ${JSON.stringify(subCategoryData, null, 2)};\n\nexport const quizPrefixInfo = ${JSON.stringify(quizPrefixInfo, null, 2)};\n`;
+
+    fs.writeFileSync(path.join(DATA_DIR, "sub-category-data.js"), subCategoryFileContent, "utf-8");
+    console.log("\n--- Sub-category Data Updated ---");
+    console.log("✅ Automatically added new sub-categories to `data/sub-category-data.js`:");
+    newCategoriesAdded.forEach(cat => console.log(`  - ${cat}`));
   }
 
-  const totalErrors = allUnfixableErrors.length;
-  if (totalErrors === 0 && totalCorrections === 0) {
-    console.log("✅ All sub-categories are already consistent. No changes needed.");
-  } else if (totalErrors === 0) {
-    console.log("✅ All sub-categories are now consistent after corrections.");
-  } else {
-    console.log(`\n🔴 Found ${totalErrors} unfixable inconsistencies:\n`);
-    allUnfixableErrors.forEach((detail) => console.log(detail));
-    console.log("\nPlease review the errors above and correct the data files or update the correction map.");
-    process.exit(1); // Exit with an error code to signal failure in CI/CD pipelines
+  // 5. Report final results
+  console.log("\n--- ✅ Validation Complete ---");
+
+  if (allCorrections.length > 0) {
+    console.log(`\n--- 🔧 Auto-corrections (${allCorrections.length}) ---`);
+    console.table(allCorrections);
+  }
+
+  if (allUnfixableErrors.length > 0) {
+    console.log(`\n--- ❗️ Errors (${allUnfixableErrors.length}) ---`);
+    console.table(allUnfixableErrors);
+    console.error(`\nFound ${allUnfixableErrors.length} unrecoverable error(s). Please fix them manually.`);
+  }
+
+  if (allCorrections.length === 0 && allUnfixableErrors.length === 0 && newCategoriesAdded.size === 0) {
+    console.log("\n✨ All sub-categories are valid. No issues found.");
   }
 
   const endTime = performance.now();
   const duration = (endTime - startTime) / 1000; // in seconds
   console.log(`\n⏱️  Script finished in ${duration.toFixed(3)} seconds.`);
-  console.log("------------------------------------------------------------\n");
+
+  if (allUnfixableErrors.length > 0) {
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {

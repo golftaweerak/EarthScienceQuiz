@@ -502,18 +502,22 @@ export function initializeCustomQuizHandler() {
         const dataId = `${mainCategory}__SEP__${specificCategory}`;
 
         return `
-            <div class="specific-category-control pl-4 py-3 border-t border-gray-200 dark:border-gray-700/50 ${disabled ? 'opacity-50 pointer-events-none' : ''}">
+            <div class="specific-category-control pl-4 pr-4 py-3 border-t border-gray-200 dark:border-gray-700/50 ${disabled ? 'opacity-50 pointer-events-none' : ''}">
                 <div class="flex items-center justify-between gap-4">
                     <div class="min-w-0">
                         <label for="count-slider-${uniqueId}" class="font-medium text-gray-700 dark:text-gray-200 text-sm">${specificCategory}</label>
                         <p class="text-xs text-gray-500 dark:text-gray-400">มี ${maxCount} ข้อ</p>
                     </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <input data-input="${dataId}" id="count-input-${uniqueId}" type="number" min="0" max="${maxCount}" value="0" class="w-12 py-0.5 px-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-center font-semibold text-xs text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
+                    <input data-input="${dataId}" id="count-input-${uniqueId}" type="number" min="0" max="${maxCount}" value="0" class="w-16 py-1 px-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900/50 text-center font-semibold text-sm text-blue-600 dark:text-blue-400 focus:ring-blue-500 focus:border-blue-500 flex-shrink-0">
                 </div>
-                <div class="mt-3">
-                    <input data-slider="${dataId}" id="count-slider-${uniqueId}" type="range" min="0" max="${maxCount}" value="0" class="w-full h-2 rounded-lg appearance-none cursor-pointer" ${disabled ? "disabled" : ""}>
+                <div class="flex items-center gap-3 mt-2">
+                    <input data-slider="${dataId}" id="count-slider-${uniqueId}" type="range" min="0" max="${maxCount}" value="0" class="flex-grow h-2 rounded-lg appearance-none cursor-pointer" ${disabled ? "disabled" : ""}>
+                    <div class="flex items-center gap-2 flex-shrink-0 quick-select-buttons">
+                        <button type="button" data-quick-select="${dataId}" data-value="5" class="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/60 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors ${maxCount < 5 ? 'hidden' : ''}">5</button>
+                        <button type="button" data-quick-select="${dataId}" data-value="10" class="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/60 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors ${maxCount < 10 ? 'hidden' : ''}">10</button>
+                        <button type="button" data-quick-select="${dataId}" data-value="${maxCount}" class="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 dark:text-gray-300 dark:bg-gray-700/60 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">All</button>
+                        <button type="button" data-quick-select="${dataId}" data-value="0" class="px-2 py-0.5 text-xs font-medium text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900/50 rounded-full hover:bg-red-200 dark:hover:bg-red-900 transition-colors">ล้าง</button>
+                    </div>
                 </div>
             </div>`;
     }
@@ -526,7 +530,10 @@ export function initializeCustomQuizHandler() {
      * @returns {string} The HTML string for the accordion section.
      */
     function createMainCategoryAccordionHTML(mainCategory, specificData, iconSrc) {
-        const totalQuestionsInMainCategory = Object.values(specificData).reduce((sum, questions) => sum + (questions?.length || 0), 0);
+        // Flatten all question arrays and use a Set to find the count of unique questions.
+        const allQuestionsInMain = Object.values(specificData).flat();
+        const uniqueQuestions = new Set(allQuestionsInMain);
+        const totalQuestionsInMainCategory = uniqueQuestions.size;
         const finalIconSrc = iconSrc || './assets/icons/study.png';
         const mainCategoryDetails = allCategoryDetails[mainCategory] || { displayName: mainCategory };
 
@@ -759,17 +766,25 @@ export function initializeCustomQuizHandler() {
                     return acc;
                 }
 
-                let mainCat, specificCat;
+                let mainCat;
+                let specificCats = [];
 
-                // Handle new format: { main: 'Geology', specific: 'Topic 1' }
+                // Handle new format: { main: 'Geology', specific: 'Topic 1' or ['Topic 1', 'Topic 2'] }
                 if (typeof question.subCategory === 'object' && question.subCategory.main) {
                     mainCat = question.subCategory.main;
-                    specificCat = question.subCategory.specific || 'ภาพรวม';
+                    const specific = question.subCategory.specific;
+                    if (Array.isArray(specific)) {
+                        specificCats = specific;
+                    } else if (typeof specific === 'string') {
+                        specificCats.push(specific);
+                    } else {
+                        specificCats.push('ภาพรวม');
+                    }
                 }
                 // Handle legacy format: 'Geology'
                 else if (typeof question.subCategory === 'string') {
                     mainCat = question.subCategory;
-                    specificCat = 'ภาพรวม';
+                    specificCats.push('ภาพรวม');
                 }
                 // If format is unhandled, skip this question
                 else {
@@ -779,8 +794,11 @@ export function initializeCustomQuizHandler() {
                 // Ensure mainCat is a non-empty string before proceeding
                 if (mainCat && typeof mainCat === 'string' && mainCat.trim() !== '') {
                     if (!acc[mainCat]) acc[mainCat] = {};
-                    if (!acc[mainCat][specificCat]) acc[mainCat][specificCat] = [];
-                    acc[mainCat][specificCat].push(question);
+                    
+                    specificCats.forEach(specificCat => {
+                        if (!acc[mainCat][specificCat]) acc[mainCat][specificCat] = [];
+                        acc[mainCat][specificCat].push(question);
+                    });
                 }
                 
                 return acc;
@@ -881,7 +899,9 @@ export function initializeCustomQuizHandler() {
                 }
             } else if (byCategory[dataId]) {
                 // Handle main category, e.g., "Geology"
-                sourcePool = Object.values(byCategory[dataId]).flat();
+                // Flatten all question arrays and use a Set to get a pool of unique questions.
+                const allQuestionsInMain = Object.values(byCategory[dataId]).flat();
+                sourcePool = [...new Set(allQuestionsInMain)];
             }
 
             if (sourcePool.length > 0) {
