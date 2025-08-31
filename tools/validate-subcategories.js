@@ -35,7 +35,18 @@ const correctionMap = {
     "ปฏิสัมพันธ์ภายในและผลกระทบต่อสิ่งแวดล้อมและสิ่งมีชีวิตบนโลก": "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์",
     // Add other known old -> new mappings for ASTRONOMY_POSN here
     "ดาวฤกษ์ คุณสมบัติและวิวัฒนาการ": "สมบัติและวิวัฒนาการของดาวฤกษ์",
-    "ลุ่มดาวฤกษ์และการใช้ประโยชน์": "กลุ่มดาวฤกษ์และการใช้ประโยชน์"
+    "ลุ่มดาวฤกษ์และการใช้ประโยชน์": "กลุ่มดาวฤกษ์และการใช้ประโยชน์",
+    "พลังงานและโมเมนตัม": "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
+    "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง": "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
+    "ฟังก์ชันตรีโกณมิติ":"คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
+    "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น":"กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
+    "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์":"ปรากฏการณ์ในระบบสุริยะ (อุปราคา, น้ำขึ้นน้ำลง)",
+    "ทฤษฎีคลื่นแม่เหล็กไฟฟ้าเบื้องต้น":"คุณสมบัติของคลื่นแม่เหล็กไฟฟ้าและสเปกตรัม",
+    "พีชคณิตเบื้องต้น":"คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
+    "เรขาคณิตวงกลม วงรี":"คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
+    "ทรงกลomท้องฟ้าและระบบพิกัด":"ทรงกลมท้องฟ้าและระบบพิกัด"
+
+
   },
 };
 
@@ -95,9 +106,6 @@ async function main() {
 
   // Pre-process data into Sets for efficient O(1) lookups
   const validationData = preprocessValidationData(subCategoryData);
-
-  let subCategoryFileModified = false;
-  const newCategoriesAdded = new Set();
 
   // Get and sort prefix keys by length (descending) to find the longest match first
   // e.g., ensure 'adv_geology' is checked before 'adv_astro'
@@ -184,27 +192,7 @@ async function main() {
                 fileErrors.push({ File: fileName, ID: questionIdForTable, Error: `Invalid category "${trimmedCat}"`, Details: 'Auto-correction failed to find string' });
               }
             } else {
-              // --- NEW LOGIC: Add the new category ---
-              let added = false;
-              if (info.subCategoryKey === "EarthAndSpace") {
-                const effectiveMainCat = subCategory.main || info.inferredMainCategory;
-                if (subCategoryData.EarthAndSpace[effectiveMainCat]) {
-                  subCategoryData.EarthAndSpace[effectiveMainCat].push(trimmedCat);
-                  validationData.validEarthAndSpace.get(effectiveMainCat).add(trimmedCat); // Update live validation data
-                  added = true;
-                }
-              } else if (info.subCategoryKey === "ASTRONOMY_POSN") {
-                subCategoryData.ASTRONOMY_POSN.push({ topic: trimmedCat, description: "หมวดหมู่ที่เพิ่มโดยอัตโนมัติ" });
-                validationData.validAstronomyPosn.add(trimmedCat); // Update live validation data
-                added = true;
-              }
-
-              if (added) {
-                subCategoryFileModified = true;
-                newCategoriesAdded.add(`"${trimmedCat}" (under main category: ${subCategory.main || info.inferredMainCategory || 'ASTRONOMY_POSN'})`);
-              } else {
-                fileErrors.push({ File: fileName, ID: questionIdForTable, Error: `Invalid category "${trimmedCat}"`, Details: 'Could not auto-add' });
-              }
+              fileErrors.push({ File: fileName, ID: questionIdForTable, Error: `Invalid category "${trimmedCat}"`, Details: 'No auto-correction rule found in correctionMap.' });
             }
           }
         }
@@ -229,27 +217,6 @@ async function main() {
     }
   }
 
-  // 4.5 Write back the updated sub-category data if modified
-  if (subCategoryFileModified) {
-    // Sort the categories alphabetically before writing for consistency
-    for (const mainCat in subCategoryData.EarthAndSpace) {
-      // Use Set to remove duplicates before sorting
-      const uniqueCats = [...new Set(subCategoryData.EarthAndSpace[mainCat])];
-      subCategoryData.EarthAndSpace[mainCat] = uniqueCats.sort((a, b) => a.localeCompare(b, 'th'));
-    }
-    // Use Map to handle uniqueness for objects, then convert back to array
-    const uniqueAstroTopics = new Map();
-    subCategoryData.ASTRONOMY_POSN.forEach(item => uniqueAstroTopics.set(item.topic, item));
-    subCategoryData.ASTRONOMY_POSN = [...uniqueAstroTopics.values()].sort((a, b) => a.topic.localeCompare(b.topic, 'th'));
-
-    const subCategoryFileContent = `export const subCategoryData = ${JSON.stringify(subCategoryData, null, 2)};\n\nexport const quizPrefixInfo = ${JSON.stringify(quizPrefixInfo, null, 2)};\n`;
-
-    fs.writeFileSync(path.join(DATA_DIR, "sub-category-data.js"), subCategoryFileContent, "utf-8");
-    console.log("\n--- Sub-category Data Updated ---");
-    console.log("✅ Automatically added new sub-categories to `data/sub-category-data.js`:");
-    newCategoriesAdded.forEach(cat => console.log(`  - ${cat}`));
-  }
-
   // 5. Report final results
   console.log("\n--- ✅ Validation Complete ---");
 
@@ -264,7 +231,7 @@ async function main() {
     console.error(`\nFound ${allUnfixableErrors.length} unrecoverable error(s). Please fix them manually.`);
   }
 
-  if (allCorrections.length === 0 && allUnfixableErrors.length === 0 && newCategoriesAdded.size === 0) {
+  if (allCorrections.length === 0 && allUnfixableErrors.length === 0) {
     console.log("\n✨ All sub-categories are valid. No issues found.");
   }
 

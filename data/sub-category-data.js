@@ -82,33 +82,46 @@ export const subCategoryData = {
   },
 
   /**
-   * A combined and structured list of all astronomy topics for the "ดาราศาสตร์" category,
-   * indicating which level (Junior, Senior, or both) each topic belongs to.
-   * This provides a clearer overview for curriculum planning and content creation.
-   * The `level` property can be used for filtering.
-   */
+ * A combined and structured list of all astronomy topics for the "ดาราศาสตร์" category,
+ * indicating which level (Junior, Senior, or both) and which camp (1 or 2)
+ * each topic belongs to.
+ *
+ * REVISED BASED ON SYLLABUS DATED August 2025.
+ * Key changes include:
+ * - Added a 'camps' object to specify the introductory camp for junior and senior levels.
+ * - { junior: 1, senior: 1 } means the topic is introduced in Camp 1 for both levels.
+ * - { junior: 2, senior: 1 } means the topic is introduced in Camp 2 for juniors, but Camp 1 for seniors.
+ * - Corrected the 'level' for several core topics to JUNIOR_AND_SENIOR.
+ * - Added more specific topics for senior-only physics concepts.
+ */
   ASTRONOMY_POSN: [
-    // Foundational Math & Physics
-    { topic: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "พีชคณิตเบื้องต้น", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "เรขาคณิตวงกลม วงรี", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ฟังก์ชันตรีโกณมิติ", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง", level: LEVELS.SENIOR_ONLY },
-    { topic: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "พลังงานและโมเมนตัม", level: LEVELS.SENIOR_ONLY },
-    { topic: "ทฤษฎีคลื่นแม่เหล็กไฟฟ้าเบื้องต้น", level: LEVELS.SENIOR_ONLY },
-    // Core Astronomy - Aligned with EarthAndSpace.Astronomy for consistency
-    { topic: CORE_ASTRONOMY_TOPICS.SPHERICAL_ASTRONOMY, level: LEVELS.SENIOR_ONLY },
-    { topic: CORE_ASTRONOMY_TOPICS.CELESTIAL_MECHANICS, level: LEVELS.SENIOR_ONLY },
-    { topic: CORE_ASTRONOMY_TOPICS.SOLAR_SYSTEM, level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: CORE_ASTRONOMY_TOPICS.STARS, level: LEVELS.SENIOR_ONLY },
-    { topic: CORE_ASTRONOMY_TOPICS.GALAXIES, level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: CORE_ASTRONOMY_TOPICS.TELESCOPES, level: LEVELS.JUNIOR_AND_SENIOR },
-    // Foundational & Applied Topics
-    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
-    { topic: "การคำนวณทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
+    // --- Foundational Mathematics & Physics ---
+    { topic: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: "การแปลงหน่วยและสัญลักษณ์ทางวิทยาศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: "คุณสมบัติของคลื่นแม่เหล็กไฟฟ้าและสเปกตรัม", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    // Senior-only topics, introduced in their respective camps.
+    { topic: "แคลคูลัสเบื้องต้นสำหรับดาราศาสตร์", level: LEVELS.SENIOR_ONLY, camps: { senior: 1 } },
+
+    { topic: "ฟิสิกส์นิวเคลียร์และทฤษฎีสัมพัทธภาพเบื้องต้น", level: LEVELS.SENIOR_ONLY, camps: { senior: 2 } },
+
+    // --- Core Astronomy Topics ---
+    { topic: CORE_ASTRONOMY_TOPICS.SPHERICAL_ASTRONOMY, level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: CORE_ASTRONOMY_TOPICS.CELESTIAL_MECHANICS, level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: CORE_ASTRONOMY_TOPICS.SOLAR_SYSTEM, level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: CORE_ASTRONOMY_TOPICS.STARS, level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: CORE_ASTRONOMY_TOPICS.GALAXIES, level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: CORE_ASTRONOMY_TOPICS.TELESCOPES, level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+
+    // --- Applied & Observational Topics ---
+    { topic: "เวลา ปฏิทิน และการใช้แผนที่ดาว", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: "ปรากฏการณ์ในระบบสุริยะ (อุปราคา, น้ำขึ้นน้ำลง)", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    // Note: Binary/Cluster stars are introduced later for Juniors than for Seniors.
+    { topic: "ระบบดาวคู่และกระจุกดาว", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 2, senior: 1 } },
+    { topic: "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
+    { topic: "การคำนวณทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1, junior: 2, senior: 2 } },
+    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1, junior: 2, senior: 2 } },
   ],
 };
 

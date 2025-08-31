@@ -1032,7 +1032,7 @@ export const quizItems = [
       "รัศมี \\(r = 40/2 = 20\\) ม. พื้นที่ \\(A = \\pi r^2 = 3.14 \\times (20)^2 = 3.14 \\times 400 = 1256\\) ตร.ม.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "เรขาคณิตวงกลม วงรี",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1045,7 +1045,7 @@ export const quizItems = [
     explanation: "ความยาวแกนเอก = ระยะใกล้สุด + ระยะไกลสุด = $1 + 31 = 32$ AU.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: ["เรขาคณิตวงกลม วงรี", "การคำนวณทางดาราศาสตร์"],
+      specific: ["คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)", "การคำนวณทางดาราศาสตร์"],
     },
   },
   {
@@ -1059,7 +1059,7 @@ export const quizItems = [
       "ระยะทาง = \\(1.1 \\text{ km} = 1100\\) ม. จำนวนรอบ = ระยะทางทั้งหมด / เส้นรอบวง = \\(1100 / 2.2 = 500\\) รอบ.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "เรขาคณิตวงกลม วงรี",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1075,7 +1075,7 @@ export const quizItems = [
     answer: "ผลรวมระยะทางจากจุดบนวงรีไปยังโฟกัสคงที่",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "เรขาคณิตวงกลม วงรี",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1088,7 +1088,7 @@ export const quizItems = [
     explanation: "มุมในวงกลมคือ 360°. ดังนั้นแต่ละชิ้นมีมุม $360 / 8 = 45°$.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "เรขาคณิตวงกลม วงรี",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1100,7 +1100,7 @@ export const quizItems = [
     answer: "e = 0",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "เรขาคณิตวงกลม วงรี",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1114,7 +1114,7 @@ export const quizItems = [
       "พื้นที่ \\(A \\propto r^2\\). ถ้า \\(A_1/A_2 = 4\\), ดังนั้น \\((r_1/r_2)^2 = 4\\), และ \\(r_1/r_2 = 2\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "เรขาคณิตวงกลม วงรี",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
 
@@ -1128,7 +1128,7 @@ export const quizItems = [
     explanation: "\\(3x = 22 - 7 = 15\\). \\(x = 15 / 3 = 5\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1140,7 +1140,7 @@ export const quizItems = [
     explanation: "\\(y = 2(4) - 5 = 8 - 5 = 3\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1154,7 +1154,7 @@ export const quizItems = [
       "ราคาปากกา 2 ด้าม = \\(2 \\times 15 = 30\\) บาท. ราคาสมุด 5 เล่ม = \\(85 - 30 = 55\\) บาท. ราคาสมุด 1 เล่ม = \\(55 / 5 = 11\\) บาท.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1166,7 +1166,7 @@ export const quizItems = [
     explanation: "\\(\\frac{x}{4} = 8 - 3 = 5\\). \\(x = 5 \\times 4 = 20\\).",
     subCategory: {
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1179,7 +1179,7 @@ export const quizItems = [
       "ผลรวม = \\(10 + 15 + x = 25 + x\\). ค่าเฉลี่ย = \\((25+x)/3 = 14\\). \\(25+x = 42\\). \\(x = 42 - 25 = 17\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1191,7 +1191,7 @@ export const quizItems = [
     explanation: "\\(a - 3 = 10 / 2 = 5\\). \\(a = 5 + 3 = 8\\).",
     subCategory: {
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1216,7 +1216,7 @@ export const quizItems = [
       "นำสองสมการบวกกัน: \\((a+b)+(a-b) = 10+4 \\implies 2a = 14 \\implies a=7\\).",
     subCategory: {
       main: "Astronomy",
-      specific: "พีชคณิตเบื้องต้น",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
 
@@ -1232,7 +1232,7 @@ export const quizItems = [
       "\\(\\tan(\\theta) = \\frac{สูง}{ฐาน}\\). สูง = \\(ฐาน \\times \\tan(30°) = 30 \\times 0.577 \\approx 17.3\\) เมตร.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1246,7 +1246,7 @@ export const quizItems = [
       "\\(\\cos(\\theta) = \\frac{ชิด}{ฉาก}\\). ระยะห่าง (ชิด) = ฉาก \\(\\times \\cos(60°) = 10 \\times 0.5 = 5\\) เมตร.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1260,7 +1260,7 @@ export const quizItems = [
       "หาด้านตรงข้ามมุมฉาก (c) จากทฤษฎีบทพีทาโกรัส: \\(c^2 = 3^2 + 4^2 = 9 + 16 = 25\\), ดังนั้น \\(c=5\\). \\(\\sin(A) = \\frac{ข้าม}{ฉาก} = 3/5\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1274,7 +1274,7 @@ export const quizItems = [
       "\\(\\tan(\\theta) = \\frac{สูง}{ฐาน} = 20/20 = 1\\). มุมที่ค่า tan เท่ากับ 1 คือ 45°.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1288,7 +1288,7 @@ export const quizItems = [
       "จากเอกลักษณ์ \\(\\sin^2(x) + \\cos^2(x) = 1\\). \\(\\cos^2(x) = 1 - (0.8)^2 = 1 - 0.64 = 0.36\\). \\(\\cos(x) = \\sqrt{0.36} = 0.6\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1302,7 +1302,7 @@ export const quizItems = [
       "ความสูง = ระยะทาง \\(\\times \\sin(30°) = 2 \\times 0.5 = 1.0\\) km.",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1315,7 +1315,7 @@ export const quizItems = [
       "\\(\\sin(30°) = 0.5\\) และ \\(\\cos(60°) = 0.5\\). ผลรวมคือ \\(0.5 + 0.5 = 1\\).",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "ฟังก์ชันตรีโกณมิติ",
+      specific: "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     },
   },
   {
@@ -1345,7 +1345,7 @@ export const quizItems = [
     answer: "วัตถุจะเคลื่อนที่ด้วยความเร็วคงที่",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
   {
@@ -1359,7 +1359,7 @@ export const quizItems = [
       "จาก \\(F=ma\\), \\(a = F/m = 50 \\text{ N} / 10 \\text{ kg} = 5\\) m/s².",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
   {
@@ -1376,7 +1376,7 @@ export const quizItems = [
     explanation: "ความเร็วสุดท้ายคือความเร็วสูงสุดที่วัตถุสามารถไปถึงได้เมื่อตกลงมาผ่านของไหล (เช่น อากาศ) ซึ่งเกิดขึ้นเมื่อแรงต้านของของไหลสมดุลกับแรงโน้มถ่วง ทำให้แรงลัพธ์เป็นศูนย์และความเร่งเป็นศูนย์",
     subCategory: {
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
   {
@@ -1390,7 +1390,7 @@ export const quizItems = [
       "ดวงจันทร์มีมวลและขนาดเล็กกว่าโลก ทำให้มีแรงโน้มถ่วงที่พื้นผิวน้อยกว่า (ประมาณ 1/6 ของโลก)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
   {
@@ -1403,7 +1403,7 @@ export const quizItems = [
     explanation: "ความเร่ง \\(a = \\Delta v / t = (20 - 0) / 5 = 4\\) m/s².",
     subCategory: {
       main: "Astronomy",
-      specific: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
   {
@@ -1422,7 +1422,7 @@ export const quizItems = [
       "จรวดพ่นแก๊สร้อนออกไปด้านหลัง (แรงกิริยา) ทำให้ตัวจรวดเคลื่อนที่ไปข้างหน้า (แรงปฏิกิริยา)",
     subCategory: { // Corrected subCategory.specific
       main: "Astronomy",
-      specific: "กฎของนิวตัน แรงและการเคลื่อนที่เบื้องต้น",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
   {
@@ -1441,7 +1441,7 @@ export const quizItems = [
       "ความเร่งคือการเปลี่ยนแปลงของ 'ความเร็ว' ซึ่งเป็นปริมาณเวกเตอร์ การเปลี่ยนทิศทางถือเป็นการเปลี่ยนความเร็ว จึงมีความเร่ง (ความเร่งสู่ศูนย์กลาง)",
     subCategory: {
       main: "Astronomy",
-      specific: "การเคลื่อนที่เป็นเส้นตรงและเส้นโค้ง",
+      specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
     },
   },
 
