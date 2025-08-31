@@ -108,6 +108,7 @@ export const subCategoryData = {
     { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ปฏิสัมพันธ์ในระบบโลก-ดวงจันทร์-ดวงอาทิตย์", level: LEVELS.JUNIOR_AND_SENIOR },
     { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
+    { topic: "การคำนวณทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR },
   ],
 };
 
