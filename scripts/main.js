@@ -314,7 +314,7 @@ export function initializePage() {
     contentDiv.id = `content-${categoryKey}`;
     contentDiv.setAttribute("role", "region");
 
-    const hasSubCategories = ['AstronomyPOSN', 'ChallengePOSN'].includes(categoryKey);
+    const hasSubCategories = ['AstronomyPOSN', 'ChallengePOSN', 'AstronomyReview'].includes(categoryKey);
 
     if (hasSubCategories) {
       const subCategoryContainer = document.createElement('div');
@@ -367,6 +367,36 @@ export function initializePage() {
 
         Object.keys(subGroupedQuizzes).sort((a, b) => (categoryDetails[a]?.order || 99) - (categoryDetails[b]?.order || 99)).forEach(subKey => {
           const subAccordionTitle = categoryDetails[subKey]?.title || subKey;
+          const subAccordion = createSubCategoryAccordion(subAccordionTitle, subGroupedQuizzes[subKey], colorName);
+          subCategoryContainer.appendChild(subAccordion);
+        });
+      } else if (categoryKey === 'AstronomyReview') {
+        const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
+          let subDisciplineKey = 'GeneralKnowledge'; // Fallback
+          if (quiz.id.startsWith('Astro')) {
+            subDisciplineKey = 'Astronomy';
+          } else if (quiz.id.startsWith('ESr')) {
+            subDisciplineKey = 'EarthScience';
+          }
+          if (!acc[subDisciplineKey]) acc[subDisciplineKey] = [];
+          acc[subDisciplineKey].push(quiz);
+          return acc;
+        }, {});
+
+        const reviewTitles = {
+          Astronomy: "ทบทวน ดาราศาสตร์",
+          EarthScience: "ทบทวน วิทยาศาสตร์โลกและอวกาศ"
+        };
+
+        // Define a specific order for the "Review" sub-categories to ensure consistency
+        const reviewOrder = {
+          Astronomy: 1,      // "ทบทวน ดาราศาสตร์" should be first
+          EarthScience: 2,   // "ทบทวน วิทยาศาสตร์โลกและอวกาศ" should be second
+          GeneralKnowledge: 99 // Fallback for any others
+        };
+
+        Object.keys(subGroupedQuizzes).sort((a, b) => (reviewOrder[a] || 99) - (reviewOrder[b] || 99)).forEach(subKey => {
+          const subAccordionTitle = reviewTitles[subKey] || categoryDetails[subKey]?.title || subKey;
           const subAccordion = createSubCategoryAccordion(subAccordionTitle, subGroupedQuizzes[subKey], colorName);
           subCategoryContainer.appendChild(subAccordion);
         });
@@ -519,7 +549,7 @@ export function initializePage() {
 
     // --- NEW: Add Sub-category buttons if applicable, AFTER main category buttons ---
     const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
-    if (['AstronomyPOSN', 'ChallengePOSN'].includes(activeCategoryKey) && activeSection) {
+    if (['AstronomyPOSN', 'ChallengePOSN', 'AstronomyReview'].includes(activeCategoryKey) && activeSection) {
       const subToggles = activeSection.querySelectorAll('.sub-section-toggle');
       if (subToggles.length > 0) {
         const subSeparator = document.createElement("hr");
@@ -529,7 +559,11 @@ export function initializePage() {
         subToggles.forEach(subToggle => {
           const subTitle = subToggle.querySelector('h4').textContent;
           let shortTitle;
-          if (subTitle.includes('ม.ปลาย')) {
+          if (subTitle.startsWith('ทบทวน ดาราศาสตร์')) {
+            shortTitle = 'ดาราฯ';
+          } else if (subTitle.startsWith('ทบทวน วิทยาศาสตร์โลก')) {
+            shortTitle = 'วิทย์โลก';
+          } else if (subTitle.includes('ม.ปลาย')) {
             shortTitle = 'ม.ปลาย';
           } else if (subTitle.includes('ม.ต้น')) {
             shortTitle = 'ม.ต้น';
@@ -608,6 +642,11 @@ export function initializePage() {
 
   // 2. Sort categories based on the 'order' property for consistent display
   const sortedCategories = Object.keys(groupedQuizzes).sort((a, b) => {
+    // --- Custom Sort Logic: Force 'AstronomyReview' to be first ---
+    if (a === 'AstronomyReview' && b !== 'AstronomyReview') return -1;
+    if (a !== 'AstronomyReview' && b === 'AstronomyReview') return 1;
+
+    // --- Default Sort Logic: Use the 'order' property from data-manager ---
     const orderA = categoryDetails[a]?.order || 99;
     const orderB = categoryDetails[b]?.order || 99;
     return orderA - orderB;
