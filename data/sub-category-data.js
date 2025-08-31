@@ -120,8 +120,8 @@ export const subCategoryData = {
     { topic: "ระบบดาวคู่และกระจุกดาว", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 2, senior: 1 } },
     { topic: "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
     { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
-    { topic: "การคำนวณทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1, junior: 2, senior: 2 } },
-    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1, junior: 2, senior: 2 } },
+
+    { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1} },
   ],
 };
 

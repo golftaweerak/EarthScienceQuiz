@@ -767,4 +767,52 @@ export const quizList = [
     altText: "ไอคอนสำหรับ adv_astro10",
     category: "ChallengePOSN"
   },
-];
+  {
+      id: "juniorC1",
+      title: "ดาราศาสตร์ ม.ต้น ค่าย 1 ชุด 1",
+      amount: 20,
+      description: "ชุดคำถามข้อกา ที่ออกแบบมาเพื่อตรวจสอบความเข้าใจเชิงลึก ทบทวนเนื้อหาค่าย 1",
+      url: "./quiz/index.html?id=juniorC1",
+      storageKey: "quizState-juniorC1",
+      icon: "./assets/icons/astronomy1.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ juniorC1",
+      category: "AstronomyPOSN"
+  },
+   {
+      id: "juniorC2",
+      title: "ดาราศาสตร์ ม.ต้น ค่าย 1 ชุด 2",
+      amount: 20,
+      description: "ชุดคำถามข้อกา ที่ออกแบบมาเพื่อตรวจสอบความเข้าใจเชิงลึก ทบทวนเนื้อหาค่าย 1",
+      url: "./quiz/index.html?id=juniorC2",
+      storageKey: "quizState-juniorC2",
+      icon: "./assets/icons/astronomy1.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ juniorC2",
+      category: "AstronomyPOSN"
+  },
+  {
+      id: "seniorC1",
+      title: "ดาราศาสตร์ ม.ปลาย ค่าย 1 ชุด 1",
+      amount: 20,
+      description: "ชุดคำถามข้อกา ที่ออกแบบมาเพื่อตรวจสอบความเข้าใจเชิงลึก ทบทวนเนื้อหาค่าย 1",
+      url: "./quiz/index.html?id=seniorC1",
+      storageKey: "quizState-seniorC1",
+      icon: "./assets/icons/black-hole.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ seniorC1",
+      category: "AstronomyPOSN"
+  },
+  {
+      id: "seniorC2",
+      title: "ดาราศาสตร์ ม.ปลาย ค่าย 1 ชุด 2",
+      amount: 20,
+      description: "ชุดคำถามข้อกา ที่ออกแบบมาเพื่อตรวจสอบความเข้าใจเชิงลึก ทบทวนเนื้อหาค่าย 1",
+      url: "./quiz/index.html?id=seniorC2",
+      storageKey: "quizState-seniorC2",
+      icon: "./assets/icons/black-hole.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ seniorC2",
+      category: "AstronomyPOSN"
+  },
+ ];

@@ -193,8 +193,9 @@ export function initializePage() {
    * @param {Array<object>} quizzes - An array of quiz objects for this sub-category.
    * @param {string} colorName - The base color name (e.g., 'blue') for styling.
    * @returns {HTMLElement} The created accordion element.
+   * @param {number} level - The nesting level of the accordion, for floating nav filtering.
    */
-  function createSubCategoryAccordion(subCategoryTitle, quizzes, colorName) {
+  function createSubCategoryAccordion(subCategoryTitle, quizzes, colorName, level = 1) {
     const accordion = document.createElement('div');
     accordion.className = 'sub-accordion py-1';
 
@@ -202,6 +203,7 @@ export function initializePage() {
     // A slightly different style for the sub-header
     toggleHeader.className = `sub-section-toggle flex justify-between items-center cursor-pointer p-3 rounded-lg bg-${colorName}-100/40 dark:bg-${colorName}-900/20 hover:bg-${colorName}-100/70 dark:hover:bg-${colorName}-900/40 transition-colors`;
     toggleHeader.setAttribute('aria-expanded', 'false');
+    toggleHeader.dataset.level = level;
 
     toggleHeader.innerHTML = `
         <h4 class="font-bold text-sm text-${colorName}-800 dark:text-${colorName}-300">${subCategoryTitle}</h4>
@@ -217,11 +219,13 @@ export function initializePage() {
     const quizGrid = document.createElement("div");
     quizGrid.className = "quiz-grid-container pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2";
 
-    quizzes.forEach((quiz, index) => {
-      const card = createQuizCard(quiz, index);
-      quizGrid.appendChild(card);
-    });
-
+    // Only create quiz cards if there are quizzes to display.
+    if (quizzes && quizzes.length > 0) {
+        quizzes.forEach((quiz, index) => {
+            const card = createQuizCard(quiz, index);
+            quizGrid.appendChild(card);
+        });
+    }
     innerContentWrapper.appendChild(quizGrid);
     contentDiv.appendChild(innerContentWrapper);
     accordion.append(toggleHeader, contentDiv);
@@ -321,30 +325,46 @@ export function initializePage() {
       subCategoryContainer.className = 'p-2 md:p-4 space-y-2';
 
       if (categoryKey === 'AstronomyPOSN') {
-        const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
-          let subCategoryKey = 'general';
-          if (quiz.id.startsWith('senior') || quiz.id.startsWith('senior')) {
-            subCategoryKey = 'senior';
-          } else if (quiz.id.startsWith('junior')) {
-            subCategoryKey = 'junior';
-          }
-          if (!acc[subCategoryKey]) acc[subCategoryKey] = [];
-          acc[subCategoryKey].push(quiz);
-          return acc;
-        }, {});
-
-        const mainCategoryTitle = details.title.split('(')[0].trim();
-        const subCategoryDetails = {
-          junior: { title: `${mainCategoryTitle} ม.ต้น (Junior)`, order: 1 },
-          senior: { title: `${mainCategoryTitle} ม.ปลาย (Senior)`, order: 2 },
-          general: { title: `${mainCategoryTitle} ทั่วไป (General)`, order: 3 }
-          
+        // Group quizzes into more structured categories
+        const grouped = {
+          camp1_junior: quizzes.filter(q => q.id.startsWith('juniorC')),
+          camp1_senior: quizzes.filter(q => q.id.startsWith('seniorC')),
+          regular_junior: quizzes.filter(q => q.id.startsWith('junior') && !q.id.startsWith('juniorC')),
+          regular_senior: quizzes.filter(q => q.id.startsWith('senior') && !q.id.startsWith('seniorC')),
+          general: quizzes.filter(q => !q.id.startsWith('junior') && !q.id.startsWith('senior')),
         };
+        const mainCategoryTitle = details.title.split('(')[0].trim();
 
-        Object.keys(subGroupedQuizzes).sort((a, b) => subCategoryDetails[a].order - subCategoryDetails[b].order).forEach(subKey => {
-          const subAccordion = createSubCategoryAccordion(subCategoryDetails[subKey].title, subGroupedQuizzes[subKey], colorName);
-          subCategoryContainer.appendChild(subAccordion);
-        });
+        // 1. Create regular Junior and Senior accordions first
+        if (grouped.regular_junior.length > 0) {
+          subCategoryContainer.appendChild(createSubCategoryAccordion(`${mainCategoryTitle} ม.ต้น (Junior)`, grouped.regular_junior, colorName, 1));
+        }
+        if (grouped.regular_senior.length > 0) {
+          subCategoryContainer.appendChild(createSubCategoryAccordion(`${mainCategoryTitle} ม.ปลาย (Senior)`, grouped.regular_senior, colorName, 1));
+        }
+        if (grouped.general.length > 0) {
+          subCategoryContainer.appendChild(createSubCategoryAccordion(`${mainCategoryTitle} ทั่วไป (General)`, grouped.general, colorName, 1));
+        }
+
+        // 2. Create the "ค่าย 1" container and append it last
+        if (grouped.camp1_junior.length > 0 || grouped.camp1_senior.length > 0) {
+          const camp1Container = createSubCategoryAccordion("ทบทวนค่าย 1", [], colorName, 1); // Level 1
+          const camp1Content = camp1Container.querySelector('.inner-content-wrapper');
+          camp1Content.innerHTML = ''; // Clear default grid
+          camp1Content.classList.remove('quiz-grid-container');
+          camp1Content.classList.add('space-y-2', 'p-2'); // Add padding for nested accordions
+
+          if (grouped.camp1_junior.length > 0) {
+            const juniorCampAccordion = createSubCategoryAccordion("ดาราศาสตร์ ม.ต้น ค่าย 1", grouped.camp1_junior, colorName, 2); // Level 2
+            camp1Content.appendChild(juniorCampAccordion);
+          }
+          if (grouped.camp1_senior.length > 0) {
+            const seniorCampAccordion = createSubCategoryAccordion("ดาราศาสตร์ ม.ปลาย ค่าย 1", grouped.camp1_senior, colorName, 2); // Level 2
+            camp1Content.appendChild(seniorCampAccordion);
+          }
+          subCategoryContainer.appendChild(camp1Container);
+        }
+
       } else if (categoryKey === 'ChallengePOSN') {
         const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
           // Map the quiz ID prefix to the correct sub-discipline key from categoryDetails
@@ -550,7 +570,7 @@ export function initializePage() {
     // --- NEW: Add Sub-category buttons if applicable, AFTER main category buttons ---
     const activeCategoryKey = activeSection ? activeSection.id.replace('category-', '') : null;
     if (['AstronomyPOSN', 'ChallengePOSN', 'AstronomyReview'].includes(activeCategoryKey) && activeSection) {
-      const subToggles = activeSection.querySelectorAll('.sub-section-toggle');
+      const subToggles = activeSection.querySelectorAll('.sub-section-toggle[data-level="1"]');
       if (subToggles.length > 0) {
         const subSeparator = document.createElement("hr");
         subSeparator.className = `w-10/12 my-1.5 border-t ${borderColor}`;
@@ -559,7 +579,9 @@ export function initializePage() {
         subToggles.forEach(subToggle => {
           const subTitle = subToggle.querySelector('h4').textContent;
           let shortTitle;
-          if (subTitle.startsWith('ทบทวน ดาราศาสตร์')) {
+          if (subTitle === 'ข้อสอบค่าย 1') {
+            shortTitle = 'ค่าย 1';
+          } else if (subTitle.startsWith('ทบทวน ดาราศาสตร์')) {
             shortTitle = 'ดาราฯ';
           } else if (subTitle.startsWith('ทบทวน วิทยาศาสตร์โลก')) {
             shortTitle = 'วิทย์โลก';
