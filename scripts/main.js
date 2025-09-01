@@ -579,7 +579,7 @@ export function initializePage() {
         subToggles.forEach(subToggle => {
           const subTitle = subToggle.querySelector('h4').textContent;
           let shortTitle;
-          if (subTitle === 'ข้อสอบค่าย 1') {
+          if (subTitle === 'ทบทวนค่าย 1') {
             shortTitle = 'ค่าย 1';
           } else if (subTitle.startsWith('ทบทวน ดาราศาสตร์')) {
             shortTitle = 'ดาราฯ';
