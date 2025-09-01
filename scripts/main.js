@@ -487,7 +487,7 @@ export function initializePage() {
 
     // --- 3. Handle visibility and button generation ---
     if (!activeToggle) {
-      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
+      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-full');
       return;
     }
 
@@ -534,7 +534,7 @@ export function initializePage() {
     // Add a separator if there are other buttons to navigate to.
     if (allToggles.length > 1) {
       const separator = document.createElement("hr");
-      separator.className = `w-10/12 my-1.5 border-t ${borderColor}`;
+      separator.className = `h-8 mx-1.5 border-l ${borderColor}`;
       fragment.appendChild(separator);
     }
 
@@ -573,7 +573,7 @@ export function initializePage() {
       const subToggles = activeSection.querySelectorAll('.sub-section-toggle[data-level="1"]');
       if (subToggles.length > 0) {
         const subSeparator = document.createElement("hr");
-        subSeparator.className = `w-10/12 my-1.5 border-t ${borderColor}`;
+        subSeparator.className = `h-8 mx-1.5 border-l ${borderColor}`;
         fragment.appendChild(subSeparator);
 
         subToggles.forEach(subToggle => {
@@ -625,7 +625,7 @@ export function initializePage() {
     floatingNavButtons.appendChild(fragment);
 
     // Show the nav (the container's transition will handle the fade/slide)
-    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full');
+    floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-full');
     // No specific button animation needed here as requested.
   }
 
@@ -705,8 +705,8 @@ export function initializePage() {
   // Create and append the floating navigation container
   const floatingNavContainer = document.createElement('div');
   floatingNavContainer.id = 'floating-nav-container';
-  floatingNavContainer.className = 'fixed top-1/2 right-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-l-xl transform -translate-y-1/2 opacity-0 pointer-events-none translate-x-full transition-all duration-300 z-40 border border-gray-200 dark:border-gray-700';
-  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-col items-center gap-2"></div>`;
+  floatingNavContainer.className = 'fixed bottom-4 left-4 p-2 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm shadow-xl rounded-tr-xl transform opacity-0 pointer-events-none translate-y-full transition-all duration-300 z-40 border border-gray-200 dark:border-gray-700';
+  floatingNavContainer.innerHTML = `<div id="floating-nav-buttons" class="flex flex-row items-center gap-2"></div>`;
   document.body.appendChild(floatingNavContainer);
 
   // 4. Attach listeners and set initial state for accordions
@@ -917,9 +917,9 @@ export function initializePage() {
     }
 
     if (window.scrollY > lastScrollY && window.scrollY > 100) { // Scrolling down & not at the top
-      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
+      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-full');
     } else { // Scrolling up
-      floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full');
+      floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-full');
     }
 
     lastScrollY = window.scrollY <= 0 ? 0 : window.scrollY;
