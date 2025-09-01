@@ -713,21 +713,19 @@ export function initializePreviewPage() {
             groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th', { numeric: true, sensitivity: 'base' }));
         });
 
-        // Create optgroups and options, ensuring a consistent order by sorting category keys
-        const categoryOrder = ['AstronomyReview']; // Define which category should come first.
+        // Create optgroups and options, ensuring a consistent order that matches main.js
+        const sortedCategoryKeys = Object.keys(groupedQuizzes).sort((a, b) => {
+            // --- Custom Sort Logic: Force 'AstronomyReview' to be first ---
+            if (a === 'AstronomyReview' && b !== 'AstronomyReview') return -1;
+            if (a !== 'AstronomyReview' && b === 'AstronomyReview') return 1;
 
-        Object.keys(groupedQuizzes).sort((a, b) => {
-            const aIsFirst = categoryOrder.includes(a);
-            const bIsFirst = categoryOrder.includes(b);
+            // --- Default Sort Logic: Use the 'order' property from data-manager ---
+            const orderA = allCategoryDetails[a]?.order || 99;
+            const orderB = allCategoryDetails[b]?.order || 99;
+            return orderA - orderB;
+        });
 
-            if (aIsFirst && !bIsFirst) {
-                return -1;
-            }
-            if (!aIsFirst && bIsFirst) {
-                return 1; // b comes before a
-            }
-            return a.localeCompare(b); // Otherwise, sort alphabetically
-        }).forEach(categoryKey => {
+        sortedCategoryKeys.forEach(categoryKey => {
             const optgroup = document.createElement('optgroup');
             // Use the display title from the imported allCategoryDetails, or the key itself as a fallback
             optgroup.label = allCategoryDetails[categoryKey]?.title || categoryKey;

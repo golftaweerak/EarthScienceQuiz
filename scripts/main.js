@@ -662,6 +662,12 @@ export function initializePage() {
     return acc;
   }, {});
 
+  // Sort quizzes within each category using natural sort for consistent ordering.
+  // This ensures that "Quiz 2" comes before "Quiz 10".
+  Object.keys(groupedQuizzes).forEach(categoryKey => {
+    groupedQuizzes[categoryKey].sort((a, b) => a.title.localeCompare(b.title, 'th', { numeric: true, sensitivity: 'base' }));
+  });
+
   // 2. Sort categories based on the 'order' property for consistent display
   const sortedCategories = Object.keys(groupedQuizzes).sort((a, b) => {
     // --- Custom Sort Logic: Force 'AstronomyReview' to be first ---
