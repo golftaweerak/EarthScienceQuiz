@@ -1,3 +1,24 @@
 {
-  "type": "module"
+  "type": "module",
+  "name": "earthsciencequiz",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">\r   <!-- Badges for professionalism -->\r   <img src=\"https://img.shields.io/github/license/golftaweerak/EarthScienceQuiz\" alt=\"License\">\r   <img src=\"https://img.shields.io/github/deployments/golftaweerak/EarthScienceQuiz/github-pages?label=GitHub%20Pages\" alt=\"GitHub Pages\">\r </div>\r <br>\r <div align=\"center\">\r   <img src=\"assets/images/screenshot.png\" alt=\"Earth Science Quiz Screenshot\" width=\"80%\">\r   <p><i>ภาพหน้าจอของแอปพลิเคชัน </i></p>\r </div>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/golftaweerak/EarthScienceQuiz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/golftaweerak/EarthScienceQuiz/issues"
+  },
+  "homepage": "https://github.com/golftaweerak/EarthScienceQuiz#readme",
+  "dependencies": {
+    "chalk": "^5.6.0"
+  }
 }
