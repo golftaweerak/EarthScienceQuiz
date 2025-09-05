@@ -50,6 +50,24 @@ function getOptionText(opt) {
 }
 
 /**
+ * Formats a consistent identifier string for a question for logging purposes.
+ * @param {object} item - The question object, containing `id` and `number`.
+ * @param {string} file - The filename where the question is located.
+ * @returns {string} A formatted string like "filename.js (#12)" or "filename.js (ID: q1, #12)".
+ */
+function formatIdentifier(item, file) {
+    const parts = [];
+    if (item.id && item.id !== 'N/A') {
+        parts.push(`ID: ${item.id}`);
+    }
+    if (item.number) {
+        parts.push(`#${item.number}`);
+    }
+    // If for some reason both are missing, it will just show the filename.
+    return parts.length > 0 ? `${file} (${parts.join(', ')})` : file;
+}
+
+/**
  * Calculates the Levenshtein distance between two strings.
  * @param {string} s1 The first string.
  * @param {string} s2 The second string.
@@ -195,9 +213,9 @@ async function checkDuplicatesAndSimilarities() {
                     console.log(chalk.red.bold("\n--- Found Duplicates ---"));
                 }
                 console.error(chalk.red.bold(`\n❗️ DUPLICATE #${duplicateCount}:`));
-                console.error(`  - First instance: ${chalk.cyan(`${firstSeen.file} (ID: ${firstSeen.id}, #${firstSeen.number})`)}`);
+                console.error(`  - First instance: ${chalk.cyan(formatIdentifier(firstSeen, firstSeen.file))}`);
                 console.error(`    > ${chalk.gray(firstSeen.questionText)}`);
-                console.error(`  - Duplicate instance: ${chalk.cyan(`${file} (ID: ${questionItem.id || 'N/A'}, #${questionItem.number})`)}`);
+                console.error(`  - Duplicate instance: ${chalk.cyan(formatIdentifier({ id: questionItem.id || 'N/A', number: questionItem.number }, file))}`);
                 console.error(`    > ${chalk.gray(questionText)}`);
             } else {
                 const questionInfo = {
@@ -237,9 +255,9 @@ async function checkDuplicatesAndSimilarities() {
                         console.log(chalk.yellow.bold("\n--- Found Similar Questions ---"));
                     }
                     console.warn(chalk.yellow.bold(`\n⚠️  SIMILAR PAIR #${similarPairCount} (Question: ${qSim}%, Options: ${oSim}%):`));
-                    console.warn(`  - Q1: ${chalk.cyan(`${q1.file} (ID: ${q1.id}, #${q1.number})`)}`);
+                    console.warn(`  - Q1: ${chalk.cyan(formatIdentifier(q1, q1.file))}`);
                     console.warn(`    > ${chalk.gray(q1.questionText)}`);
-                    console.warn(`  - Q2: ${chalk.cyan(`${q2.file} (ID: ${q2.id}, #${q2.number})`)}`);
+                    console.warn(`  - Q2: ${chalk.cyan(formatIdentifier(q2, q2.file))}`);
                     console.warn(`    > ${chalk.gray(q2.questionText)}`);
                 }
             }
