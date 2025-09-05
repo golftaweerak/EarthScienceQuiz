@@ -101,17 +101,15 @@ export const quizItems = [
   {
     number: 6,
     type: "question",
-    question:
-      "ตามทฤษฎีบทวิเรียล (Virial Theorem) สำหรับระบบที่เสถียรและยึดเหนี่ยวด้วยแรงโน้มถ่วง ความสัมพันธ์ระหว่างพลังงานจลน์เฉลี่ย ($\\langle K \\rangle$) และพลังงานศักย์เฉลี่ย ($\\langle U \\rangle$) คืออะไร",
+    question: "สำหรับระบบดาวฤกษ์ที่เสถียรและยึดเหนี่ยวด้วยแรงโน้มถ่วง (เช่น กระจุกดาวทรงกลม) ซึ่งเป็นไปตามทฤษฎีบทวิเรียล หากวัดพลังงานรวม (Total Energy) ของระบบได้เท่ากับ -X จูล พลังงานจลน์เฉลี่ย ($\\langle K \\rangle$) และพลังงานศักย์เฉลี่ย ($\\langle U \\rangle$) ของระบบจะมีค่าเท่าใดตามลำดับ?",
     options: [
-      "$\\langle K \\rangle = \\langle U \\rangle$",
-      "$\\langle K \\rangle = -\\langle U \\rangle$",
-      "$2\\langle K \\rangle = -\\langle U \\rangle$",
-      "$\\langle K \\rangle = -2\\langle U \\rangle$",
+      "K = X, U = -2X",
+      "K = 2X, U = -X",
+      "K = X/2, U = -3X/2",
+      "K = -X, U = 0",
     ],
-    answer: "$2\\langle K \\rangle = -\\langle U \\rangle$",
-    explanation:
-      "ทฤษฎีบทวิเรียลเป็นเครื่องมือที่ทรงพลังในฟิสิกส์ดาราศาสตร์ โดยระบุว่าสำหรับระบบที่เสถียรและยึดเหนี่ยวด้วยแรงโน้มถ่วง (เช่น กระจุกดาว, กาแล็กซี) สองเท่าของพลังงานจลน์เฉลี่ยรวมของระบบจะมีค่าเท่ากับค่าลบของพลังงานศักย์เฉลี่ยรวมของระบบ ซึ่งหมายความว่าพลังงานรวมของระบบคือ $E = K + U = -K$",
+    answer: "K = X, U = -2X",
+    explanation: "จากทฤษฎีบทวิเรียล, $2\\langle K \\rangle = -\\langle U \\rangle$ หรือ $\\langle U \\rangle = -2\\langle K \\rangle$. พลังงานรวมคือ $E_{total} = \\langle K \\rangle + \\langle U \\rangle$. แทนค่า U: $E_{total} = \\langle K \\rangle + (-2\\langle K \\rangle) = -\\langle K \\rangle$. โจทย์ให้ $E_{total} = -X$, ดังนั้น $\\langle K \\rangle = X$. และ $\\langle U \\rangle = -2\\langle K \\rangle = -2X$.",
     subCategory: {
       main: "Astronomy",
       specific: "กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
