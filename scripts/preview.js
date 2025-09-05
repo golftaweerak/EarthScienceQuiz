@@ -279,22 +279,10 @@ function renderQuizData() {
     }
 
     if (currentQuizData.length > 0) {
-        const filteredData = filterKeyword ? currentQuizData.filter(item => {
-            const questionText = item.question?.toLowerCase() || '';
-            const choicesText = (item.choices || item.options)?.join(' ').toLowerCase() || '';
-            const explanationText = item.explanation?.toLowerCase() || '';
-            // Also search in scenario title and description
-            const scenarioTitleText = item.scenarioTitle?.toLowerCase() || '';
-            const scenarioDescriptionText = item.scenarioDescription?.toLowerCase() || '';
-            const sourceQuizTitleText = item.sourceQuizTitle?.toLowerCase() || '';
-            const subCategoryText = String(item.subCategory?.specific || item.subCategory?.main || item.subCategory || '').toLowerCase();
-
-            return questionText.includes(filterKeyword) || choicesText.includes(filterKeyword) ||
-                explanationText.includes(filterKeyword) || subCategoryText.includes(filterKeyword) ||
-                scenarioTitleText.includes(filterKeyword) ||
-                scenarioDescriptionText.includes(filterKeyword) ||
-                sourceQuizTitleText.includes(filterKeyword);
-        }) : currentQuizData;
+        // Use the pre-processed `searchableText` for much faster filtering.
+        const filteredData = filterKeyword
+            ? currentQuizData.filter(item => item.searchableText && item.searchableText.includes(filterKeyword))
+            : currentQuizData;
 
         // Update the question count display
         if (countContainer) {

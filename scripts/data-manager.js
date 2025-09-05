@@ -310,6 +310,30 @@ export async function fetchAllQuizData() {
   try {
     const results = await Promise.all(promises);
     allQuestionsCache = results.flat();
+
+    // Pre-process each question to create a single, lowercase, searchable text field.
+    // This is done only once when the data is first loaded, making subsequent searches much faster.
+    allQuestionsCache.forEach(q => {
+        const searchableParts = [
+            q.question,
+            q.explanation,
+            q.scenarioTitle,
+            q.scenarioDescription,
+            q.sourceQuizTitle,
+            ...(q.options || q.choices || []),
+        ];
+        // Handle both object and string formats for subCategory
+        if (q.subCategory) {
+            if (typeof q.subCategory === 'object' && q.subCategory.main) {
+                searchableParts.push(q.subCategory.main);
+                const specifics = Array.isArray(q.subCategory.specific) ? q.subCategory.specific : [q.subCategory.specific];
+                searchableParts.push(...specifics);
+            } else if (typeof q.subCategory === 'string') {
+                searchableParts.push(q.subCategory);
+            }
+        }
+        q.searchableText = searchableParts.filter(Boolean).join(' ').toLowerCase();
+    });
   } catch (error) {
     // The error from a failing import will be caught here.
     // We re-throw it so the UI layer (e.g., preview.js) can display a meaningful message.
