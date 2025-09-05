@@ -48,6 +48,65 @@ export const toggleAccordion = (toggleElement, forceState) => {
   }
 };
 
+/**
+ * Groups quizzes within a main category into a structured format for rendering,
+ * especially for categories that require nested accordions.
+ * @param {Array<object>} quizzes - The list of quizzes in the main category.
+ * @param {string} categoryKey - The key of the main category (e.g., 'AstronomyPOSN').
+ * @returns {Array<object>} A structured array of groups to be rendered.
+ */
+function groupQuizzesForCategory(quizzes, categoryKey) {
+  const groups = [];
+  const mainCategoryTitle = categoryDetails[categoryKey]?.title.split('(')[0].trim();
+
+  if (categoryKey === 'AstronomyPOSN') {
+    const grouped = {
+      camp1_junior: quizzes.filter(q => q.id.startsWith('juniorC')),
+      camp1_senior: quizzes.filter(q => q.id.startsWith('seniorC')),
+      regular_junior: quizzes.filter(q => q.id.startsWith('junior') && !q.id.startsWith('juniorC')),
+      regular_senior: quizzes.filter(q => q.id.startsWith('senior') && !q.id.startsWith('seniorC')),
+      general: quizzes.filter(q => !q.id.startsWith('junior') && !q.id.startsWith('senior')),
+    };
+
+    if (grouped.regular_junior.length > 0) groups.push({ title: `${mainCategoryTitle} ม.ต้น (Junior)`, quizzes: grouped.regular_junior, level: 1 });
+    if (grouped.regular_senior.length > 0) groups.push({ title: `${mainCategoryTitle} ม.ปลาย (Senior)`, quizzes: grouped.regular_senior, level: 1 });
+    if (grouped.general.length > 0) groups.push({ title: `${mainCategoryTitle} ทั่วไป (General)`, quizzes: grouped.general, level: 1 });
+
+    const camp1SubGroups = [];
+    if (grouped.camp1_junior.length > 0) camp1SubGroups.push({ title: "ดาราศาสตร์ ม.ต้น ค่าย 1", quizzes: grouped.camp1_junior, level: 2 });
+    if (grouped.camp1_senior.length > 0) camp1SubGroups.push({ title: "ดาราศาสตร์ ม.ปลาย ค่าย 1", quizzes: grouped.camp1_senior, level: 2 });
+
+    if (camp1SubGroups.length > 0) {
+      groups.push({ title: "ทบทวนค่าย 1", isNested: true, subGroups: camp1SubGroups, level: 1 });
+    }
+  } else if (categoryKey === 'ChallengePOSN') {
+    const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
+      let subKey = Object.keys(categoryDetails).find(key => quiz.id.startsWith(`adv_${key.toLowerCase()}`)) || 'GeneralKnowledge';
+      if (!acc[subKey]) acc[subKey] = [];
+      acc[subKey].push(quiz);
+      return acc;
+    }, {});
+
+    Object.keys(subGroupedQuizzes).sort((a, b) => (categoryDetails[a]?.order || 99) - (categoryDetails[b]?.order || 99)).forEach(subKey => {
+      groups.push({ title: categoryDetails[subKey]?.title || subKey, quizzes: subGroupedQuizzes[subKey], level: 1 });
+    });
+  } else if (categoryKey === 'AstronomyReview') {
+    const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
+      let subKey = quiz.id.startsWith('Astro') ? 'Astronomy' : (quiz.id.startsWith('ESr') ? 'EarthScience' : 'GeneralKnowledge');
+      if (!acc[subKey]) acc[subKey] = [];
+      acc[subKey].push(quiz);
+      return acc;
+    }, {});
+
+    const reviewOrder = { Astronomy: 1, EarthScience: 2, GeneralKnowledge: 99 };
+    Object.keys(subGroupedQuizzes).sort((a, b) => (reviewOrder[a] || 99) - (reviewOrder[b] || 99)).forEach(subKey => {
+      const title = { Astronomy: "ทบทวน ดาราศาสตร์", EarthScience: "ทบทวน วิทยาศาสตร์โลกและอวกาศ" }[subKey] || categoryDetails[subKey]?.title || subKey;
+      groups.push({ title, quizzes: subGroupedQuizzes[subKey], level: 1 });
+    });
+  }
+  return groups;
+}
+
 // A function to get all the toggles, so we don't expose the variable directly
 export const getSectionToggles = () =>
   document.querySelectorAll(".section-toggle");
@@ -62,10 +121,10 @@ export function initializePage() {
 
   /**
    * Sets a CSS custom property for the header's height plus a margin.
-   * This allows the CSS `scroll-padding-top` to be dynamic and responsive.
+   * This allows the CSS `scroll-padding-top` to be dynamic and responsive. It also positions the floating navigation bar.
    */
   function setHeaderHeightProperty() {
-    const header = document.querySelector("header"); // Assumes the main header is a <header> tag
+    const header = document.getElementById("main_header-placeholder");    
     if (header) {
       const headerHeight = header.offsetHeight;
       // Set the value to header height + 16px for a nice margin
@@ -324,103 +383,29 @@ export function initializePage() {
       const subCategoryContainer = document.createElement('div');
       subCategoryContainer.className = 'p-2 md:p-4 space-y-2';
 
-      if (categoryKey === 'AstronomyPOSN') {
-        // Group quizzes into more structured categories
-        const grouped = {
-          camp1_junior: quizzes.filter(q => q.id.startsWith('juniorC')),
-          camp1_senior: quizzes.filter(q => q.id.startsWith('seniorC')),
-          regular_junior: quizzes.filter(q => q.id.startsWith('junior') && !q.id.startsWith('juniorC')),
-          regular_senior: quizzes.filter(q => q.id.startsWith('senior') && !q.id.startsWith('seniorC')),
-          general: quizzes.filter(q => !q.id.startsWith('junior') && !q.id.startsWith('senior')),
-        };
-        const mainCategoryTitle = details.title.split('(')[0].trim();
+      const groupedData = groupQuizzesForCategory(quizzes, categoryKey);
 
-        // 1. Create regular Junior and Senior accordions first
-        if (grouped.regular_junior.length > 0) {
-          subCategoryContainer.appendChild(createSubCategoryAccordion(`${mainCategoryTitle} ม.ต้น (Junior)`, grouped.regular_junior, colorName, 1));
+      groupedData.forEach(group => {
+        if (group.isNested) {
+          // Create a container accordion for nested groups (like "ทบทวนค่าย 1")
+          const containerAccordion = createSubCategoryAccordion(group.title, [], colorName, group.level);
+          const contentWrapper = containerAccordion.querySelector('.inner-content-wrapper');
+          contentWrapper.innerHTML = ''; // Clear default grid
+          contentWrapper.classList.remove('quiz-grid-container');
+          contentWrapper.classList.add('space-y-2', 'p-2');
+
+          group.subGroups.forEach(subGroup => {
+            const nestedAccordion = createSubCategoryAccordion(subGroup.title, subGroup.quizzes, colorName, subGroup.level);
+            contentWrapper.appendChild(nestedAccordion);
+          });
+          subCategoryContainer.appendChild(containerAccordion);
+        } else {
+          // Create a standard sub-category accordion
+          const accordion = createSubCategoryAccordion(group.title, group.quizzes, colorName, group.level);
+          subCategoryContainer.appendChild(accordion);
         }
-        if (grouped.regular_senior.length > 0) {
-          subCategoryContainer.appendChild(createSubCategoryAccordion(`${mainCategoryTitle} ม.ปลาย (Senior)`, grouped.regular_senior, colorName, 1));
-        }
-        if (grouped.general.length > 0) {
-          subCategoryContainer.appendChild(createSubCategoryAccordion(`${mainCategoryTitle} ทั่วไป (General)`, grouped.general, colorName, 1));
-        }
+      });
 
-        // 2. Create the "ค่าย 1" container and append it last
-        if (grouped.camp1_junior.length > 0 || grouped.camp1_senior.length > 0) {
-          const camp1Container = createSubCategoryAccordion("ทบทวนค่าย 1", [], colorName, 1); // Level 1
-          const camp1Content = camp1Container.querySelector('.inner-content-wrapper');
-          camp1Content.innerHTML = ''; // Clear default grid
-          camp1Content.classList.remove('quiz-grid-container');
-          camp1Content.classList.add('space-y-2', 'p-2'); // Add padding for nested accordions
-
-          if (grouped.camp1_junior.length > 0) {
-            const juniorCampAccordion = createSubCategoryAccordion("ดาราศาสตร์ ม.ต้น ค่าย 1", grouped.camp1_junior, colorName, 2); // Level 2
-            camp1Content.appendChild(juniorCampAccordion);
-          }
-          if (grouped.camp1_senior.length > 0) {
-            const seniorCampAccordion = createSubCategoryAccordion("ดาราศาสตร์ ม.ปลาย ค่าย 1", grouped.camp1_senior, colorName, 2); // Level 2
-            camp1Content.appendChild(seniorCampAccordion);
-          }
-          subCategoryContainer.appendChild(camp1Container);
-        }
-
-      } else if (categoryKey === 'ChallengePOSN') {
-        const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
-          // Map the quiz ID prefix to the correct sub-discipline key from categoryDetails
-          let subDisciplineKey = 'GeneralKnowledge'; // A fallback key
-          if (quiz.id.startsWith('adv_geology')) {
-            subDisciplineKey = 'Geology';
-          } else if (quiz.id.startsWith('adv_astro')) {
-            subDisciplineKey = 'Astronomy';
-          } else if (quiz.id.startsWith('adv_meteorology')) {
-            subDisciplineKey = 'Meteorology';
-          } else if (quiz.id.startsWith('adv_oceanography')) {
-            subDisciplineKey = 'Oceanography';
-          }
-          if (!acc[subDisciplineKey]) acc[subDisciplineKey] = [];
-          acc[subDisciplineKey].push(quiz);
-          return acc;
-
-        }, {});
-
-
-        Object.keys(subGroupedQuizzes).sort((a, b) => (categoryDetails[a]?.order || 99) - (categoryDetails[b]?.order || 99)).forEach(subKey => {
-          const subAccordionTitle = categoryDetails[subKey]?.title || subKey;
-          const subAccordion = createSubCategoryAccordion(subAccordionTitle, subGroupedQuizzes[subKey], colorName);
-          subCategoryContainer.appendChild(subAccordion);
-        });
-      } else if (categoryKey === 'AstronomyReview') {
-        const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
-          let subDisciplineKey = 'GeneralKnowledge'; // Fallback
-          if (quiz.id.startsWith('Astro')) {
-            subDisciplineKey = 'Astronomy';
-          } else if (quiz.id.startsWith('ESr')) {
-            subDisciplineKey = 'EarthScience';
-          }
-          if (!acc[subDisciplineKey]) acc[subDisciplineKey] = [];
-          acc[subDisciplineKey].push(quiz);
-          return acc;
-        }, {});
-
-        const reviewTitles = {
-          Astronomy: "ทบทวน ดาราศาสตร์",
-          EarthScience: "ทบทวน วิทยาศาสตร์โลกและอวกาศ"
-        };
-
-        // Define a specific order for the "Review" sub-categories to ensure consistency
-        const reviewOrder = {
-          Astronomy: 1,      // "ทบทวน ดาราศาสตร์" should be first
-          EarthScience: 2,   // "ทบทวน วิทยาศาสตร์โลกและอวกาศ" should be second
-          GeneralKnowledge: 99 // Fallback for any others
-        };
-
-        Object.keys(subGroupedQuizzes).sort((a, b) => (reviewOrder[a] || 99) - (reviewOrder[b] || 99)).forEach(subKey => {
-          const subAccordionTitle = reviewTitles[subKey] || categoryDetails[subKey]?.title || subKey;
-          const subAccordion = createSubCategoryAccordion(subAccordionTitle, subGroupedQuizzes[subKey], colorName);
-          subCategoryContainer.appendChild(subAccordion);
-        });
-      }
       innerContentWrapper.appendChild(subCategoryContainer);
     } else {
       const quizGrid = document.createElement("div");
@@ -454,7 +439,7 @@ export function initializePage() {
    * @param {NodeListOf<Element>} allToggles - A collection of all section toggle elements.
    */
   function updateFloatingNav(activeToggle, allToggles) {
-    const floatingNavContainer = document.getElementById('floating-nav-container');
+    const floatingNavContainer = document.getElementById('floating-nav-container');    
     const floatingNavButtons = document.getElementById('floating-nav-buttons');
     if (!floatingNavContainer || !floatingNavButtons) return;
 
@@ -492,7 +477,7 @@ export function initializePage() {
     }
 
     // Define button colors based on the same theme
-    const bgColor = colorName === 'default' ? 'bg-gray-200/80 dark:bg-gray-800/90' : `bg-${colorName}-100/80 dark:bg-${colorName}-900/50`;
+    const bgColor = colorName === 'default' ? 'bg-gray-200/80 dark:bg-gray-800/90' : `bg-${colorName}-100/80 dark:bg-${colorName}-900/60`;
     const hoverBgColor = colorName === 'default' ? 'hover:bg-gray-300 dark:hover:bg-gray-700/90' : `hover:bg-${colorName}-200/90 dark:hover:bg-${colorName}-800/70`;
     const borderColor = colorName === 'default' ? 'border-gray-300 dark:border-gray-700' : `border-${colorName}-300 dark:border-${colorName}-600`;
     const textColor = colorName === 'default' ? 'text-gray-800 dark:text-gray-200' : `text-${colorName}-800 dark:text-${colorName}-200`;
@@ -903,25 +888,4 @@ export function initializePage() {
     });
   }
 
-  // Floating Nav scroll behavior
-  let lastScrollY = window.scrollY;
-
-  window.addEventListener('scroll', () => {
-    if (!floatingNavContainer) return;
-
-    // Only apply scroll logic when a category is open.
-    const anyAccordionOpen = document.querySelector('.accordion-toggle[aria-expanded="true"]');
-    if (!anyAccordionOpen) {
-      lastScrollY = window.scrollY; // Keep track of position for when it becomes active
-      return;
-    }
-
-    if (window.scrollY > lastScrollY && window.scrollY > 100) { // Scrolling down & not at the top
-      floatingNavContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-full');
-    } else { // Scrolling up
-      floatingNavContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-full');
-    }
-
-    lastScrollY = window.scrollY <= 0 ? 0 : window.scrollY;
-  }, { passive: true });
 }
