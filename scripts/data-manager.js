@@ -247,10 +247,17 @@ export async function fetchAllQuizData() {
     };
   }
 
-  const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+  let quizList;
+  try {
+    const module = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+    quizList = module.quizList;
+  } catch (error) {
+    // Make the error more specific if the main list fails to load.
+    throw new Error(`Failed to load or parse quizzes-list.js: ${error.message}`);
+  }
 
   // Filter out any potential empty/falsy entries from the list to prevent errors.
-  const validQuizList = quizList.filter((quiz) => quiz);
+  const validQuizList = Array.isArray(quizList) ? quizList.filter((quiz) => quiz) : [];
   const promises = validQuizList.map(async (quiz) => {
     // Add a cache-busting query parameter to ensure the latest data is always fetched.
     const scriptPath = `../data/${quiz.id}-data.js?v=${Date.now()}`;
@@ -293,13 +300,22 @@ export async function fetchAllQuizData() {
         };
       });
     } catch (error) {
-      console.error(`Error fetching or processing ${scriptPath}:`, error);
-      return [];
+      // Re-throw the error with more context so the caller can handle it.
+      // This prevents the entire process from silently failing on one bad file.
+      throw new Error(`Failed to load or parse ${scriptPath}: ${error.message}`);
     }
   });
 
-  const results = await Promise.all(promises);
-  allQuestionsCache = results.flat();
+  // Wrap Promise.all in a try-catch to handle any re-thrown errors from the map.
+  try {
+    const results = await Promise.all(promises);
+    allQuestionsCache = results.flat();
+  } catch (error) {
+    // The error from a failing import will be caught here.
+    // We re-throw it so the UI layer (e.g., preview.js) can display a meaningful message.
+    console.error("A critical error occurred while loading all quiz data:", error);
+    throw error;
+  }
 
   // This logic creates a nested structure for easier filtering by specific sub-categories.
   // e.g., { Geology: { "หัวข้อ 1": [q1, q2], "หัวข้อ 2": [q3] } }

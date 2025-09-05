@@ -33,39 +33,47 @@ async function populateCategoryFilter() {
     try {
         const { allQuestions } = await fetchAllQuizData();
         const categories = new Set();
-
+ 
         allQuestions.forEach(q => {
             if (q.subCategory) {
                 const subCat = q.subCategory;
-                const subCatDisplay = (typeof subCat === 'object' && subCat.main)
-                    ? (subCat.specific || subCat.main)
-                    : (typeof subCat === 'string' ? subCat : '');
-                if (subCatDisplay) {
-                    categories.add(subCatDisplay);
+                if (typeof subCat === 'object' && subCat.main) {
+                    // Handle both string and array for 'specific'
+                    const specifics = Array.isArray(subCat.specific) ? subCat.specific : [subCat.specific];
+                    specifics.forEach(specificCat => {
+                        if (specificCat && typeof specificCat === 'string') {
+                            categories.add(specificCat.trim());
+                        }
+                    });
+                } else if (typeof subCat === 'string') {
+                    // Handle legacy string format.
+                    categories.add(subCat.trim());
                 }
             }
         });
-
+ 
         const sortedCategories = Array.from(categories).sort((a, b) => a.localeCompare(b, 'th'));
-
+ 
         categorySelector.innerHTML = '<option value="">-- ค้นหาจากทุกหมวดหมู่ --</option>'; // Reset and add default
         sortedCategories.forEach(cat => categorySelector.add(new Option(cat, cat)));
         categorySelector.disabled = false;
     } catch (error) {
         console.error("Failed to populate category filter:", error);
-        categorySelector.innerHTML = '<option value="">ไม่สามารถโหลดหมวดหมู่ได้</option>';
+        categorySelector.innerHTML = `<option value="">เกิดข้อผิดพลาด: ${error.message}</option>`;
     }
 }
 
 // Helper function to highlight keywords in a text
 function highlightText(text, keyword) {
-    if (!keyword || !text) {
-        return text;
-    }
+    // Coerce text to string to prevent errors if it's null, undefined, or a number.
+    const textAsString = String(text || '');
+    if (!keyword || !textAsString) {
+        return textAsString;
+    }    
     // Escape special characters in the keyword for use in a regular expression
     const escapedKeyword = keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(escapedKeyword, 'gi');
-    return text.replace(regex, (match) => `<mark class="bg-yellow-200 dark:bg-yellow-700 rounded">${match}</mark>`);
+    return textAsString.replace(regex, (match) => `<mark class="bg-yellow-200 dark:bg-yellow-700 rounded">${match}</mark>`);
 }
 
 // Helper function to create a single question element. This promotes reusability.
@@ -74,8 +82,8 @@ function createQuestionElement(item, displayIndex, keyword) {
     const showAnswers = document.getElementById('show-answers-toggle')?.checked;
 
     // Replace newline characters with <br> tags for proper HTML rendering
-    const questionHtml = item.question ? highlightText(item.question.replace(/\n/g, '<br>'), keyword) : '';
-    const explanationHtml = item.explanation ? highlightText(item.explanation.replace(/\n/g, '<br>'), keyword) : '';
+    const questionHtml = item.question ? highlightText(String(item.question).replace(/\n/g, '<br>'), keyword) : '';
+    const explanationHtml = item.explanation ? highlightText(String(item.explanation).replace(/\n/g, '<br>'), keyword) : '';
 
     const questionDiv = document.createElement('div');
     // Add a unique ID for the jump-to-question feature
@@ -144,11 +152,11 @@ function createQuestionElement(item, displayIndex, keyword) {
             choiceWrapper.className = 'flex items-start gap-2';
 
             const numeralSpan = document.createElement('span');
-            numeralSpan.className = 'font-semibold';
+            numeralSpan.className = 'font-semibold flex-shrink-0';
             numeralSpan.textContent = `${thaiNumerals[index] || (index + 1)}.`
 
             const choiceTextDiv = document.createElement('div');
-            choiceTextDiv.innerHTML = highlightText(choice.replace(/\n/g, '<br>'), keyword);
+            choiceTextDiv.innerHTML = highlightText(String(choice).replace(/\n/g, '<br>'), keyword);
 
             // Highlight the correct answer(s)
             if (showAnswers) {
@@ -191,17 +199,20 @@ function createQuestionElement(item, displayIndex, keyword) {
 
         let subCategoryText = '';
         if (item.subCategory) {
-            // Handle both string and object structures for display
             const subCat = item.subCategory;
-            const subCatDisplay = (typeof subCat === 'object' && subCat.main)
-                ? (subCat.specific || subCat.main)
-                : (typeof subCat === 'string' ? subCat : '');
+            let subCatDisplay;
+            if (typeof subCat === 'object' && subCat.main) {
+                // If 'specific' is an array, join it. Otherwise, use it or fallback to main.
+                subCatDisplay = Array.isArray(subCat.specific) ? subCat.specific.join(', ') : (subCat.specific || subCat.main);
+            } else if (typeof subCat === 'string') {
+                subCatDisplay = subCat;
+            }
+
             if (subCatDisplay) {
-                // Use a line break for better readability instead of a pipe separator.
                 subCategoryText = `หมวดหมู่: <span class="font-semibold">${highlightText(subCatDisplay, keyword)}</span><br>`;
             }
         }
-        sourceInfo.innerHTML = `${subCategoryText}จาก: <span class="font-semibold">${highlightText(item.sourceQuizTitle, keyword)}</span>`;
+        sourceInfo.innerHTML = `${subCategoryText}จาก: <span class="font-semibold">${highlightText(String(item.sourceQuizTitle || ''), keyword)}</span>`;
         questionDiv.appendChild(sourceInfo);
     }
 
@@ -276,10 +287,10 @@ function renderQuizData() {
             const scenarioTitleText = item.scenarioTitle?.toLowerCase() || '';
             const scenarioDescriptionText = item.scenarioDescription?.toLowerCase() || '';
             const sourceQuizTitleText = item.sourceQuizTitle?.toLowerCase() || '';
+            const subCategoryText = String(item.subCategory?.specific || item.subCategory?.main || item.subCategory || '').toLowerCase();
 
-            return questionText.includes(filterKeyword) ||
-                choicesText.includes(filterKeyword) ||
-                explanationText.includes(filterKeyword) ||
+            return questionText.includes(filterKeyword) || choicesText.includes(filterKeyword) ||
+                explanationText.includes(filterKeyword) || subCategoryText.includes(filterKeyword) ||
                 scenarioTitleText.includes(filterKeyword) ||
                 scenarioDescriptionText.includes(filterKeyword) ||
                 sourceQuizTitleText.includes(filterKeyword);
@@ -534,9 +545,10 @@ svg" fill="none" viewBox="0 0 24 24">
         renderQuizData();
     } catch (error) {
         console.error("Global search failed:", error);
-        container.innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-700 dark:text-red-300 p-4 rounded-r-lg" role="alert">
-                                   <p class="font-bold">เกิดข้อผิดพลาด</p>
+        container.innerHTML = `<div class="bg-red-100 dark:bg-red-900/50 border-l-4 border-red-500 text-red-800 dark:text-red-200 p-4 rounded-r-lg" role="alert">
+                                   <p class="font-bold">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
                                    <p>ไม่สามารถทำการค้นหาจากข้อสอบทั้งหมดได้ในขณะนี้</p>
+                                   <p class="mt-2 text-xs text-gray-600 bg-gray-100 p-2 rounded border"><strong>Developer Info:</strong> ${error.message}</p>
                                </div>`;
     }
 }
