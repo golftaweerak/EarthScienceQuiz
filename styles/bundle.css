@@ -29,10 +29,17 @@
 
 body {
   font-family: "Sarabun", sans-serif;
+  word-break: thai;
+  text-justify: inter-word; /* Better justification for Thai text */
+  @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100;
+  /* Apply a subtle fade-in animation on page load */
+  animation: fade-in 0.5s ease-in-out;
 }
 
 .font-kanit {
   font-family: "Kanit", sans-serif;
+  word-break: thai;
+  text-justify: inter-word; /* Better justification for Thai text */
 }
 
 html {

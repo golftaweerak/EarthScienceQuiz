@@ -60,10 +60,14 @@ async function main() {
     // Initialize common components like header, menu, etc.
     initializeCommonComponents();
 
-    // Then, initialize scripts specific to the main page
-    initializePage();   // For main page logic
-    initializeCustomQuizHandler(); // For custom quiz creation logic
-    initializeAnchorScrollFix(); // Add the fix for anchor scrolling
+    // Then, initialize scripts specific to the page by checking for key elements.
+    if (document.getElementById('quiz-categories-container')) {
+        initializePage();
+        initializeAnchorScrollFix();
+    }
+    if (document.getElementById('create-custom-quiz-btn')) {
+        initializeCustomQuizHandler();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', main);

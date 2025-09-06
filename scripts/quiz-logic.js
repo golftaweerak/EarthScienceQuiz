@@ -113,9 +113,10 @@ export function init(quizData, storageKey, quizTitle, customTime) {
         timerDisplay: document.getElementById("timer-display"),
         timerValue: document.getElementById("timer-value"),
         // Cache the container for the main action buttons (Next/Prev)
+                // Cache the container for the main action buttons (Next/Prev)
         actionContainer: document.getElementById("next-btn")?.parentElement,
+        quizTitleDisplay: document.getElementById("quiz-title-display"),
     };
-
     // --- 2. State Initialization ---
     state = {
         quizData: quizData, // Use data passed from the loader
@@ -1111,6 +1112,7 @@ function setFloatingNav(active) {
     state.shuffledQuestions = shuffleArray([...validQuizData]);
 
     switchScreen(elements.quizScreen);
+    elements.quizTitleDisplay.textContent = state.quizTitle;
     // Initialize and start timer based on mode
     if (state.timerMode === "overall") {
       // Use custom time if provided, otherwise calculate based on defaults
