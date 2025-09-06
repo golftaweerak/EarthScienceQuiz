@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Populates the main category dropdown with relevant options.
      */
     function populateMainCategories() {
-        const mainCategories = ['Astronomy', 'EarthScience', 'AstronomyReview'];
+        const mainCategories = ['AstronomyPOSN', 'EarthScience', 'AstronomyReview', 'GeneralKnowledge', 'ChallengePOSN'];
         let optionsHtml = '<option value="">-- เลือกหมวดหมู่หลัก --</option>';
         
         mainCategories.forEach(key => {
