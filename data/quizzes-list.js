@@ -826,5 +826,17 @@ export const quizList = [
       borderColor: "border-gray-500",
       altText: "ไอคอนสำหรับ seniorC3",
       category: "AstronomyPOSN"
+  },
+  {
+      id: "seniorC4",
+      title: "ดาราศาสตร์ ม.ปลาย ค่าย 1 ชุด 4 (ขั้นสูง)",
+      amount: 20,
+      description: "ชุดข้อสอบท้าทายสำหรับค่าย 1/2 เน้นการคำนวณตรีโกณมิติทรงกลม, ดาวคู่, และการวิเคราะห์ข้อมูลขั้นสูง",
+      url: "./quiz/index.html?id=seniorC4",
+      storageKey: "quizState-seniorC4",
+      icon: "./assets/icons/black-hole.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ seniorC4",
+      category: "AstronomyPOSN"
   }
  ];
