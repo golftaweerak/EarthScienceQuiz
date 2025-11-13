@@ -81,7 +81,16 @@ function groupQuizzesForCategory(quizzes, categoryKey) {
     }
   } else if (categoryKey === 'ChallengePOSN') {
     const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
-      let subKey = Object.keys(categoryDetails).find(key => quiz.id.startsWith(`adv_${key.toLowerCase()}`)) || 'GeneralKnowledge';
+      // Map filename prefixes to their corresponding category keys
+      const prefixMap = {
+        'adv_astro': 'Astronomy',
+        'adv_geology': 'Geology',
+        'adv_meteorology': 'Meteorology',
+        'adv_oceanography': 'Oceanography'
+      };
+      // Find the prefix that matches the start of the quiz ID
+      const matchingPrefix = Object.keys(prefixMap).find(prefix => quiz.id.startsWith(prefix));
+      let subKey = matchingPrefix ? prefixMap[matchingPrefix] : 'GeneralKnowledge';
       if (!acc[subKey]) acc[subKey] = [];
       acc[subKey].push(quiz);
       return acc;

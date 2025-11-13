@@ -815,4 +815,16 @@ export const quizList = [
       altText: "ไอคอนสำหรับ seniorC2",
       category: "AstronomyPOSN"
   },
+  {
+      id: "seniorC3",
+      title: "ดาราศาสตร์ ม.ปลาย ค่าย 1 ชุด 3",
+      amount: 30,
+      description: "ชุดคำถามข้อกา ที่ออกแบบมาเพื่อตรวจสอบความเข้าใจเชิงลึก ทบทวนเนื้อหาค่าย 1 (เน้นคำนวณ)",
+      url: "./quiz/index.html?id=seniorC3",
+      storageKey: "quizState-seniorC3",
+      icon: "./assets/icons/black-hole.png",
+      borderColor: "border-gray-500",
+      altText: "ไอคอนสำหรับ seniorC3",
+      category: "AstronomyPOSN"
+  }
  ];
