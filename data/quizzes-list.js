@@ -806,7 +806,7 @@ export const quizList = [
   {
       id: "seniorC2",
       title: "ดาราศาสตร์ ม.ปลาย ค่าย 1 ชุด 2",
-      amount: 20,
+      amount: 30,
       description: "ชุดคำถามข้อกา ที่ออกแบบมาเพื่อตรวจสอบความเข้าใจเชิงลึก ทบทวนเนื้อหาค่าย 1",
       url: "./quiz/index.html?id=seniorC2",
       storageKey: "quizState-seniorC2",
