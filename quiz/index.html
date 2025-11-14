@@ -129,18 +129,32 @@
         </div>
         <div class="mb-6">
           <div id="question" class="text-xl font-semibold mb-6 min-h-[80px] dark:text-gray-100"></div>
+          <div id="hint-area" class="mb-4 hidden">
+            <button id="hint-btn"
+              class="px-4 py-2 text-sm bg-yellow-400 hover:bg-yellow-500 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-gray-800 dark:text-gray-900 font-bold rounded-lg transition-all duration-300">
+              💡 แสดงคำใบ้
+            </button>
+            <div id="hint-text"
+              class="hidden mt-4 p-4 bg-yellow-100 dark:bg-gray-700 border-l-4 border-yellow-500 text-yellow-800 dark:text-yellow-200 rounded-r-lg">
+              <!-- Hint content will be inserted here -->
+            </div>
+          </div>
           <div id="options" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
         <div id="feedback" class="hidden mt-6 p-4 rounded-lg" aria-live="assertive">
           <div class="feedback-content"></div>
         </div>
-        <div id="action-buttons" class="flex mt-6 space-x-4">
+        <div id="action-buttons" class="grid grid-cols-3 mt-6 gap-4">
           <button id="prev-btn"
-            class="hidden flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:-translate-y-1">
+            class="hidden bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:-translate-y-1">
             ข้อก่อนหน้า
           </button>
+          <button id="skip-btn"
+            class="hidden bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:-translate-y-1">
+            ข้ามข้อนี้
+          </button>
           <button id="next-btn"
-            class="hidden flex-1 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:-translate-y-1">
+            class="hidden col-start-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition-all duration-300 transform hover:-translate-y-1">
             ข้อต่อไป
           </button>
         </div>
