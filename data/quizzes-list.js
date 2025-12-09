@@ -839,4 +839,53 @@ export const quizList = [
       altText: "ไอคอนสำหรับ seniorC4",
       category: "AstronomyPOSN"
   }
+,
+  {
+      "id": "ESr5",
+      "title": "ชุดข้อสอบทบทวนวิชาวิทยาศาสตร์โลกและอวกาศ (ชุดที่ 5)",
+      "amount": 60,
+      "description": "ID: ESr5",
+      "url": "./quiz/index.html?id=ESr5",
+      "storageKey": "quizState-ESr5",
+      "icon": "./assets/icons/earth1.png",
+      "borderColor": "border-gray-500",
+      "altText": "ไอคอนสำหรับ ESr5",
+      "category": "AstronomyReview"
+  },
+  {
+      "id": "ESr6",
+      "title": "ชุดข้อสอบทบทวนวิชาวิทยาศาสตร์โลกและอวกาศ (ชุดที่ 6)",
+      "amount": 60,
+      "description": "ID: ESr6",
+      "url": "./quiz/index.html?id=ESr6",
+      "storageKey": "quizState-ESr6",
+      "icon": "./assets/icons/earth1.png",
+      "borderColor": "border-gray-500",
+      "altText": "ไอคอนสำหรับ ESr6",
+      "category": "AstronomyReview"
+  },
+  {
+      "id": "junior2568",
+      "title": "ข้อสอบเก่าดาราศาสตร์ ม.ต้น ปี 2568",
+      "amount": 40,
+      "description": "ชุดข้อสอบดาราศาสตร์ ม.ต้น ปี 2568",
+      "url": "./quiz/index.html?id=junior2568",
+      "storageKey": "quizState-junior2568",
+      "icon": "./assets/icons/astronomy1.png",
+      "borderColor": "border-gray-500",
+      "altText": "ไอคอนสำหรับ junior2568",
+      "category": "AstronomyPOSN"
+  },
+  {
+      "id": "senior2568",
+      "title": "ข้อสอบเก่าดาราศาสตร์ ม.ปลาย ปี 2568",
+      "amount": 40,
+      "description": "ชุดข้อสอบดาราศาสตร์ ม.ปลาย ปี 2568",
+      "url": "./quiz/index.html?id=senior2568",
+      "storageKey": "quizState-senior2568",
+      "icon": "./assets/icons/astronomy1.png",
+      "borderColor": "border-gray-500",
+      "altText": "ไอคอนสำหรับ senior2568",
+      "category": "AstronomyPOSN"
+  },
  ];

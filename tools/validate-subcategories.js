@@ -46,6 +46,8 @@ const correctionMap = {
     "เรขาคณิตวงกลม วงรี":"คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
     "ทรงกลมท้องฟ้าและระบบพิกัด":"ทรงกลมท้องฟ้าและระบบพิกัด",
     "การคำนวณทางดาราศาสตร์":"การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์",
+    "กลศาสตร์พื้นฐาน":"กลศาสตร์พื้นฐาน (กฎของนิวตัน, งานและพลังงาน)",
+    "คณิตศาสตร์สำหรับดาราศาสตร์": "คณิตศาสตร์สำหรับดาราศาสตร์ (พีชคณิต, เรขาคณิต, ตรีโกณมิติ)",
 
 
   },
@@ -152,6 +154,12 @@ async function main() {
         
         const { subCategory } = question;
         if (!subCategory || !subCategory.specific) {
+          // --- DEBUGGING CODE TO FIND THE PROBLEMATIC OBJECT ---
+          if (fileName === 'seniorC1-data.js' && questionIdForTable === 'N/A') {
+            console.log('\n--- DEBUG: Found the object causing the N/A error in seniorC1-data.js ---');
+            console.log(JSON.stringify(question, null, 2));
+            console.log('--------------------------------------------------------------------');
+          }
           fileErrors.push({ File: fileName, ID: questionIdForTable, Error: 'Missing or incomplete subCategory object' });
           continue;
         }

@@ -101,7 +101,12 @@ function calculateGroupedCategoryPerformance(stats) {
                 subCategoryName = answer.subCategory.specific;
             } else if (typeof answer.subCategory === 'string') {
                 // If it's a string, treat it as the main category for grouping.
-                mainCategory = answer.subCategory;
+                // FIX: If the string is 'Astronomy', keep it as the main category
+                // and use a generic sub-category name to group it correctly.
+                // Otherwise, treat the string as the main category.
+                if (answer.subCategory !== 'Astronomy') {
+                    mainCategory = answer.subCategory;
+                }
                 subCategoryName = "อื่น ๆ"; // Use a generic name for the sub-item.
             }
 

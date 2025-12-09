@@ -5,13 +5,6 @@
  * next level of competition, with an emphasis on quantitative problems.
  */
 
-/**
- * @file Contains quiz items for the Senior Level Astronomy Olympiad (Camp 1 Selection for Camp 2).
- * @description This is a highly advanced set of 20 questions designed to test deep conceptual understanding,
- * analytical skills, and complex calculation abilities. It covers a broad range of topics required for the
- * next level of competition, with an emphasis on quantitative problems.
- */
-
 export const quizItems = [
   {
     number: 1,
@@ -26,7 +19,10 @@ export const quizItems = [
     answer: "$M_1 = 8 M_☉, M_2 = 2 M_☉$",
     explanation: "1. **หามวลรวม (Total Mass):** จากกฎข้อที่ 3 ของเคปเลอร์ในรูปแบบของนิวตัน $M_1 + M_2 = a^3 / P^2$. แทนค่า $a=10$ AU และ $P=10$ ปี จะได้ $M_1 + M_2 = (10)^3 / (10)^2 = 10 M_☉$.<br>2. **หาอัตราส่วนมวล (Mass Ratio):** จากคุณสมบัติของศูนย์กลางมวล $M_1 a_1 = M_2 a_2$, จะได้อัตราส่วนมวล $M_1 / M_2 = a_2 / a_1$. แทนค่า $a_1=2$ AU และ $a_2=8$ AU จะได้ $M_1 / M_2 = 8 / 2 = 4$. ดังนั้น $M_1 = 4M_2$.<br>3. **แก้สมการหามวลแต่ละดวง:** นำ $M_1 = 4M_2$ ไปแทนในสมการมวลรวม: $4M_2 + M_2 = 10 M_☉ \\implies 5M_2 = 10 M_☉ \\implies M_2 = 2 M_☉$. ดังนั้น $M_1 = 4 \\times (2 M_☉) = 8 M_☉$.",
     hint: "ใช้กฎข้อที่ 3 ของเคปเลอร์ในรูปแบบของนิวตันเพื่อหามวลรวม และใช้ความสัมพันธ์ของศูนย์กลางมวล ($M_1a_1 = M_2a_2$) เพื่อหาอัตราส่วนมวล",
-    subCategory: { main: "Astronomy", specific: ["กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"] },
+    subCategory: {
+      main: "Astronomy",
+      specific: ["กลศาสตร์ท้องฟ้าและกฎของเคปเลอร์", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"],
+    },
   },
   {
     number: 2,
@@ -36,7 +32,10 @@ export const quizItems = [
     answer: "$5.0 R_☉$",
     explanation: "1. **หาระยะทาง (Distance):** $d = 1/p = 1/0.025 = 40$ pc.<br>2. **หาโชติมาตรสัมบูรณ์ (Absolute Magnitude, M):** จากสมการโมดูลัสระยะทาง $m - M = 5\\log(d) - 5$.<br>$4.3 - M = 5\\log(40) - 5 \\approx 5(1.602) - 5 = 8.01 - 5 = 3.01$.<br>$M \\approx 4.3 - 3.01 = 1.29$.<br>3. **หาอัตราส่วนกำลังส่องสว่าง (Luminosity Ratio):** $M_{Sun} - M = 2.5\\log(L/L_☉)$.<br>$4.8 - 1.29 = 2.5\\log(L/L_☉) \\implies 3.51 = 2.5\\log(L/L_☉)$.<br>$\\log(L/L_☉) = 3.51 / 2.5 = 1.404 \\implies L/L_☉ = 10^{1.404} \\approx 25.4 L_☉$.<br>4. **หารัศมี (Radius):** จากกฎสเตฟาน-โบลซ์มานน์ $L/L_☉ = (R/R_☉)^2 (T/T_☉)^4$.<br>$25.4 = (R/R_☉)^2 (5800/5800)^4 = (R/R_☉)^2$.<br>$R/R_☉ = \\sqrt{25.4} \\approx 5.0 R_☉$.",
     hint: "คำนวณตามลำดับ: 1. หาระยะทางจากพารัลแลกซ์ 2. หาโชติมาตรสัมบูรณ์จากระยะทางและโชติมาตรปรากฏ 3. เปรียบเทียบโชติมาตรสัมบูรณ์กับดวงอาทิตย์เพื่อหากำลังส่องสว่าง 4. ใช้กฎของสเตฟาน-โบลทซ์มันน์เพื่อหารัศมี",
-    subCategory: { main: "Astronomy", specific: ["สมบัติและวิวัฒนาการของดาวฤกษ์", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"] },
+    subCategory: {
+      main: "Astronomy",
+      specific: ["สมบัติและวิวัฒนาการของดาวฤกษ์", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"],
+    },
   },
   {
     number: 3,
@@ -46,7 +45,10 @@ export const quizItems = [
     answer: "$54.1^\\circ$",
     explanation: "ใช้สูตรจากสามเหลี่ยมทรงกลมท้องฟ้า: $\\sin(Alt) = \\sin(\\phi)\\sin(\\delta) + \\cos(\\phi)\\cos(\\delta)\\cos(HA)$.<br>แปลงมุมชั่วโมงเป็นองศา: $HA = 3 \\text{h} \\times 15^\\circ/\\text{h} = 45^\\circ$.<br>แทนค่า: $\\phi = 34^\\circ$, $\\delta = 45^\\circ$, $HA = 45^\\circ$.<br>$\\sin(Alt) = \\sin(34^\\circ)\\sin(45^\\circ) + \\cos(34^\\circ)\\cos(45^\\circ)\\cos(45^\\circ)$<br>$\\sin(Alt) \\approx (0.559)(0.707) + (0.829)(0.707)(0.707) \\approx 0.395 + 0.415 = 0.810$.<br>$Alt = \\arcsin(0.810) \\approx 54.1^\\circ$.",
     hint: "ใช้สูตรพื้นฐานของสามเหลี่ยมทรงกลมท้องฟ้าที่เชื่อมโยงมุมเงย (Alt), ละติจูด (φ), เดคลิเนชัน (δ), และมุมชั่วโมง (HA) อย่าลืมแปลงมุมชั่วโมงจากหน่วยชั่วโมงเป็นองศาก่อน",
-    subCategory: { main: "Astronomy", specific: ["ทรงกลมท้องฟ้าและระบบพิกัด", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"] },
+    subCategory: {
+      main: "Astronomy", // Corrected to a single string
+      specific: "ทรงกลมท้องฟ้าและระบบพิกัด",
+    },
   },
   {
     number: 4,
@@ -56,7 +58,12 @@ export const quizItems = [
     answer: "$4,900$ km/s",
     explanation: "1. **หาระยะทาง:** ใช้สมการโมดูลัสระยะทาง $m - M = 5\\log(d/10)$.<br>$14.9 - (-19.3) = 34.2$.<br>$34.2 = 5\\log(d/10) \\implies \\log(d/10) = 6.84$.<br>$d/10 = 10^{6.84} \\implies d \\approx 6.92 \\times 10^7$ pc หรือ $69.2$ Mpc.<br>2. **หาความเร็ว:** จากกฎของฮับเบิล $v = H_0 d$.<br>$v = 70 \\text{ km/s/Mpc} \\times 69.2 \\text{ Mpc} \\approx 4844$ km/s.",
     hint: "ขั้นแรก ใช้โชติมาตรปรากฏและสัมบูรณ์เพื่อหาระยะทางของกาแล็กซีโดยใช้สมการโมดูลัสระยะทาง จากนั้นใช้กฎของฮับเบิลเพื่อคำนวณความเร็วถอยห่าง",
-    subCategory: { main: "Astronomy", specific: ["กาแล็กซีและเอกภพวิทยา", "สมบัติและวิวัฒนาการของดาวฤกษ์", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"] },
+    subCategory: {
+      main: "Astronomy",
+      specific: [
+        "กาแล็กซีและเอกภพวิทยา", "สมบัติและวิวัฒนาการของดาวฤกษ์", "การวิเคราะห์ข้อมูลและการคำนวณทางดาราศาสตร์"
+      ],
+    },
   },
   {
     number: 5,
@@ -197,8 +204,7 @@ export const quizItems = [
     explanation: "s-process ต้องการฟลักซ์นิวตรอนที่ไม่สูงมากแต่ใช้เวลายาวนาน ซึ่งเกิดขึ้นในสภาพแวดล้อมของดาวยักษ์แดงในช่วง AGB โดยเฉพาะในช่วง Thermal Pulse ที่มีการผสมกันของสสารระหว่างชั้นต่างๆ ทำให้เกิดปฏิกิริยาที่ปลดปล่อยนิวตรอน เช่น $^{13}C(\\alpha,n)^{16}O$ และ $^{22}Ne(\\alpha,n)^{25}Mg$ ซึ่งแตกต่างจาก r-process ที่ต้องการฟลักซ์นิวตรอนสูงมากและเกิดขึ้นในซูเปอร์โนวา",
     hint: "s-process ย่อมาจาก 'slow' ซึ่งต้องการสภาวะที่เสถียรและยาวนานกว่า r-process ที่เกิดในซูเปอร์โนวา",
     subCategory: { main: "Astronomy", specific: ["สมบัติและวิวัฒนาการของดาวฤกษ์", "กาแล็กซีและเอกภพวิทยา"] },
-  },"ช่วงมืดปฐมภูมิ (Primary) ลึกกว่าทุติยภูมิ (Secondary) เล็กน้อย",
-      
+  }, 
   {
     number: 16,
     type: "question",

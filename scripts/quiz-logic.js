@@ -1,5 +1,5 @@
 import { ModalHandler } from './modal-handler.js';
-import { shuffleArray } from './utils.js'; // สมมติว่าสร้างไฟล์ utils.js
+import { shuffleArray } from './utils.js';
 
 // state: Stores all dynamic data of the quiz
 let state = {};
@@ -13,8 +13,8 @@ const config = {
   soundOffIcon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd" /><path stroke-linecap="round" stroke-linejoin="round" d="M17 14l-2-2m0 0l-2-2m2 2l-2 2m2-2l2-2" /></svg>`,
   resultMessages: {
     perfect: {
-      title: "ยอดเยี่ยมมาก!",
-      message: "คุณคืออนาคตนักเรียนโอลิมปิก!",
+      title: "สุดยอดไปเลย!",
+      message: "ทำคะแนนเต็มได้แบบนี้ ความเข้าใจเป็นเลิศ!",
       icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`,
       colorClass: "text-yellow-400",
     },
@@ -38,9 +38,9 @@ const config = {
     },
   },
   icons: {
-    next: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`,
-    prev: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`,
-    submit: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`,
+    next: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`,
+    prev: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`,
+    submit: `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`,
   },
   timerDefaults: {
     perQuestion: 90, // 90 วินาทีต่อข้อ
@@ -79,7 +79,7 @@ function getCategoryNames(subCategory) {
  * @param {string} quizTitle - The title of the current quiz.
  * @param {number|null} customTime - Custom time in seconds, if provided.
  */
-export function init(quizData, storageKey, quizTitle, customTime) {
+export function init(quizData, storageKey, quizTitle, customTime, action) {
   // --- 1. Element Caching ---
   elements = {
     // Screens
@@ -90,8 +90,8 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     quizNav: document.getElementById("quiz-nav"),
     // Buttons
     startBtn: document.getElementById("start-btn"),
-    nextBtn: document.getElementById("next-btn"),
     skipBtn: document.getElementById("skip-btn"),
+    nextBtn: document.getElementById("next-btn"),
     prevBtn: document.getElementById("prev-btn"),
     restartBtn: document.getElementById("restart-btn"),
     reviewBtn: document.getElementById("review-btn"),
@@ -116,11 +116,11 @@ export function init(quizData, storageKey, quizTitle, customTime) {
     // Cache the container for the main action buttons (Next/Prev)
     // Cache the container for the main action buttons (Next/Prev)
     actionContainer: document.getElementById("next-btn")?.parentElement,
-    // Hint elements
-    hintArea: document.getElementById("hint-area"),
-    hintBtn: document.getElementById("hint-btn"),
-    hintText: document.getElementById("hint-text"),
     quizTitleDisplay: document.getElementById("quiz-title-display"),
+    // New hint elements
+    hintBtn: document.getElementById("hint-btn"),
+    hintContainer: document.getElementById("hint-container"),
+    hintSection: document.getElementById("hint-section"),
   };
   // --- 2. State Initialization ---
   state = {
@@ -146,9 +146,8 @@ export function init(quizData, storageKey, quizTitle, customTime) {
   // --- 3. Initial Setup ---
   resumeModalHandler = new ModalHandler('resume-modal');
   bindEventListeners();
-  bindHintButton();
   initializeSound();
-  checkForSavedQuiz(); // This will check localStorage and either show the start screen or a resume prompt.
+  checkForSavedQuiz(action); // This will check localStorage and either show the start screen or a resume prompt.
 }
 
 /**
@@ -156,16 +155,32 @@ export function init(quizData, storageKey, quizTitle, customTime) {
  * @param {'next' | 'submit'} action - The action the button should perform.
  */
 function updateNextButtonAppearance(action) {
-  if (!elements.nextBtn) return;
+    if (!elements.nextBtn) return;
 
-  if (state.isFloatingNav) {
-    const isSubmit = action === 'submit';
-    elements.nextBtn.innerHTML = isSubmit ? config.icons.submit : config.icons.next;
-    elements.nextBtn.title = isSubmit ? 'ส่งคำตอบ' : 'ข้อต่อไป';
-  } else {
-    elements.nextBtn.innerHTML = ''; // Clear icons
-    elements.nextBtn.textContent = action === 'submit' ? 'ส่งคำตอบ' : 'ข้อต่อไป';
-  }
+    const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
+    const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
+
+    let buttonText = 'ข้อต่อไป';
+    let buttonIcon = config.icons.next;
+    let buttonTitle = 'ข้อต่อไป';
+
+    if (action === 'submit') {
+        buttonText = 'ส่งคำตอบ';
+        buttonIcon = config.icons.submit;
+        buttonTitle = 'ส่งคำตอบ';
+    } else if (isLastQuestion && isAnswered) {
+        buttonText = 'ดูผลสรุป';
+        buttonIcon = config.icons.submit; // Using the submit icon for "finish" is fine.
+        buttonTitle = 'ดูผลสรุป';
+    }
+
+    if (state.isFloatingNav) {
+        elements.nextBtn.innerHTML = buttonIcon;
+        elements.nextBtn.title = buttonTitle;
+    } else {
+        elements.nextBtn.innerHTML = ''; // Clear icons
+        elements.nextBtn.textContent = buttonText;
+    }
 }
 
 /**
@@ -180,7 +195,7 @@ function setFloatingNav(active) {
   state.isFloatingNav = active;
 
   const containerFloatingClasses = ['fixed', 'bottom-4', 'right-4', 'z-20', 'gap-3'];
-  const buttonFloatingClasses = ['w-14', 'h-14', 'rounded-full', 'flex', 'items-center', 'justify-center', 'shadow-lg', 'hover:shadow-xl', 'transition', 'p-0', 'border-0'];
+  const buttonFloatingClasses = ['w-16', 'h-16', 'rounded-full', 'flex', 'items-center', 'justify-center', 'shadow-lg', 'hover:shadow-xl', 'transition', 'p-0', 'border-0'];
 
   if (active) {
     // --- 1. Configure Container ---
@@ -223,7 +238,6 @@ function setFloatingNav(active) {
 
 /**
  * Handles smooth transitions between different screens (e.g., start, quiz, results).
- * @param {HTMLElement} fromScreen The screen to hide.
  * @param {HTMLElement} toScreen The screen to show.
  */
 function switchScreen(toScreen) {
@@ -365,6 +379,11 @@ function showQuestion() {
     } / ${state.shuffledQuestions.length}`;
   elements.question.innerHTML = questionHtml;
 
+  // Show the hint section container (which contains the button) if a hint exists.
+  if (currentQuestion.hint && elements.hintSection) {
+    elements.hintSection.classList.remove('hidden');
+  }
+
   const previousAnswer = state.userAnswers?.[state.currentQuestionIndex];
   // Ensure options is an array before spreading
   const shuffledOptions = shuffleArray([...(currentQuestion?.options || [])]);
@@ -377,11 +396,32 @@ function showQuestion() {
     // For multi-select, show a "Submit" button immediately
     if (!previousAnswer) {
       updateNextButtonAppearance('submit');
-      // --- NEW: Show skip button for unanswered multi-select questions ---
-      if (elements.skipBtn) {
-        elements.skipBtn.classList.remove('hidden');
-        elements.skipBtn.classList.remove('col-start-2'); // Ensure it's in the correct grid column
-      }
+      elements.nextBtn.classList.remove('hidden');
+    }
+  } else if (currentQuestion.type === 'fill-in') {
+    const inputHtml = `
+        <div class="mt-4">
+            <label for="fill-in-answer" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">กรุณาพิมพ์คำตอบของคุณ:</label>
+            <input type="text" id="fill-in-answer" class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="พิมพ์คำตอบที่นี่...">
+        </div>
+      `;
+    elements.options.innerHTML = inputHtml;
+    if (!previousAnswer) {
+      updateNextButtonAppearance('submit');
+      elements.nextBtn.classList.remove('hidden');
+    }
+  } else if (currentQuestion.type === 'fill-in-number') {
+    const placeholderText = currentQuestion.decimalPlaces ? `ทศนิยม ${currentQuestion.decimalPlaces} ตำแหน่ง` : 'กรอกคำตอบตัวเลข';
+    const unitDisplay = currentQuestion.unit ? `<span class="ml-2 text-gray-600 dark:text-gray-400">${currentQuestion.unit}</span>` : '';
+    const inputHtml = `
+        <div class="mt-4 flex items-center">
+            <input type="number" id="fill-in-number-answer" step="any" class="w-full p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="${placeholderText}">
+            ${unitDisplay}
+        </div>
+      `;
+    elements.options.innerHTML = inputHtml;
+    if (!previousAnswer) {
+      updateNextButtonAppearance('submit');
       elements.nextBtn.classList.remove('hidden');
     }
   } else {
@@ -389,23 +429,18 @@ function showQuestion() {
     shuffledOptions.forEach((option) => {
       elements.options.appendChild(createOptionButton(option, previousAnswer));
     });
-    // --- NEW: Show skip button for unanswered single-choice questions ---
-    if (!previousAnswer && elements.skipBtn) {
-      elements.skipBtn.classList.remove('hidden');
-      // Adjust grid position if prev button is hidden
-      elements.skipBtn.classList.add('col-start-2');
-    }
   }
-
-  // --- NEW: Show hint for the current question if available ---
-  showHint(currentQuestion?.hint);
 
   if (previousAnswer) {
     // If we are revisiting a question, show the feedback panel without altering the score.
     showFeedback(previousAnswer.isCorrect, previousAnswer.explanation, previousAnswer.correctAnswer);
     updateNextButtonAppearance('next'); // Ensure button is in 'next' state
     elements.nextBtn.classList.remove("hidden");
-    if (elements.skipBtn) elements.skipBtn.classList.add('hidden'); // Hide skip on answered questions
+  } else {
+    // Only show the skip button for new, unanswered questions
+    if (elements.skipBtn) {
+      elements.skipBtn.classList.remove("hidden");
+    }
   }
 
   if (state.currentQuestionIndex > 0) {
@@ -423,40 +458,48 @@ function showQuestion() {
 }
 
 /**
- * Skips the current question by moving it to the end of the quiz queue.
+ * Skips the current question by moving it to the end of the quiz array.
+ * The user will encounter the question again later.
  */
 function skipQuestion() {
-  if (state.currentQuestionIndex < state.shuffledQuestions.length) {
-    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-
-    // Move the current question from its position to the end of the array.
-    state.shuffledQuestions.splice(state.currentQuestionIndex, 1);
-    state.shuffledQuestions.push(currentQuestion);
-
-    // We don't increment the index, because the next question is now at the current index.
-    // We just need to re-render the question at the current index.
-    showQuestion();
-    saveQuizState(); // Save the new question order
+  // Prevent skipping if it's the last unanswered question or if it's already answered.
+  const unansweredQuestions = state.shuffledQuestions.length - state.userAnswers.filter(a => a !== null).length;
+  if (unansweredQuestions <= 1) {
+    return;
   }
-}
 
+  const questionToSkip = state.shuffledQuestions[state.currentQuestionIndex];
+  const answerSlotToSkip = state.userAnswers[state.currentQuestionIndex];
+
+  // Remove from current position
+  state.shuffledQuestions.splice(state.currentQuestionIndex, 1);
+  state.userAnswers.splice(state.currentQuestionIndex, 1);
+
+  // Add to the end
+  state.shuffledQuestions.push(questionToSkip);
+  state.userAnswers.push(answerSlotToSkip); // This should be null
+
+  // Re-render the new question at the same index
+  showQuestion();
+  saveQuizState(); // Save the new order
+}
 /**
- * Binds the event listener for the hint button.
+ * Displays the hint for the current question.
  */
-function bindHintButton() {
-  if (elements.hintBtn && elements.hintText) {
-    elements.hintBtn.addEventListener('click', () => {
-      elements.hintText.classList.remove('hidden');
-      elements.hintBtn.classList.add('hidden'); // Hide the button after showing the hint
-      renderMath(elements.hintText); // Render math in hint if any
-    });
-  }
-}
+function showHint() {
+  const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+  if (!currentQuestion || !currentQuestion.hint || !elements.hintContainer || !elements.hintBtn) return;
 
+  elements.hintContainer.innerHTML = currentQuestion.hint;
+  renderMath(elements.hintContainer);
+  elements.hintContainer.classList.remove('hidden');
+  elements.hintBtn.classList.add('hidden'); // Hide the button after it's clicked
+}
 /**
  * Evaluates the answer for a multiple-select question.
  */
 function evaluateMultipleAnswer() {
+  if (elements.skipBtn) elements.skipBtn.classList.add("hidden");
   if (state.timerMode === "perQuestion") {
     stopTimer();
   }
@@ -485,7 +528,8 @@ function evaluateMultipleAnswer() {
     isCorrect: isCorrect,
     explanation: currentQuestion.explanation || "",
     subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
-    sourceQuizTitle: currentQuestion.sourceQuizTitle
+    sourceQuizTitle: currentQuestion.sourceQuizTitle,
+    sourceQuizCategory: currentQuestion.sourceQuizCategory
   };
   saveQuizState();
 
@@ -496,7 +540,6 @@ function evaluateMultipleAnswer() {
   } else {
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
   }
-  if (elements.skipBtn) elements.skipBtn.classList.add('hidden');
 
   // Show feedback and disable options
   showFeedback(isCorrect, currentQuestion.explanation, correctAnswers);
@@ -518,28 +561,133 @@ function evaluateMultipleAnswer() {
   updateNextButtonAppearance('next');
   renderMath(elements.feedback);
 }
+
+/**
+ * Evaluates the answer for a fill-in-the-blank question.
+ */
+function evaluateFillInAnswer() {
+  if (elements.skipBtn) elements.skipBtn.classList.add("hidden");
+  if (state.timerMode === "perQuestion") {
+    stopTimer();
+  }
+
+  const answerInput = document.getElementById('fill-in-answer');
+  if (!answerInput) return;
+
+  const userAnswer = answerInput.value.trim().toLowerCase();
+  answerInput.disabled = true; // Disable input after submission
+
+  const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+  const correctAnswers = currentQuestion.answer.map(ans => ans.trim().toLowerCase());
+
+  const isCorrect = correctAnswers.includes(userAnswer);
+
+  // Store answer
+  state.userAnswers[state.currentQuestionIndex] = {
+    question: currentQuestion.question,
+    selectedAnswer: answerInput.value, // Store the original typed answer
+    correctAnswer: currentQuestion.answer, // Store the array of correct answers
+    isCorrect: isCorrect,
+    explanation: currentQuestion.explanation || "",
+    subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+    sourceQuizTitle: currentQuestion.sourceQuizTitle,
+    sourceQuizCategory: currentQuestion.sourceQuizCategory
+  };
+  saveQuizState();
+
+  if (isCorrect) {
+    state.score++;
+    elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
+    if (state.isSoundEnabled) state.correctSound.play().catch(e => console.error("Error playing sound:", e));
+  } else {
+    if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
+  }
+
+  // Show feedback
+  showFeedback(isCorrect, currentQuestion.explanation, currentQuestion.answer.join(' หรือ '));
+
+  // Visually indicate correctness on the input field
+  if (isCorrect) {
+    answerInput.classList.add('correct');
+  } else {
+    answerInput.classList.add('incorrect');
+  }
+
+  updateNextButtonAppearance('next');
+  renderMath(elements.feedback);
+}
+
+/**
+ * Evaluates the answer for a fill-in-the-blank question with a numerical answer.
+ */
+function evaluateFillInNumberAnswer() {
+  if (elements.skipBtn) elements.skipBtn.classList.add("hidden");
+  if (state.timerMode === "perQuestion") {
+    stopTimer();
+  }
+
+  const answerInput = document.getElementById('fill-in-number-answer');
+  if (!answerInput) return;
+
+  const userAnswer = parseFloat(answerInput.value);
+  answerInput.disabled = true;
+
+  const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+  const correctAnswer = parseFloat(currentQuestion.answer);
+  const tolerance = currentQuestion.tolerance || 0; // Default tolerance to 0 if not specified
+
+  let isCorrect = false;
+  if (!isNaN(userAnswer)) {
+    isCorrect = Math.abs(userAnswer - correctAnswer) <= tolerance;
+  }
+
+  const formattedCorrectAnswer = `${correctAnswer} ${currentQuestion.unit || ''}`.trim();
+
+  state.userAnswers[state.currentQuestionIndex] = {
+    question: currentQuestion.question,
+    selectedAnswer: isNaN(userAnswer) ? "ไม่ได้ตอบ" : answerInput.value,
+    correctAnswer: formattedCorrectAnswer,
+    isCorrect: isCorrect,
+    explanation: currentQuestion.explanation || "",
+    subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+    sourceQuizTitle: currentQuestion.sourceQuizTitle,
+    sourceQuizCategory: currentQuestion.sourceQuizCategory
+  };
+  saveQuizState();
+
+  if (isCorrect) {
+    state.score++;
+    elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
+    answerInput.classList.add('correct');
+    if (state.isSoundEnabled) state.correctSound.play().catch(e => console.error("Error playing sound:", e));
+  } else {
+    answerInput.classList.add('incorrect');
+    if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
+  }
+
+  showFeedback(isCorrect, currentQuestion.explanation, formattedCorrectAnswer);
+  updateNextButtonAppearance('next');
+  renderMath(elements.feedback);
+}
+
 function resetState() {
   elements.nextBtn.classList.add("hidden");
+  elements.skipBtn.classList.add("hidden");
   elements.feedback.classList.add("hidden");
   elements.feedbackContent.innerHTML = "";
   elements.feedback.className = "hidden mt-6 p-4 rounded-lg";
   elements.prevBtn.classList.add("hidden");
   while (elements.options.firstChild) {
     elements.options.removeChild(elements.options.firstChild);
-    elements.skipBtn.classList.add("hidden");
   }
-  // --- NEW: Reset hint area for each question ---
-  if (elements.hintArea) {
-    elements.hintArea.classList.add("hidden");
-    elements.hintText.classList.add("hidden");
-    elements.hintText.innerHTML = "";
-    if (elements.hintBtn) {
-      elements.hintBtn.classList.remove("hidden");
-    }
-  }
+  // New: Hide hint section on reset
+  if (elements.hintSection) elements.hintSection.classList.add("hidden");
+  if (elements.hintContainer) elements.hintContainer.classList.add("hidden");
+  if (elements.hintBtn) elements.hintBtn.classList.remove("hidden");
 }
 
 function selectAnswer(e) {
+  if (elements.skipBtn) elements.skipBtn.classList.add("hidden");
   // Only stop the timer if it's a per-question timer.
   // The overall timer should keep running.
   if (state.timerMode === "perQuestion") {
@@ -562,7 +710,8 @@ function selectAnswer(e) {
     isCorrect: correct,
     explanation: state.shuffledQuestions[state.currentQuestionIndex]?.explanation || "",
     subCategory: state.shuffledQuestions[state.currentQuestionIndex]?.subCategory || 'ไม่มีหมวดหมู่',
-    sourceQuizTitle: state.shuffledQuestions[state.currentQuestionIndex]?.sourceQuizTitle
+    sourceQuizTitle: state.shuffledQuestions[state.currentQuestionIndex]?.sourceQuizTitle,
+    sourceQuizCategory: state.shuffledQuestions[state.currentQuestionIndex]?.sourceQuizCategory
   };
 
   // Save state immediately after an answer is recorded for better data persistence.
@@ -582,7 +731,6 @@ function selectAnswer(e) {
       state.incorrectSound
         .play()
         .catch((e) => console.error("Error playing sound:", e));
-    if (elements.skipBtn) elements.skipBtn.classList.add('hidden');
   }
 
   // Show feedback and disable all options
@@ -634,36 +782,52 @@ function showFeedback(isCorrect, explanation, correctAnswer) {
   elements.feedback.classList.remove("hidden");
   elements.feedback.classList.add("anim-feedback-in");
 }
-/**
- * Shows the hint area if a hint is available for the current question.
- * @param {string|undefined} hint - The hint text for the current question.
- */
-function showHint(hint) {
-  if (hint && elements.hintArea && elements.hintText) {
-    elements.hintArea.classList.remove("hidden");
-    elements.hintText.innerHTML = hint.replace(/\n/g, "<br>");
-  }
-}
 
 function showNextQuestion() {
+  // This function is now only called when we are certain there IS a next question.
   state.currentQuestionIndex++;
-  if (state.currentQuestionIndex < state.shuffledQuestions.length) {
-    showQuestion();
-  } else {
-    showResults();
-  }
+  showQuestion();
 }
 
 /**
  * Central handler for the main action button (Next/Submit).
  */
 function handleNextButtonClick() {
-  const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-  const isMultiSelect = currentQuestion.type === 'multiple-select';
   const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
 
-  if (isMultiSelect && !isAnswered) {
-    evaluateMultipleAnswer();
+  // If the current question is not answered, it must be a 'submit' action.
+  if (!isAnswered) {
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    if (!currentQuestion) {
+      showResults(); // Fallback
+      return;
+    }
+    // Evaluate the answer based on type
+    switch (currentQuestion.type) {
+      case 'multiple-select':
+        evaluateMultipleAnswer();
+        break;
+      case 'fill-in':
+        evaluateFillInAnswer();
+        break;
+      case 'fill-in-number':
+        evaluateFillInNumberAnswer();
+        break;
+      default:
+        // This case should not be reached for a 'submit' button.
+        // As a safe fallback, we'll just move on.
+        console.warn(`handleNextButtonClick called for an unanswered question of unhandled type: ${currentQuestion.type}`);
+        showNextQuestion();
+        break;
+    }
+    return;
+  }
+
+  // If we reach here, the question has been answered.
+  const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
+
+  if (isLastQuestion) {
+    showResults();
   } else {
     showNextQuestion();
   }
@@ -676,7 +840,6 @@ function showPreviousQuestion() {
     state.currentQuestionIndex--;
     showQuestion();
     saveQuizState();
-    showHint(state.shuffledQuestions[state.currentQuestionIndex]?.hint);
   }
 }
 
@@ -917,6 +1080,61 @@ function createStatItem(value, label, icon, theme) {
 }
 
 /**
+ * Renders a horizontal bar chart showing the score for each main category in the results.
+ * @param {object} categoryStats - The stats object grouped by category.
+ */
+function renderResultCategoryChart(categoryStats) {
+  const chartCanvas = document.getElementById('result-category-chart');
+  if (!chartCanvas) return;
+  const ctx = chartCanvas.getContext('2d');
+
+  const sortedCategories = Object.entries(categoryStats).sort((a, b) => a[0].localeCompare(b[0], 'th'));
+
+  const labels = sortedCategories.map(([name, _]) => name);
+  const scores = sortedCategories.map(([_, data]) => data.total > 0 ? (data.correct / data.total) * 100 : 0);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'คะแนน (%)',
+        data: scores,
+        backgroundColor: scores.map(score => score >= 75 ? 'rgba(34, 197, 94, 0.7)' : score >= 50 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
+        borderColor: scores.map(score => score >= 75 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'),
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
+            callback: value => value + '%'
+          }
+        },
+        y: {
+          ticks: {
+            color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
+            font: { family: "'Kanit', sans-serif" }
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: context => `คะแนน: ${context.raw.toFixed(1)}% (${categoryStats[context.label].correct}/${categoryStats[context.label].total} ข้อ)` } }
+      }
+    }
+  });
+}
+
+/**
  * Builds the modern, responsive layout for the result screen.
  * @param {object} resultInfo The object containing the title, message, and icon for the result.
  * @param {object} stats An object with all calculated statistics (scores, percentage, time).
@@ -924,9 +1142,8 @@ function createStatItem(value, label, icon, theme) {
 function buildResultsLayout(resultInfo, stats) {
   const layoutContainer = document.createElement("div");
   layoutContainer.id = "modern-results-layout";
-  // A compact, centered layout that adapts for different screen sizes.
   layoutContainer.className =
-    "w-full max-w-2xl mx-auto flex flex-col items-center gap-8 mt-8 mb-6 px-4";
+    "w-full max-w-4xl mx-auto flex flex-col items-center gap-8 mt-8 mb-6 px-4";
 
   // --- 1. Message Area (Icon, Title, Message) ---
   const messageContainer = document.createElement("div");
@@ -940,14 +1157,13 @@ function buildResultsLayout(resultInfo, stats) {
   layoutContainer.appendChild(messageContainer);
 
   // --- 2. Data Container (for Circle + Stats) ---
-  // This container will be a flex row on medium screens and up, and a column on smaller screens.
   const dataContainer = document.createElement("div");
   dataContainer.className =
-    "w-full flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8";
+    "w-full grid grid-cols-1 md:grid-cols-2 items-center gap-8 p-6 bg-white dark:bg-gray-800/50 rounded-xl shadow-md border border-gray-200 dark:border-gray-700";
 
   // --- 2a. Progress Circle ---
   const progressContainer = document.createElement("div");
-  progressContainer.className = "relative w-40 h-40 flex-shrink-0";
+  progressContainer.className = "relative w-40 h-40 mx-auto flex-shrink-0";
   progressContainer.innerHTML = `
         <svg class="w-full h-full" viewBox="0 0 36 36">
             <path class="text-gray-200 dark:text-gray-700"
@@ -959,8 +1175,9 @@ function buildResultsLayout(resultInfo, stats) {
                 stroke-dasharray="0, 100"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
         </svg>
-        <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-3xl font-bold text-gray-700 dark:text-gray-200">${stats.percentage}%</span>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-4xl font-bold text-gray-700 dark:text-gray-200">${stats.percentage}%</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">คะแนนรวม</span>
         </div>
     `;
   dataContainer.appendChild(progressContainer);
@@ -976,8 +1193,7 @@ function buildResultsLayout(resultInfo, stats) {
 
   // --- 2b. Stats List ---
   const statsContainer = document.createElement("div");
-  // Use a grid layout to ensure two columns even on small screens.
-  statsContainer.className = "grid grid-cols-2 gap-4 w-full";
+  statsContainer.className = "grid grid-cols-2 gap-x-4 gap-y-5 w-full";
 
   // Define icons for stats
   const icons = {
@@ -992,9 +1208,6 @@ function buildResultsLayout(resultInfo, stats) {
     createStatItem(stats.correctAnswers, "คำตอบถูก", icons.correct, "green")
   );
   statsContainer.appendChild(
-    createStatItem(stats.totalScore, "คะแนนเต็ม", icons.total, "gray")
-  );
-  statsContainer.appendChild(
     createStatItem(
       stats.incorrectAnswersCount,
       "คำตอบผิด",
@@ -1003,7 +1216,6 @@ function buildResultsLayout(resultInfo, stats) {
     )
   );
 
-  // Always show time taken if available
   statsContainer.appendChild(
     createStatItem(stats.formattedTime, "เวลาที่ใช้", icons.time, "blue")
   );
@@ -1014,86 +1226,17 @@ function buildResultsLayout(resultInfo, stats) {
   dataContainer.appendChild(statsContainer);
   layoutContainer.appendChild(dataContainer);
 
-  // --- 3. Category Breakdown ---
-  // This new section creates an accordion for main categories and their subcategories.
+  // --- 3. Category Performance Chart ---
   if (stats.categoryStats && Object.keys(stats.categoryStats).length > 0) {
-    const categoryContainer = document.createElement('div');
-    categoryContainer.className = 'w-full max-w-2xl mx-auto mt-8';
-    categoryContainer.innerHTML = `<h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-4">คะแนนตามหมวดหมู่</h3>`;
-
-    const accordionContainer = document.createElement('div');
-    accordionContainer.className = 'space-y-2';
-
-    const sortedCategories = Object.entries(stats.categoryStats).sort((a, b) => a[0].localeCompare(b[0]));
-
-    for (const [mainCategory, data] of sortedCategories) {
-      const mainPercentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
-
-      const accordionItem = document.createElement('div');
-      accordionItem.className = 'bg-gray-50 dark:bg-gray-800/50 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700';
-
-      const accordionHeader = document.createElement('div');
-      accordionHeader.className = 'p-4 cursor-pointer flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors';
-      accordionHeader.innerHTML = `
-              <div>
-                  <span class="font-bold text-gray-800 dark:text-gray-200">${mainCategory}</span>
-                  <span class="ml-2 text-sm font-semibold text-gray-600 dark:text-gray-400">${data.correct} / ${data.total}</span>
-              </div>
-              <div class="flex items-center gap-3">
-                  <span class="font-bold text-blue-600 dark:text-blue-400">${mainPercentage}%</span>
-                  <svg class="accordion-icon h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-              </div>
-          `;
-
-      const accordionContent = document.createElement('div');
-      accordionContent.className = 'accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out';
-
-      const subcategoryList = document.createElement('div');
-      subcategoryList.className = 'p-4 border-t border-gray-200 dark:border-gray-700 space-y-3';
-
-      const sortedSubcategories = Object.entries(data.subcategories).sort((a, b) => a[0].localeCompare(b[0]));
-
-      for (const [specificCategory, subData] of sortedSubcategories) {
-        if (specificCategory === '—') continue; // Skip placeholder for old data format
-        const subPercentage = subData.total > 0 ? Math.round((subData.correct / subData.total) * 100) : 0;
-        const subItem = document.createElement('div');
-        subItem.innerHTML = `
-                  <div class="text-sm leading-tight">
-                      <p class="font-medium text-gray-700 dark:text-gray-300">${specificCategory}</p>
-                      <p class="font-semibold text-gray-500 dark:text-gray-400">${subData.correct} / ${subData.total} (${subPercentage}%)</p>
-                  </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 mt-1.5">
-                      <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${subPercentage}%"></div>
-                  </div>
-              `;
-        subcategoryList.appendChild(subItem);
-      }
-
-      accordionContent.appendChild(subcategoryList);
-      accordionItem.appendChild(accordionHeader);
-      if (subcategoryList.childElementCount > 0) {
-        accordionItem.appendChild(accordionContent);
-        accordionHeader.addEventListener('click', () => {
-          const icon = accordionHeader.querySelector('.accordion-icon');
-          if (accordionContent.style.maxHeight) {
-            accordionContent.style.maxHeight = null;
-            icon.classList.remove('rotate-180');
-          } else {
-            accordionContent.style.maxHeight = accordionContent.scrollHeight + "px";
-            icon.classList.add('rotate-180');
-          }
-        });
-      } else {
-        // If no subcategories, remove the chevron icon
-        accordionHeader.querySelector('.accordion-icon')?.remove();
-        accordionHeader.style.cursor = 'default';
-      }
-
-      accordionContainer.appendChild(accordionItem);
-    }
-
-    categoryContainer.appendChild(accordionContainer);
-    layoutContainer.appendChild(categoryContainer);
+    const chartContainer = document.createElement('div');
+    chartContainer.className = 'w-full p-6 bg-white dark:bg-gray-800/50 rounded-xl shadow-md border border-gray-200 dark:border-gray-700';
+    chartContainer.innerHTML = `
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 font-kanit text-center">คะแนนตามหมวดหมู่</h3>
+            <div class="relative h-64">
+                <canvas id="result-category-chart"></canvas>
+            </div>
+        `;
+    layoutContainer.appendChild(chartContainer);
   }
 
   // --- 4. Performance Summary ---
@@ -1129,23 +1272,12 @@ function buildResultsLayout(resultInfo, stats) {
     layoutContainer.appendChild(summaryContainer);
   }
 
-  // --- 5. Action Buttons ---
-  const actionsContainer = document.createElement('div');
-  actionsContainer.className = 'w-full max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 mt-8';
-
-  // Restart Button
-  elements.restartBtn.className = 'w-full sm:w-auto flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg';
-  actionsContainer.appendChild(elements.restartBtn);
-
-  // Review Button (will be shown/hidden later)
-  elements.reviewBtn.className = 'w-full sm:w-auto flex-1 bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg';
-  actionsContainer.appendChild(elements.reviewBtn);
-
-  layoutContainer.appendChild(actionsContainer);
-
   // --- 6. Assemble and Inject ---
   // Prepend to the result screen so it appears before the buttons
   elements.resultScreen.prepend(layoutContainer);
+
+  // --- 7. Render Chart ---
+  renderResultCategoryChart(stats.categoryStats);
 
   // --- 8. Final UI Updates ---
   // Show or hide the review button based on incorrect answers
@@ -1449,6 +1581,7 @@ function resumeQuiz(savedState) {
   state.sessionStartTime = Date.now(); // Start tracking time for the new session
 
   switchScreen(elements.quizScreen);
+  elements.quizTitleDisplay.textContent = state.quizTitle; // FIX: Set the title when resuming
   showQuestion();
 
   // If resuming a quiz with an overall timer, restart the countdown
@@ -1457,9 +1590,8 @@ function resumeQuiz(savedState) {
   }
 }
 
-function checkForSavedQuiz() {
+function checkForSavedQuiz(action) {
   const urlParams = new URLSearchParams(window.location.search);
-  const action = urlParams.get("action");
   const savedStateJSON = localStorage.getItem(state.storageKey);
 
   // Case 1: Viewing results directly. This has the highest priority.
@@ -1483,22 +1615,36 @@ function checkForSavedQuiz() {
   if (savedStateJSON) {
     try {
       const savedState = JSON.parse(savedStateJSON);
-      if (typeof savedState.currentQuestionIndex === 'number' && Array.isArray(savedState.shuffledQuestions)) {
-        // There is valid progress, show the start screen and then the resume prompt.
-        switchScreen(elements.startScreen);
-        if (elements.resumeModal && resumeModalHandler) {
-          resumeModalHandler.open();
-          elements.resumeRejectBtn.onclick = () => {
-            clearSavedState();
-          };
-          elements.resumeConfirmBtn.onclick = () => {
-            resumeQuiz(savedState);
-            resumeModalHandler.close();
-          };
+
+      // --- NEW VALIDATION LOGIC ---
+      // Check if the saved state is from an older version (lacking the 'type' property in questions)
+      const isStateValid = savedState &&
+        typeof savedState.currentQuestionIndex === 'number' &&
+        Array.isArray(savedState.shuffledQuestions) &&
+        savedState.shuffledQuestions.length > 0 &&
+        // Check if every question object has a 'type' property.
+        savedState.shuffledQuestions.every(q => q && typeof q.type === 'string');
+
+      if (isStateValid) {
+        // State is valid and modern, show the resume prompt.
+        if (savedState.userAnswers.filter(a => a !== null).length < savedState.shuffledQuestions.length) {
+          switchScreen(elements.startScreen);
+          if (elements.resumeModal && resumeModalHandler) {
+            resumeModalHandler.open();
+            elements.resumeRejectBtn.onclick = () => {
+              clearSavedState();
+              resumeModalHandler.close();
+            };
+            elements.resumeConfirmBtn.onclick = () => {
+              resumeQuiz(savedState);
+              resumeModalHandler.close();
+            };
+          }
+          return; // Done.
         }
-        return; // Done.
       } else {
-        // Invalid state found, clear it.
+        // State is old or invalid, clear it and notify the user.
+        console.warn("Invalid or outdated quiz state found in localStorage. Clearing it to start fresh.");
         clearSavedState();
       }
     } catch (e) {
@@ -1596,10 +1742,9 @@ function handleTimeUp() {
       return;
     }
     const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-    const isMultiSelect = currentQuestion.type === 'multiple-select';
 
     // Handle multi-select timeout
-    if (isMultiSelect) {
+    if (currentQuestion.type === 'multiple-select') {
       const correctAnswers = (currentQuestion.answer || []).map(a => String(a).trim());
       state.userAnswers[state.currentQuestionIndex] = {
         question: currentQuestion.question,
@@ -1607,38 +1752,65 @@ function handleTimeUp() {
         correctAnswer: correctAnswers,
         isCorrect: false,
         explanation: currentQuestion.explanation,
+        subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+        sourceQuizTitle: currentQuestion.sourceQuizTitle,
+        sourceQuizCategory: currentQuestion.sourceQuizCategory
       };
-      saveQuizState();
       showFeedback(false, "หมดเวลา! " + (currentQuestion.explanation || ""), correctAnswers);
       Array.from(elements.options.querySelectorAll('input[type="checkbox"]')).forEach(cb => cb.disabled = true);
-      updateNextButtonAppearance('next');
-      elements.nextBtn.classList.remove('hidden');
-      return; // End here for multi-select
+    } else if (currentQuestion.type === 'fill-in') {
+      const correctAnswers = currentQuestion.answer.map(a => String(a).trim());
+      state.userAnswers[state.currentQuestionIndex] = {
+        question: currentQuestion.question,
+        selectedAnswer: "ไม่ได้ตอบ (หมดเวลา)",
+        correctAnswer: correctAnswers,
+        isCorrect: false,
+        explanation: currentQuestion.explanation,
+        subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+        sourceQuizTitle: currentQuestion.sourceQuizTitle,
+        sourceQuizCategory: currentQuestion.sourceQuizCategory
+      };
+      showFeedback(false, "หมดเวลา! " + (currentQuestion.explanation || ""), correctAnswers.join(' หรือ '));
+      const answerInput = document.getElementById('fill-in-answer');
+      if (answerInput) answerInput.disabled = true;
+    } else if (currentQuestion.type === 'fill-in-number') {
+      const correctAnswer = `${currentQuestion.answer} ${currentQuestion.unit || ''}`.trim();
+      state.userAnswers[state.currentQuestionIndex] = {
+        question: currentQuestion.question,
+        selectedAnswer: "ไม่ได้ตอบ (หมดเวลา)",
+        correctAnswer: correctAnswer,
+        isCorrect: false,
+        explanation: currentQuestion.explanation,
+        subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+        sourceQuizTitle: currentQuestion.sourceQuizTitle,
+        sourceQuizCategory: currentQuestion.sourceQuizCategory
+      };
+      showFeedback(false, "หมดเวลา! " + (currentQuestion.explanation || ""), correctAnswer);
+      const answerInput = document.getElementById('fill-in-number-answer');
+      if (answerInput) answerInput.disabled = true;
+    } else {
+      // Default single-choice timeout
+      const correctAnswerValue = currentQuestion.answer;
+      const correctAnswer = (correctAnswerValue || "").toString().trim();
+      state.userAnswers[state.currentQuestionIndex] = {
+        question: currentQuestion.question,
+        selectedAnswer: "ไม่ได้ตอบ (หมดเวลา)",
+        correctAnswer: correctAnswer,
+        isCorrect: false,
+        explanation: currentQuestion.explanation,
+        subCategory: currentQuestion.subCategory || 'ไม่มีหมวดหมู่',
+        sourceQuizTitle: currentQuestion.sourceQuizTitle,
+        sourceQuizCategory: currentQuestion.sourceQuizCategory
+      };
+      const feedbackExplanation = "หมดเวลา! " + (currentQuestion.explanation || "");
+      showFeedback(false, feedbackExplanation, correctAnswer);
+      Array.from(elements.options.children).forEach((button) => (button.disabled = true));
     }
 
-    // Safely get and trim the correct answer
-    const correctAnswerValue = currentQuestion.answer;
-    const correctAnswer = (correctAnswerValue || "").toString().trim();
-
-    // Record the answer as incorrect due to time out
-    state.userAnswers[state.currentQuestionIndex] = {
-      question: currentQuestion.question,
-      selectedAnswer: "ไม่ได้ตอบ (หมดเวลา)",
-      correctAnswer: correctAnswer,
-      isCorrect: false,
-      explanation: currentQuestion.explanation,
-    };
-
-    // Gracefully handle a missing explanation when time is up
-    const feedbackExplanation =
-      "หมดเวลา! " + (currentQuestion.explanation || "");
-    showFeedback(false, feedbackExplanation, correctAnswer);
-    Array.from(elements.options.children).forEach(
-      (button) => (button.disabled = true)
-    );
+    // Common actions for any per-question timeout
+    saveQuizState();
     elements.nextBtn.classList.remove("hidden");
     updateNextButtonAppearance('next');
-    saveQuizState();
   } else if (state.timerMode === "overall") {
     showResults();
   }
@@ -1671,6 +1843,9 @@ function initializeSound() {
 
 function bindEventListeners() {
   // The main action button now has a central handler.
+  if (elements.skipBtn) {
+    elements.skipBtn.addEventListener("click", skipQuestion);
+  }
   elements.nextBtn.addEventListener("click", handleNextButtonClick);
 
   // Keep other listeners as they are.
@@ -1682,7 +1857,8 @@ function bindEventListeners() {
   if (elements.soundToggleBtn) {
     elements.soundToggleBtn.addEventListener("click", toggleSound);
   }
-  if (elements.skipBtn) {
-    elements.skipBtn.addEventListener("click", skipQuestion);
+  // New: Add listener for the hint button
+  if (elements.hintBtn) {
+    elements.hintBtn.addEventListener("click", showHint);
   }
 }

@@ -122,6 +122,7 @@ export const subCategoryData = {
     { topic: "ข่าวสารและความก้าวหน้าทางดาราศาสตร์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1 } },
 
     { topic: "กลุ่มดาวฤกษ์และการใช้ประโยชน์", level: LEVELS.JUNIOR_AND_SENIOR, camps: { junior: 1, senior: 1} },
+    
   ],
 };
 
