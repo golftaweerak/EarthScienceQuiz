@@ -1226,6 +1226,7 @@ function setupShopAccordion(game) {
 
 function renderTrackProgress(game) {
     const container = document.getElementById('track-progress-container');
+    if (!container) return;
     const astronomy = game.getAstronomyTrackLevel();
     const earth = game.getEarthLevel();
 
@@ -1243,7 +1244,7 @@ function renderTrackProgress(game) {
             </div>
             <div class="flex justify-between text-xs mt-1.5 text-gray-500 dark:text-gray-400">
                 <span class="font-medium">${data.title}</span>
-                <span>${data.currentXP.toLocaleString()} XP</span>
+                <span>${data.currentXP.toLocaleString()} / ${data.nextLevelXP ? data.nextLevelXP.toLocaleString() : 'MAX'} XP</span>
             </div>
         </div>
     `;

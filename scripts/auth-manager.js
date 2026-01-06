@@ -9,6 +9,7 @@ class AuthManagerInternal {
         this.currentUser = null;
         this.onUserChangeCallbacks = [];
         this.isInitialized = false;
+        this.isLoggingIn = false;
         this.LOCAL_STORAGE_KEY = 'app_gamification_data'; // คีย์หลักที่คุณใช้เก็บข้อมูลใน LocalStorage
         
         // Promise เพื่อรอให้ตรวจสอบ Auth เสร็จสิ้นครั้งแรก
@@ -201,6 +202,9 @@ class AuthManagerInternal {
 
     // ฟังก์ชัน Login
     async login() {
+        if (this.isLoggingIn) return;
+        this.isLoggingIn = true;
+
         try {
             const result = await signInWithPopup(auth, googleProvider);
             sessionStorage.setItem('login_toast', 'true');
@@ -219,6 +223,10 @@ class AuthManagerInternal {
         } catch (error) {
             console.error("Login failed:", error);
             
+            if (error.code === 'auth/cancelled-popup-request') {
+                return;
+            }
+            
             let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
             if (error.code === 'auth/operation-not-allowed') {
                 errorMessage = 'ระบบล็อกอิน (Google) ยังไม่เปิดใช้งานใน Firebase Console';
@@ -230,6 +238,8 @@ class AuthManagerInternal {
 
             showToast('เข้าสู่ระบบไม่สำเร็จ', errorMessage, '❌', 'error');
             throw error;
+        } finally {
+            this.isLoggingIn = false;
         }
     }
 
