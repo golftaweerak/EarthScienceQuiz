@@ -1827,19 +1827,6 @@ function buildResultsLayout(resultInfo, stats) {
   dataContainer.appendChild(statsContainer);
   layoutContainer.appendChild(dataContainer);
 
-  // --- 3. Category Performance Chart ---
-  if (stats.categoryStats && Object.keys(stats.categoryStats).length > 0) {
-    const chartContainer = document.createElement('div');
-    chartContainer.className = 'w-full p-6 bg-white dark:bg-gray-800/50 rounded-xl shadow-md border border-gray-200 dark:border-gray-700';
-    chartContainer.innerHTML = `
-            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 font-kanit text-center">คะแนนตามหมวดหมู่</h3>
-            <div class="relative h-64">
-                <canvas id="result-category-chart"></canvas>
-            </div>
-        `;
-    layoutContainer.appendChild(chartContainer);
-  }
-
   // --- NEW: XP Breakdown Section with Animation ---
   if (stats.xpEarned > 0) {
     const xpSection = document.createElement('div');
@@ -1915,6 +1902,7 @@ function buildResultsLayout(resultInfo, stats) {
         
         // Trigger animation
         setTimeout(() => {
+            el.style.opacity = '1'; // Force visibility as a fallback
             // Animate the value count-up
             animateValue(xpValueEl, 0, item.value, 1500, '+');
 
@@ -1968,9 +1956,6 @@ function buildResultsLayout(resultInfo, stats) {
   // --- 6. Assemble and Inject ---
   // Prepend to the result screen so it appears before the buttons
   elements.resultScreen.prepend(layoutContainer);
-
-  // --- 7. Render Chart ---
-  renderResultCategoryChart(stats.categoryStats);
 
   // --- 8. Final UI Updates ---
   // Show or hide the review button based on incorrect answers
