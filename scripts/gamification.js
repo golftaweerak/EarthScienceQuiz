@@ -635,9 +635,9 @@ export class Gamification {
                             }
                             
                             const lowerCat = String(category).toLowerCase();
-                            if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || key.includes('phy_') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ')) {
+                            if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || key.includes('phy_') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || key.includes('astro') || key.includes('junior') || key.includes('senior')) {
                                 quizAstronomyXP = calculatedXp;
-                            } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || key.includes('ess_')) {
+                            } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || key.includes('ess_') || key.includes('ES') || key.includes('ESR') || lowerCat.includes('geology') || lowerCat.includes('ธรณีวิทยา') || lowerCat.includes('meteorology') || lowerCat.includes('อุตุนิยมวิทยา') || lowerCat.includes('oceanography') || lowerCat.includes('สมุทรศาสตร์') || key.includes('earth')) {
                                 quizEarthTrackXP = calculatedXp;
                             }
                         }
@@ -1395,7 +1395,7 @@ export class Gamification {
         const catString = (typeof category === 'string') ? category : (category?.main || String(category || ''));
         const lowerCat = catString.toLowerCase();
 
-        if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ')) {
+        if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || lowerCat.includes('astro') || lowerCat.includes('junior') || lowerCat.includes('senior')) {
             this.state.astronomyTrackXP = (this.state.astronomyTrackXP || 0) + amount;
             isPhysics = true;
         } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก')) {
