@@ -6,20 +6,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เตรียมความพร้อม สอวน.</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Enable class-based dark mode
-        tailwind.config = {
-            darkMode: 'class'
-        }
-    </script>
+    <meta name="description" content="แหล่งรวมแบบทดสอบออนไลน์สำหรับเตรียมความพร้อม สอวน. ดาราศาสตร์ และสอวน. วิทยาศาสตร์โลกและอวกาศ">
+    <meta name="keywords" content="สอวน, สอวน. ดาราศาสตร์, สอวน. วิทยาศาสตร์โลกและอวกาศ, แบบทดสอบออนไลน์, เตรียมความพร้อม, ดาราศาสตร์, วิทยาศาสตร์โลก, อวกาศ">
+    <meta name="author" content="Taweerak Thuhphuttha">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="./styles/bundle.css">
+    <link rel="icon" href="./assets/icons/promma-logo.png" type="image/png">
 
 </head>
+
 
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-300 flex flex-col min-h-screen font-sarabun">
 
@@ -68,7 +66,6 @@
             </div>
 
             <main id="quiz-categories-container" class="max-w-4xl mx-auto space-y-6 mb-12">
-                <main class="flex-grow"></main>
                 <!-- Placeholder for loading, error, or empty states. JS will replace this. -->
                 <div id="categories-placeholder" class="text-center py-16 text-gray-500 dark:text-gray-400">
                     <p>กำลังโหลดรายการแบบทดสอบ...</p>
@@ -79,12 +76,52 @@
         </div>
 
         <div id="footer-placeholder"></div>
-        <div id="footer-container"></div>
         <!-- Placeholder for all common modals, loaded by app-loader.js -->
         <div id="modals-placeholder"></div>
 
-        <!-- app-loader is a module and will handle importing its own dependencies. -->
-        <script src="./scripts/app-loader.js" type="module"></script>
+        <!-- Scroll to Top Button -->
+    <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
+        class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+        </svg>
+    </button>
+
+    <!-- Sync Notification Toast -->
+    <div id="sync-toast"
+        class="fixed bottom-4 left-4 bg-gray-800 dark:bg-gray-700 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-3 border border-gray-700 dark:border-gray-600">
+        <div class="bg-green-500 rounded-full p-1">
+            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <div>
+            <p class="text-sm font-bold font-kanit">บันทึกข้อมูลแล้ว</p>
+            <p class="text-xs text-gray-300">ซิงค์กับ Cloud เรียบร้อย</p>
+        </div>
+    </div>
+
+    <!-- app-loader is a module and will handle importing its own dependencies. -->
+    <script src="./scripts/app-loader.js" type="module"></script>
+    <script type="module">
+        import { Gamification } from './scripts/gamification.js';
+        new Gamification();
+
+        // แสดงการแจ้งเตือนเมื่อมีการซิงค์ข้อมูลสำเร็จ (รับ Event จาก AuthManager)
+        const toast = document.getElementById('sync-toast');
+        window.addEventListener('auth-synced', () => {
+            if (toast) {
+                // แสดง Toast
+                toast.classList.remove('translate-y-24', 'opacity-0');
+
+                // ซ่อน Toast หลังจาก 3 วินาที
+                setTimeout(() => {
+                    toast.classList.add('translate-y-24', 'opacity-0');
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 
 </html>

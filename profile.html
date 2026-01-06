@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์ผู้เรียน - Astronomy & Earth Science Quiz</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./styles/bundle.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <link rel="icon" href="./assets/icons/promma-logo.png" type="image/png">
+    <style>
+        .collapsible-content {
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            overflow: hidden;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
+
+    <div id="main_header-placeholder" class="fixed top-0 left-0 right-0 z-50"></div>
+
+    <main class="container mx-auto px-4 pb-12" style="padding-top: var(--header-height-offset, 5rem);">
+        <!-- Profile Header -->
+        <div
+            class="max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8 border border-gray-200 dark:border-gray-700/60">
+            <div class="h-24 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+            <div class="px-6 pb-6 relative">
+                <div class="flex flex-col md:flex-row items-center md:items-end -mt-12 mb-4 gap-4">
+                    <div class="w-24 h-24 rounded-full bg-white dark:bg-gray-800 p-0.5 shadow-lg z-10 relative group">
+                        <div id="level-frame-container"
+                            class="w-full h-full rounded-full p-2 transition-all duration-300">
+                            <div id="profile-avatar-display"
+                                class="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-4xl cursor-pointer transition-transform transform group-hover:scale-105">
+                                <!-- Avatar injected by JS -->
+                            </div>
+                        </div>
+                        <button id="edit-avatar-btn"
+                            class="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                            title="เปลี่ยนรูปโปรไฟล์">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path
+                                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="text-center md:text-left flex-grow">
+                        <div class="flex items-center justify-center md:justify-start gap-2 group">
+                            <h1 id="profile-display-name"
+                                class="text-2xl font-bold font-kanit text-gray-900 dark:text-white">ผู้เรียน (Guest)
+                            </h1>
+                            <button id="edit-name-btn"
+                                class="text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                title="แก้ไขชื่อ">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path
+                                        d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="profile-email-display"
+                            class="text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700/50 px-3 py-1 rounded-full inline-block hidden mb-2 mt-1 border border-gray-200 dark:border-gray-600">
+                        </p>
+                        <!-- Sync Status Indicator -->
+                        <div id="sync-status-wrapper"
+                            class="hidden flex items-center justify-center md:justify-start gap-3 mt-1 text-xs font-medium transition-all duration-300">
+                            <div id="connection-status"
+                                class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700/50">
+                                <span class="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></span>
+                                <span class="text-gray-600 dark:text-gray-400">ตรวจสอบสถานะ...</span>
+                            </div>
+                            <div id="last-sync-display" class="text-gray-500 dark:text-gray-500 hidden sm:block">
+                            </div>
+                            <button id="manual-sync-btn"
+                                class="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="ซิงค์ข้อมูลล่าสุด">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2">
+                            <button id="edit-title-btn"
+                                class="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-1 rounded-full text-gray-600 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-600 flex items-center gap-1"
+                                title="เปลี่ยนฉายา">🏷️ เปลี่ยนฉายา</button>
+
+                            <button id="edit-theme-btn"
+                                class="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-3 py-1 rounded-full text-gray-600 dark:text-gray-300 transition-colors border border-gray-200 dark:border-gray-600"
+                                title="เปลี่ยนธีม">🎨 ธีม: มาตรฐาน</button>
+                        </div>
+                    </div>
+                    <div class="flex-shrink-0 mt-4 md:mt-0 md:mb-1 flex flex-wrap gap-2 justify-center md:justify-end">
+                        <a href="#shop-section" id="goto-shop-btn"
+                            class="group relative inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+                            <span
+                                class="text-sm relative z-10 group-hover:rotate-12 transition-transform duration-300 drop-shadow">🛒</span>
+                            <span class="relative z-10 drop-shadow">ร้านค้า</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: Gamification Dashboard -->
+        <section id="gamification-dashboard"
+            class="max-w-5xl mx-auto bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 relative overflow-hidden mb-8">
+            <!-- Background decoration -->
+            <div
+                class="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none">
+            </div>
+
+            <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 items-center mb-6">
+                <!-- Level & XP -->
+                <div class="col-span-2 flex items-center gap-4 sm:gap-6">
+                    <div class="relative flex-shrink-0">
+                        <!-- Level Circle -->
+                        <div
+                            class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-4xl shadow-xl ring-4 ring-blue-50 dark:ring-blue-900/20 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-white/10 backdrop-blur-[1px]"></div>
+                            <span id="user-level">1</span>
+                        </div>
+                        <div
+                            class="absolute -bottom-3 -right-3 bg-yellow-400 text-yellow-900 text-xs font-black px-3 py-1 rounded-full shadow-md border-2 border-white dark:border-gray-800 transform rotate-[-5deg]">
+                            LVL
+                        </div>
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <h3 id="user-rank-title"
+                            class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white font-kanit truncate mb-1">
+                            ผู้สังเกตการณ์ฝึกหัด</h3>
+                        <div
+                            class="flex justify-between text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 font-mono">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                XP: <span id="current-xp" class="text-gray-700 dark:text-gray-200">0</span></span>
+                            <span class="flex items-center gap-1">Goal: <span id="next-level-xp"
+                                    class="text-gray-700 dark:text-gray-200">100</span> <span
+                                    class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></span></span>
+                        </div>
+                        <!-- Progress Bar -->
+                        <div
+                            class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-4 overflow-hidden shadow-inner border border-gray-200 dark:border-gray-600">
+                            <div id="xp-progress-bar"
+                                class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-1000 relative"
+                                style="width: 0%">
+                                <div class="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- NEW: Quest display -->
+                        <div id="next-level-quest-container"
+                            class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center md:text-left hidden bg-gray-50 dark:bg-gray-700/50 px-3 py-1.5 rounded-lg inline-block border border-gray-100 dark:border-gray-600">
+                            <span class="text-blue-500 dark:text-blue-400 font-bold">Next:</span>
+                            <span id="next-level-quest-desc"
+                                class="font-medium text-gray-700 dark:text-gray-300"></span>
+                            <span id="next-level-quest-progress"
+                                class="font-mono ml-1 text-gray-600 dark:text-gray-400"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div
+                    class="border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 pt-6 md:pt-0 md:pl-8 flex flex-col justify-center">
+                    <h4
+                        class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.699-3.177a1 1 0 011.827 0l1.699 3.177 3.954-1.582A1 1 0 0117 5.773V15a1 1 0 01-1 1H4a1 1 0 01-1-1V5.773a1 1 0 01.867-1.452l3.954 1.582 1.699-3.177a1 1 0 011.827 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        เหรียญรางวัลล่าสุด
+                    </h4>
+                    <div id="recent-badges" class="flex gap-3 flex-wrap justify-start">
+                        <!-- Badges injected by JS -->
+                        <div class="animate-pulse w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- Divider -->
+            <hr class="border-gray-100 dark:border-gray-700/60 my-8 relative z-10">
+
+            <!-- Track Progress & Daily Quests Grid -->
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h4
+                        class="text-base font-bold text-gray-800 dark:text-white font-kanit mb-4 flex items-center gap-2">
+                        <span
+                            class="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"><svg
+                                xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg></span>
+                        ความก้าวหน้าแต่ละสายวิชา
+                    </h4>
+                    <div id="track-progress-container" class="space-y-5">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+                <div>
+                    <h4
+                        class="text-base font-bold text-gray-800 dark:text-white font-kanit mb-4 flex items-center gap-2">
+                        <span
+                            class="p-1.5 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg text-yellow-600 dark:text-yellow-400"><svg
+                                xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg></span>
+                        ภารกิจประจำวัน
+                    </h4>
+                    <div id="profile-daily-quests-container" class="space-y-4">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Global Collapse/Expand Controls -->
+        <div class="max-w-5xl mx-auto mb-4 flex justify-end gap-4 px-2">
+            <button id="refresh-charts-btn"
+                class="text-sm font-bold text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg> รีเฟรชกราฟ</button>
+            <button id="expand-all-btn"
+                class="text-sm font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-1"><svg
+                    xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
+                </svg> ขยายทั้งหมด</button>
+            <button id="collapse-all-btn"
+                class="text-sm font-bold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors flex items-center gap-1"><svg
+                    xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 11l7-7 7 7M5 19l7-7 7 7" />
+                </svg> ย่อทั้งหมด</button>
+        </div>
+
+        <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <!-- Left Column: Stats & Radar -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Radar Chart Section -->
+                <section
+                    class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold font-kanit flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                            </svg> ความถนัดรายด้าน (Proficiency)
+                        </h2>
+                    </div>
+                    <div id="radar-chart-loader"
+                        class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10 rounded-2xl">
+                        <div class="flex flex-col items-center text-center">
+                            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <p class="mt-3 text-sm font-semibold text-gray-600 dark:text-gray-400">
+                                กำลังโหลดข้อมูลแผนภูมิ...</p>
+                        </div>
+                    </div>
+                    <div class="relative h-80 w-full flex justify-center">
+                        <canvas id="skills-radar-chart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Proficiency History Chart Section -->
+                <section
+                    class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-bold font-kanit mb-6 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                        พัฒนาการตามกลุ่มสาระ (History)
+                    </h2>
+                    <div id="history-chart-loader"
+                        class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10 rounded-2xl">
+                        <div class="flex flex-col items-center text-center">
+                            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <p class="mt-3 text-sm font-semibold text-gray-600 dark:text-gray-400">กำลังโหลดประวัติ...
+                            </p>
+                        </div>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="proficiency-history-chart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Strengths & Weaknesses Section -->
+                <section
+                    class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-bold font-kanit mb-4">จุดแข็งและจุดที่ควรพัฒนา</h2>
+                    <div id="strengths-weaknesses-loader"
+                        class="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm z-10 rounded-2xl">
+                        <div class="flex flex-col items-center text-center"><svg
+                                class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            <p class="mt-3 text-sm font-semibold text-gray-600 dark:text-gray-400">กำลังวิเคราะห์...</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3
+                                class="text-sm font-bold text-green-600 dark:text-green-400 mb-3 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                จุดแข็ง (Strengths)
+                            </h3>
+                            <ul id="strengths-list" class="space-y-2">
+                                <li class="text-sm text-gray-500 dark:text-gray-400 italic">กำลังโหลดข้อมูล...</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3
+                                class="text-sm font-bold text-yellow-600 dark:text-yellow-400 mb-3 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                ควรพัฒนา (Weaknesses)
+                            </h3>
+                            <ul id="weaknesses-list" class="space-y-2">
+                                <li class="text-sm text-gray-500 dark:text-gray-400 italic">กำลังโหลดข้อมูล...</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Achievements Section -->
+                <section
+                    class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700/60 overflow-hidden">
+                    <div class="p-6 flex justify-between items-center cursor-pointer collapsible-header hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        data-target="achievements-content">
+                        <h2 class="text-xl font-bold font-kanit flex items-center gap-2">
+                            <span class="text-2xl">🏆</span> ความสำเร็จ (Achievements)
+                        </h2>
+                        <svg class="w-6 h-6 transform transition-transform duration-200 chevron-icon text-gray-400 -rotate-90"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div id="achievements-content" class="collapsible-content" style="max-height: 0px; opacity: 0;">
+                        <div class="px-6 pb-6">
+                            <div id="profile-achievements-list" class="space-y-3">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shop Section -->
+                <section id="shop-section"
+                    class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-10 transition-all duration-300 hover:shadow-2xl">
+                    <div class="p-6 sm:p-8 flex justify-between items-center cursor-pointer collapsible-header hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                        data-target="shop-content">
+                        <div class="flex items-center gap-4 flex-grow">
+                            <div
+                                class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl shadow-lg">
+                                🛒
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold font-kanit text-gray-800 dark:text-white">
+                                    ร้านค้าแลกของรางวัล</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">ใช้ XP แลกไอเทมและของตกแต่ง</p>
+                            </div>
+                            <div
+                                class="bg-blue-50 dark:bg-blue-900/20 px-4 py-1.5 rounded-full text-blue-600 dark:text-blue-300 text-sm font-bold ml-auto border border-blue-100 dark:border-blue-800 flex items-center gap-2">
+                                <span>XP:</span> <span id="shop-user-xp" class="text-lg">0</span>
+                            </div>
+                        </div>
+                        <svg class="w-6 h-6 transform transition-transform duration-200 chevron-icon text-gray-400 ml-4 -rotate-90"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div id="shop-content" class="collapsible-content" style="max-height: 0px; opacity: 0;">
+                        <div class="px-6 pb-8 sm:px-8">
+                            <div id="shop-items-grid" class="space-y-6">
+                                <!-- Items injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Badges & History -->
+            <div class="space-y-8">
+                <!-- Leaderboard Section -->
+                <section
+                    class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700/60 overflow-hidden">
+                    <div
+                        class="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                        <h2 class="text-xl font-bold font-kanit flex items-center gap-2">
+                            <span class="text-2xl">🏆</span> อันดับผู้เรียน
+                        </h2>
+                        <span
+                            class="text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full">Top
+                            10</span>
+                    </div>
+                    <div class="p-4">
+                        <!-- Tabs -->
+                        <div class="flex p-1 bg-gray-100 dark:bg-gray-700 rounded-xl mb-4">
+                            <button
+                                class="leaderboard-tab flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-gray-600 shadow text-blue-600 dark:text-blue-300"
+                                data-type="xp">รวม</button>
+                            <button
+                                class="leaderboard-tab flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                data-type="astronomyTrackXP">ดาราศาสตร์</button>
+                            <button
+                                class="leaderboard-tab flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                data-type="earthTrackXP">วิทย์โลก</button>
+                        </div>
+                        <!-- List -->
+                        <div id="leaderboard-list" class="space-y-2 min-h-[200px]">
+                            <div class="flex flex-col items-center justify-center h-40 text-gray-500">
+                                <svg class="animate-spin h-6 w-6 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <span>กำลังโหลดอันดับ...</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section
+                    class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700/60">
+                    <div class="p-6 flex justify-between items-center cursor-pointer collapsible-header hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        data-target="badges-content">
+                        <h2 class="text-xl font-bold font-kanit">เหรียญรางวัล (Badges)</h2>
+                        <svg class="w-6 h-6 transform transition-transform duration-200 chevron-icon text-gray-400 -rotate-90"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div id="badges-content" class="collapsible-content" style="max-height: 0px; opacity: 0;">
+                        <div class="px-6 pb-6">
+                            <div id="profile-badges-grid" class="grid grid-cols-3 gap-4">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quest History Section -->
+                <section
+                    class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700/60 overflow-hidden">
+                    <div class="p-6 flex justify-between items-center cursor-pointer collapsible-header hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        data-target="quest-history-content">
+                        <h2 class="text-xl font-bold font-kanit">ประวัติภารกิจ</h2>
+                        <svg class="w-6 h-6 transform transition-transform duration-200 chevron-icon text-gray-400 -rotate-90"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div id="quest-history-content" class="collapsible-content" style="max-height: 0px; opacity: 0;">
+                        <div class="px-6 pb-6">
+                            <div id="profile-quest-history"
+                                class="space-y-2 max-h-80 overflow-y-auto modern-scrollbar pr-2">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Settings / Danger Zone -->
+        <div class="max-w-5xl mx-auto mt-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white font-kanit mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    การจัดการข้อมูล (Data Management)
+                </h3>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30">
+                    <div>
+                        <h4 class="text-sm font-bold text-red-700 dark:text-red-400">พื้นที่อันตราย (Danger Zone)</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            การลบข้อมูลจะทำให้ XP, เลเวล, เหรียญรางวัล และประวัติการทำข้อสอบทั้งหมดหายไป <br class="hidden sm:block">
+                            (สำหรับ Guest ข้อมูลในเครื่องจะถูกล้างทั้งหมด)
+                        </p>
+                    </div>
+                    <button id="reset-gamification-btn" class="shrink-0 px-5 py-2.5 bg-white dark:bg-gray-800 text-red-600 border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-sm font-bold transition-all shadow-sm hover:shadow-md flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        ลบข้อมูลในเครื่อง
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+    <div id="modals-placeholder"></div>
+
+    <!-- Avatar Selection Modal -->
+    <div id="avatar-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit">เลือกรูปโปรไฟล์</h3>
+                <button data-modal-close
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="avatar-grid" class="grid grid-cols-5 gap-3 max-h-80 overflow-y-auto modern-scrollbar p-1">
+                <!-- Avatars injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Name Edit Modal -->
+    <div id="name-edit-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit">แก้ไขชื่อที่แสดง</h3>
+                <button data-modal-close
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="new-display-name"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ชื่อใหม่</label>
+                    <input type="text" id="new-display-name"
+                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="ระบุชื่อของคุณ" maxlength="30">
+                </div>
+                <div id="name-change-cost-info"
+                    class="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg text-center text-sm">
+                    <p class="text-blue-700 dark:text-blue-300">การเปลี่ยนชื่อจะใช้ <span class="font-bold">50 XP</span>
+                    </p>
+                    <p class="text-gray-500 dark:text-gray-400">XP ปัจจุบันของคุณ: <span id="name-change-current-xp"
+                            class="font-bold">0</span></p>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button data-modal-close
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">ยกเลิก</button>
+                    <button id="save-name-btn"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-md">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title Selection Modal -->
+    <div id="title-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit">เลือกฉายา (Title)</h3>
+                <button data-modal-close
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="title-grid" class="space-y-2 max-h-80 overflow-y-auto modern-scrollbar p-1">
+                <!-- Titles injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Selection Modal -->
+    <div id="theme-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit">เลือกธีมสี (Color Theme)</h3>
+                <button data-modal-close
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="theme-grid" class="space-y-2 max-h-80 overflow-y-auto modern-scrollbar p-1">
+                <!-- Themes injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Item Details Modal -->
+    <div id="shop-details-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 relative">
+            <button data-modal-close
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="flex flex-col items-center text-center">
+                <div id="shop-modal-icon" class="text-6xl mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-full"></div>
+                <h3 id="shop-modal-title" class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2"></h3>
+                <div id="shop-modal-type"
+                    class="text-xs font-bold px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 mb-4">
+                </div>
+                <div id="shop-modal-desc" class="text-gray-600 dark:text-gray-300 mb-6"></div>
+
+                <div class="w-full">
+                    <button id="shop-modal-buy-btn"
+                        class="w-full py-3 rounded-xl text-white font-bold text-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <span>ยืนยันการแลก</span>
+                        <span id="shop-modal-cost" class="bg-white/20 px-2 py-0.5 rounded text-sm"></span>
+                    </button>
+                    <p id="shop-modal-status" class="mt-2 text-sm font-medium hidden"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proficiency Details Modal -->
+    <div id="proficiency-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg p-6 transform transition-all scale-100 flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h3 id="proficiency-modal-title" class="text-xl font-bold text-gray-900 dark:text-white font-kanit">
+                </h3>
+                <button data-modal-close
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="proficiency-modal-content" class="space-y-3 overflow-y-auto modern-scrollbar pr-2">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Badge Details Modal -->
+    <div id="badge-details-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 relative">
+            <button data-modal-close
+                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="flex flex-col items-center text-center">
+                <div id="badge-modal-icon"
+                    class="text-6xl mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-full shadow-inner transition-all">
+                </div>
+                <h3 id="badge-modal-name" class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2"></h3>
+                <div id="badge-modal-status" class="mb-4"></div>
+                <p id="badge-modal-desc" class="text-gray-600 dark:text-gray-300"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="./scripts/profile-loader.js" type="module"></script>
+</body>
+
+</html>

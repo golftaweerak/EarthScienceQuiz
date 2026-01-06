@@ -5,24 +5,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>กำลังโหลดแบบทดสอบ...</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    // Enable class-based dark mode
-    tailwind.config = {
-      darkMode: 'class',
-    }
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-    xintegrity="sha384-n8MVd4RsNIU0KOVEMVIROPtOQ9dNAK1TRSMPs4I+LSnwUjMYM4trKCQ727FVDbXp" crossorigin="anonymous">
+    integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-    xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+    integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
     crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+    integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
     crossorigin="anonymous"></script>
   <!-- Shared Styles -->
 
@@ -30,14 +23,13 @@
   <link rel="stylesheet" href="../styles/animations.css"> <!-- เพิ่มไฟล์อนิเมชันหลักสำหรับ Modal -->
   <link rel="stylesheet" href="../styles/quiz-animations.css">
   <!-- Preload assets for faster quiz start -->
-  <link rel="preload" href="../assets/audio/correct.mp3" as="audio">
-  <link rel="preload" href="../assets/audio/incorrect.mp3" as="audio">
   <link rel="stylesheet" href="../styles/bundle.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-
+  <link rel="icon" href="../assets/icons/promma-logo.png" type="image/png">
 </head>
 
-<body class="pt-24 md:pt-28 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 p-4">
+<body
+  class="pt-24 md:pt-28 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 p-4">
   <div class="max-w-3xl mx-auto">
     <!-- Header with buttons -->
     <div id="main_header-placeholder"></div>
@@ -198,4 +190,5 @@
   <!-- The single entry point for all quiz page functionality -->
   <script src="../scripts/quiz-page-loader.js" type="module"></script>
 </body>
+
 </html>

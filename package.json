@@ -1,30 +1,28 @@
 {
-  "type": "module",
-  "name": "earthsciencequiz",
+  "name": "earth-science-quiz",
   "version": "1.0.0",
-  "description": "<div align=\"center\">\r   <!-- Badges for professionalism -->\r   <img src=\"https://img.shields.io/github/license/golftaweerak/EarthScienceQuiz\" alt=\"License\">\r   <img src=\"https://img.shields.io/github/deployments/golftaweerak/EarthScienceQuiz/github-pages?label=GitHub%20Pages\" alt=\"GitHub Pages\">\r </div>\r <br>\r <div align=\"center\">\r   <img src=\"assets/images/screenshot.png\" alt=\"Earth Science Quiz Screenshot\" width=\"80%\">\r   <p><i>ภาพหน้าจอของแอปพลิเคชัน </i></p>\r </div>",
+  "description": "แหล่งรวมแบบทดสอบออนไลน์สำหรับเตรียมความพร้อม สอวน. ดาราศาสตร์ และสอวน. วิทยาศาสตร์โลกและอวกาศ",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "update:list": "node tools/update-quiz-list.js",
-    "validate:duplicates": "node tools/check-duplicates.js",
-    "validate:subcategories": "node tools/validate-subcategories.js",
-    "summarize": "node tools/summarize-categories.js",
-    "validate": "npm run validate:duplicates && npm run validate:subcategories",
-    "manage": "npm run update:list && npm run validate"
+    "start": "live-server --port=3000",
+    "watch": "tailwindcss -i ./styles/input.css -o ./styles/bundle.css --watch",
+    "build": "tailwindcss -i ./styles/input.css -o ./styles/bundle.css --minify",
+    "test": "playwright test"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/golftaweerak/EarthScienceQuiz.git"
-  },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "สอวน",
+    "ดาราศาสตร์",
+    "วิทยาศาสตร์โลกและอวกาศ"
+  ],
+  "author": "Taweerak Thuhphuttha",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/golftaweerak/EarthScienceQuiz/issues"
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "live-server": "^1.2.2",
+    "tailwindcss": "^3.4.4"
   },
-  "homepage": "https://github.com/golftaweerak/EarthScienceQuiz#readme",
   "dependencies": {
-    "chalk": "^5.6.0"
+    "@dataconnect/generated": "file:src/dataconnect-generated",
+    "firebase": "^12.7.0"
   }
 }

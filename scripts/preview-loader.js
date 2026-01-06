@@ -35,7 +35,11 @@ async function main() {
     // Initialize common UI components (header, menu, dark mode).
     try {
         const { initializeCommonComponents } = await import('./common-init.js');
-        initializeCommonComponents();
+        await initializeCommonComponents();
+
+        // Initialize Gamification (Theme, Avatar, User State)
+        const { Gamification } = await import('./gamification.js');
+        new Gamification();
     } catch (error) {
         // This is considered non-critical for the preview page's core function.
         console.warn("A non-critical error occurred during common component initialization.", error);

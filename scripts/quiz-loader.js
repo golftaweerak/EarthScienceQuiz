@@ -85,32 +85,37 @@ export async function initializeQuiz() {
         // - A flat array of questions.
         // - An array of scenario objects.
         // - A mixed array of questions and scenarios.
-        let processedQuizData;
-        processedQuizData = data.flatMap(item => {            
-            if (!item) return []; // Gracefully handle null/undefined entries in the data array (e.g. from trailing commas)
-
+        const processedQuizData = [];
+        for (const item of data) {
+            if (!item) continue;
+        
             if (item.type === 'scenario' && Array.isArray(item.questions)) {
                 // It's a scenario, prepend its title and description to each of its questions.
                 const title = item.title || '';
-                
-                // Process description: fix relative paths for assets.
-                // Since quiz-loader.js is used by quiz/index.html, asset paths need to be adjusted.
-                // The convention is to write paths in data files relative to the project root (e.g., "assets/images/pic.jpg").
-                // This script will prepend "../" to make the path correct for the quiz page's location.
-                // This more robust regex handles paths written with or without a leading slash (e.g., "src='assets/...' or src="/assets/...").
                 const rawDescription = item.description || '';
                 const description = rawDescription.replace(/(src\s*=\s*["'])\/?assets\//g, '$1../assets/').replace(/\n/g, '<br>');
-
-                // Filter out any potential null/undefined questions within the scenario's questions array.
-                return item.questions.filter(q => q).map(question => ({
-                    ...question, // This is safe now because we filtered out falsy values
-                    question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${title}</p><div class="mt-2 text-gray-700 dark:text-gray-300">${description}</div></div>${question.question}`,
-                    sourceQuizTitle: quizInfo.title // Add source quiz title to each question
-                }));
+        
+                for (const question of item.questions) {
+                    if (question) { // Ensure question is not null/undefined
+                        processedQuizData.push({
+                            ...question,
+                            type: question.type || 'question',
+                            question: `<div class="p-4 mb-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-500 rounded-r-lg"><p class="font-bold text-lg">${title}</p><div class="mt-2 text-gray-700 dark:text-gray-300">${description}</div></div>${question.question}`,
+                            sourceQuizTitle: quizInfo.title,
+                            sourceQuizCategory: quizInfo.category
+                        });
+                    }
+                }
+            } else {
+                // Standalone question
+                processedQuizData.push({
+                    ...item,
+                    type: item.type || 'question',
+                    sourceQuizTitle: quizInfo.title,
+                    sourceQuizCategory: quizInfo.category
+                });
             }
-            // It's a standalone question or a malformed item, return it as is.
-            return { ...item, sourceQuizTitle: quizInfo.title };
-        });
+        }
 
         // 5. Populate the page with quiz-specific info
         populatePage(quizInfo.title, quizInfo.description);

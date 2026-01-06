@@ -81,23 +81,25 @@ function groupQuizzesForCategory(quizzes, categoryKey) {
     }
   } else if (categoryKey === 'ChallengePOSN') {
     const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {
-      // Map filename prefixes to their corresponding category keys
-      const prefixMap = {
-        'adv_astro': 'Astronomy',
-        'adv_geology': 'Geology',
-        'adv_meteorology': 'Meteorology',
-        'adv_oceanography': 'Oceanography'
+      // Map filename prefixes to their corresponding display titles for the accordion header
+      const prefixTitleMap = {
+        'adv_astro': 'ดาราศาสตร์ (ท้าทาย)',
+        'adv_geology': 'ธรณีวิทยา (ท้าทาย)',
+        'adv_meteorology': 'อุตุนิยมวิทยา (ท้าทาย)',
+        'adv_oceanography': 'สมุทรศาสตร์ (ท้าทาย)'
       };
       // Find the prefix that matches the start of the quiz ID
-      const matchingPrefix = Object.keys(prefixMap).find(prefix => quiz.id.startsWith(prefix));
-      let subKey = matchingPrefix ? prefixMap[matchingPrefix] : 'GeneralKnowledge';
+      const matchingPrefix = Object.keys(prefixTitleMap).find(prefix => quiz.id.startsWith(prefix));
+      // Use the mapped title as the key, or a generic fallback
+      let subKey = matchingPrefix ? prefixTitleMap[matchingPrefix] : 'ทั่วไป (ท้าทาย)';
       if (!acc[subKey]) acc[subKey] = [];
       acc[subKey].push(quiz);
       return acc;
     }, {});
 
-    Object.keys(subGroupedQuizzes).sort((a, b) => (categoryDetails[a]?.order || 99) - (categoryDetails[b]?.order || 99)).forEach(subKey => {
-      groups.push({ title: categoryDetails[subKey]?.title || subKey, quizzes: subGroupedQuizzes[subKey], level: 1 });
+    // The key is now the title itself, so we just sort and push.
+    Object.keys(subGroupedQuizzes).sort().forEach(subKey => {
+      groups.push({ title: subKey, quizzes: subGroupedQuizzes[subKey], level: 1 });
     });
   } else if (categoryKey === 'AstronomyReview') {
     const subGroupedQuizzes = quizzes.reduce((acc, quiz) => {

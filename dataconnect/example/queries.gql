@@ -1,0 +1,36 @@
+mutation CreateUser @auth(level: USER) {
+  user_insert(data: {
+    username: "newuser",
+    email: "newuser@example.com",
+    passwordHash: "somehash",
+    createdAt_expr: "request.time"
+  })
+}
+
+query ListQuizzes @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  quizzes {
+    id
+    title
+    description
+  }
+}
+
+mutation TakeQuiz($quizId: UUID!, $userId: UUID!) @auth(level: USER) {
+  quizAttempt_insert(data: {
+    quizId: $quizId,
+    userId: $userId,
+    startTime_expr: "request.time",
+    endTime_expr: "request.time",
+    score: 0.0,
+    status: "in progress"
+  })
+}
+
+query GetQuestionsForQuiz($quizId: UUID!) @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  questions(where: {quizId: {eq: $quizId}}) {
+    id
+    text
+    answerOptions
+    type
+  }
+}

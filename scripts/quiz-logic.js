@@ -1,5 +1,7 @@
 import { ModalHandler } from './modal-handler.js';
 import { shuffleArray } from './utils.js';
+import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js';
+import { showToast } from './toast.js';
 
 // state: Stores all dynamic data of the quiz
 let state = {};
@@ -7,6 +9,8 @@ let state = {};
 let elements = {};
 // handler: A dedicated handler for the resume modal
 let resumeModalHandler;
+// handler: For power-up buy modal
+let powerupBuyModalHandler;
 // config: Stores all static configuration and constants
 const config = {
   soundOnIcon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>`,
@@ -71,6 +75,39 @@ function getCategoryNames(subCategory) {
   return { main: 'ไม่มีหมวดหมู่', specific: null }; // Fallback for unknown formats
 }
 
+function ensurePowerUpModalExists() {
+    if (document.getElementById('powerup-buy-modal')) return;
+    const modalHTML = `
+    <div id="powerup-buy-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog" aria-modal="true">
+        <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all scale-100 relative">
+            <button data-modal-close class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div class="flex flex-col items-center text-center">
+                <div id="powerup-modal-icon" class="text-6xl mb-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-full"></div>
+                <h3 id="powerup-modal-title" class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2"></h3>
+                <p id="powerup-modal-desc" class="text-gray-600 dark:text-gray-300 mb-4 text-sm"></p>
+                
+                <div class="flex items-center gap-4 mb-6 text-sm">
+                    <div class="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full text-blue-700 dark:text-blue-300 font-bold">
+                        มี: <span id="powerup-user-xp">0 XP</span>
+                    </div>
+                    <div class="text-gray-400">→</div>
+                    <div class="bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full text-red-700 dark:text-red-300 font-bold">
+                        จ่าย: <span id="powerup-item-cost">0 XP</span>
+                    </div>
+                </div>
+
+                <div class="w-full flex gap-3">
+                    <button data-modal-close class="flex-1 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition">ยกเลิก</button>
+                    <button id="powerup-confirm-buy-btn" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-md">ยืนยัน</button>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
 /**
  * Initializes the entire quiz application.
  * This function is the main entry point for the quiz logic, called by quiz-loader.js.
@@ -80,6 +117,9 @@ function getCategoryNames(subCategory) {
  * @param {number|null} customTime - Custom time in seconds, if provided.
  */
 export function init(quizData, storageKey, quizTitle, customTime, action) {
+  // Ensure the power-up modal exists in the DOM
+  ensurePowerUpModalExists();
+
   // --- 1. Element Caching ---
   elements = {
     // Screens
@@ -121,6 +161,15 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
     hintBtn: document.getElementById("hint-btn"),
     hintContainer: document.getElementById("hint-container"),
     hintSection: document.getElementById("hint-section"),
+    // Power-up container (will be created dynamically)
+    powerUpContainer: null,
+    // Power-up Modal Elements
+    powerupModalIcon: document.getElementById("powerup-modal-icon"),
+    powerupModalTitle: document.getElementById("powerup-modal-title"),
+    powerupModalDesc: document.getElementById("powerup-modal-desc"),
+    powerupUserXp: document.getElementById("powerup-user-xp"),
+    powerupItemCost: document.getElementById("powerup-item-cost"),
+    powerupConfirmBtn: document.getElementById("powerup-confirm-buy-btn"),
   };
   // --- 2. State Initialization ---
   state = {
@@ -135,19 +184,35 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
     isSoundEnabled: true, // This will be initialized properly later
     correctSound: new Audio("../assets/audio/correct.mp3"),
     incorrectSound: new Audio("../assets/audio/incorrect.mp3"),
+    levelUpSound: new Audio("../assets/audio/level-up.mp3"), // Added missing sound
+    badgeSound: new Audio("../assets/audio/badge-unlock.mp3"), // Added missing sound
     timerMode: "none",
     timeLeft: 0,
     timerId: null,
     initialTime: 0,
     activeScreen: null,
     isFloatingNav: false, // To track the nav state
+    game: new Gamification(), // Initialize game instance
+    xpMultiplier: 1, // Default multiplier
+    used5050: false,
+    usedCut1: false,
+    usedRangeHint: false,
+    usedTolerance: false,
+    isCustomQuiz: false, // NEW
+    questionCount: 0,    // NEW
   };
 
   // --- 3. Initial Setup ---
   resumeModalHandler = new ModalHandler('resume-modal');
+  powerupBuyModalHandler = new ModalHandler('powerup-buy-modal');
   bindEventListeners();
   initializeSound();
+  // NEW: Set quiz metadata
+  state.isCustomQuiz = storageKey.startsWith('quizState-custom_');
+  state.questionCount = quizData.length;
+
   checkForSavedQuiz(action); // This will check localStorage and either show the start screen or a resume prompt.
+  setupPowerUpUI(); // Setup the power-up bar
 }
 
 /**
@@ -305,10 +370,12 @@ function createOptionButton(optionText, previousAnswer) {
     const wasSelected = optionText.trim() === previousAnswer.selectedAnswer.trim();
 
     if (isCorrectOption) {
-      button.classList.add("correct");
+      button.classList.add('bg-green-100', 'dark:bg-green-900/30', 'border-green-500', 'dark:border-green-600', 'text-green-800', 'dark:text-green-300');
     } else if (wasSelected) {
       // Only mark as incorrect if it was selected and is not the correct answer.
-      button.classList.add("incorrect");
+      button.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'text-red-800', 'dark:text-red-400');
+    } else {
+      button.classList.add('opacity-60');
     }
   } else {
     // This is a new, unanswered question.
@@ -349,14 +416,216 @@ function createCheckboxOption(optionText, previousAnswer) {
     checkbox.disabled = true;
     // When disabled, the wrapper should not look clickable.
     wrapperLabel.classList.remove('cursor-pointer', 'hover:bg-gray-100', 'dark:hover:bg-gray-700', 'hover:border-blue-500', 'dark:hover:border-blue-500');
-    wrapperLabel.classList.add('cursor-not-allowed', 'opacity-75');
+    wrapperLabel.classList.add('cursor-default');
 
     const selectedAnswers = new Set(previousAnswer.selectedAnswer || []);
+    const correctAnswersSet = new Set(previousAnswer.correctAnswer || []);
     if (selectedAnswers.has(optionText.trim())) {
       checkbox.checked = true;
     }
+
+    if (correctAnswersSet.has(optionText.trim())) {
+        wrapperLabel.classList.add('bg-green-100', 'dark:bg-green-900/30', 'border-green-500', 'dark:border-green-600', 'anim-correct-pop');
+    } else if (selectedAnswers.has(optionText.trim())) {
+        wrapperLabel.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'anim-shake');
+    } else {
+        wrapperLabel.classList.add('opacity-60');
+    }
   }
   return wrapperLabel;
+}
+
+/**
+ * Sets up the Power-up UI elements.
+ */
+function setupPowerUpUI() {
+    // Create container if it doesn't exist
+    if (!document.getElementById('power-up-bar')) {
+        const container = document.createElement('div');
+        container.id = 'power-up-bar';
+        container.className = 'flex flex-wrap justify-center gap-3 mb-6 px-2';
+        
+        // Insert before the question container
+        const questionContainer = document.getElementById('question');
+        if (questionContainer && questionContainer.parentNode) {
+            questionContainer.parentNode.insertBefore(container, questionContainer);
+        }
+        elements.powerUpContainer = container;
+    }
+}
+
+/**
+ * Renders the power-up buttons based on current inventory.
+ */
+function renderPowerUps(animateItemId = null) {
+    if (!elements.powerUpContainer) return;
+    
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    const isNumberQuestion = currentQuestion && currentQuestion.type === 'fill-in-number';
+    const hasOptions = currentQuestion && (currentQuestion.options || currentQuestion.choices);
+
+    const consumables = SHOP_ITEMS.filter(i => i.type === 'consumable');
+    
+    elements.powerUpContainer.innerHTML = consumables.map(item => {
+        // Filter items based on question type
+        if (item.id === 'item_5050' || item.id === 'item_cut_1') {
+            if (!hasOptions) return '';
+        }
+        if (item.id === 'item_range_hint' || item.id === 'item_tolerance') {
+            if (!isNumberQuestion) return '';
+        }
+
+        const count = state.game.getItemCount(item.id);
+        let isUsed = false;
+        if (item.id === 'item_xp_2x') isUsed = state.xpMultiplier > 1;
+        else if (item.id === 'item_5050') isUsed = state.used5050;
+        else if (item.id === 'item_cut_1') isUsed = state.usedCut1;
+        else if (item.id === 'item_range_hint') isUsed = state.usedRangeHint;
+        else if (item.id === 'item_tolerance') isUsed = state.usedTolerance;
+        // item_undo and item_time_freeze are instant effects, not toggle states
+        
+        // Check if item should be disabled (e.g., Time Freeze when no timer)
+        const isTimeFreeze = item.id === 'item_time_freeze';
+        const isTimerDisabled = state.timerMode === 'none';
+        const isDisabled = isUsed || (isTimeFreeze && isTimerDisabled);
+
+        let btnClass = "relative group flex items-center justify-center lg:justify-start gap-0 lg:gap-2 p-2 lg:px-3 lg:py-1.5 rounded-xl lg:rounded-full transition-all shadow-sm border-2 ";
+        
+        if (item.id === animateItemId) {
+            btnClass += "anim-item-pop ";
+        }
+
+        if (isUsed) {
+            btnClass += "bg-green-100 text-green-700 border-green-500 cursor-default opacity-80";
+        } else if (isTimeFreeze && isTimerDisabled) {
+            // Style for unavailable item
+            btnClass += "bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-60 grayscale";
+        } else if (count > 0) {
+            btnClass += "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-600 hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-400 cursor-pointer transform hover:scale-105";
+        } else {
+            btnClass += "bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-200";
+        }
+
+        return `
+            <button class="power-up-btn ${btnClass}" data-id="${item.id}" ${isDisabled ? 'disabled' : ''} title="${item.name}">
+                <span class="text-xl lg:text-base leading-none">${item.icon}</span>
+                <span class="hidden lg:inline text-sm font-bold">${item.name}</span>
+                <span class="absolute -top-2 -right-2 lg:static lg:top-auto lg:right-auto bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded-full text-[10px] lg:text-xs font-bold min-w-[1.25rem] text-center border border-gray-200 dark:border-gray-500 shadow-sm z-10">
+                    ${isUsed ? '✓' : count}
+                </span>
+            </button>
+        `;
+    }).join('');
+
+    // Bind events
+    elements.powerUpContainer.querySelectorAll('.power-up-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => handlePowerUpClick(e.currentTarget.dataset.id));
+    });
+}
+
+function handlePowerUpClick(itemId) {
+    const count = state.game.getItemCount(itemId);
+    
+    if (count <= 0) {
+        // Show buy modal
+        const item = SHOP_ITEMS.find(i => i.id === itemId);
+        
+        // Populate Modal Data
+        if (elements.powerupModalIcon) elements.powerupModalIcon.textContent = item.icon;
+        if (elements.powerupModalTitle) elements.powerupModalTitle.textContent = item.name;
+        if (elements.powerupModalDesc) elements.powerupModalDesc.textContent = item.desc;
+        if (elements.powerupUserXp) elements.powerupUserXp.textContent = `${state.game.state.xp.toLocaleString()} XP`;
+        if (elements.powerupItemCost) elements.powerupItemCost.textContent = `${item.cost} XP`;
+
+        // Setup Confirm Button
+        if (elements.powerupConfirmBtn) {
+            // Clone to remove old listeners
+            const newBtn = elements.powerupConfirmBtn.cloneNode(true);
+            elements.powerupConfirmBtn.parentNode.replaceChild(newBtn, elements.powerupConfirmBtn);
+            elements.powerupConfirmBtn = newBtn;
+
+            elements.powerupConfirmBtn.onclick = () => {
+            const result = state.game.buyItem(itemId);
+            if (result.success) {
+                showToast('ซื้อสำเร็จ', result.message, '🛒');
+                renderPowerUps(itemId);
+                powerupBuyModalHandler.close();
+            } else {
+                showToast('ซื้อไม่สำเร็จ', result.message, '❌', 'error');
+                powerupBuyModalHandler.close();
+            }
+            };
+        }
+        
+        powerupBuyModalHandler.open();
+        return;
+    }
+
+    // Use Item Logic
+    if (itemId === 'item_5050') {
+        if (state.used5050) return;
+        if (state.userAnswers[state.currentQuestionIndex]) return; // Cannot use if already answered
+        if (state.game.useItem(itemId)) {
+            apply5050();
+            state.used5050 = true;
+            renderPowerUps(itemId);
+            showToast('ใช้ตัวช่วยสำเร็จ', 'ตัดตัวเลือกผิดออก 2 ข้อ', '✂️');
+        }
+    } else if (itemId === 'item_xp_2x') {
+        if (state.xpMultiplier > 1) return;
+        if (state.game.useItem(itemId)) {
+            state.xpMultiplier = 2;
+            renderPowerUps(itemId);
+            showToast('ใช้ตัวช่วยสำเร็จ', 'XP คูณ 2 สำหรับการสอบครั้งนี้!', '✨', 'gold');
+        }
+    } else if (itemId === 'item_cut_1') {
+        if (state.usedCut1 || state.used5050) return; // Don't stack with 50/50 easily
+        if (state.userAnswers[state.currentQuestionIndex]) return;
+        if (state.game.useItem(itemId)) {
+            applyCut1();
+            state.usedCut1 = true;
+            renderPowerUps(itemId);
+            showToast('ใช้ตัวช่วยสำเร็จ', 'ตัดตัวเลือกผิดออก 1 ข้อ', '🔪');
+        }
+    } else if (itemId === 'item_undo') {
+        const currentAns = state.userAnswers[state.currentQuestionIndex];
+        if (currentAns && !currentAns.isCorrect) {
+             if (state.game.useItem(itemId)) {
+                undoLastAnswer();
+                renderPowerUps(itemId);
+                showToast('ใช้ตัวช่วยสำเร็จ', 'เริ่มตอบข้อนี้ใหม่ได้เลย!', '↩️');
+            }
+        } else {
+             showToast('ไม่สามารถใช้ได้', 'ใช้ได้เฉพาะเมื่อตอบผิดเท่านั้น', '⚠️', 'error');
+        }
+    } else if (itemId === 'item_time_freeze') {
+        if (state.timerMode === 'none' || state.isTimeFrozen) {
+             // This case should be handled by the disabled button, but keep as fallback
+             return;
+        }
+        if (state.game.useItem(itemId)) {
+            freezeTime();
+            renderPowerUps(itemId);
+            showToast('ใช้ตัวช่วยสำเร็จ', 'หยุดเวลา 30 วินาที!', '❄️', 'info');
+        }
+    } else if (itemId === 'item_range_hint') {
+        if (state.usedRangeHint) return;
+        if (state.userAnswers[state.currentQuestionIndex]) return;
+        if (state.game.useItem(itemId)) {
+            applyRangeHint();
+            state.usedRangeHint = true;
+            renderPowerUps(itemId);
+            // Toast handled in applyRangeHint to show the range
+        }
+    } else if (itemId === 'item_tolerance') {
+        if (state.usedTolerance) return;
+        if (state.userAnswers[state.currentQuestionIndex]) return;
+        if (state.game.useItem(itemId)) {
+            state.usedTolerance = true;
+            renderPowerUps(itemId);
+            showToast('ใช้ตัวช่วยสำเร็จ', 'ขยายเป้าคำตอบให้กว้างขึ้น +/- 20%', '⭕', 'success');
+        }
+    }
 }
 
 function showQuestion() {
@@ -366,6 +635,12 @@ function showQuestion() {
     stopTimer();
   }
   resetState();
+  state.used5050 = false; // Reset 50/50 flag for new question
+  state.usedCut1 = false; // Reset Cut 1 flag
+  state.usedRangeHint = false;
+  state.usedTolerance = false;
+  renderPowerUps(); // Update UI
+
   const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
   if (!currentQuestion) {
     console.error("Invalid question index:", state.currentQuestionIndex);
@@ -457,13 +732,120 @@ function showQuestion() {
   renderMath(elements.quizScreen); // Render math only within the quiz screen
 }
 
+function apply5050() {
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    const correctAnswer = String(currentQuestion.answer).trim();
+    
+    // Get all option buttons/checkboxes
+    const optionElements = Array.from(elements.options.children);
+    const wrongOptions = optionElements.filter(el => {
+        const val = el.tagName === 'BUTTON' ? el.dataset.optionValue : el.querySelector('input').value;
+        return val.trim() !== correctAnswer;
+    });
+
+    // Shuffle and pick 2 to hide
+    shuffleArray(wrongOptions);
+    const toHide = wrongOptions.slice(0, 2);
+
+    toHide.forEach(el => {
+        el.style.opacity = '0.3';
+        el.style.pointerEvents = 'none';
+        if (el.tagName === 'BUTTON') el.disabled = true;
+        else el.querySelector('input').disabled = true;
+    });
+}
+
+function applyCut1() {
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    const correctAnswer = String(currentQuestion.answer).trim();
+    
+    const optionElements = Array.from(elements.options.children);
+    const wrongOptions = optionElements.filter(el => {
+        const val = el.tagName === 'BUTTON' ? el.dataset.optionValue : el.querySelector('input').value;
+        return val.trim() !== correctAnswer && el.style.opacity !== '0.3';
+    });
+
+    if (wrongOptions.length > 0) {
+        shuffleArray(wrongOptions);
+        const toHide = wrongOptions[0];
+        
+        toHide.style.opacity = '0.3';
+        toHide.style.pointerEvents = 'none';
+        if (toHide.tagName === 'BUTTON') toHide.disabled = true;
+        else toHide.querySelector('input').disabled = true;
+    }
+}
+
+function applyRangeHint() {
+    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+    const correctAnswer = parseFloat(currentQuestion.answer);
+    
+    if (isNaN(correctAnswer)) return;
+
+    // Generate a range that includes the answer
+    // Range width approx 40-60% of value
+    const rangeWidth = Math.abs(correctAnswer * 0.5) || 10; 
+    const offset = (Math.random() - 0.5) * (rangeWidth * 0.5); // Random offset so answer isn't always center
+    
+    let min = correctAnswer - (rangeWidth / 2) + offset;
+    let max = correctAnswer + (rangeWidth / 2) + offset;
+    
+    // Round for cleaner display
+    const decimals = currentQuestion.decimalPlaces || 0;
+    showToast('สโคปคำตอบ', `คำตอบอยู่ระหว่าง ${min.toFixed(decimals)} ถึง ${max.toFixed(decimals)}`, '🎯', 'info');
+}
+
+function undoLastAnswer() {
+    // --- Animation ---
+    const quizScreen = elements.quizScreen;
+    if (quizScreen) {
+        quizScreen.classList.remove('anim-rewind');
+        // Force reflow to allow re-triggering the animation
+        void quizScreen.offsetWidth;
+        quizScreen.classList.add('anim-rewind');
+    }
+    // Reset answer state
+    state.userAnswers[state.currentQuestionIndex] = null;
+    // Note: Score was not incremented for wrong answer, so no need to decrement.
+    saveQuizState();
+    
+    // Reset UI
+    elements.feedback.classList.add("hidden");
+    elements.nextBtn.classList.add("hidden");
+    
+    // Re-enable buttons and remove classes
+    Array.from(elements.options.children).forEach((child) => {
+        const button = child.tagName === 'BUTTON' ? child : child.querySelector('input');
+        const wrapper = child.tagName === 'BUTTON' ? child : child;
+        
+        if (button) button.disabled = false;
+        wrapper.classList.remove("correct", "incorrect");
+        // Keep 50/50 or Cut1 effects if they were used
+        if (wrapper.style.opacity !== '0.3') {
+            wrapper.style.pointerEvents = "auto";
+        }
+    });
+    
+    // Handle text inputs
+    const textInput = document.getElementById('fill-in-answer') || document.getElementById('fill-in-number-answer');
+    if (textInput) {
+        textInput.disabled = false;
+        textInput.value = '';
+        textInput.classList.remove("correct", "incorrect");
+        textInput.focus();
+    }
+    
+    // If per-question timer, maybe restart it? 
+    // For simplicity, we don't restart the timer to avoid exploiting time.
+}
+
 /**
  * Skips the current question by moving it to the end of the quiz array.
  * The user will encounter the question again later.
  */
 function skipQuestion() {
   // Prevent skipping if it's the last unanswered question or if it's already answered.
-  const unansweredQuestions = state.shuffledQuestions.length - state.userAnswers.filter(a => a !== null).length;
+  const unansweredQuestions = state.shuffledQuestions.length - state.userAnswers.filter(a => a).length;
   if (unansweredQuestions <= 1) {
     return;
   }
@@ -478,6 +860,12 @@ function skipQuestion() {
   // Add to the end
   state.shuffledQuestions.push(questionToSkip);
   state.userAnswers.push(answerSlotToSkip); // This should be null
+
+  // UX Fix: หากอยู่ที่ข้อสุดท้าย การย้ายไปต่อท้ายจะทำให้เจอข้อเดิม
+  // ให้วนกลับไปที่ข้อแรกแทนเพื่อให้เจอข้ออื่น
+  if (state.currentQuestionIndex >= state.shuffledQuestions.length - 1) {
+    state.currentQuestionIndex = 0;
+  }
 
   // Re-render the new question at the same index
   showQuestion();
@@ -536,8 +924,10 @@ function evaluateMultipleAnswer() {
   if (isCorrect) {
     state.score++;
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
+    state.game.incrementCorrectStreak();
     if (state.isSoundEnabled) state.correctSound.play().catch(e => console.error("Error playing sound:", e));
   } else {
+    state.game.resetCorrectStreak();
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
   }
 
@@ -548,13 +938,19 @@ function evaluateMultipleAnswer() {
     const checkbox = wrapper.querySelector('input');
     const optionValue = checkbox.value.trim();
     checkbox.disabled = true;
+    // Remove hover effects
+    wrapper.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-700', 'hover:border-blue-500', 'dark:hover:border-blue-500', 'cursor-pointer');
+    wrapper.classList.add('cursor-default');
 
     if (correctSet.has(optionValue)) {
       // Add a class to highlight all correct answers
-      wrapper.classList.add('correct');
+      wrapper.classList.add('bg-green-100', 'dark:bg-green-900/30', 'border-green-500', 'dark:border-green-600', 'anim-correct-pop');
     } else if (selectedSet.has(optionValue)) {
       // Add a class to highlight incorrectly selected answers
-      wrapper.classList.add('incorrect');
+      wrapper.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'anim-shake');
+    } else {
+      // For other incorrect, unselected options, make them faded
+      wrapper.classList.add('opacity-60');
     }
   });
 
@@ -598,8 +994,10 @@ function evaluateFillInAnswer() {
   if (isCorrect) {
     state.score++;
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
+    state.game.incrementCorrectStreak();
     if (state.isSoundEnabled) state.correctSound.play().catch(e => console.error("Error playing sound:", e));
   } else {
+    state.game.resetCorrectStreak();
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
   }
 
@@ -608,9 +1006,11 @@ function evaluateFillInAnswer() {
 
   // Visually indicate correctness on the input field
   if (isCorrect) {
-    answerInput.classList.add('correct');
+    answerInput.classList.remove('border-gray-300', 'dark:border-gray-600');
+    answerInput.classList.add('bg-green-100', 'dark:bg-green-900/30', 'border-green-500', 'dark:border-green-600', 'text-green-800', 'dark:text-green-300', 'anim-correct-pop');
   } else {
-    answerInput.classList.add('incorrect');
+    answerInput.classList.remove('border-gray-300', 'dark:border-gray-600');
+    answerInput.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'text-red-800', 'dark:text-red-400', 'anim-shake');
   }
 
   updateNextButtonAppearance('next');
@@ -634,7 +1034,13 @@ function evaluateFillInNumberAnswer() {
 
   const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
   const correctAnswer = parseFloat(currentQuestion.answer);
-  const tolerance = currentQuestion.tolerance || 0; // Default tolerance to 0 if not specified
+  
+  // Calculate tolerance: Base tolerance OR Boosted tolerance (20% of answer)
+  let tolerance = currentQuestion.tolerance || 0;
+  if (state.usedTolerance) {
+      const boostedTolerance = Math.abs(correctAnswer * 0.2); // 20%
+      tolerance = Math.max(tolerance, boostedTolerance);
+  }
 
   let isCorrect = false;
   if (!isNaN(userAnswer)) {
@@ -658,10 +1064,14 @@ function evaluateFillInNumberAnswer() {
   if (isCorrect) {
     state.score++;
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
-    answerInput.classList.add('correct');
+    answerInput.classList.remove('border-gray-300', 'dark:border-gray-600');
+    answerInput.classList.add('bg-green-100', 'dark:bg-green-900/30', 'border-green-500', 'dark:border-green-600', 'text-green-800', 'dark:text-green-300', 'anim-correct-pop');
+    state.game.incrementCorrectStreak();
     if (state.isSoundEnabled) state.correctSound.play().catch(e => console.error("Error playing sound:", e));
   } else {
-    answerInput.classList.add('incorrect');
+    answerInput.classList.remove('border-gray-300', 'dark:border-gray-600');
+    answerInput.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'text-red-800', 'dark:text-red-400', 'anim-shake');
+    state.game.resetCorrectStreak();
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
   }
 
@@ -694,7 +1104,6 @@ function selectAnswer(e) {
     stopTimer();
   }
   const selectedBtn = e.currentTarget;
-  selectedBtn.classList.add("anim-option-pop");
   const selectedValue = selectedBtn.dataset.optionValue.trim();
   // Safely get and trim the correct answer to prevent errors if it's not a string (e.g., null, undefined, number)
   const correctAnswerValue =
@@ -720,13 +1129,13 @@ function selectAnswer(e) {
   if (correct) {
     state.score++;
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
-    selectedBtn.classList.add("correct");
+    state.game.incrementCorrectStreak();
     if (state.isSoundEnabled)
       state.correctSound
         .play()
         .catch((e) => console.error("Error playing sound:", e));
   } else {
-    selectedBtn.classList.add("incorrect");
+    state.game.resetCorrectStreak();
     if (state.isSoundEnabled)
       state.incorrectSound
         .play()
@@ -741,8 +1150,21 @@ function selectAnswer(e) {
   );
 
   Array.from(elements.options.children).forEach((button) => {
-    if (button.dataset.optionValue.trim() === correctAnswer) {
-      button.classList.add("correct");
+    const isCorrectAnswer = button.dataset.optionValue.trim() === correctAnswer;
+    const wasSelected = button === selectedBtn;
+
+    // Remove hover effects since it's disabled
+    button.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-700', 'hover:border-blue-500', 'dark:hover:border-blue-500');
+
+    if (isCorrectAnswer) {
+        // Always highlight the correct answer in green
+        button.classList.add('bg-green-100', 'dark:bg-green-900/30', 'border-green-500', 'dark:border-green-600', 'text-green-800', 'dark:text-green-300', 'anim-correct-pop');
+    } else if (wasSelected) {
+        // If this button was selected and it's not the correct one, highlight in red
+        button.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'text-red-800', 'dark:text-red-400', 'anim-shake');
+    } else {
+        // For other incorrect, unselected options, make them faded
+        button.classList.add('opacity-60');
     }
     button.disabled = true;
   });
@@ -945,6 +1367,139 @@ function showResults() {
   // Get the appropriate message and icon based on the score
   const resultInfo = getResultInfo(percentage);
 
+  // --- GAMIFICATION: Calculate XP and Check Badges ---
+  let xpEarned = 0;
+  let levelResult = null;
+  let newBadges = [];
+  let completedQuests = [];
+  let newAchievements = [];
+  const topicXPs = {};
+
+  // NEW: Calculate correct answer types for quests
+  let correctTheory = 0;
+  let correctCalculation = 0;
+  state.userAnswers.forEach((ans, index) => {
+      if (ans && ans.isCorrect) {
+          const question = state.shuffledQuestions[index];
+          if (question) {
+              if (question.type === 'fill-in-number') correctCalculation++;
+              else correctTheory++;
+          }
+      }
+  });
+
+  try {
+    const game = state.game; // Use the instance from state
+
+    state.userAnswers.forEach((ans, index) => {
+      if (!ans || !ans.isCorrect) return;
+
+      const question = state.shuffledQuestions[index];
+      let points = 4; // Default points
+      if (question && (question.type === 'multiple-select' || question.type === 'fill-in-number')) {
+        points = 5;
+      }
+      xpEarned += points;
+
+      // --- Topic & Track XP Calculation ---
+      let subCatStr = '';
+      if (ans.subCategory) {
+        if (typeof ans.subCategory === 'string') subCatStr = ans.subCategory;
+        else if (ans.subCategory.main) subCatStr = ans.subCategory.main;
+      }
+
+      for (const [groupKey, groupDef] of Object.entries(PROFICIENCY_GROUPS)) {
+        if (groupDef.keywords.some(k => subCatStr.includes(k))) {
+          topicXPs[groupDef.field] = (topicXPs[groupDef.field] || 0) + points;
+          break;
+        }
+      }
+    });
+
+    // Apply XP Multiplier
+    xpEarned *= state.xpMultiplier;
+
+    // --- NEW: Prepare quest stats object ---
+    const firstAnswer = state.userAnswers.find(a => a);
+    let questCategory = 'General';
+    if (firstAnswer) {
+        if (firstAnswer.sourceQuizCategory) {
+            questCategory = firstAnswer.sourceQuizCategory;
+        } else if (firstAnswer.subCategory) {
+            questCategory = typeof firstAnswer.subCategory === 'object' ? firstAnswer.subCategory.main : firstAnswer.subCategory;
+        }
+    }
+    const questStats = {
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+        category: questCategory,
+        percentage: percentage,
+        correctTheory: correctTheory,
+        correctCalculation: correctCalculation,
+        questionCount: state.questionCount,
+        isCustomQuiz: state.isCustomQuiz
+    };
+
+    const result = game.submitQuizResult(xpEarned, percentage, state.questionCount, state.isCustomQuiz, topicXPs, questStats);
+    levelResult = { overall: result.overall, astronomy: result.astronomy, earth: result.earth };
+    newBadges = result.newBadges || [];
+    newAchievements = result.newAchievements || [];
+    completedQuests = result.completedQuests || [];
+
+    // Play Sounds for Gamification
+    if (state.isSoundEnabled && levelResult) {
+        if (levelResult.overall?.leveledUp || levelResult.astronomy?.leveledUp || levelResult.earth?.leveledUp) {
+            if (state.levelUpSound) {
+                state.levelUpSound.currentTime = 0;
+                state.levelUpSound.play().catch(e => console.warn("Could not play level up sound", e));
+            }
+        } else if (newBadges.length > 0) {
+            if (state.badgeSound) {
+                state.badgeSound.currentTime = 0;
+                state.badgeSound.play().catch(e => console.warn("Could not play badge sound", e));
+            }
+        }
+    }
+  } catch (error) {
+    console.error("Gamification error:", error);
+  }
+
+  // --- Show Toast Notifications ---
+  if (levelResult?.overall?.leveledUp) {
+    showToast('Level Up!', `ยินดีด้วย! เลเวลรวมของคุณคือ ${levelResult.overall.info.level}`, '🎉', 'gold');
+  }
+  
+  if (completedQuests.length > 0) {
+      completedQuests.forEach(res => {
+          showToast('ภารกิจประจำวันสำเร็จ!', `${res.quest.desc} (+${res.quest.xp} XP)`, '📜', 'gold');
+      });
+  }
+
+  if (newAchievements.length > 0) {
+      newAchievements.forEach(ach => {
+          showToast('ปลดล็อกความสำเร็จ!', `${ach.title}: ${ach.desc}`, ach.icon, 'success');
+      });
+  }
+  
+  if (newBadges.length > 0) {
+      newBadges.forEach(badge => {
+          showToast('ได้รับเหรียญรางวัลใหม่', `${badge.name}`, badge.icon, 'success');
+      });
+  }
+
+  // NEW: Calculate display XP dynamically based on PROFICIENCY_GROUPS
+  // This ensures that if new groups are added to gamification.js, they are automatically included here.
+  let displayAstronomyXP = 0;
+  let displayEarthXP = 0;
+  for (const group of Object.values(PROFICIENCY_GROUPS)) {
+      const xp = topicXPs[group.field] || 0;
+      if (group.track === 'astronomy') {
+          displayAstronomyXP += xp;
+      } else if (group.track === 'earth') {
+          displayEarthXP += xp;
+      }
+  }
+
   // Prepare stats object for the layout builder
   const stats = {
     totalQuestions,
@@ -956,6 +1511,11 @@ function showResults() {
     formattedAverageTime,
     performanceSummary,
     categoryStats,
+    xpEarned,
+    levelResult,
+    newBadges,
+    astronomyXP: displayAstronomyXP * state.xpMultiplier,
+    earthXP: displayEarthXP * state.xpMultiplier
   };
 
   // Clean up old results and build the new layout
@@ -970,6 +1530,9 @@ function showResults() {
 
   // Save the final state. This is important for the 'view results' feature.
   saveQuizState();
+
+  // Update timestamp to invalidate profile chart cache
+  localStorage.setItem('last_quiz_completed_timestamp', new Date().getTime());
 }
 
 /**
@@ -1086,52 +1649,63 @@ function createStatItem(value, label, icon, theme) {
 function renderResultCategoryChart(categoryStats) {
   const chartCanvas = document.getElementById('result-category-chart');
   if (!chartCanvas) return;
-  const ctx = chartCanvas.getContext('2d');
 
-  const sortedCategories = Object.entries(categoryStats).sort((a, b) => a[0].localeCompare(b[0], 'th'));
+  // Check if Chart.js is loaded to prevent crash
+  if (typeof Chart === 'undefined') {
+    console.warn("Chart.js is not loaded. Skipping chart rendering.");
+    return;
+  }
 
-  const labels = sortedCategories.map(([name, _]) => name);
-  const scores = sortedCategories.map(([_, data]) => data.total > 0 ? (data.correct / data.total) * 100 : 0);
+  try {
+    const ctx = chartCanvas.getContext('2d');
 
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'คะแนน (%)',
-        data: scores,
-        backgroundColor: scores.map(score => score >= 75 ? 'rgba(34, 197, 94, 0.7)' : score >= 50 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
-        borderColor: scores.map(score => score >= 75 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'),
-        borderWidth: 1,
-        borderRadius: 4,
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          beginAtZero: true,
-          max: 100,
-          ticks: {
-            color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
-            callback: value => value + '%'
+    const sortedCategories = Object.entries(categoryStats).sort((a, b) => a[0].localeCompare(b[0], 'th'));
+
+    const labels = sortedCategories.map(([name, _]) => name);
+    const scores = sortedCategories.map(([_, data]) => data.total > 0 ? (data.correct / data.total) * 100 : 0);
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'คะแนน (%)',
+          data: scores,
+          backgroundColor: scores.map(score => score >= 75 ? 'rgba(34, 197, 94, 0.7)' : score >= 50 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
+          borderColor: scores.map(score => score >= 75 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'),
+          borderWidth: 1,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
+              callback: value => value + '%'
+            }
+          },
+          y: {
+            ticks: {
+              color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
+              font: { family: "'Kanit', sans-serif" }
+            }
           }
         },
-        y: {
-          ticks: {
-            color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
-            font: { family: "'Kanit', sans-serif" }
-          }
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: context => `คะแนน: ${context.raw.toFixed(1)}% (${categoryStats[context.label].correct}/${categoryStats[context.label].total} ข้อ)` } }
         }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: context => `คะแนน: ${context.raw.toFixed(1)}% (${categoryStats[context.label].correct}/${categoryStats[context.label].total} ข้อ)` } }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Error rendering chart:", error);
+  }
 }
 
 /**
@@ -1237,6 +1811,78 @@ function buildResultsLayout(resultInfo, stats) {
             </div>
         `;
     layoutContainer.appendChild(chartContainer);
+  }
+
+  // --- NEW: XP Breakdown Section with Animation ---
+  if (stats.xpEarned > 0) {
+    const xpSection = document.createElement('div');
+    xpSection.className = "w-full max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-blue-100 dark:border-gray-700 shadow-sm overflow-hidden";
+    xpSection.innerHTML = `<h3 class="text-center text-gray-500 dark:text-gray-400 font-kanit mb-4 text-sm">ค่าประสบการณ์ที่ได้รับ (XP)</h3>`;
+    
+    const xpGrid = document.createElement('div');
+    xpGrid.className = "flex justify-center items-start gap-4 sm:gap-8";
+    
+    const items = [
+        {
+            label: 'รวม', 
+            value: stats.xpEarned, 
+            color: 'text-blue-600 dark:text-blue-400', 
+            progress: stats.levelResult?.overall.info,
+            progressColor: 'bg-blue-500',
+            delay: 0 
+        },
+    ];
+    
+    if (stats.astronomyXP > 0) items.push({ 
+        label: 'ดาราศาสตร์', 
+        value: stats.astronomyXP,
+        color: 'text-purple-600 dark:text-purple-400', 
+        progress: stats.levelResult?.astronomy.info,
+        progressColor: 'bg-purple-500',
+        delay: 150 
+    });
+    if (stats.earthXP > 0) items.push({ 
+        label: 'วิทย์โลก',
+        value: stats.earthXP,
+        color: 'text-teal-600 dark:text-teal-400', 
+        progress: stats.levelResult?.earth.info,
+        progressColor: 'bg-teal-500',
+        delay: 300 
+    });
+    
+    items.forEach(item => {
+        const el = document.createElement('div');
+        el.className = "flex flex-col items-center transform scale-0 transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) w-28";
+        
+        let progressBarHtml = '';
+        if (item.progress && item.progress.nextLevelXP) {
+            const xpNeeded = item.progress.nextLevelXP - item.progress.currentXP;
+            progressBarHtml = `
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-2">
+                    <div class="${item.progressColor} h-1.5 rounded-full" style="width: ${item.progress.progressPercent}%"></div>
+                </div>
+                <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">อีก ${xpNeeded.toLocaleString()} XP</span>
+            `;
+        } else if (item.progress) { // Max level case
+             progressBarHtml = `
+                <div class="w-full bg-yellow-400 rounded-full h-1.5 mt-2"></div>
+                <span class="text-[10px] text-yellow-500 mt-1 font-bold">MAX LEVEL</span>
+            `;
+        }
+
+        el.innerHTML = `
+            <span class="text-3xl font-bold ${item.color}">+${item.value}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">${item.label}</span>
+            ${progressBarHtml}
+        `;
+        xpGrid.appendChild(el);
+        
+        // Trigger animation
+        setTimeout(() => el.classList.remove('scale-0'), 100 + item.delay);
+    });
+    
+    xpSection.appendChild(xpGrid);
+    layoutContainer.appendChild(xpSection);
   }
 
   // --- 4. Performance Summary ---
@@ -1569,10 +2215,21 @@ function saveQuizState() {
   } catch (e) {
     console.error("Error saving quiz state to local storage:", e);
   }
+
+  // NEW: Sync to Cloud if logged in
+  if (state.game && state.game.authManager) {
+      state.game.authManager.saveQuizHistoryItem(state.storageKey, stateToSave);
+  }
 }
 
 function clearSavedState() {
-  localStorage.removeItem(state.storageKey);
+  // NEW: Use AuthManager to delete from both local and cloud
+  if (state.game && state.game.authManager) {
+      state.game.authManager.deleteQuizHistoryItem(state.storageKey);
+  } else {
+      // Fallback for when authManager is not available
+      localStorage.removeItem(state.storageKey);
+  }
 }
 
 function resumeQuiz(savedState) {
@@ -1734,6 +2391,18 @@ function startTimer() {
   state.timerId = setInterval(tick, 1000);
 }
 
+function freezeTime() {
+    stopTimer();
+    state.isTimeFrozen = true;
+    if (elements.timerDisplay) elements.timerDisplay.classList.add('text-blue-500', 'animate-pulse');
+    
+    setTimeout(() => {
+        state.isTimeFrozen = false;
+        if (elements.timerDisplay) elements.timerDisplay.classList.remove('text-blue-500', 'animate-pulse');
+        state.timerId = setInterval(tick, 1000); // Resume timer
+    }, 30000);
+}
+
 function handleTimeUp() {
   if (state.timerMode === "perQuestion") {
     // Ensure we don't proceed if the question index is out of bounds
@@ -1847,6 +2516,7 @@ function bindEventListeners() {
     elements.skipBtn.addEventListener("click", skipQuestion);
   }
   elements.nextBtn.addEventListener("click", handleNextButtonClick);
+  if (elements.nextBtn) elements.nextBtn.addEventListener("click", handleNextButtonClick);
 
   // Keep other listeners as they are.
   elements.startBtn.addEventListener("click", startQuiz);
@@ -1854,6 +2524,11 @@ function bindEventListeners() {
   elements.restartBtn.addEventListener("click", startQuiz);
   elements.reviewBtn.addEventListener("click", showReview);
   elements.backToResultBtn.addEventListener("click", backToResult);
+  if (elements.startBtn) elements.startBtn.addEventListener("click", startQuiz);
+  if (elements.prevBtn) elements.prevBtn.addEventListener("click", showPreviousQuestion);
+  if (elements.restartBtn) elements.restartBtn.addEventListener("click", startQuiz);
+  if (elements.reviewBtn) elements.reviewBtn.addEventListener("click", showReview);
+  if (elements.backToResultBtn) elements.backToResultBtn.addEventListener("click", backToResult);
   if (elements.soundToggleBtn) {
     elements.soundToggleBtn.addEventListener("click", toggleSound);
   }

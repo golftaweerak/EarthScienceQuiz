@@ -99,7 +99,7 @@ export function initializeMenu() {
     const currentQuizId = urlParams.get('id');
 
     // --- Get all quizzes and their progress ---
-    const allQuizzes = [...quizList, ...getSavedCustomQuizzes()];
+    const allQuizzes = [...(quizList || []), ...getSavedCustomQuizzes()];
     const quizzesWithProgress = allQuizzes.map(quiz => {
         const totalQuestions = quiz.amount || quiz.questions?.length || 0;
         if (totalQuestions === 0) return null;

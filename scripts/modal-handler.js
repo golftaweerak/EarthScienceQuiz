@@ -19,6 +19,13 @@ export class ModalHandler {
             return;
         }
 
+        // Find the container that has the transition classes
+        this.modalContainer = this.modal.querySelector('.modal-container');
+        if (!this.modalContainer) {
+            console.warn(`Modal with id "${modalId}" is missing a .modal-container child. Transitions might not work correctly.`);
+            this.modalContainer = this.modal; // Fallback to the modal itself
+        }
+
         this.isAnimating = false;
         this.isOpen = false;
         this.triggerElement = null; // The element that opened the modal
@@ -31,8 +38,10 @@ export class ModalHandler {
         // Add event listeners
         const closeButtons = this.modal.querySelectorAll("[data-modal-close]");
         closeButtons.forEach((btn) => btn.addEventListener("click", this.close));
+        // Updated to handle a separate overlay div for backdrop clicks
         this.modal.addEventListener("click", (e) => {
-            if (e.target === this.modal) {
+            // Close if the click is on the modal's immediate background (the flex container) or on a specific overlay element.
+            if (e.target === this.modal || e.target.hasAttribute('data-modal-overlay')) {
                 this.close();
             }
         });
@@ -55,13 +64,15 @@ export class ModalHandler {
         // Use requestAnimationFrame to ensure the browser has applied the display change
         // before adding the class that triggers the animation.
         requestAnimationFrame(() => {
-            this.modal.classList.add("is-open");
+            requestAnimationFrame(() => {
+                this.modal.classList.add("is-open");
+            });
         });
 
         document.addEventListener("keydown", this.handleKeyDown);
 
         // Wait for the animation to finish before setting focus
-        this.modal.addEventListener('transitionend', () => {
+        this.modal.querySelector('.modal-container')?.addEventListener('transitionend', () => {
             this.isAnimating = false;
             this.setFocus();
         }, { once: true });
@@ -77,7 +88,7 @@ export class ModalHandler {
         this.modal.classList.remove("is-open");
 
         // Wait for the animation to finish before hiding the modal completely
-        this.modal.addEventListener('transitionend', () => {
+        this.modal.querySelector('.modal-container')?.addEventListener('transitionend', () => {
             this.modal.classList.add("hidden");
             document.body.style.overflow = "";
             document.removeEventListener("keydown", this.handleKeyDown);

@@ -5,27 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สถิติของฉัน - Earth Science Quiz</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="./styles/bundle.css">
+    <link rel="icon" href="./assets/icons/exam.png" type="image/png">
     <!-- Add Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 font-sarabun">
 
-    <!-- Shared Sticky Header -->
-    <div id="main_header-placeholder"></div>
+    <div id="main_header-placeholder" class="fixed top-0 left-0 w-full z-50"></div>
 
-    <div class="container mx-auto px-4 sm:px-8 pt-24 md:pt-28">
+    <div class="container mx-auto px-4 sm:px-8" style="padding-top: var(--header-height-offset, 5rem);">
         <header class="max-w-4xl mx-auto mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <div>
@@ -34,50 +28,101 @@
                 </div>
                 <button id="clear-stats-btn"
                     class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm font-bold transition shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1.5 -mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1.5 -mt-0.5"
+                        viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
                     </svg>
                     ล้างข้อมูลสถิติทั้งหมด
                 </button>
             </div>
         </header>
 
-        <!-- Main content area that will be shown after loading -->
-        <main id="stats-content" class="max-w-4xl mx-auto space-y-8 pb-8 sm:pb-12 opacity-0 transition-opacity duration-500">
-            <!-- Summary Cards Section -->
-            <section id="summary-cards-container"
-                class="space-y-4">
-                <h2 class="text-2xl font-bold font-kanit text-gray-800 dark:text-gray-100">ภาพรวม</h2>
-                <div id="summary-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <!-- Summary cards will be injected here by stats.js -->
-                </div>
-            </section>
+        <!-- Tab Navigation -->
+        <div class="max-w-4xl mx-auto mb-6 border-b border-gray-200 dark:border-gray-700">
+            <nav class="-mb-px flex space-x-4 sm:space-x-8" aria-label="Tabs">
+                <button id="tab-overview" role="tab" aria-controls="panel-overview" aria-selected="true"
+                    class="tab-btn border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm sm:text-base transition-colors duration-200">
+                    ภาพรวม
+                </button>
+                <button id="tab-topic-analysis" role="tab" aria-controls="panel-topic-analysis" aria-selected="false"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200">
+                    วิเคราะห์รายหัวข้อ
+                </button>
+                <button id="tab-history" role="tab" aria-controls="panel-history" aria-selected="false"
+                    class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-500 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200">
+                    ประวัติการทำ
+                </button>
+            </nav>
+        </div>
 
-            <!-- Main Chart and Details Section -->
-            <section class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <!-- Overall Donut Chart -->
-                    <div class="text-center">
-                        <h2 class="text-xl font-bold font-kanit mb-4">ภาพรวมทั้งหมด</h2>
-                        <div class="relative h-60 w-60 sm:h-64 sm:w-64 mx-auto">
-                            <canvas id="overall-chart"></canvas>
+        <!-- Tab Panels -->
+        <div id="stats-content" class="max-w-4xl mx-auto pb-8 sm:pb-12 opacity-0 transition-opacity duration-500">
+            <!-- Overview Panel -->
+            <div id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" class="space-y-8">
+
+                <section id="summary-cards-container">
+                    <div id="summary-cards-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <!-- Summary cards will be injected here by stats.js -->
+                    </div>
+                </section>
+
+                <!-- NEW: Score Distribution Chart -->
+                <section
+                    class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-bold font-kanit mb-4 text-center">การกระจายของคะแนน (Score Distribution)</h2>
+                    <div class="relative h-72">
+                        <canvas id="score-distribution-chart"></canvas>
+                    </div>
+                </section>
+
+                <section
+                    class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                        <div class="lg:col-span-2 text-center">
+                            <h2 class="text-xl font-bold font-kanit mb-4">ภาพรวมคำตอบทั้งหมด</h2>
+                            <div class="relative h-60 w-60 sm:h-64 sm:w-64 mx-auto">
+                                <canvas id="overall-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-3">
+                            <h2 class="text-xl font-bold font-kanit mb-4 text-center lg:text-left">คะแนนเฉลี่ยรายวิชา
+                            </h2>
+                            <div class="relative h-64">
+                                <canvas id="subject-performance-chart"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <!-- Category & Sub-Category Scores List -->
-                    <div id="category-accordion-container" class="space-y-4">
-                        <!-- Category accordions will be injected here by stats.js -->
+                </section>
+                <!-- NEW: Score Trend Chart -->
+                <section
+                    class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-xl font-bold font-kanit mb-4 text-center">แนวโน้มคะแนน (Score Trend)</h2>
+                    <div class="relative h-72">
+                        <canvas id="score-trend-chart"></canvas>
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
-            <!-- Detailed List Section -->
-            <section class="bg-white dark:bg-gray-800/50 p-4 sm:p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
-                <h2 class="text-xl font-bold font-kanit mb-4">ประวัติการทำแบบทดสอบ</h2>
-                <div id="detailed-stats-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar-menu">
-                    <!-- Detailed list of completed quizzes will be injected here -->
+            <!-- Topic Analysis Panel -->
+            <div id="panel-topic-analysis" role="tabpanel" aria-labelledby="tab-topic-analysis" class="hidden">
+                <div id="subject-performance-container" class="space-y-8">
+                    <!-- Performance accordions will be injected here by stats.js -->
                 </div>
-            </section>
-        </main>
+            </div>
+
+            <!-- History Panel -->
+            <div id="panel-history" role="tabpanel" aria-labelledby="tab-history" class="hidden">
+                <section>
+                    <h2 class="text-2xl font-bold font-kanit text-gray-800 dark:text-gray-100 mb-4">ประวัติการทำแบบทดสอบ
+                    </h2>
+                    <div id="detailed-stats-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Detailed list of quiz cards will be injected here -->
+                    </div>
+                </section>
+            </div>
+        </div>
 
         <!-- Elements for loading and empty states -->
         <div id="stats-container" class="max-w-4xl mx-auto">
@@ -93,8 +138,10 @@
                 <p>กำลังโหลดข้อมูลสถิติ...</p>
             </div>
             <div id="no-stats-message" class="hidden text-center py-16 text-gray-500 dark:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <p class="text-lg font-bold mb-2">ยังไม่มีข้อมูลสถิติ</p>
                 <p>เริ่มทำแบบทดสอบเพื่อดูสถิติของคุณที่นี่</p>
@@ -107,21 +154,24 @@
     <!-- Modals moved to the end of the body to ensure they are on top of all other content. -->
     <div id="modals-placeholder"></div>
     <!-- Modal for finished quiz action -->
-    <div id="finished-quiz-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" aria-labelledby="finished-quiz-modal-title" role="dialog"
-        aria-modal="true">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
+    <div id="finished-quiz-modal"
+        class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
+        aria-labelledby="finished-quiz-modal-title" role="dialog" aria-modal="true">
+        <div
+            class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+            <div
+                class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
                 <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <h3 id="finished-quiz-modal-title"
-                class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
+            <h3 id="finished-quiz-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
                 <!-- Title will be injected by JS -->
             </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง หรือดูผลคะแนนครั้งก่อน?</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">คุณต้องการเริ่มทำแบบทดสอบใหม่อีกครั้ง
+                หรือดูผลคะแนนครั้งก่อน?</p>
             <div class="mt-6 flex flex-col sm:flex-row justify-center gap-4">
                 <button id="view-results-btn"
                     class="w-full sm:w-auto order-1 sm:order-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-bold btn-press-anim">
@@ -139,7 +189,37 @@
         </div>
     </div>
 
+    <!-- Sync Notification Toast -->
+    <div id="sync-toast" class="fixed bottom-4 left-4 bg-gray-800 dark:bg-gray-700 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-24 opacity-0 transition-all duration-300 z-50 flex items-center gap-3 border border-gray-700 dark:border-gray-600">
+        <div class="bg-green-500 rounded-full p-1">
+            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-bold font-kanit">บันทึกข้อมูลแล้ว</p>
+            <p class="text-xs text-gray-300">ซิงค์กับ Cloud เรียบร้อย</p>
+        </div>
+    </div>
+
     <script src="./scripts/stats-loader.js" type="module"></script>
+    <script type="module">
+        // Import and instantiate Gamification to manage user state and UI elements like the header avatar.
+        import { Gamification } from './scripts/gamification.js';
+        new Gamification();
+
+        // แสดงการแจ้งเตือนเมื่อมีการซิงค์ข้อมูลสำเร็จ (รับ Event จาก AuthManager)
+        const toast = document.getElementById('sync-toast');
+        window.addEventListener('auth-synced', () => {
+            if(toast) {
+                // แสดง Toast
+                toast.classList.remove('translate-y-24', 'opacity-0');
+                
+                // ซ่อน Toast หลังจาก 3 วินาที
+                setTimeout(() => {
+                    toast.classList.add('translate-y-24', 'opacity-0');
+                }, 3000);
+            }
+        });
+    </script>
 </body>
 
 </html>

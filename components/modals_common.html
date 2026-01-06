@@ -4,78 +4,11 @@
     This approach reduces code duplication and simplifies maintenance.
 -->
 
-<!-- KaTeX for beautiful math rendering -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
-    xintegrity="sha384-n8MVd4RsNIU0KOV5nYqrHGjWp7MVxG/FLECzfAnnotations.css" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
-    xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEh3iZapBXpdJvA/LV7Ck8gAALw8DbqL" crossorigin="anonymous"></script>
-
-<script>
-    /**
-     * This function MUST be defined before the auto-render script that calls it via onload.
-     * It sets up a sophisticated, two-stage observer system to robustly render KaTeX
-     * in the dynamically-loaded scenario modal.
-     */
-    function setupKatexObserverForScenarioModal() {
-        const scenarioModal = document.getElementById('scenario-modal');
-        const scenarioDescription = document.getElementById('scenario-modal-description');
-
-        if (!scenarioModal || !scenarioDescription) return;
-
-        const renderMath = () => {
-            // Check if KaTeX's rendering function is available before calling it.
-            if (typeof window.renderMathInElement === 'function') {
-                window.renderMathInElement(scenarioDescription, {
-                    delimiters: [
-                        { left: '$$', right: '$$', display: true },
-                        { left: '$', right: '$', display: false },
-                        { left: '\\(', right: '\\)', display: false },
-                        { left: '\\[', right: '\\]', display: true }
-                    ],
-                    throwOnError: false
-                });
-            }
-        };
-
-        // This observer watches for changes *inside* the description div.
-        // This handles cases where content is loaded asynchronously after the modal is already visible.
-        const contentObserver = new MutationObserver(renderMath);
-
-        // This observer watches for the modal itself to become visible.
-        const modalVisibilityObserver = new MutationObserver(() => {
-            if (!scenarioModal.classList.contains('hidden')) {
-                // Modal is now visible. Do an initial render in case content is already present.
-                renderMath();
-                // Then, start observing the content div for any subsequent changes.
-                contentObserver.observe(scenarioDescription, {
-                    childList: true, // observe direct children additions/removals
-                    subtree: true    // observe all descendants
-                });
-            } else {
-                // Modal is hidden. Stop observing content to save resources.
-                contentObserver.disconnect();
-            }
-        });
-
-        // Start observing the modal for visibility changes (when 'class' attribute changes).
-        modalVisibilityObserver.observe(scenarioModal, { attributes: true, attributeFilter: ['class'] });
-    }
-</script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
-    onload="setupKatexObserverForScenarioModal()"></script>
-<link rel="stylesheet" href="../styles/bundle.css">
-<style>
-    /* Custom styles for KaTeX to prevent layout shifts */
-    .katex { line-height: normal; }
-</style>
-
 <!-- Generic Confirmation Modal (for clearing stats, etc.) -->
 <div id="confirm-action-modal"
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun"
     role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
-    <div class="modal-content relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-md w-full">
+    <div class="modal-container relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-md w-full">
         <button data-modal-close aria-label="ปิด"
             class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -84,8 +17,8 @@
             </svg>
         </button>
         <div class="flex items-start gap-4">
-            <div
-                class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10">
+            <div class="mx-auto shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 sm:mx-0 sm:h-10 sm:w-10"
+                style="min-width: 2.5rem; min-height: 2.5rem;">
                 <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -120,14 +53,16 @@
 <div id="loading-modal"
     class="modal hidden fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-label="Loading">
-    <div class="loader"></div>
+    <div class="modal-container bg-transparent shadow-none">
+        <div class="loader"></div>
+    </div>
 </div>
 
 <!-- Completed Quiz Action Modal -->
 <div id="completed-quiz-modal"
     class="modal hidden fixed inset-0 z-[55] flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-labelledby="completed-modal-title">
-    <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-6 text-center">
         <div
             class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
             <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -163,8 +98,10 @@
 <div id="custom-quiz-modal"
     class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-labelledby="custom-quiz-modal-title">
+
+
     <div
-        class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto text-left flex flex-col max-h-[90vh]">
+        class="modal-container relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg md:max-w-3xl lg:max-w-5xl mx-auto text-left flex flex-col max-h-[90vh]">
         <button data-modal-close aria-label="ปิด"
             class="absolute top-4 right-4 z-10 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -181,7 +118,28 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     เลือกหมวดหมู่, จำนวนข้อ และรูปแบบการจับเวลาที่คุณต้องการ</p>
             </div>
-
+            <!-- Floating Badge Condition Notification -->
+            <div id="custom-quiz-badge-condition"
+                class="hidden fixed top-24 right-4 md:right-8 z-[60] max-w-[300px] p-4 bg-white/95 dark:bg-gray-800/95 border-l-4 border-yellow-400 shadow-xl rounded-r-lg backdrop-blur-sm transition-all duration-500 ease-in-out transform translate-y-0 opacity-100">
+                <button type="button" id="close-badge-condition-btn"
+                    class="absolute -top-3 -left-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-md transition-transform hover:scale-110 z-10">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div id="badge-content-container" class="flex items-start gap-3">
+                    <svg class="h-6 w-6 text-yellow-500 flex-shrink-0" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <p class="font-bold text-gray-800 dark:text-gray-100 text-sm">คำแนะนำ</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-300 mt-1">ต้องมีอย่างน้อย 20 ข้อ
+                            เพื่อรับเหรียญรางวัลและบันทึกสถิติคะแนน</p>
+                    </div>
+                </div>
+            </div>
             <!-- Category Selection Container -->
             <div id="custom-quiz-category-selection">
                 <!-- JS will inject category cards here -->
@@ -197,8 +155,8 @@
                 <legend class="sr-only">ตัวเลือกการจับเวลา</legend>
                 <!-- Timer Radios in a neat group -->
                 <div class="flex items-center p-0.5 bg-gray-200 dark:bg-gray-700 rounded-full">
-                    <label for="timer-none" title="ไม่จับเวลา" class="cursor-pointer">
-                        <input id="timer-none" type="radio" name="custom-timer-mode" value="none" checked
+                    <label for="custom-modal-timer-none" title="ไม่จับเวลา" class="cursor-pointer">
+                        <input id="custom-modal-timer-none" type="radio" name="custom-timer-mode" value="none" checked
                             class="peer sr-only">
                         <svg class="h-6 w-6 p-0.5 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -208,8 +166,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75l10.5 10.5" />
                         </svg>
                     </label>
-                    <label for="timer-overall" title="จับเวลารวม" class="cursor-pointer">
-                        <input id="timer-overall" type="radio" name="custom-timer-mode" value="overall"
+                    <label for="custom-modal-timer-overall" title="จับเวลารวม" class="cursor-pointer">
+                        <input id="custom-modal-timer-overall" type="radio" name="custom-timer-mode" value="overall"
                             class="peer sr-only">
                         <svg class="h-6 w-6 p-0.5 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -218,8 +176,8 @@
                                 d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </label>
-                    <label for="timer-per-question" title="จับเวลาต่อข้อ" class="cursor-pointer">
-                        <input id="timer-per-question" type="radio" name="custom-timer-mode" value="perQuestion"
+                    <label for="custom-modal-timer-per-question" title="จับเวลาต่อข้อ" class="cursor-pointer">
+                        <input id="custom-modal-timer-per-question" type="radio" name="custom-timer-mode" value="perQuestion"
                             class="peer sr-only">
                         <svg class="h-6 w-6 p-0.5 rounded-full text-gray-500 peer-checked:bg-blue-600 peer-checked:text-white transition-colors"
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -267,12 +225,35 @@
     </div>
 </div>
 
+<!-- Access Denied Modal -->
+<div id="access-denied-modal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/90 backdrop-blur-md hidden opacity-0 transition-opacity duration-300 font-sarabun" role="dialog" aria-modal="true" aria-labelledby="access-denied-title" style="z-index: 99999;">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 text-center transform scale-95 transition-transform duration-300 border border-gray-200 dark:border-gray-700">
+        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 dark:bg-red-900/30 mb-6 shadow-inner">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        </div>
+        <h3 id="access-denied-title" class="text-2xl font-bold text-gray-900 dark:text-white mb-3 font-kanit">สงวนสิทธิ์การเข้าถึง</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-8 text-base leading-relaxed">
+            ขออภัย หน้านี้สำหรับอีเมล <br><span class="font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">@promma.ac.th</span> เท่านั้น
+        </p>
+        <div class="flex flex-col-reverse sm:flex-row gap-3">
+            <a href="./index.html" class="inline-flex w-full justify-center items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-bold rounded-xl text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-4 focus:ring-gray-500/50 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5">
+                กลับหน้าหลัก
+            </a>
+            <button id="access-denied-login-btn" class="inline-flex w-full justify-center items-center px-6 py-3.5 border border-transparent text-base font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all duration-200 shadow-lg hover:shadow-blue-500/40 hover:-translate-y-0.5">
+                เข้าสู่ระบบด้วยบัญชีอื่น
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Custom Quiz Hub Modal -->
 <div id="custom-quiz-hub-modal"
     class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-labelledby="custom-quiz-hub-modal-title">
     <div
-        class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl mx-auto text-left flex flex-col max-h-[90vh]">
+        class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-3xl mx-auto text-left flex flex-col max-h-[90vh]">
         <div class="flex justify-between items-start p-6 pb-4 flex-shrink-0">
             <h3 id="custom-quiz-hub-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100 font-kanit">
                 แบบทดสอบที่สร้างเอง</h3>
@@ -318,7 +299,7 @@
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun"
     role="dialog" aria-modal="true" aria-labelledby="scenario-modal-title">
     <div
-        class="modal-content relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full">
+        class="modal-container relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-lg shadow-xl p-6 sm:p-8 max-w-2xl w-full">
         <h3 id="scenario-modal-title" class="text-2xl font-bold text-blue-800 dark:text-blue-300 mb-4 font-kanit">
         </h3>
         <div id="scenario-modal-description"
@@ -338,7 +319,7 @@
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4 font-sarabun"
     role="dialog" aria-modal="true" aria-labelledby="data-inspector-title">
     <div
-        class="modal-content relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full flex flex-col">
+        class="modal-container relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-3xl w-full flex flex-col">
         <button data-modal-close aria-label="ปิด"
             class="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -371,7 +352,7 @@
     class="modal hidden fixed inset-0 z-[65] flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog"
     aria-modal="true" aria-labelledby="dev-password-modal-title">
     <div
-        class="modal-content relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm m-4 p-6 text-left">
+        class="modal-container relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm m-4 p-6 text-left">
         <button data-modal-close aria-label="ปิด"
             class="absolute top-4 right-4 -mt-0 -mr-0 p-2 rounded-full text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -404,7 +385,7 @@
 <div id="resume-modal"
     class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 font-sarabun"
     role="dialog" aria-modal="true" aria-labelledby="resume-modal-title">
-    <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-sm w-full text-center">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-sm w-full text-center">
         <div
             class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/50 mb-4">
             <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -425,6 +406,64 @@
                 class="w-full sm:w-auto flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-4 rounded-lg transition-all duration-300 btn-press-anim">
                 เริ่มใหม่
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Random All Selection Modal -->
+<div id="random-all-modal"
+    class="modal hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100] p-4 font-sarabun"
+    role="dialog" aria-modal="true" aria-labelledby="random-all-modal-title">
+    <div class="modal-container relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 max-w-sm w-full transform transition-all scale-100 opacity-100">
+        <button data-modal-close aria-label="ปิด"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        
+        <div class="text-center mb-6">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-4 shadow-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+            <h3 id="random-all-modal-title" class="text-xl font-bold text-gray-900 dark:text-gray-100 font-kanit">
+                สุ่มจากทุกวิชา
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                ระบบจะสุ่มเลือกข้อสอบจากทุกบทเรียนที่มีอยู่ตามจำนวนที่คุณระบุ
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div class="flex justify-between items-center mb-3">
+                    <label for="random-all-input" class="text-sm font-bold text-gray-700 dark:text-gray-300">จำนวนข้อที่ต้องการ</label>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded-md border border-gray-200 dark:border-gray-600">สูงสุด: <span id="random-all-max-display" class="text-purple-600 dark:text-purple-400">0</span></span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="relative flex-grow h-6 flex items-center">
+                        <input type="range" id="random-all-slider" min="1" max="100" value="20" 
+                            class="absolute w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-600 accent-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+                    </div>
+                    <input type="number" id="random-all-input" min="1" max="100" value="20" 
+                        class="w-20 p-2 text-center text-lg border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-bold shadow-sm">
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button id="random-all-confirm-btn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:-translate-y-0.5 btn-press-anim flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    ยืนยันการสุ่ม
+                </button>
+                <button data-modal-close class="flex-1 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold py-3 px-4 rounded-xl transition-all duration-200 btn-press-anim">
+                    ยกเลิก
+                </button>
+            </div>
         </div>
     </div>
 </div>

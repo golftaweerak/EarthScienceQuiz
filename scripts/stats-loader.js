@@ -1,29 +1,37 @@
-import { loadComponent } from './component-loader.js';
-import { initializeCommonComponents } from './common-init.js';
-import { buildStatsPage } from './stats.js';
-import { ModalHandler } from './modal-handler.js';
-import { quizList } from '../data/quizzes-list.js'; // Standard quizzes
-import { getSavedCustomQuizzes } from './custom-quiz-handler.js'; // Custom quizzes
-
 /**
  * Initializes the stats page.
  */
 async function main() {
     try {
+        const { loadComponent } = await import('./component-loader.js');
         // Load shared HTML components like header, footer, and modals
-        await Promise.all([
-            loadComponent('#main_header-placeholder', './components/main_header.html'),
-            loadComponent('#footer-placeholder', './components/footer.html'),
-            loadComponent('#modals-placeholder', './components/modals_common.html')
-        ]);
+        const loadPromises = [];
+        // โหลดเฉพาะถ้ามี placeholder อยู่จริง (stats.html อาจใช้ hardcoded header)
+        if (document.getElementById('main_header-placeholder')) loadPromises.push(loadComponent('#main_header-placeholder', './components/main_header.html'));
+        if (document.getElementById('footer-placeholder')) loadPromises.push(loadComponent('#footer-placeholder', './components/footer.html'));
+        if (document.getElementById('modals-placeholder')) loadPromises.push(loadComponent('#modals-placeholder', './components/modals_common.html'));
+        
+        await Promise.all(loadPromises);
 
-        // Initialize common functionalities like theme toggling
-        initializeCommonComponents();
+        // Initialize common components like header, menu, etc.
+        const { initializeCommonComponents } = await import('./common-init.js');
+        console.log("Initializing common components...");
+        
+        // Add a timeout to prevent hanging on menu initialization
+        const commonInitPromise = initializeCommonComponents();
+        const initTimeoutPromise = new Promise(resolve => setTimeout(resolve, 5000));
+        
+        await Promise.race([commonInitPromise, initTimeoutPromise]);
+        console.log("Common components initialized (or timed out).");
 
-        // Build the stats dashboard using the new logic from stats.js
-        buildStatsPage();
+        // --- Initialize Clear Button First ---
+        // This ensures the user can always clear their data, even if the main stats page fails to render.
+        const { ModalHandler } = await import('./modal-handler.js');
+        // Import authManager but we don't await its internal init here, just the module load.
+        const { authManager } = await import('./auth-manager.js'); 
+        const { quizList } = await import('../data/quizzes-list.js');
+        const { getSavedCustomQuizzes } = await import('./custom-quiz-handler.js');
 
-        // --- Event Listener for Clear Button ---
         const clearStatsBtn = document.getElementById('clear-stats-btn');
         const confirmModal = new ModalHandler('confirm-action-modal');
         const confirmActionBtn = document.getElementById('confirm-action-btn');
@@ -32,7 +40,6 @@ async function main() {
 
         if (clearStatsBtn) {
             clearStatsBtn.addEventListener('click', (e) => {
-                // Don't open modal if the button is disabled
                 if (e.currentTarget.disabled) return;
 
                 if (confirmModalTitle) confirmModalTitle.textContent = 'ยืนยันการล้างข้อมูลทั้งหมด';
@@ -42,24 +49,49 @@ async function main() {
         }
 
         if (confirmActionBtn) {
-            confirmActionBtn.addEventListener('click', () => {
-                // Clear standard quizzes from the static list
-                quizList.forEach(quiz => {
-                    if (quiz.storageKey) localStorage.removeItem(quiz.storageKey);
-                });
+            confirmActionBtn.addEventListener('click', async () => {
+                // Clear local storage first for immediate UI feedback
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.startsWith('quizState-') || key === 'customQuizzesList')) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
 
-                // Clear custom quizzes retrieved from localStorage
-                const customQuizzes = getSavedCustomQuizzes();
-                customQuizzes.forEach(quiz => {
-                    if (quiz.storageKey) localStorage.removeItem(quiz.storageKey);
-                });
-                localStorage.removeItem('customQuizzesList'); // Also remove the list of custom quizzes
+                // Then, clear cloud data if logged in
+                await authManager.clearAllCloudHistory();
 
                 confirmModal.close();
-                // Reload the page to reflect the cleared stats
                 window.location.reload();
             });
         }
+
+        // --- Build the main stats page content ---
+        console.log("Building stats page...");
+        const { buildStatsPage, initializeTabs } = await import('./stats.js');
+        
+        try {
+            await buildStatsPage();
+            console.log("Stats page built successfully.");
+        } catch (buildError) {
+            console.error("Error inside buildStatsPage:", buildError);
+            // Even if build fails, try to init tabs so user sees something
+            initializeTabs();
+            const statsContent = document.getElementById("stats-content");
+            if (statsContent) {
+                statsContent.classList.add("anim-fade-in");
+                statsContent.style.opacity = 1;
+            }
+        }
+
+        // NEW: Re-build stats page when auth sync completes (e.g. history downloaded)
+        window.addEventListener('auth-synced', async () => {
+            console.log("Auth synced, rebuilding stats page...");
+            await buildStatsPage().catch(e => console.error("Rebuild failed:", e));
+        });
+
     } catch (error) {
         console.error("Failed to initialize stats page:", error);
         const container = document.getElementById('stats-container');
@@ -78,4 +110,8 @@ async function main() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', main);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', main);
+} else {
+    main();
+}

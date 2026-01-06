@@ -1,0 +1,74 @@
+mutation CreateSeedData @transaction @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  subject_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      name: "Earth Science",
+      description: "All about the Earth!",
+      createdAt: "2024-03-15T12:00:00Z"
+    }
+  ])
+  topic_insertMany(data: [
+    {
+      id: "650e8400-e29b-41d4-a716-446655440001",
+      subjectId: "550e8400-e29b-41d4-a716-446655440000",
+      name: "Geology",
+      description: "The study of rocks and minerals",
+      createdAt: "2024-03-15T12:00:00Z"
+    }
+  ])
+  quiz_insertMany(data: [
+    {
+      id: "750e8400-e29b-41d4-a716-446655440002",
+      topicId: "650e8400-e29b-41d4-a716-446655440001",
+      title: "Rock Identification",
+      description: "Test your knowledge of rock types",
+      difficulty: "Easy",
+      durationMinutes: 15,
+      createdAt: "2024-03-15T12:00:00Z"
+    }
+  ])
+  question_insertMany(data: [
+    {
+      id: "850e8400-e29b-41d4-a716-446655440003",
+      quizId: "750e8400-e29b-41d4-a716-446655440002",
+      type: "Multiple Choice",
+      text: "What type of rock is granite?",
+      correctAnswer: "Igneous",
+      answerOptions: ["Sedimentary", "Igneous", "Metamorphic"],
+      explanation: "Granite is an intrusive igneous rock.",
+      imageUrl: "https://example.com/granite.jpg"
+    }
+  ])
+  user_insertMany(data: [
+    {
+      id: "950e8400-e29b-41d4-a716-446655440004",
+      username: "earthfan",
+      email: "earthfan@example.com",
+      passwordHash: "hashed_password",
+      createdAt: "2024-03-15T12:00:00Z",
+      displayName: "Earth Fan"
+    }
+  ])
+  quizAttempt_insertMany(data: [
+    {
+      id: "a50e8400-e29b-41d4-a716-446655440005",
+      quizId: "750e8400-e29b-41d4-a716-446655440002",
+      userId: "950e8400-e29b-41d4-a716-446655440004",
+      startTime: "2024-03-15T12:05:00Z",
+      endTime: "2024-03-15T12:10:00Z",
+      score: 0.8,
+      createdAt: "2024-03-15T12:00:00Z",
+      status: "Completed"
+    }
+  ])
+  answer_insertMany(data: [
+    {
+      id: "b50e8400-e29b-41d4-a716-446655440006",
+      quizAttemptId: "a50e8400-e29b-41d4-a716-446655440005",
+      questionId: "850e8400-e29b-41d4-a716-446655440003",
+      userAnswer: "Igneous",
+      isCorrect: true,
+      timeTakenSeconds: 5,
+    }
+  ])
+}
