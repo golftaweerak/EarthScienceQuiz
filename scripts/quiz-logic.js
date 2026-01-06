@@ -3,6 +3,29 @@ import { shuffleArray } from './utils.js';
 import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js';
 import { showToast } from './toast.js';
 
+/**
+ * Animates a numeric value in a specified element.
+ * @param {HTMLElement} obj - The element to update.
+ * @param {number} start - The starting value.
+ * @param {number} end - The final value.
+ * @param {number} duration - The animation duration in ms.
+ * @param {string} [prefix=''] - A prefix to add before the number (e.g., '+').
+ */
+function animateValue(obj, start, end, duration, prefix = '') {
+    if (!obj) return;
+    if (obj.animationId) cancelAnimationFrame(obj.animationId);
+    
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 4); // Ease out quart
+        const value = Math.floor(ease * (end - start) + start);
+        obj.textContent = prefix + value.toLocaleString();
+        if (progress < 1) obj.animationId = window.requestAnimationFrame(step);
+    };
+    obj.animationId = window.requestAnimationFrame(step);
+}
 // state: Stores all dynamic data of the quiz
 let state = {};
 // elements: Caches all DOM elements for quick access
@@ -1852,14 +1875,16 @@ function buildResultsLayout(resultInfo, stats) {
     
     items.forEach(item => {
         const el = document.createElement('div');
-        el.className = "flex flex-col items-center transform scale-0 transition-transform duration-500 cubic-bezier(0.34, 1.56, 0.64, 1) w-28";
+        el.className = "flex flex-col items-center opacity-0 w-28";
+        el.style.animation = `xp-container-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${0.2 + item.delay / 1000}s forwards`;
         
         let progressBarHtml = '';
+        let progressBarEl = null;
         if (item.progress && item.progress.nextLevelXP) {
             const xpNeeded = item.progress.nextLevelXP - item.progress.currentXP;
             progressBarHtml = `
                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-2">
-                    <div class="${item.progressColor} h-1.5 rounded-full" style="width: ${item.progress.progressPercent}%"></div>
+                    <div class="${item.progressColor} h-1.5 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
                 <span class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">อีก ${xpNeeded.toLocaleString()} XP</span>
             `;
@@ -1870,15 +1895,33 @@ function buildResultsLayout(resultInfo, stats) {
             `;
         }
 
-        el.innerHTML = `
-            <span class="text-3xl font-bold ${item.color}">+${item.value}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">${item.label}</span>
-            ${progressBarHtml}
-        `;
+        const xpValueEl = document.createElement('span');
+        xpValueEl.className = `text-3xl font-bold ${item.color}`;
+        xpValueEl.textContent = `+0`;
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium';
+        labelEl.textContent = item.label;
+
+        el.appendChild(xpValueEl);
+        el.appendChild(labelEl);
+        el.insertAdjacentHTML('beforeend', progressBarHtml);
+
         xpGrid.appendChild(el);
         
         // Trigger animation
-        setTimeout(() => el.classList.remove('scale-0'), 100 + item.delay);
+        setTimeout(() => {
+            // Animate the value count-up
+            animateValue(xpValueEl, 0, item.value, 1500, '+');
+
+            // Animate the progress bar fill
+            if (item.progress && item.progress.nextLevelXP) {
+                const bar = el.querySelector(`.${item.progressColor}`);
+                if (bar) {
+                    bar.style.width = `${item.progress.progressPercent}%`;
+                }
+            }
+        }, 500 + item.delay);
     });
     
     xpSection.appendChild(xpGrid);

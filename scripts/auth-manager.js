@@ -168,6 +168,17 @@ class AuthManagerInternal {
             return result.user;
         } catch (error) {
             console.error("Login failed:", error);
+            
+            let errorMessage = 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ';
+            if (error.code === 'auth/operation-not-allowed') {
+                errorMessage = 'ระบบล็อกอิน (Google) ยังไม่เปิดใช้งานใน Firebase Console';
+            } else if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'คุณปิดหน้าต่างล็อกอินก่อนทำรายการสำเร็จ';
+            } else if (error.code === 'auth/popup-blocked') {
+                errorMessage = 'เบราว์เซอร์บล็อกหน้าต่างป๊อปอัป กรุณาอนุญาตป๊อปอัป';
+            }
+
+            showToast('เข้าสู่ระบบไม่สำเร็จ', errorMessage, '❌', 'error');
             throw error;
         }
     }
