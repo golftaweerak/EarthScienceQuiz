@@ -75,25 +75,25 @@ export const PROFICIENCY_GROUPS = {
         label: 'ดาราศาสตร์', 
         field: 'astronomyXP',
         track: 'astronomy',
-        keywords: ['ดาราศาสตร์', 'เอกภพ', 'กาแล็กซี', 'ดาวฤกษ์', 'ระบบสุริยะ', 'ดาวเคราะห์', 'ทรงกลมฟ้า', 'พิกัด', 'กล้องโทรทรรศน์', 'สเปกตรัม', 'กฎของเคปเลอร์', 'อวกาศ', 'เทคโนโลยีอวกาศ'] 
+        keywords: ['astronomy', 'ดาราศาสตร์', 'เอกภพ', 'กาแล็กซี', 'ดาวฤกษ์', 'ระบบสุริยะ', 'ดาวเคราะห์', 'ทรงกลมฟ้า', 'พิกัด', 'กล้องโทรทรรศน์', 'สเปกตรัม', 'กฎของเคปเลอร์', 'อวกาศ', 'เทคโนโลยีอวกาศ', 'space'] 
     },
     'Geology': { 
         label: 'ธรณีวิทยา', 
         field: 'geologyXP',
         track: 'earth',
-        keywords: ['ธรณี', 'หิน', 'แร่', 'วัฏจักรหิน', 'โครงสร้างโลก', 'แผ่นเปลือกโลก', 'ไหวสะเทือน', 'ภูเขาไฟ', 'ซากดึกดำบรรพ์', 'ลำดับชั้นหิน', 'ทรัพยากรธรณี', 'ดิน', 'แผนที่'] 
+        keywords: ['geology', 'ธรณี', 'หิน', 'แร่', 'วัฏจักรหิน', 'โครงสร้างโลก', 'แผ่นเปลือกโลก', 'ไหวสะเทือน', 'ภูเขาไฟ', 'ซากดึกดำบรรพ์', 'ลำดับชั้นหิน', 'ทรัพยากรธรณี', 'ดิน', 'แผนที่'] 
     },
     'Meteorology': { 
         label: 'อุตุนิยมวิทยา', 
         field: 'meteorologyXP',
         track: 'earth',
-        keywords: ['อุตุนิยมวิทยา', 'บรรยากาศ', 'ลม', 'ความกดอากาศ', 'เมฆ', 'หยาดน้ำฟ้า', 'พายุ', 'ภูมิอากาศ', 'แผนที่อากาศ', 'พยากรณ์', 'สมดุลพลังงาน'] 
+        keywords: ['meteorology', 'อุตุนิยมวิทยา', 'บรรยากาศ', 'ลม', 'ความกดอากาศ', 'เมฆ', 'หยาดน้ำฟ้า', 'พายุ', 'ภูมิอากาศ', 'แผนที่อากาศ', 'พยากรณ์', 'สมดุลพลังงาน'] 
     },
     'Oceanography': {
         label: 'สมุทรศาสตร์',
         field: 'oceanographyXP',
         track: 'earth',
-        keywords: ['สมุทร', 'น้ำทะเล', 'มหาสมุทร', 'ความเค็ม', 'กระแสน้ำ', 'น้ำขึ้นน้ำลง', 'คลื่น', 'ชายฝั่ง', 'นิเวศทางทะเล']
+        keywords: ['oceanography', 'สมุทร', 'น้ำทะเล', 'มหาสมุทร', 'ความเค็ม', 'กระแสน้ำ', 'น้ำขึ้นน้ำลง', 'คลื่น', 'ชายฝั่ง', 'นิเวศทางทะเล']
     }
 };
 
@@ -1511,7 +1511,7 @@ export class Gamification {
             } else if (q.type === 'correct_answers') {
                 progressMade = stats.correctAnswers || 0;
             } else if (q.type === 'questions_category') {
-                if (this.checkCategoryMatch(stats.category, q.category)) {
+                if (this.checkCategoryMatch(stats.category, q.category, stats.quizId)) {
                     progressMade = stats.totalQuestions || 0;
                 }
             } else if (q.type === 'high_score') {
@@ -1526,7 +1526,7 @@ export class Gamification {
                     progressMade = stats.correctCalculation || 0;
                 }
             } else if (q.type === 'quiz_category') {
-                if (this.checkCategoryMatch(stats.category, q.category)) {
+                if (this.checkCategoryMatch(stats.category, q.category, stats.quizId)) {
                     progressMade = 1;
                 }
             }
@@ -1612,13 +1612,21 @@ export class Gamification {
         return newUnlocks;
     }
 
-    checkCategoryMatch(quizCat, questCat) {
-        if (!quizCat) return false;
+    checkCategoryMatch(quizCat, questCat, quizId = '') {
+        if (!quizCat && !quizId) return false;
+
         const catString = (typeof quizCat === 'string') ? quizCat : (quizCat?.main || String(quizCat || ''));
-        const lowerQuiz = catString.toLowerCase();
-        const lowerQuest = questCat.toLowerCase();
-        if (lowerQuest === 'astronomy') return lowerQuiz.includes('astronomy') || lowerQuiz.includes('ดาราศาสตร์');
-        if (lowerQuest === 'earth') return lowerQuiz.includes('earth') || lowerQuiz.includes('astronomy') || lowerQuiz.includes('space') || lowerQuiz.includes('โลก') || lowerQuiz.includes('ดาราศาสตร์') || lowerQuiz.includes('วิทย์โลก');
+        const lowerQuizCat = catString.toLowerCase();
+        const lowerQuizId = quizId.toLowerCase();
+        const lowerQuestCat = questCat.toLowerCase();
+
+        if (lowerQuestCat === 'astronomy') {
+            return lowerQuizCat.includes('astronomy') || lowerQuizCat.includes('ดาราศาสตร์') || lowerQuizId.startsWith('astro') || lowerQuizId.startsWith('junior') || lowerQuizId.startsWith('senior');
+        }
+        if (lowerQuestCat === 'earth') {
+            // Check for explicit earth science categories or ID prefixes.
+            return lowerQuizCat.includes('earth') || lowerQuizCat.includes('โลก') || lowerQuizCat.includes('วิทย์โลก') || lowerQuizId.startsWith('es');
+        }
         return false;
     }
 
