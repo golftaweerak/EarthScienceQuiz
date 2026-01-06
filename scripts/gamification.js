@@ -635,9 +635,9 @@ export class Gamification {
                             }
                             
                             const lowerCat = String(category).toLowerCase();
-                            if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || key.includes('phy_') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์')) {
+                            if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || key.includes('phy_') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ')) {
                                 quizAstronomyXP = calculatedXp;
-                            } else if (lowerCat.includes('earth') || lowerCat.includes('space') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || key.includes('ess_')) {
+                            } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || key.includes('ess_')) {
                                 quizEarthTrackXP = calculatedXp;
                             }
                         }
@@ -1395,10 +1395,10 @@ export class Gamification {
         const catString = (typeof category === 'string') ? category : (category?.main || String(category || ''));
         const lowerCat = catString.toLowerCase();
 
-        if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์')) {
+        if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ')) {
             this.state.astronomyTrackXP = (this.state.astronomyTrackXP || 0) + amount;
             isPhysics = true;
-        } else if (lowerCat.includes('earth') || lowerCat.includes('space') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก')) {
+        } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก')) {
             this.state.earthTrackXP = (this.state.earthTrackXP || 0) + amount;
             isEarth = true;
         } else {
