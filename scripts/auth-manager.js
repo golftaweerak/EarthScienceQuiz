@@ -19,6 +19,7 @@ class AuthManagerInternal {
         this.init();
         this.handlePostLogout();
         this.setupNetworkListeners();
+        this.setupHeaderUI();
     }
 
     init() {
@@ -151,6 +152,51 @@ class AuthManagerInternal {
             attempts++;
             if (attempts >= 10) clearInterval(checkHeader);
         }, 1000);
+    }
+
+    // จัดการ UI ของ Header (ปุ่ม Login/Logout)
+    setupHeaderUI() {
+        let attempts = 0;
+        const checkHeader = setInterval(() => {
+            const loginBtn = document.getElementById('user-hub-login-btn');
+            const logoutBtn = document.getElementById('user-hub-logout-btn');
+            const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+            const userEmailEl = document.getElementById('user-hub-email');
+
+            // ถ้าเจอ Element อย่างน้อยหนึ่งตัว แสดงว่า Header โหลดมาแล้ว
+            if (loginBtn || logoutBtn) {
+                clearInterval(checkHeader);
+
+                // ผูก Event Click
+                if (loginBtn) loginBtn.addEventListener('click', () => this.login());
+                if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
+                if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', () => this.logout());
+
+                // ฟังก์ชันอัปเดตการแสดงผลปุ่ม
+                const updateUI = (user) => {
+                    if (user) {
+                        if (loginBtn) loginBtn.classList.add('hidden');
+                        if (logoutBtn) logoutBtn.classList.remove('hidden');
+                        if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
+                        if (userEmailEl) {
+                            userEmailEl.textContent = user.email;
+                            userEmailEl.classList.remove('hidden');
+                        }
+                    } else {
+                        if (loginBtn) loginBtn.classList.remove('hidden');
+                        if (logoutBtn) logoutBtn.classList.add('hidden');
+                        if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
+                        if (userEmailEl) userEmailEl.classList.add('hidden');
+                    }
+                };
+
+                // ลงทะเบียนเพื่อรอรับการเปลี่ยนแปลงสถานะ User
+                this.onUserChange(updateUI);
+            }
+            
+            attempts++;
+            if (attempts >= 20) clearInterval(checkHeader); // หยุดหาหลังจาก 10 วินาที
+        }, 500);
     }
 
     // ฟังก์ชัน Login
