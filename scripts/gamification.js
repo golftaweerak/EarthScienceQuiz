@@ -168,8 +168,8 @@ export const DAILY_QUESTS = [
     { id: 'score_100', desc: 'ทำคะแนนเต็ม (100%) 1 ครั้ง', target: 1, type: 'high_score', threshold: 100, xp: 300 },
     // NEW QUEST TYPES
     { id: 'theory_10', desc: 'ตอบคำถามทฤษฎีให้ถูก 10 ข้อ', target: 10, type: 'correct_answers_type', questionType: 'theory', xp: 120 },
-    { id: 'calc_5', desc: 'ตอบคำถามคำนวณให้ถูก 5 ข้อ', target: 5, type: 'correct_answers_type', questionType: 'calculation', xp: 150 },
-    { id: 'astro_quiz_1', desc: 'ทำแบบทดสอบหมวดดาราศาสตร์ 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Astronomy', xp: 80 },    { id: 'earth_quiz_1', desc: 'ทำแบบทดสอบหมวดวิทย์โลก 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Earth', xp: 80 },
+    { id: 'astro_quiz_1', desc: 'ทำแบบทดสอบหมวดดาราศาสตร์ 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Astronomy', xp: 80 },
+    { id: 'earth_quiz_1', desc: 'ทำแบบทดสอบหมวดวิทย์โลก 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Earth', xp: 80 },
     // More quests for variety
     { id: 'quiz_5', desc: 'ทำแบบทดสอบให้จบ 5 ครั้ง', target: 5, type: 'quiz_complete', xp: 250 },
     { id: 'correct_50', desc: 'ตอบถูกให้ได้ 50 ข้อ', target: 50, type: 'correct_answers', xp: 400 },

@@ -1953,6 +1953,77 @@ function buildResultsLayout(resultInfo, stats) {
     layoutContainer.appendChild(summaryContainer);
   }
 
+  // --- 5. Recommended Review (NEW) ---
+  const weakTopics = [];
+  if (stats.categoryStats) {
+      Object.entries(stats.categoryStats).forEach(([mainCat, mainData]) => {
+          if (mainData.subcategories) {
+              Object.entries(mainData.subcategories).forEach(([subName, subData]) => {
+                  if (subName !== '—' && subData.total > 0) {
+                      const incorrect = subData.total - subData.correct;
+                      if (incorrect > 0) {
+                          weakTopics.push({
+                              main: mainCat,
+                              sub: subName,
+                              incorrect: incorrect,
+                              total: subData.total,
+                              percentage: (subData.correct / subData.total) * 100
+                          });
+                      }
+                  }
+              });
+          }
+      });
+  }
+
+  // Sort by incorrect count (desc), then percentage (asc)
+  weakTopics.sort((a, b) => {
+      if (b.incorrect !== a.incorrect) return b.incorrect - a.incorrect;
+      return a.percentage - b.percentage;
+  });
+
+  const topWeakTopics = weakTopics.slice(0, 3);
+
+  if (topWeakTopics.length > 0) {
+      const reviewContainer = document.createElement('div');
+      reviewContainer.className = 'w-full max-w-2xl mx-auto mt-4 p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/50 shadow-sm';
+      
+      let reviewHtml = `
+          <div class="flex items-center gap-3 mb-4">
+              <div class="p-2 bg-white dark:bg-red-800 rounded-lg text-red-500 dark:text-red-200 shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+              </div>
+              <div>
+                  <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 font-kanit">บทเรียนที่ควรทบทวน</h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">วิเคราะห์จากข้อที่ตอบผิด</p>
+              </div>
+          </div>
+          <div class="space-y-3">
+      `;
+
+      topWeakTopics.forEach(topic => {
+          reviewHtml += `
+              <div class="flex justify-between items-center p-3 bg-white dark:bg-gray-800 rounded-lg border border-red-100 dark:border-red-900/30 shadow-sm">
+                  <div class="flex-grow min-w-0 mr-4">
+                      <p class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">${topic.sub}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">${topic.main}</p>
+                  </div>
+                  <div class="text-right flex-shrink-0">
+                      <span class="inline-block px-2 py-1 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 text-xs font-bold rounded-md">
+                          ผิด ${topic.incorrect} ข้อ
+                      </span>
+                  </div>
+              </div>
+          `;
+      });
+
+      reviewHtml += `</div>`;
+      reviewContainer.innerHTML = reviewHtml;
+      layoutContainer.appendChild(reviewContainer);
+  }
+
   // --- 6. Assemble and Inject ---
   // Prepend to the result screen so it appears before the buttons
   elements.resultScreen.prepend(layoutContainer);
