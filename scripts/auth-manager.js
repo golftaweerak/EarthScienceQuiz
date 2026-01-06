@@ -140,12 +140,16 @@ class AuthManagerInternal {
         window.addEventListener('offline', updateStatus);
         
         // Check periodically for header element injection
+        let attempts = 0;
         const checkHeader = setInterval(() => {
             const statusEl = document.getElementById('header-network-status');
             if (statusEl) {
                 clearInterval(checkHeader);
                 if (!navigator.onLine) updateStatus();
             }
+            // Stop checking after 10 seconds (10 attempts) to save resources
+            attempts++;
+            if (attempts >= 10) clearInterval(checkHeader);
         }, 1000);
     }
 
@@ -477,10 +481,16 @@ class AuthManagerInternal {
             let hasChanges = false;
 
             // 2. วนลูปดูข้อมูลในเครื่อง (LocalStorage)
+            // Snapshot keys first to avoid index shifting issues during iteration
+            const localKeys = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                // เช็คว่าเป็น key ของประวัติข้อสอบหรือไม่
                 if (key && key.startsWith('quizState-')) {
+                    localKeys.push(key);
+                }
+            }
+
+            for (const key of localKeys) {
                     try {
                         const localData = JSON.parse(localStorage.getItem(key));
                         const cloudData = cloudMap.get(key);
@@ -502,7 +512,6 @@ class AuthManagerInternal {
                     } catch (e) {
                         console.warn("Error syncing key:", key, e);
                     }
-                }
             }
 
             // 3. เช็คข้อมูลที่มีบน Cloud แต่ไม่มีในเครื่อง (กรณีเครื่องใหม่)
