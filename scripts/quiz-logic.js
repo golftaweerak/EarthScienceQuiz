@@ -1441,6 +1441,10 @@ function showResults() {
 
     // Apply XP Multiplier
     xpEarned *= state.xpMultiplier;
+    // FIX: Apply multiplier to topic XPs as well so tracks get the bonus correctly
+    for (const key in topicXPs) {
+        topicXPs[key] *= state.xpMultiplier;
+    }
 
     // --- NEW: Prepare quest stats object ---
     const firstAnswer = state.userAnswers.find(a => a);
@@ -1537,8 +1541,8 @@ function showResults() {
     xpEarned,
     levelResult,
     newBadges,
-    astronomyXP: displayAstronomyXP * state.xpMultiplier,
-    earthXP: displayEarthXP * state.xpMultiplier
+    astronomyXP: displayAstronomyXP, // Already multiplied in topicXPs loop above
+    earthXP: displayEarthXP // Already multiplied in topicXPs loop above
   };
 
   // Clean up old results and build the new layout
