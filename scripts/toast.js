@@ -14,7 +14,7 @@ export function showToast(title, message, icon = '🔔', type = 'success', actio
         container = document.createElement('div');
         container.id = 'toast-container';
         // Fixed position ขวาล่าง, z-index สูงเพื่อให้ลอยอยู่บนสุด
-        container.className = 'fixed bottom-4 right-4 z-[200] flex flex-col gap-3 pointer-events-none'; 
+        container.className = 'fixed bottom-4 right-4 z-[100000] flex flex-col gap-3 pointer-events-none'; 
         document.body.appendChild(container);
     }
 
