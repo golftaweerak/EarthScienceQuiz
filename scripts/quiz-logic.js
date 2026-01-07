@@ -50,6 +50,21 @@ function injectQuizAnimations() {
         .anim-score-pop {
             animation: score-pop-up 0.6s ease-out;
         }
+        /* NEW: Shimmer effect for progress bar */
+        @keyframes progress-shimmer {
+            0% { background-position: 150% 0; }
+            100% { background-position: -50% 0; }
+        }
+        .anim-progress-shimmer {
+            background-image: linear-gradient(90deg, 
+                #6366f1 0%, 
+                #a855f7 25%, 
+                #ffffff 50%, 
+                #ec4899 75%,
+                #6366f1 100%) !important;
+            background-size: 200% 100% !important;
+            animation: progress-shimmer 0.8s linear forwards;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -613,6 +628,7 @@ function setupCoopListener() {
     }
 
     let previousPlayersData = {};
+    let isFirstLoad = true;
 
     const lobbyRef = doc(db, 'lobbies', state.lobbyId);
     // Listen for real-time updates
