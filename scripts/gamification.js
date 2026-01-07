@@ -1,6 +1,7 @@
 // scripts/gamification.js
 
 import { authManager } from './auth-manager.js';
+import { showToast } from './toast.js';
 
 // กำหนดเกณฑ์ XP สำหรับทุกสาย (ใช้เกณฑ์เดียวกันเพื่อความง่าย)
 // แต่ละเลเวลจะมีเงื่อนไข (Quest) ที่ต้องทำให้สำเร็จก่อนจึงจะเลื่อนระดับได้
@@ -170,6 +171,7 @@ export const DAILY_QUESTS = [
     { id: 'theory_10', desc: 'ตอบคำถามทฤษฎีให้ถูก 10 ข้อ', target: 10, type: 'correct_answers_type', questionType: 'theory', xp: 120 },
     { id: 'astro_quiz_1', desc: 'ทำแบบทดสอบหมวดดาราศาสตร์ 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Astronomy', xp: 80 },
     { id: 'earth_quiz_1', desc: 'ทำแบบทดสอบหมวดวิทย์โลก 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Earth', xp: 80 },
+    { id: 'review_quiz_1', desc: 'ทำแบบทดสอบหมวดทบทวน 1 ครั้ง', target: 1, type: 'quiz_category', category: 'Review', xp: 80 },
     // More quests for variety
     { id: 'quiz_5', desc: 'ทำแบบทดสอบให้จบ 5 ครั้ง', target: 5, type: 'quiz_complete', xp: 250 },
     { id: 'correct_50', desc: 'ตอบถูกให้ได้ 50 ข้อ', target: 50, type: 'correct_answers', xp: 400 },
@@ -481,8 +483,8 @@ export class Gamification {
             perfectScores: 0,
             highScores80: 0,
             weekendQuizzesCompleted: 0,
-            astronomyXP: 0, geologyXP: 0, meteorologyXP: 0, oceanographyXP: 0, 
-            freeNameChangeAvailable: true, generalXP: 0,
+            astronomyXP: 0, geologyXP: 0, meteorologyXP: 0, oceanographyXP: 0,
+            freeNameChangeAvailable: true, generalXP: 0, accumulatedQuestionsForBonus: 0,
         };
     }
 
@@ -1444,6 +1446,27 @@ export class Gamification {
         this.state.generalXP = (this.state.generalXP || 0) + (totalXP - newAstronomyTrackXP - newEarthTrackXP);
         this.state.quizzesCompleted += 1;
 
+        // --- NEW: Bonus XP for every 20 questions answered ---
+        const qCount = questionCount || 0;
+        this.state.accumulatedQuestionsForBonus = (this.state.accumulatedQuestionsForBonus || 0) + qCount;
+        const bonusStep = 20;
+        const bonusXPPerStep = 20; // แจก 20 XP ทุกๆ 20 ข้อ
+
+        const stepsCompleted = Math.floor(this.state.accumulatedQuestionsForBonus / bonusStep);
+
+        if (stepsCompleted > 0) {
+            const bonusXP = stepsCompleted * bonusXPPerStep;
+            this.state.accumulatedQuestionsForBonus %= bonusStep; // เก็บเศษไว้รอบหน้า
+
+            this.state.xp += bonusXP;
+            this.state.generalXP = (this.state.generalXP || 0) + bonusXP;
+
+            setTimeout(() => {
+                showToast('โบนัสความขยัน! 🔥', `สะสมครบ ${stepsCompleted * bonusStep} ข้อ รับเพิ่ม ${bonusXP} XP`, '🎁');
+            }, 1500);
+        }
+        // -----------------------------------------------------
+
         // Update Topic XPs
         for (const [field, xp] of Object.entries(topicXPs)) {
             if (this.state[field] === undefined) this.state[field] = 0;
@@ -1628,6 +1651,9 @@ export class Gamification {
         if (lowerQuestCat === 'earth') {
             // Check for explicit earth science categories or ID prefixes.
             return lowerQuizCat.includes('earth') || lowerQuizCat.includes('โลก') || lowerQuizCat.includes('วิทย์โลก') || lowerQuizId.startsWith('es');
+        }
+        if (lowerQuestCat === 'review') {
+            return lowerQuizCat.includes('review') || lowerQuizCat.includes('ทบทวน') || lowerQuizId.startsWith('esr') || (lowerQuizId.startsWith('astro') && !lowerQuizId.includes('posn'));
         }
         return false;
     }
