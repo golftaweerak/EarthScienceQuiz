@@ -11,7 +11,9 @@ export class ChallengeManager {
         this.chatUnsubscribe = null;
         this.isHost = false;
         this.lobbyModal = null; // Will be initialized after injection
-        this.notificationSound = new Audio('./assets/audio/notification.mp3');
+        
+        const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
+        this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());

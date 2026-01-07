@@ -187,6 +187,8 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
   ensurePowerUpModalExists();
   injectQuizAnimations();
 
+  const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
+
   // --- 1. Element Caching ---
   elements = {
     // Screens
@@ -249,10 +251,10 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
     shuffledQuestions: [],
     userAnswers: [],
     isSoundEnabled: true, // This will be initialized properly later
-    correctSound: new Audio("../assets/audio/correct.mp3"),
-    incorrectSound: new Audio("../assets/audio/incorrect.mp3"),
-    levelUpSound: new Audio("../assets/audio/level-up.mp3"), // Added missing sound
-    badgeSound: new Audio("../assets/audio/badge-unlock.mp3"), // Added missing sound
+    correctSound: new Audio(`${basePath}assets/audio/correct.mp3`),
+    incorrectSound: new Audio(`${basePath}assets/audio/incorrect.mp3`),
+    levelUpSound: new Audio(`${basePath}assets/audio/level-up.mp3`), // Added missing sound
+    badgeSound: new Audio(`${basePath}assets/audio/badge-unlock.mp3`), // Added missing sound
     timerMode: "none",
     timeLeft: 0,
     timerId: null,
