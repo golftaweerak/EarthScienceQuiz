@@ -71,8 +71,15 @@ export class ModalHandler {
 
         document.addEventListener("keydown", this.handleKeyDown);
 
+        // Safety timeout in case transitionend doesn't fire
+        const transitionTimeout = setTimeout(() => {
+            this.isAnimating = false;
+            this.setFocus();
+        }, 400); // 300ms duration + buffer
+
         // Wait for the animation to finish before setting focus
-        this.modal.querySelector('.modal-container')?.addEventListener('transitionend', () => {
+        this.modalContainer?.addEventListener('transitionend', () => {
+            clearTimeout(transitionTimeout);
             this.isAnimating = false;
             this.setFocus();
         }, { once: true });
@@ -87,8 +94,7 @@ export class ModalHandler {
         this.isAnimating = true;
         this.modal.classList.remove("is-open");
 
-        // Wait for the animation to finish before hiding the modal completely
-        this.modal.querySelector('.modal-container')?.addEventListener('transitionend', () => {
+        const cleanup = () => {
             this.modal.classList.add("hidden");
             document.body.style.overflow = "";
             document.removeEventListener("keydown", this.handleKeyDown);
@@ -99,6 +105,15 @@ export class ModalHandler {
 
             this.isAnimating = false;
             this.isOpen = false;
+        };
+
+        // Safety timeout
+        const transitionTimeout = setTimeout(cleanup, 400);
+
+        // Wait for the animation to finish before hiding the modal completely
+        this.modalContainer?.addEventListener('transitionend', () => {
+            clearTimeout(transitionTimeout);
+            cleanup();
         }, { once: true });
     }
 
@@ -110,10 +125,9 @@ export class ModalHandler {
         const focusableElements = Array.from(this.modal.querySelectorAll(focusableSelector))
             .filter(el => el.offsetParent !== null); // Ensure elements are visible
 
-        this.firstFocusableElement = focusableElements[0];
-        this.lastFocusableElement = focusableElements[focusableElements.length - 1];
-
-        if (this.firstFocusableElement) {
+        if (focusableElements.length > 0) {
+            this.firstFocusableElement = focusableElements[0];
+            this.lastFocusableElement = focusableElements[focusableElements.length - 1];
             this.firstFocusableElement.focus();
         } else {
             // Make modal focusable if it has no focusable children
@@ -132,17 +146,22 @@ export class ModalHandler {
             return;
         }
 
-        if (e.key !== "Tab" || !this.firstFocusableElement) return;
+        if (e.key === "Tab") {
+            // Refresh focusable elements list in case DOM changed
+            this.setFocus();
+            
+            if (!this.firstFocusableElement) return;
 
-        if (e.shiftKey) {
-            if (document.activeElement === this.firstFocusableElement) {
-                this.lastFocusableElement.focus();
-                e.preventDefault();
-            }
-        } else {
-            if (document.activeElement === this.lastFocusableElement) {
-                this.firstFocusableElement.focus();
-                e.preventDefault();
+            if (e.shiftKey) {
+                if (document.activeElement === this.firstFocusableElement) {
+                    this.lastFocusableElement.focus();
+                    e.preventDefault();
+                }
+            } else {
+                if (document.activeElement === this.lastFocusableElement) {
+                    this.firstFocusableElement.focus();
+                    e.preventDefault();
+                }
             }
         }
     }
