@@ -6,10 +6,10 @@ import { ModalHandler } from './modal-handler.js';
 
 export class ChallengeManager {
     constructor() {
-        this.lobbyModal = new ModalHandler('lobby-modal');
         this.currentLobbyId = null;
         this.unsubscribe = null;
         this.isHost = false;
+        this.lobbyModal = null; // Will be initialized after injection
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());
@@ -19,19 +19,54 @@ export class ChallengeManager {
     }
 
     init() {
+        this.injectLobbyModal(); // Inject HTML first
+        this.lobbyModal = new ModalHandler('lobby-modal'); // Then initialize handler
         this.setupUI();
         this.checkUrlForLobby();
     }
 
-    setupUI() {
-        const createBtn = document.getElementById('create-challenge-btn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => this.openModeSelection());
-        }
+    injectLobbyModal() {
+        if (document.getElementById('lobby-modal')) return;
+        
+        const modalHtml = `
+            <div id="lobby-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog" aria-modal="true">
+                <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100 relative">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">ห้องเตรียมตัว</h3>
+                        <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800">
+                            <span class="text-sm text-gray-500 dark:text-gray-400">รหัสห้อง:</span>
+                            <span id="lobby-room-id" class="text-xl font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider">------</span>
+                            <button id="copy-lobby-link-btn" class="ml-2 text-gray-400 hover:text-blue-500 transition-colors" title="คัดลอกรหัส">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </button>
+                        </div>
+                    </div>
 
-        const joinBtn = document.getElementById('join-challenge-btn');
-        if (joinBtn) {
-            joinBtn.addEventListener('click', () => this.openJoinModal());
+                    <div class="mb-6">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="text-sm font-bold text-gray-700 dark:text-gray-300">ผู้เล่น (<span id="lobby-player-count">0</span>)</span>
+                            <span id="lobby-waiting-msg" class="text-xs text-green-600 font-bold animate-pulse hidden">รอหัวหน้าห้องเริ่มเกม...</span>
+                        </div>
+                        <div id="lobby-players-list" class="space-y-2 max-h-60 overflow-y-auto modern-scrollbar p-1">
+                            <!-- Players injected here -->
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="lobby-leave-btn" class="py-3 rounded-xl text-gray-600 dark:text-gray-300 font-bold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">ออกจากห้อง</button>
+                        <button id="lobby-start-btn" class="py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition-colors shadow-md hidden">เริ่มเกม 🚀</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    setupUI() {
+        // Main Entry Point: Open Menu
+        const menuBtn = document.getElementById('open-challenge-menu-btn');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', () => this.openMainMenu());
         }
 
         const startBtn = document.getElementById('lobby-start-btn');
@@ -47,16 +82,64 @@ export class ChallengeManager {
         const copyBtn = document.getElementById('copy-lobby-link-btn');
         if (copyBtn) {
             copyBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(this.currentLobbyId).then(() => {
-                    showToast('คัดลอกรหัสแล้ว', `รหัสห้อง: ${this.currentLobbyId}`, '📋');
-                });
+                if (this.currentLobbyId) {
+                    navigator.clipboard.writeText(this.currentLobbyId).then(() => {
+                        showToast('คัดลอกรหัสแล้ว', `รหัสห้อง: ${this.currentLobbyId}`, '📋');
+                    });
+                }
             });
         }
     }
 
+    openMainMenu() {
+        const modalHtml = `
+            <div id="challenge-menu-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-kanit text-center">โหมดท้าดวล ⚔️</h3>
+                    
+                    <div class="space-y-4">
+                        <button id="menu-create-btn" class="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all group">
+                            <div class="bg-white/20 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></div>
+                            <div class="text-left">
+                                <div class="font-bold text-lg">สร้างห้องใหม่</div>
+                                <div class="text-xs text-white/80">เป็นหัวหน้าห้องและชวนเพื่อน</div>
+                            </div>
+                        </button>
+
+                        <button id="menu-join-btn" class="w-full flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-gray-700 border-2 border-gray-100 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 transition-all group">
+                            <div class="bg-gray-100 dark:bg-gray-600 p-2 rounded-full text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg></div>
+                            <div class="text-left">
+                                <div class="font-bold text-gray-800 dark:text-white">เข้าร่วมห้อง</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">ใส่รหัสเพื่อเข้าร่วม</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <button id="menu-close-btn" class="mt-6 w-full py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm font-medium transition-colors">ปิดเมนู</button>
+                </div>
+            </div>
+        `;
+
+        const existing = document.getElementById('challenge-menu-modal');
+        if (existing) existing.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        document.getElementById('menu-create-btn').onclick = () => {
+            document.getElementById('challenge-menu-modal').remove();
+            this.openModeSelection();
+        };
+        document.getElementById('menu-join-btn').onclick = () => {
+            document.getElementById('challenge-menu-modal').remove();
+            this.openJoinModal();
+        };
+        document.getElementById('menu-close-btn').onclick = () => {
+            document.getElementById('challenge-menu-modal').remove();
+        };
+    }
+
     openModeSelection() {
         const modalHtml = `
-            <div id="mode-select-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+            <div id="mode-select-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกโหมดการแข่งขัน</h3>
                     <div class="grid grid-cols-1 gap-4">
@@ -91,7 +174,7 @@ export class ChallengeManager {
 
     openJoinModal() {
         const modalHtml = `
-            <div id="join-lobby-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+            <div id="join-lobby-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เข้าร่วมการแข่งขัน</h3>
                     <div class="mb-4">
@@ -322,7 +405,7 @@ export class ChallengeManager {
                 }
 
                 return `
-                <div class="flex items-center gap-3 p-3 ${isMe ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600'} rounded-xl border animate-fade-in relative overflow-hidden transition-all duration-300">
+                <div class="flex items-center gap-3 p-3 ${isMe ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600'} rounded-xl border anim-fade-in relative overflow-hidden transition-all duration-300">
                     ${data.status === 'started' ? `<div class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-500" style="width: ${percent}%"></div>` : ''}
                     
                     ${data.status === 'started' && data.mode !== 'coop' ? `<div class="font-bold text-gray-400 w-6 text-center">${index + 1}</div>` : ''}
