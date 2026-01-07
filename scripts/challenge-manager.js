@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp, collection, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { authManager } from './auth-manager.js';
 import { showToast } from './toast.js';
 import { ModalHandler } from './modal-handler.js';
@@ -8,8 +8,10 @@ export class ChallengeManager {
     constructor() {
         this.currentLobbyId = null;
         this.unsubscribe = null;
+        this.chatUnsubscribe = null;
         this.isHost = false;
         this.lobbyModal = null; // Will be initialized after injection
+        this.notificationSound = new Audio('../assets/audio/message-incoming-02-199577.mp3');
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());
@@ -48,8 +50,20 @@ export class ChallengeManager {
                             <span class="text-sm font-bold text-gray-700 dark:text-gray-300">ผู้เล่น (<span id="lobby-player-count">0</span>)</span>
                             <span id="lobby-waiting-msg" class="text-xs text-green-600 font-bold animate-pulse hidden">รอหัวหน้าห้องเริ่มเกม...</span>
                         </div>
-                        <div id="lobby-players-list" class="space-y-2 max-h-60 overflow-y-auto modern-scrollbar p-1">
+                        <div id="lobby-players-list" class="space-y-2 max-h-40 overflow-y-auto modern-scrollbar p-1">
                             <!-- Players injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Section -->
+                    <div class="mb-6">
+                        <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">แชทในห้อง</h4>
+                        <div id="lobby-chat-messages" class="h-32 overflow-y-auto modern-scrollbar bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 space-y-3 text-sm">
+                            <!-- Messages will be injected here -->
+                        </div>
+                        <div class="mt-2 flex gap-2">
+                            <input type="text" id="lobby-chat-input" class="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" placeholder="พิมพ์ข้อความ...">
+                            <button id="lobby-chat-send-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition">ส่ง</button>
                         </div>
                     </div>
 
@@ -87,6 +101,19 @@ export class ChallengeManager {
                     navigator.clipboard.writeText(this.currentLobbyId).then(() => {
                         showToast('คัดลอกรหัสแล้ว', `รหัสห้อง: ${this.currentLobbyId}`, '📋');
                     });
+                }
+            });
+        }
+
+        const chatInput = document.getElementById('lobby-chat-input');
+        const chatSendBtn = document.getElementById('lobby-chat-send-btn');
+
+        if (chatInput && chatSendBtn) {
+            chatSendBtn.addEventListener('click', () => this.sendChatMessage());
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    this.sendChatMessage();
                 }
             });
         }
@@ -423,6 +450,108 @@ export class ChallengeManager {
         }
     }
 
+    async sendChatMessage() {
+        if (!this.currentLobbyId) return;
+        const user = authManager.currentUser;
+        if (!user) return;
+
+        const input = document.getElementById('lobby-chat-input');
+        const messageText = input.value.trim();
+
+        if (messageText === '') return;
+
+        input.value = ''; // Clear input immediately
+
+        try {
+            const messagesCol = collection(db, 'lobbies', this.currentLobbyId, 'messages');
+            await addDoc(messagesCol, {
+                uid: user.uid,
+                name: user.displayName || 'Player',
+                avatar: this.getUserAvatar(),
+                text: messageText,
+                timestamp: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error sending chat message:", error);
+            showToast('ส่งข้อความไม่สำเร็จ', 'เกิดข้อผิดพลาดในการส่งข้อความ', '❌', 'error');
+            input.value = messageText; // Restore text on failure
+        }
+    }
+
+    listenToChat(lobbyId) {
+        if (this.chatUnsubscribe) this.chatUnsubscribe();
+
+        const messagesCol = collection(db, 'lobbies', lobbyId, 'messages');
+        const q = query(messagesCol, orderBy('timestamp', 'desc'), limit(50));
+
+        let isFirstLoad = true;
+
+        this.chatUnsubscribe = onSnapshot(q, (snapshot) => {
+            const messages = [];
+            
+            if (!isFirstLoad) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const data = change.doc.data();
+                        const myUid = authManager.currentUser?.uid;
+                        if (data.uid !== myUid) {
+                            this.playNotificationSound();
+                        }
+                    }
+                });
+            }
+
+            snapshot.forEach(doc => {
+                messages.push({ id: doc.id, ...doc.data() });
+            });
+            this.updateChatUI(messages.reverse()); // reverse to show oldest first
+            isFirstLoad = false;
+        });
+    }
+
+    playNotificationSound() {
+        try {
+            this.notificationSound.currentTime = 0;
+            this.notificationSound.play().catch(() => {});
+        } catch (e) {
+            console.warn("Could not play notification sound", e);
+        }
+    }
+
+    updateChatUI(messages) {
+        const container = document.getElementById('lobby-chat-messages');
+        if (!container) return;
+
+        const myUid = authManager.currentUser?.uid;
+
+        container.innerHTML = messages.map(msg => {
+            const isMe = msg.uid === myUid;
+            const timestamp = msg.timestamp?.toDate().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) || '';
+
+            const isImage = msg.avatar && (msg.avatar.includes('/') || msg.avatar.includes('.'));
+            const avatarHtml = isImage 
+                ? `<img src="${msg.avatar}" class="w-full h-full object-cover rounded-full">`
+                : `<span class="text-sm">${msg.avatar || '🧑‍🎓'}</span>`;
+
+            const avatarElement = `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">${avatarHtml}</div>`;
+            const messageBubble = `
+                <div class="flex flex-col gap-1 w-full max-w-[80%]">
+                    <div class="flex items-center space-x-2 ${isMe ? 'justify-end' : 'rtl:space-x-reverse'}">
+                        <span class="text-xs font-semibold text-gray-900 dark:text-white">${isMe ? 'คุณ' : msg.name}</span>
+                        <span class="text-xs font-normal text-gray-500 dark:text-gray-400">${timestamp}</span>
+                    </div>
+                    <div class="leading-snug p-2.5 rounded-lg ${isMe ? 'rounded-br-none bg-blue-600 text-white' : 'rounded-bl-none bg-gray-200 dark:bg-gray-700'}">
+                        <p class="text-sm font-normal break-words">${msg.text}</p>
+                    </div>
+                </div>`;
+
+            return isMe ? `<div class="flex items-end justify-end gap-2.5 anim-fade-in">${messageBubble}${avatarElement}</div>` : `<div class="flex items-start gap-2.5 anim-fade-in">${avatarElement}${messageBubble}</div>`;
+        }).join('');
+
+        // Auto-scroll to bottom
+        container.scrollTop = container.scrollHeight;
+    }
+
     listenToLobby(lobbyId) {
         if (this.unsubscribe) this.unsubscribe();
 
@@ -456,6 +585,8 @@ export class ChallengeManager {
                 this.goToQuiz(data.quizConfig, data.mode);
             }
         });
+
+        this.listenToChat(lobbyId);
     }
 
     updateLobbyUI(data) {
@@ -601,6 +732,7 @@ export class ChallengeManager {
 
     leaveLobby() {
         if (this.unsubscribe) this.unsubscribe();
+        if (this.chatUnsubscribe) this.chatUnsubscribe();
         this.currentLobbyId = null;
         this.isHost = false;
         this.lobbyModal.close();
