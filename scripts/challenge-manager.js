@@ -12,6 +12,9 @@ export class ChallengeManager {
         this.chatUnsubscribe = null;
         this.isHost = false;
         this.lobbyModal = null; // Will be initialized after injection
+        this.kickModal = null; // Will be initialized after injection
+        this.kickConfirmModal = null; // New: For host confirmation
+        this.pendingKickUid = null; // New: Store UID to kick
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -26,6 +29,8 @@ export class ChallengeManager {
     init() {
         this.injectLobbyModal(); // Inject HTML first
         this.lobbyModal = new ModalHandler('lobby-modal'); // Then initialize handler
+        this.kickModal = new ModalHandler('kick-notification-modal'); // Initialize kick modal handler
+        this.kickConfirmModal = new ModalHandler('kick-confirm-modal'); // Initialize host confirm modal
         this.setupUI();
         this.checkUrlForLobby();
     }
@@ -76,6 +81,30 @@ export class ChallengeManager {
                     </div>
                 </div>
             </div>
+
+            <!-- Kick Notification Modal -->
+            <div id="kick-notification-modal" class="modal hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
+                <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+                    <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                        <span class="text-4xl animate-bounce">👢</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">คุณถูกเชิญออก</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-6 text-sm">หัวหน้าห้องได้เชิญคุณออกจากห้องเตรียมตัว</p>
+                    <button id="kick-ack-btn" class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white font-bold hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-lg transform hover:scale-[1.02]">รับทราบ</button>
+                </div>
+            </div>
+
+            <!-- Host Kick Confirmation Modal -->
+            <div id="kick-confirm-modal" class="modal hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
+                <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit mb-2">ยืนยันการเชิญออก</h3>
+                    <p id="kick-confirm-desc" class="text-gray-600 dark:text-gray-300 mb-6 text-sm">คุณต้องการเชิญผู้เล่นนี้ออกจากห้องใช่หรือไม่?</p>
+                    <div class="flex gap-3">
+                        <button id="kick-confirm-cancel-btn" class="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">ยกเลิก</button>
+                        <button id="kick-confirm-ok-btn" class="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-md">เชิญออก</button>
+                    </div>
+                </div>
+            </div>
         `;
         document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
@@ -118,6 +147,31 @@ export class ChallengeManager {
                     e.preventDefault();
                     this.sendChatMessage();
                 }
+            });
+        }
+
+        const kickAckBtn = document.getElementById('kick-ack-btn');
+        if (kickAckBtn) {
+            kickAckBtn.addEventListener('click', () => this.kickModal.close());
+        }
+
+        // Host Kick Confirmation Listeners
+        const kickConfirmOk = document.getElementById('kick-confirm-ok-btn');
+        const kickConfirmCancel = document.getElementById('kick-confirm-cancel-btn');
+        
+        if (kickConfirmOk) {
+            kickConfirmOk.addEventListener('click', () => {
+                if (this.pendingKickUid) {
+                    this.kickPlayer(this.pendingKickUid);
+                    this.pendingKickUid = null;
+                    this.kickConfirmModal.close();
+                }
+            });
+        }
+        if (kickConfirmCancel) {
+            kickConfirmCancel.addEventListener('click', () => {
+                this.pendingKickUid = null;
+                this.kickConfirmModal.close();
             });
         }
     }
@@ -651,7 +705,7 @@ export class ChallengeManager {
                 const amIInList = data.players.some(p => p.uid === myUid);
                 if (!amIInList) {
                     this.leaveLobby();
-                    showToast('คุณถูกเตะ', 'คุณถูกเชิญออกจากห้องโดยหัวหน้าห้อง', '👢', 'error');
+                    if (this.kickModal) this.kickModal.open();
                     return;
                 }
             }
@@ -712,7 +766,7 @@ export class ChallengeManager {
                 let kickButtonHtml = '';
                 if (this.isHost && !isMe && data.status === 'waiting') {
                     kickButtonHtml = `
-                        <button class="kick-player-btn ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all" data-uid="${p.uid}" title="เตะออกจากห้อง">
+                        <button class="kick-player-btn ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all" data-uid="${p.uid}" data-name="${p.name}" title="เตะออกจากห้อง">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                         </button>
                     `;
@@ -770,9 +824,11 @@ export class ChallengeManager {
                 container.querySelectorAll('.kick-player-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        if (confirm('ต้องการเตะผู้เล่นคนนี้ออกจากห้องหรือไม่?')) {
-                            this.kickPlayer(btn.dataset.uid);
-                        }
+                        this.pendingKickUid = btn.dataset.uid;
+                        const playerName = btn.dataset.name;
+                        const descEl = document.getElementById('kick-confirm-desc');
+                        if (descEl) descEl.textContent = `คุณต้องการเชิญ "${playerName}" ออกจากห้องใช่หรือไม่?`;
+                        this.kickConfirmModal.open();
                     });
                 });
             }
