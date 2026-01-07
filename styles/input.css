@@ -695,4 +695,13 @@ body.dark {
 .anim-shake {
     animation: shake-horizontal 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
+
+@keyframes wiggle {
+    0%, 100% { transform: rotate(-6deg); }
+    50% { transform: rotate(6deg); }
+}
+
+.animate-wiggle {
+    animation: wiggle 2s ease-in-out infinite;
+}
 }

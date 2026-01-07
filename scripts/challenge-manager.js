@@ -144,6 +144,15 @@ export class ChallengeManager {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
+    getUserAvatar() {
+        try {
+            const data = JSON.parse(localStorage.getItem('app_gamification_data') || '{}');
+            return data.avatar || '🧑‍🎓';
+        } catch (e) {
+            return '🧑‍🎓';
+        }
+    }
+
     async createLobby(mode = 'challenge') {
         const user = authManager.currentUser;
         if (!user) {
@@ -164,7 +173,7 @@ export class ChallengeManager {
             players: [{
                 uid: user.uid,
                 name: user.displayName || 'Player',
-                avatar: localStorage.getItem('avatar') || '🧑‍🎓',
+                avatar: this.getUserAvatar(),
                 ready: true,
                 score: 0,
                 progress: 0
@@ -183,7 +192,7 @@ export class ChallengeManager {
             showToast('สร้างห้องสำเร็จ', `รหัสห้อง: ${lobbyId}`, '🎮');
         } catch (error) {
             console.error("Error creating lobby:", error);
-            showToast('ข้อผิดพลาด', 'ไม่สามารถสร้างห้องได้', '❌', 'error');
+            showToast('ข้อผิดพลาด', `ไม่สามารถสร้างห้องได้: ${error.message}`, '❌', 'error');
         }
     }
 
@@ -191,42 +200,47 @@ export class ChallengeManager {
         const user = authManager.currentUser;
         if (!user) return;
 
-        const lobbyRef = doc(db, 'lobbies', lobbyId);
-        const lobbySnap = await getDoc(lobbyRef);
+        try {
+            const lobbyRef = doc(db, 'lobbies', lobbyId);
+            const lobbySnap = await getDoc(lobbyRef);
 
-        if (!lobbySnap.exists()) {
-            showToast('ไม่พบห้อง', 'รหัสห้องไม่ถูกต้องหรือห้องถูกปิดไปแล้ว', '❌', 'error');
-            return;
+            if (!lobbySnap.exists()) {
+                showToast('ไม่พบห้อง', 'รหัสห้องไม่ถูกต้องหรือห้องถูกปิดไปแล้ว', '❌', 'error');
+                return;
+            }
+
+            // ตรวจสอบว่ามีชื่ออยู่แล้วหรือไม่
+            const players = lobbySnap.data().players || [];
+            const isAlreadyJoined = players.some(p => p.uid === user.uid);
+
+            // ถ้าเกมเริ่มแล้วและยังไม่ได้จอย จะเข้าไม่ได้
+            if (lobbySnap.data().status !== 'waiting' && !isAlreadyJoined) {
+                showToast('เข้าห้องไม่ได้', 'การแข่งขันได้เริ่มไปแล้ว', '⚠️', 'error');
+                return;
+            }
+
+            if (!isAlreadyJoined) {
+                const playerData = {
+                    uid: user.uid,
+                    name: user.displayName || 'Player',
+                    avatar: this.getUserAvatar(),
+                    ready: true,
+                    score: 0,
+                    progress: 0
+                };
+                await updateDoc(lobbyRef, {
+                    players: arrayUnion(playerData)
+                });
+            }
+
+            this.currentLobbyId = lobbyId;
+            this.isHost = (lobbySnap.data().hostId === user.uid);
+            this.openLobbyUI(lobbyId);
+            this.listenToLobby(lobbyId);
+        } catch (error) {
+            console.error("Error joining lobby:", error);
+            showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${error.message}`, '❌', 'error');
         }
-
-        // ตรวจสอบว่ามีชื่ออยู่แล้วหรือไม่
-        const players = lobbySnap.data().players || [];
-        const isAlreadyJoined = players.some(p => p.uid === user.uid);
-
-        // ถ้าเกมเริ่มแล้วและยังไม่ได้จอย จะเข้าไม่ได้
-        if (lobbySnap.data().status !== 'waiting' && !isAlreadyJoined) {
-            showToast('เข้าห้องไม่ได้', 'การแข่งขันได้เริ่มไปแล้ว', '⚠️', 'error');
-            return;
-        }
-
-        if (!isAlreadyJoined) {
-            const playerData = {
-                uid: user.uid,
-                name: user.displayName || 'Player',
-                avatar: localStorage.getItem('avatar') || '🧑‍🎓',
-                ready: true,
-                score: 0,
-                progress: 0
-            };
-            await updateDoc(lobbyRef, {
-                players: arrayUnion(playerData)
-            });
-        }
-
-        this.currentLobbyId = lobbyId;
-        this.isHost = (lobbySnap.data().hostId === user.uid);
-        this.openLobbyUI(lobbyId);
-        this.listenToLobby(lobbyId);
     }
 
     listenToLobby(lobbyId) {
@@ -313,7 +327,14 @@ export class ChallengeManager {
                     
                     ${data.status === 'started' && data.mode !== 'coop' ? `<div class="font-bold text-gray-400 w-6 text-center">${index + 1}</div>` : ''}
                     
-                    <div class="text-3xl bg-white dark:bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-sm flex-shrink-0">${p.avatar}</div>
+                    <div class="text-3xl bg-white dark:bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-sm flex-shrink-0 animate-wiggle" style="animation-delay: ${index * 0.2}s">
+                        ${(() => {
+                            const isImage = p.avatar && (p.avatar.includes('/') || p.avatar.includes('.'));
+                            return isImage 
+                                ? `<img src="${p.avatar}" class="w-full h-full rounded-full object-cover">`
+                                : (p.avatar || '🧑‍🎓');
+                        })()}
+                    </div>
                     
                     <div class="flex flex-col min-w-0">
                         <div class="font-bold text-gray-700 dark:text-gray-200 text-sm truncate">${p.name} ${isMe ? '(คุณ)' : ''}</div>

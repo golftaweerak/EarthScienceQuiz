@@ -3,7 +3,7 @@ import { shuffleArray } from './utils.js';
 import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js';
 import { showToast } from './toast.js';
 import { db } from './firebase-config.js';
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Animates a numeric value in a specified element.
@@ -226,6 +226,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
     isCustomQuiz: false, // NEW
     questionCount: 0,    // NEW
     lobbyId: null,       // NEW: For Real-time Challenge
+    mode: null,          // NEW: 'challenge' or 'coop'
   };
 
   // --- 3. Initial Setup ---
@@ -241,9 +242,14 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
   if (urlParams.get('lobbyId')) {
       state.lobbyId = urlParams.get('lobbyId');
   }
+  state.mode = urlParams.get('mode');
 
   checkForSavedQuiz(action); // This will check localStorage and either show the start screen or a resume prompt.
   setupPowerUpUI(); // Setup the power-up bar
+
+  if (state.lobbyId && state.mode === 'coop') {
+      setupCoopListener();
+  }
 }
 
 /**
@@ -483,6 +489,46 @@ function setupPowerUpUI() {
         }
         elements.powerUpContainer = container;
     }
+}
+
+function setupCoopListener() {
+    const scoreCounter = elements.scoreCounter;
+    if (!scoreCounter) return;
+
+    // Create Team Score Element
+    const teamScoreEl = document.createElement('div');
+    teamScoreEl.id = 'team-score-counter';
+    teamScoreEl.className = "font-kanit text-lg font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-all duration-300 transform ml-2";
+    teamScoreEl.innerHTML = `🤝 ทีม: 0`;
+    
+    // Insert after individual score
+    if (scoreCounter.parentNode) {
+        scoreCounter.parentNode.insertBefore(teamScoreEl, scoreCounter.nextSibling);
+    }
+    elements.teamScoreDisplay = teamScoreEl;
+
+    const lobbyRef = doc(db, 'lobbies', state.lobbyId);
+    // Listen for real-time updates
+    state.lobbyUnsubscribe = onSnapshot(lobbyRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            const data = docSnapshot.data();
+            const players = data.players || [];
+            const totalScore = players.reduce((sum, p) => sum + (p.score || 0), 0);
+            
+            const currentDisplayScore = parseInt(teamScoreEl.dataset.score || 0);
+            
+            if (totalScore !== currentDisplayScore) {
+                animateValue(teamScoreEl, currentDisplayScore, totalScore, 1000, '🤝 ทีม: ');
+                teamScoreEl.dataset.score = totalScore;
+                
+                // Pop animation effect
+                teamScoreEl.classList.add('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
+                setTimeout(() => {
+                    teamScoreEl.classList.remove('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
+                }, 300);
+            }
+        }
+    });
 }
 
 /**
