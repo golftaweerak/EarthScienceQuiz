@@ -33,6 +33,7 @@ export class ChallengeManager {
                 <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100 relative">
                     <div class="text-center mb-6">
                         <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">ห้องเตรียมตัว</h3>
+                        <p id="lobby-quiz-name" class="text-sm text-gray-500 dark:text-gray-400 mb-4">กำลังโหลด...</p>
                         <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800">
                             <span class="text-sm text-gray-500 dark:text-gray-400">รหัสห้อง:</span>
                             <span id="lobby-room-id" class="text-xl font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider">------</span>
@@ -167,9 +168,85 @@ export class ChallengeManager {
         if (existing) existing.remove();
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         
-        document.getElementById('mode-challenge-btn').onclick = () => { this.createLobby('challenge'); document.getElementById('mode-select-modal').remove(); };
-        document.getElementById('mode-coop-btn').onclick = () => { this.createLobby('coop'); document.getElementById('mode-select-modal').remove(); };
+        document.getElementById('mode-challenge-btn').onclick = () => { 
+            document.getElementById('mode-select-modal').remove(); 
+            this.openQuizSelection('challenge'); 
+        };
+        document.getElementById('mode-coop-btn').onclick = () => { 
+            document.getElementById('mode-select-modal').remove(); 
+            this.openQuizSelection('coop'); 
+        };
         document.getElementById('mode-cancel-btn').onclick = () => { document.getElementById('mode-select-modal').remove(); };
+    }
+
+    async openQuizSelection(mode) {
+        let quizList = [];
+        try {
+            const module = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+            quizList = module.quizList || [];
+        } catch (e) {
+            console.error("Failed to load quiz list", e);
+            this.createLobby(mode, 'random', 'แบบทดสอบสุ่ม');
+            return;
+        }
+
+        const modalHtml = `
+            <div id="quiz-select-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all flex flex-col max-h-[80vh]">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกชุดข้อสอบ</h3>
+                    
+                    <div class="overflow-y-auto flex-1 pr-2 custom-scrollbar space-y-2">
+                        <button id="quiz-select-random" class="w-full flex items-center gap-3 p-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all text-left group">
+                            <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform">🎲</div>
+                            <div>
+                                <div class="font-bold text-gray-800 dark:text-gray-100">สุ่มคำถาม (Random)</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">สุ่มจากทุกวิชา 20 ข้อ</div>
+                            </div>
+                        </button>
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">รายการแบบทดสอบ</p>
+
+                        ${quizList.map(q => `
+                            <button data-quiz-id="${q.id}" data-quiz-title="${q.title}" class="quiz-select-item w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all text-left group">
+                                <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xl group-hover:bg-white dark:group-hover:bg-gray-600 transition-colors">
+                                    ${q.icon || '📝'}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-gray-800 dark:text-gray-100 truncate text-sm">${q.title}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${q.description || q.category}</div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <button id="quiz-select-cancel" class="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-bold text-sm">ย้อนกลับ</button>
+                </div>
+            </div>
+        `;
+
+        const existing = document.getElementById('quiz-select-modal');
+        if (existing) existing.remove();
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        document.getElementById('quiz-select-random').onclick = () => {
+            document.getElementById('quiz-select-modal').remove();
+            this.createLobby(mode, 'random', 'แบบทดสอบสุ่ม (Random)');
+        };
+
+        document.querySelectorAll('.quiz-select-item').forEach(btn => {
+            btn.onclick = () => {
+                const quizId = btn.dataset.quizId;
+                const quizTitle = btn.dataset.quizTitle;
+                document.getElementById('quiz-select-modal').remove();
+                this.createLobby(mode, quizId, quizTitle);
+            };
+        });
+
+        document.getElementById('quiz-select-cancel').onclick = () => {
+            document.getElementById('quiz-select-modal').remove();
+            this.openModeSelection();
+        };
     }
 
     openJoinModal() {
@@ -236,7 +313,7 @@ export class ChallengeManager {
         }
     }
 
-    async createLobby(mode = 'challenge') {
+    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม') {
         const user = authManager.currentUser;
         if (!user) {
             showToast('ต้องเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนสร้างห้อง', '🔒', 'error');
@@ -262,8 +339,9 @@ export class ChallengeManager {
                 progress: 0
             }],
             quizConfig: {
-                id: 'random', 
-                amount: 20,
+                id: quizId,
+                title: quizTitle,
+                amount: quizId === 'random' ? 20 : null,
                 seed: Date.now()
             }
         };
@@ -326,6 +404,25 @@ export class ChallengeManager {
         }
     }
 
+    async kickPlayer(targetUid) {
+        if (!this.currentLobbyId || !this.isHost) return;
+        
+        try {
+            const lobbyRef = doc(db, 'lobbies', this.currentLobbyId);
+            const lobbySnap = await getDoc(lobbyRef);
+            if (!lobbySnap.exists()) return;
+
+            const players = lobbySnap.data().players || [];
+            const updatedPlayers = players.filter(p => p.uid !== targetUid);
+
+            await updateDoc(lobbyRef, { players: updatedPlayers });
+            showToast('เตะผู้เล่นสำเร็จ', 'ผู้เล่นถูกลบออกจากห้องแล้ว', '👋');
+        } catch (error) {
+            console.error("Error kicking player:", error);
+            showToast('เกิดข้อผิดพลาด', 'ไม่สามารถเตะผู้เล่นได้', '❌', 'error');
+        }
+    }
+
     listenToLobby(lobbyId) {
         if (this.unsubscribe) this.unsubscribe();
 
@@ -337,6 +434,18 @@ export class ChallengeManager {
             }
 
             const data = doc.data();
+            
+            // ตรวจสอบว่าเราถูกเตะหรือไม่ (ถ้าไม่มีชื่อเราในรายการผู้เล่น)
+            const myUid = authManager.currentUser?.uid;
+            if (myUid && data.players) {
+                const amIInList = data.players.some(p => p.uid === myUid);
+                if (!amIInList) {
+                    this.leaveLobby();
+                    showToast('คุณถูกเตะ', 'คุณถูกเชิญออกจากห้องโดยหัวหน้าห้อง', '👢', 'error');
+                    return;
+                }
+            }
+
             this.updateLobbyUI(data);
 
             // ถ้าสถานะเป็น started และเรายังไม่ได้อยู่ในหน้า Quiz ให้เด้งไป
@@ -354,9 +463,11 @@ export class ChallengeManager {
         const countEl = document.getElementById('lobby-player-count');
         const roomIdEl = document.getElementById('lobby-room-id');
         const titleEl = document.querySelector('#lobby-modal h3');
+        const quizNameEl = document.getElementById('lobby-quiz-name');
         
         if (roomIdEl) roomIdEl.textContent = this.currentLobbyId;
         if (countEl) countEl.textContent = data.players.length;
+        if (quizNameEl) quizNameEl.textContent = data.quizConfig?.title || 'แบบทดสอบ';
 
         // จัดเรียงผู้เล่น: ถ้าเริ่มเกมแล้ว เรียงตามคะแนน, ถ้ายังไม่เริ่ม เรียงตามเวลาเข้า
         let players = [...data.players];
@@ -379,6 +490,15 @@ export class ChallengeManager {
                 const progress = p.progress || 0;
                 const total = p.totalQuestions || 20; 
                 const percent = Math.round((progress / total) * 100) || 0;
+                
+                let kickButtonHtml = '';
+                if (this.isHost && !isMe && data.status === 'waiting') {
+                    kickButtonHtml = `
+                        <button class="kick-player-btn ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all" data-uid="${p.uid}" title="เตะออกจากห้อง">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    `;
+                }
                 
                 let statusHtml = '';
                 if (data.status === 'started') {
@@ -423,8 +543,21 @@ export class ChallengeManager {
                         <div class="font-bold text-gray-700 dark:text-gray-200 text-sm truncate">${p.name} ${isMe ? '(คุณ)' : ''}</div>
                     </div>
                     ${statusHtml}
+                    ${kickButtonHtml}
                 </div>
             `}).join('');
+
+            // Bind kick button events
+            if (this.isHost) {
+                container.querySelectorAll('.kick-player-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm('ต้องการเตะผู้เล่นคนนี้ออกจากห้องหรือไม่?')) {
+                            this.kickPlayer(btn.dataset.uid);
+                        }
+                    });
+                });
+            }
         }
 
         // จัดการปุ่ม Start
@@ -463,7 +596,7 @@ export class ChallengeManager {
         if (window.location.pathname.includes('/quiz/')) return;
 
         this.lobbyModal.close();
-        window.location.href = `./quiz/index.html?mode=${mode || 'challenge'}&lobbyId=${this.currentLobbyId}&amount=${config.amount}&seed=${config.seed}`;
+        window.location.href = `./quiz/index.html?id=${config.id}&mode=${mode || 'challenge'}&lobbyId=${this.currentLobbyId}&amount=${config.amount}&seed=${config.seed}`;
     }
 
     leaveLobby() {
