@@ -11,7 +11,7 @@ export class ChallengeManager {
         this.chatUnsubscribe = null;
         this.isHost = false;
         this.lobbyModal = null; // Will be initialized after injection
-        this.notificationSound = new Audio('../assets/audio/message-incoming-02-199577.mp3');
+        this.notificationSound = new Audio('./assets/audio/notification.mp3');
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.init());
@@ -506,6 +506,8 @@ export class ChallengeManager {
             });
             this.updateChatUI(messages.reverse()); // reverse to show oldest first
             isFirstLoad = false;
+        }, (error) => {
+            console.warn("Chat listener error (Permission/Network):", error);
         });
     }
 
@@ -583,6 +585,12 @@ export class ChallengeManager {
                 // เพิ่มเงื่อนไข: ถ้าเราเป็น Host และอยากดู Scoreboard เฉยๆ อาจจะไม่ต้องเด้งก็ได้
                 // แต่เพื่อความง่าย ให้ทุกคนเด้งไปทำข้อสอบก่อน
                 this.goToQuiz(data.quizConfig, data.mode);
+            }
+        }, (error) => {
+            console.error("Lobby listener error:", error);
+            if (error.code === 'permission-denied') {
+                showToast('ไม่สามารถเข้าถึงห้องได้', 'คุณอาจไม่มีสิทธิ์หรือห้องถูกจำกัดการเข้าถึง', '⚠️', 'error');
+                // Optional: this.leaveLobby(); // อาจจะเด้งออกถ้าจำเป็น
             }
         });
 
