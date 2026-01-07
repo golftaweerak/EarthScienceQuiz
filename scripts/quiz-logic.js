@@ -2,6 +2,8 @@ import { ModalHandler } from './modal-handler.js';
 import { shuffleArray } from './utils.js';
 import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js';
 import { showToast } from './toast.js';
+import { db } from './firebase-config.js';
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Animates a numeric value in a specified element.
@@ -223,6 +225,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
     usedTolerance: false,
     isCustomQuiz: false, // NEW
     questionCount: 0,    // NEW
+    lobbyId: null,       // NEW: For Real-time Challenge
   };
 
   // --- 3. Initial Setup ---
@@ -233,6 +236,11 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
   // NEW: Set quiz metadata
   state.isCustomQuiz = storageKey.startsWith('quizState-custom_');
   state.questionCount = quizData.length;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('lobbyId')) {
+      state.lobbyId = urlParams.get('lobbyId');
+  }
 
   checkForSavedQuiz(action); // This will check localStorage and either show the start screen or a resume prompt.
   setupPowerUpUI(); // Setup the power-up bar
@@ -2037,6 +2045,33 @@ function buildResultsLayout(resultInfo, stats) {
     elements.reviewBtn.classList.add("hidden");
   }
 
+  // NEW: Add Lobby Button if in Challenge Mode
+  if (state.lobbyId) {
+      // Try to find the container for action buttons. Usually parent of restartBtn.
+      const actionContainer = elements.restartBtn ? elements.restartBtn.parentElement : null;
+      
+      // Check if button already exists to avoid duplicates
+      if (actionContainer && !document.getElementById('lobby-return-btn')) {
+          const lobbyBtn = document.createElement('button');
+          lobbyBtn.id = 'lobby-return-btn';
+          // Styling to match other buttons but distinct
+          lobbyBtn.className = "w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md transition-all transform hover:scale-105 flex items-center justify-center gap-2 mb-3 sm:mb-0 order-first sm:order-none";
+          lobbyBtn.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+              </svg>
+              <span>🏆 ดูอันดับรวม (Lobby)</span>
+          `;
+          lobbyBtn.onclick = () => {
+              // Redirect back to main page with lobby param to open modal
+              window.location.href = `../index.html?lobby=${state.lobbyId}`;
+          };
+          
+          // Insert at the beginning of the action container so it's prominent
+          actionContainer.insertBefore(lobbyBtn, actionContainer.firstChild);
+      }
+  }
+
   renderMath(layoutContainer); // Render math only in the new results layout
 }
 function getIncorrectAnswers() {
@@ -2323,6 +2358,42 @@ function saveQuizState() {
   if (state.game && state.game.authManager) {
       state.game.authManager.saveQuizHistoryItem(state.storageKey, stateToSave);
   }
+
+  // NEW: Sync score to Lobby (Real-time)
+  if (state.lobbyId) {
+      sendScoreToLobby();
+  }
+}
+
+async function sendScoreToLobby() {
+    if (!state.lobbyId || !state.game.authManager.currentUser) return;
+
+    try {
+        const lobbyRef = doc(db, 'lobbies', state.lobbyId);
+        const snapshot = await getDoc(lobbyRef);
+        
+        if (snapshot.exists()) {
+            const data = snapshot.data();
+            const players = data.players || [];
+            const uid = state.game.authManager.currentUser.uid;
+            
+            const updatedPlayers = players.map(p => {
+                if (p.uid === uid) {
+                    return { 
+                        ...p, 
+                        score: state.score,
+                        progress: state.currentQuestionIndex + 1,
+                        totalQuestions: state.shuffledQuestions.length
+                    };
+                }
+                return p;
+            });
+            
+            await updateDoc(lobbyRef, { players: updatedPlayers });
+        }
+    } catch (e) {
+        console.error("Lobby sync error:", e);
+    }
 }
 
 function clearSavedState() {
