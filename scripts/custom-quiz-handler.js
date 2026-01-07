@@ -1622,8 +1622,6 @@ export function initializeCustomQuizHandler() {
                         if (confirmModalDescription) confirmModalDescription.textContent = 'คุณแน่ใจหรือไม่ว่าต้องการลบแบบทดสอบนี้? ข้อมูลความคืบหน้าทั้งหมดที่เกี่ยวข้องจะถูกลบไปด้วยและไม่สามารถย้อนกลับได้';
 
                         onConfirmAction = () => deleteCustomQuiz(customId);
-                        // Use inline style for z-index to ensure it's applied over other modals.
-                        if (confirmModalEl) confirmModalEl.style.zIndex = '99';
 
                         confirmModal.open(actionButton);
                         break;
@@ -1707,18 +1705,6 @@ export function initializeCustomQuizHandler() {
         confirmCancelBtn.addEventListener('click', () => {
             onConfirmAction = null; // Clear action if user cancels
         });
-    }
-
-    // Robustly handle z-index for the confirmation modal.
-    // This ensures it appears above the hub modal, even when closed via backdrop/ESC.
-    if (confirmModalEl) {
-        const observer = new MutationObserver(() => {
-            // When the modal is hidden (closed), remove the inline z-index.
-            if (confirmModalEl.classList.contains('hidden')) {
-                confirmModalEl.style.zIndex = '';
-            }
-        });
-        observer.observe(confirmModalEl, { attributes: true, attributeFilter: ['class'] });
     }
 
     // Robustly handle z-index for the random all modal to ensure it stays on top
