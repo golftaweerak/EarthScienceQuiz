@@ -3,6 +3,7 @@ import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp
 import { authManager } from './auth-manager.js';
 import { showToast } from './toast.js';
 import { ModalHandler } from './modal-handler.js';
+import { categoryDetails } from './data-manager.js';
 
 export class ChallengeManager {
     constructor() {
@@ -219,13 +220,28 @@ export class ChallengeManager {
             return;
         }
 
+        // Group quizzes by category
+        const groupedQuizzes = quizList.reduce((acc, quiz) => {
+            const category = quiz.category || "Uncategorized";
+            if (!acc[category]) acc[category] = [];
+            acc[category].push(quiz);
+            return acc;
+        }, {});
+
+        // Sort categories
+        const sortedCategories = Object.keys(groupedQuizzes).sort((a, b) => {
+            const orderA = categoryDetails[a]?.order || 99;
+            const orderB = categoryDetails[b]?.order || 99;
+            return orderA - orderB;
+        });
+
         const modalHtml = `
             <div id="quiz-select-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all flex flex-col max-h-[80vh]">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกชุดข้อสอบ</h3>
                     
                     <div class="overflow-y-auto flex-1 pr-2 custom-scrollbar space-y-2">
-                        <button id="quiz-select-random" class="w-full flex items-center gap-3 p-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all text-left group">
+                        <button id="quiz-select-random" class="w-full flex items-center gap-3 p-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all text-left group mb-4">
                             <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform">🎲</div>
                             <div>
                                 <div class="font-bold text-gray-800 dark:text-gray-100">สุ่มคำถาม (Random)</div>
@@ -233,20 +249,55 @@ export class ChallengeManager {
                             </div>
                         </button>
 
-                        <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">รายการแบบทดสอบ</p>
+                        <div class="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
+                        
+                        ${sortedCategories.map(catKey => {
+                            const quizzes = groupedQuizzes[catKey];
+                            const catDetail = categoryDetails[catKey] || { title: catKey, icon: './assets/icons/study.png' };
+                            
+                            // Sort quizzes by title
+                            quizzes.sort((a, b) => a.title.localeCompare(b.title, 'th'));
 
-                        ${quizList.map(q => `
-                            <button data-quiz-id="${q.id}" data-quiz-title="${q.title}" class="quiz-select-item w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all text-left group">
-                                <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xl group-hover:bg-white dark:group-hover:bg-gray-600 transition-colors">
-                                    ${q.icon || '📝'}
+                            const quizzesHtml = quizzes.map(q => {
+                                const iconSrc = q.icon || './assets/icons/study.png';
+                                const isImage = iconSrc.includes('/') || iconSrc.includes('.');
+                                const iconDisplay = isImage 
+                                    ? `<img src="${iconSrc}" class="w-full h-full object-contain">` 
+                                    : `<span class="text-xl">${iconSrc}</span>`;
+
+                                return `
+                                    <button data-quiz-id="${q.id}" data-quiz-title="${q.title}" class="quiz-select-item w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all text-left group bg-white dark:bg-gray-800">
+                                        <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-gray-600 transition-colors overflow-hidden p-1">
+                                            ${iconDisplay}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-gray-800 dark:text-gray-100 truncate text-sm">${q.title}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${q.description || q.category}</div>
+                                        </div>
+                                    </button>
+                                `;
+                            }).join('');
+
+                            return `
+                                <div class="accordion-item border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden mb-2">
+                                    <button class="accordion-header w-full flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-white dark:bg-gray-600 flex items-center justify-center shadow-sm p-1">
+                                                <img src="${catDetail.icon}" class="w-full h-full object-contain">
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-gray-700 dark:text-gray-200 text-sm">${catDetail.title}</div>
+                                                <div class="text-[10px] text-gray-500 dark:text-gray-400">${quizzes.length} ชุด</div>
+                                            </div>
+                                        </div>
+                                        <svg class="chevron w-5 h-5 text-gray-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                    <div class="accordion-content hidden p-2 space-y-2 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+                                        ${quizzesHtml}
+                                    </div>
                                 </div>
-                                <div class="min-w-0">
-                                    <div class="font-bold text-gray-800 dark:text-gray-100 truncate text-sm">${q.title}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${q.description || q.category}</div>
-                                </div>
-                            </button>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
 
                     <button id="quiz-select-cancel" class="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-bold text-sm">ย้อนกลับ</button>
@@ -257,6 +308,16 @@ export class ChallengeManager {
         const existing = document.getElementById('quiz-select-modal');
         if (existing) existing.remove();
         document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Accordion Logic
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.onclick = () => {
+                const content = header.nextElementSibling;
+                const chevron = header.querySelector('.chevron');
+                content.classList.toggle('hidden');
+                chevron.classList.toggle('rotate-180');
+            };
+        });
 
         document.getElementById('quiz-select-random').onclick = () => {
             document.getElementById('quiz-select-modal').remove();
