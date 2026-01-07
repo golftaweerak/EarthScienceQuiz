@@ -17,5 +17,17 @@ service cloud.firestore {
         allow read, write, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
+
+    // --- Challenge / Lobby System ---
+    match /lobbies/{lobbyId} {
+      // อนุญาตให้อ่านได้ถ้าล็อกอินแล้ว (เพื่อให้เห็นห้องและคะแนน)
+      allow read: if request.auth != null;
+      
+      // อนุญาตให้สร้างและอัปเดตได้ถ้าล็อกอินแล้ว (สำหรับ Create, Join และ Update Score)
+      allow create, update: if request.auth != null;
+      
+      // อนุญาตให้ลบได้เฉพาะ Host (เจ้าของห้อง) เท่านั้น
+      allow delete: if request.auth != null && request.auth.uid == resource.data.hostId;
+    }
   }
 }
