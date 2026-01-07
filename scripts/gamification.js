@@ -1621,6 +1621,8 @@ export class Gamification {
         const lowerQuestCat = questCat.toLowerCase();
 
         if (lowerQuestCat === 'astronomy') {
+            // Prevent Earth Science Review (ESr) from matching Astronomy quests
+            if (lowerQuizId.startsWith('es')) return false;
             return lowerQuizCat.includes('astronomy') || lowerQuizCat.includes('ดาราศาสตร์') || lowerQuizId.startsWith('astro') || lowerQuizId.startsWith('junior') || lowerQuizId.startsWith('senior');
         }
         if (lowerQuestCat === 'earth') {

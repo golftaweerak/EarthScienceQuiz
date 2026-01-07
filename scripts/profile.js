@@ -1273,18 +1273,23 @@ function renderBadges(game) {
         if (!isEarned) {
             if (progress) {
                 const percent = Math.min(100, Math.max(0, (progress.current / progress.target) * 100));
+                
+                let progressColor = 'bg-red-500';
+                if (percent >= 70) progressColor = 'bg-green-500';
+                else if (percent >= 30) progressColor = 'bg-yellow-400';
+
                 overlayHtml = `
-                    <div class="absolute inset-x-0 bottom-2 px-2 flex flex-col items-center z-10">
-                        <div class="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden shadow-sm">
-                            <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                    <div class="absolute inset-x-0 bottom-1 px-1.5 flex flex-col items-center z-10">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden mb-0.5 shadow-sm border border-gray-100 dark:border-gray-600">
+                            <div class="${progressColor} h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
                         </div>
-                        <div class="text-[10px] font-bold text-gray-800 dark:text-white mt-1 bg-white/95 dark:bg-gray-900/90 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-sm border border-gray-100 dark:border-gray-600">
+                        <span class="text-[9px] font-bold text-gray-600 dark:text-gray-300 bg-white/95 dark:bg-gray-900/95 px-1.5 py-0.5 rounded-full border border-gray-100 dark:border-gray-700 leading-tight whitespace-nowrap shadow-sm">
                             ${progress.current}/${progress.target} ${progress.label}
-                        </div>
+                        </span>
                     </div>
                 `;
             } else {
-                overlayHtml = '<div class="absolute inset-0 flex items-center justify-center"><span class="text-xs font-bold text-gray-500 bg-white/80 dark:bg-black/80 px-2 py-1 rounded">Locked</span></div>';
+                overlayHtml = '<div class="absolute inset-0 flex items-center justify-center"><span class="text-[9px] font-bold text-gray-500 bg-white/90 dark:bg-black/90 px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wider backdrop-blur-[1px]">Locked</span></div>';
             }
         }
 
