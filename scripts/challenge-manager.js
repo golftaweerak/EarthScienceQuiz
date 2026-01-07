@@ -474,7 +474,7 @@ export class ChallengeManager {
                 const playerData = {
                     uid: user.uid,
                     name: user.displayName || 'Player',
-                    avatar: this.getUserAvatar(),
+                    avatar: this.getUserAvatar() || '🧑‍🎓',
                     ready: true,
                     score: 0,
                     progress: 0
@@ -490,7 +490,15 @@ export class ChallengeManager {
             this.listenToLobby(lobbyId);
         } catch (error) {
             console.error("Error joining lobby:", error);
-            showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${error.message}`, '❌', 'error');
+            
+            let msg = error.message;
+            if (error.code === 'permission-denied') {
+                msg = 'ไม่มีสิทธิ์เข้าร่วม (อาจเกิดจาก Security Rules)';
+            } else if (error.code === 'unavailable') {
+                msg = 'ปัญหาการเชื่อมต่อเครือข่าย';
+            }
+            
+            showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${msg}`, '❌', 'error');
         }
     }
 
