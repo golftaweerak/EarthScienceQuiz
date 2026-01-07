@@ -70,6 +70,7 @@ export async function initializeQuiz() {
     const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
 
     const urlParams = new URLSearchParams(window.location.search);
+    const seedParam = urlParams.get('seed');
     const quizId = urlParams.get('id');
     const action = urlParams.get('action'); // Get the action from URL, e.g., 'view_results'
 
@@ -137,7 +138,7 @@ export async function initializeQuiz() {
             const selectedQuestions = allQuestions.slice(0, amount);
 
             // Init Quiz
-            initQuizApp(selectedQuestions, `quizState-challenge-${seed}`, "Challenge Mode", null, action);
+            initQuizApp(selectedQuestions, `quizState-challenge-${seed}`, "Challenge Mode", null, action, true);
             return;
 
         } catch (error) {
@@ -173,7 +174,17 @@ export async function initializeQuiz() {
             return;
         }
 
-        const processedQuizData = processQuizData(data, quizInfo);
+        let processedQuizData = processQuizData(data, quizInfo);
+
+        // --- NEW: Shuffle specific quiz if seed exists (for Challenge/Coop fairness) ---
+        if (seedParam) {
+            const seed = parseInt(seedParam);
+            const rng = mulberry32(seed);
+            for (let i = processedQuizData.length - 1; i > 0; i--) {
+                const j = Math.floor(rng() * (i + 1));
+                [processedQuizData[i], processedQuizData[j]] = [processedQuizData[j], processedQuizData[i]];
+            }
+        }
 
         // 5. Populate the page with quiz-specific info
         populatePage(quizInfo.title, quizInfo.description);
@@ -200,7 +211,7 @@ export async function initializeQuiz() {
         }
 
         // 6. Initialize the quiz logic with the processed data
-        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, null, action);
+        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, null, action, !!seedParam);
 
     } catch (error) {
         console.error(`Error loading quiz data for ID ${quizId}:`, error);

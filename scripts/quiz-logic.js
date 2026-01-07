@@ -141,7 +141,7 @@ function ensurePowerUpModalExists() {
  * @param {string} quizTitle - The title of the current quiz.
  * @param {number|null} customTime - Custom time in seconds, if provided.
  */
-export function init(quizData, storageKey, quizTitle, customTime, action) {
+export function init(quizData, storageKey, quizTitle, customTime, action, disableShuffle = false) {
   // Ensure the power-up modal exists in the DOM
   ensurePowerUpModalExists();
 
@@ -227,6 +227,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action) {
     questionCount: 0,    // NEW
     lobbyId: null,       // NEW: For Real-time Challenge
     mode: null,          // NEW: 'challenge' or 'coop'
+    disableShuffle: disableShuffle, // NEW: Flag to prevent re-shuffling
   };
 
   // --- 3. Initial Setup ---
@@ -491,6 +492,55 @@ function setupPowerUpUI() {
     }
 }
 
+function updatePlayersListUI(players) {
+    const container = document.getElementById('quiz-players-list');
+    if (!container) return;
+
+    const myUid = state.game.authManager.currentUser?.uid;
+
+    // Sort players by score descending
+    const sortedPlayers = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    container.innerHTML = sortedPlayers.map(p => {
+        const isMe = p.uid === myUid;
+        if (isMe) return ''; // Don't show myself in the floating list
+
+        const score = p.score || 0;
+        const lastStatus = p.lastAnswerStatus; // 'correct', 'incorrect', or null
+        
+        let statusHtml = '';
+        let bgClass = 'bg-white/90 dark:bg-gray-800/90 border-gray-200 dark:border-gray-700';
+        let textClass = 'text-gray-800 dark:text-gray-200';
+        
+        if (lastStatus === 'correct') {
+            statusHtml = '<span class="text-lg animate-bounce">✅</span>';
+            bgClass = 'bg-green-100/90 dark:bg-green-900/80 border-green-300 dark:border-green-700';
+            textClass = 'text-green-900 dark:text-green-100';
+        } else if (lastStatus === 'incorrect') {
+            statusHtml = '<span class="text-lg animate-pulse">❌</span>';
+            bgClass = 'bg-red-100/90 dark:bg-red-900/80 border-red-300 dark:border-red-700';
+            textClass = 'text-red-900 dark:text-red-100';
+        }
+
+        const avatar = p.avatar || '🧑‍🎓';
+        const isImage = avatar.includes('/') || avatar.includes('.');
+        const avatarHtml = isImage 
+            ? `<img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">`
+            : `<span class="text-xl">${avatar}</span>`;
+
+        return `
+            <div class="flex items-center gap-3 p-2 rounded-xl border shadow-sm transition-all duration-500 ${bgClass} backdrop-blur-sm transform translate-x-0">
+                <div class="flex-shrink-0">${avatarHtml}</div>
+                <div class="flex-grow min-w-0">
+                    <div class="text-xs font-bold ${textClass} truncate max-w-[100px]">${p.name}</div>
+                    <div class="text-[10px] font-mono opacity-80 ${textClass}">${score} pts</div>
+                </div>
+                <div class="flex-shrink-0">${statusHtml}</div>
+            </div>
+        `;
+    }).join('');
+}
+
 function setupCoopListener() {
     const scoreCounter = elements.scoreCounter;
     if (!scoreCounter) return;
@@ -506,6 +556,14 @@ function setupCoopListener() {
         scoreCounter.parentNode.insertBefore(teamScoreEl, scoreCounter.nextSibling);
     }
     elements.teamScoreDisplay = teamScoreEl;
+
+    // Create Players List Container if not exists
+    if (!document.getElementById('quiz-players-list')) {
+        const playersListEl = document.createElement('div');
+        playersListEl.id = 'quiz-players-list';
+        playersListEl.className = "fixed top-24 right-4 z-30 flex flex-col gap-2 max-w-[200px] pointer-events-none transition-all duration-300"; 
+        document.body.appendChild(playersListEl);
+    }
 
     const lobbyRef = doc(db, 'lobbies', state.lobbyId);
     // Listen for real-time updates
@@ -2145,7 +2203,12 @@ function startQuiz() {
   // Filter out any potential null or undefined questions from the source data
   // to prevent errors during the quiz, especially in the results analysis.
   const validQuizData = state.quizData.filter(q => q);
-  state.shuffledQuestions = shuffleArray([...validQuizData]);
+  
+  if (state.disableShuffle) {
+      state.shuffledQuestions = [...validQuizData]; // Use exact order provided
+  } else {
+      state.shuffledQuestions = shuffleArray([...validQuizData]);
+  }
 
   switchScreen(elements.quizScreen);
   elements.quizTitleDisplay.textContent = state.quizTitle;
@@ -2417,6 +2480,13 @@ async function sendScoreToLobby() {
     try {
         const lobbyRef = doc(db, 'lobbies', state.lobbyId);
         const snapshot = await getDoc(lobbyRef);
+
+        // Determine last answer status
+        let lastAnswerStatus = null;
+        const currentAns = state.userAnswers[state.currentQuestionIndex];
+        if (currentAns) {
+            lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
+        }
         
         if (snapshot.exists()) {
             const data = snapshot.data();
@@ -2429,7 +2499,8 @@ async function sendScoreToLobby() {
                         ...p, 
                         score: state.score,
                         progress: state.currentQuestionIndex + 1,
-                        totalQuestions: state.shuffledQuestions.length
+                        totalQuestions: state.shuffledQuestions.length,
+                        lastAnswerStatus: lastAnswerStatus
                     };
                 }
                 return p;
