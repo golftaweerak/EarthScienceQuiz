@@ -28,6 +28,32 @@ function animateValue(obj, start, end, duration, prefix = '') {
     };
     obj.animationId = window.requestAnimationFrame(step);
 }
+
+function injectQuizAnimations() {
+    if (document.getElementById('quiz-animations-style')) return;
+    const style = document.createElement('style');
+    style.id = 'quiz-animations-style';
+    style.innerHTML = `
+        @keyframes screen-shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .anim-screen-shake {
+            animation: screen-shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes score-pop-up {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #22c55e; }
+            100% { transform: scale(1); }
+        }
+        .anim-score-pop {
+            animation: score-pop-up 0.6s ease-out;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // state: Stores all dynamic data of the quiz
 let state = {};
 // elements: Caches all DOM elements for quick access
@@ -144,6 +170,7 @@ function ensurePowerUpModalExists() {
 export function init(quizData, storageKey, quizTitle, customTime, action, disableShuffle = false) {
   // Ensure the power-up modal exists in the DOM
   ensurePowerUpModalExists();
+  injectQuizAnimations();
 
   // --- 1. Element Caching ---
   elements = {
@@ -492,7 +519,7 @@ function setupPowerUpUI() {
     }
 }
 
-function updatePlayersListUI(players) {
+function updatePlayersListUI(players, scoreChangedPlayers = new Set()) {
     const container = document.getElementById('quiz-players-list');
     if (!container) return;
 
@@ -507,6 +534,7 @@ function updatePlayersListUI(players) {
 
         const score = p.score || 0;
         const lastStatus = p.lastAnswerStatus; // 'correct', 'incorrect', or null
+        const isScoreChanged = scoreChangedPlayers.has(p.uid);
         
         let statusHtml = '';
         let bgClass = 'bg-white/90 dark:bg-gray-800/90 border-gray-200 dark:border-gray-700';
@@ -528,12 +556,14 @@ function updatePlayersListUI(players) {
             ? `<img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">`
             : `<span class="text-xl">${avatar}</span>`;
 
+        const scoreClass = isScoreChanged ? 'anim-score-pop font-bold text-green-600 dark:text-green-400' : `opacity-80 ${textClass}`;
+
         return `
             <div class="flex items-center gap-3 p-2 rounded-xl border shadow-sm transition-all duration-500 ${bgClass} backdrop-blur-sm transform translate-x-0">
                 <div class="flex-shrink-0">${avatarHtml}</div>
                 <div class="flex-grow min-w-0">
                     <div class="text-xs font-bold ${textClass} truncate max-w-[100px]">${p.name}</div>
-                    <div class="text-[10px] font-mono opacity-80 ${textClass}">${score} pts</div>
+                    <div class="text-[10px] font-mono ${scoreClass}">${score} pts</div>
                 </div>
                 <div class="flex-shrink-0">${statusHtml}</div>
             </div>
@@ -564,6 +594,8 @@ function setupCoopListener() {
         playersListEl.className = "fixed top-24 right-4 z-30 flex flex-col gap-2 max-w-[200px] pointer-events-none transition-all duration-300"; 
         document.body.appendChild(playersListEl);
     }
+
+    let previousPlayersData = {};
 
     const lobbyRef = doc(db, 'lobbies', state.lobbyId);
     // Listen for real-time updates
