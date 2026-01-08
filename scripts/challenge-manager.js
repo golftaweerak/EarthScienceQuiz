@@ -11,6 +11,8 @@ export class ChallengeManager {
         this.unsubscribe = null;
         this.chatUnsubscribe = null;
         this.isHost = false;
+        this.isStarting = false; // สถานะกำลังเริ่มเกม (นับถอยหลัง)
+        this.countdownTimer = null; // ตัวเก็บ timer
         this.lobbyModal = null; // Will be initialized after injection
         this.kickModal = null; // Will be initialized after injection
         this.kickConfirmModal = null; // New: For host confirmation
@@ -753,9 +755,11 @@ export class ChallengeManager {
         if (startBtn && waitingMsg) {
             if (data.status === 'started') {
                 startBtn.classList.add('hidden');
-                waitingMsg.textContent = 'การแข่งขันกำลังดำเนินอยู่...';
-                waitingMsg.classList.remove('hidden');
-                waitingMsg.classList.add('text-green-600', 'font-bold');
+                if (!this.isStarting) { // แสดงข้อความนี้เฉพาะตอนที่ยังไม่เริ่มนับถอยหลัง (เช่น เข้ามาทีหลัง)
+                    waitingMsg.textContent = 'การแข่งขันกำลังดำเนินอยู่...';
+                    waitingMsg.classList.remove('hidden');
+                    waitingMsg.classList.add('text-green-600', 'font-bold');
+                }
             } else {
                 if (this.isHost) {
                     startBtn.classList.remove('hidden');
@@ -768,6 +772,39 @@ export class ChallengeManager {
                 }
             }
         }
+    }
+
+    startCountdownAndGo(quizConfig, mode) {
+        const waitingMsg = document.getElementById('lobby-waiting-msg');
+        const startBtn = document.getElementById('lobby-start-btn');
+        
+        if (startBtn) startBtn.classList.add('hidden');
+        
+        if (waitingMsg) {
+            waitingMsg.classList.remove('hidden');
+            waitingMsg.classList.remove('text-gray-500');
+            waitingMsg.classList.add('text-green-600', 'font-bold', 'text-2xl', 'animate-pulse');
+        }
+
+        let count = 3;
+        const updateCount = () => {
+            if (waitingMsg) waitingMsg.textContent = `เริ่มเกมใน ${count}...`;
+        };
+        updateCount();
+
+        this.countdownTimer = setInterval(() => {
+            count--;
+            if (count > 0) {
+                updateCount();
+            } else {
+                clearInterval(this.countdownTimer);
+                this.countdownTimer = null;
+                if (waitingMsg) waitingMsg.textContent = "ไปลุยกันเลย! 🚀";
+                setTimeout(() => {
+                    this.goToQuiz(quizConfig, mode);
+                }, 500);
+            }
+        }, 1000);
     }
 
     async startGame() {
@@ -791,8 +828,10 @@ export class ChallengeManager {
 
         if (this.unsubscribe) this.unsubscribe();
         if (this.chatUnsubscribe) this.chatUnsubscribe();
+        if (this.countdownTimer) clearInterval(this.countdownTimer);
         this.currentLobbyId = null;
         this.isHost = false;
+        this.isStarting = false;
         this.lobbyModal.close();
 
         // Remove from DB
