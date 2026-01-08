@@ -599,7 +599,7 @@ function setupCoopListener() {
     // Create Team Score Element
     const teamScoreEl = document.createElement('div');
     teamScoreEl.id = 'team-score-counter';
-    teamScoreEl.className = "font-kanit text-lg font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-all duration-300 transform ml-2";
+    teamScoreEl.className = "font-kanit text-sm sm:text-lg font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-all duration-300 transform ml-1 sm:ml-2 whitespace-nowrap flex-shrink-0";
     teamScoreEl.innerHTML = `🤝 ทีม: 0`;
     
     // Insert after individual score
