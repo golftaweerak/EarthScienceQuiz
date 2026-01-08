@@ -1624,11 +1624,16 @@ function showResults() {
       let subCatStr = '';
       if (ans.subCategory) {
         if (typeof ans.subCategory === 'string') subCatStr = ans.subCategory;
-        else if (ans.subCategory.main) subCatStr = ans.subCategory.main;
+        else if (ans.subCategory.main) {
+            subCatStr = ans.subCategory.main;
+            // รวมหมวดหมู่ย่อยด้วยเพื่อให้การค้นหาแม่นยำขึ้น
+            if (ans.subCategory.specific) subCatStr += ' ' + ans.subCategory.specific;
+        }
       }
 
       for (const [groupKey, groupDef] of Object.entries(PROFICIENCY_GROUPS)) {
-        if (groupDef.keywords.some(k => subCatStr.includes(k))) {
+        // FIX: ใช้ toLowerCase() เพื่อให้การตรวจสอบไม่ขึ้นกับตัวพิมพ์เล็ก-ใหญ่
+        if (groupDef.keywords.some(k => subCatStr.toLowerCase().includes(k.toLowerCase()))) {
           topicXPs[groupDef.field] = (topicXPs[groupDef.field] || 0) + points;
           break;
         }
