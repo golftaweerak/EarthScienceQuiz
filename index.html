@@ -91,67 +91,6 @@
         <!-- Placeholder for all common modals, loaded by app-loader.js -->
         <div id="modals-placeholder"></div>
 
-        <!-- Challenge Menu Modal -->
-        <div id="challenge-menu-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
-            <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 transform transition-all scale-100 border border-gray-200 dark:border-gray-700 relative">
-                <button id="close-challenge-menu-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-                
-                <div class="text-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit">โหมดเล่นกับเพื่อน</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">เลือกรูปแบบการเล่น</p>
-                </div>
-
-                <div class="space-y-3">
-                    <button id="create-challenge-btn" class="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-red-100 dark:border-red-900/30 hover:border-red-500 dark:hover:border-red-500 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all group text-left">
-                        <div class="w-12 h-12 rounded-full bg-red-500 text-white flex items-center justify-center text-xl shadow-md group-hover:scale-110 transition-transform">⚔️</div>
-                        <div>
-                            <div class="font-bold text-gray-800 dark:text-gray-100">สร้างห้องใหม่</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">เป็นหัวหน้าห้องและเชิญเพื่อน</div>
-                        </div>
-                    </button>
-
-                    <button id="join-challenge-btn" class="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-orange-100 dark:border-orange-900/30 hover:border-orange-500 dark:hover:border-orange-500 bg-orange-50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-all group text-left">
-                        <div class="w-12 h-12 rounded-full bg-orange-500 text-white flex items-center justify-center text-xl shadow-md group-hover:scale-110 transition-transform">🔑</div>
-                        <div>
-                            <div class="font-bold text-gray-800 dark:text-gray-100">เข้าร่วมห้อง</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">กรอกรหัสเพื่อเข้าเล่น</div>
-                        </div>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lobby Modal -->
-        <div id="lobby-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
-            <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all scale-100 border border-gray-200 dark:border-gray-700">
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl shadow-inner">⚔️</div>
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit">ห้องเตรียมตัว</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">รหัสห้อง: <span id="lobby-room-id" class="font-mono font-bold text-xl text-blue-600 dark:text-blue-400 select-all bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-800">...</span></p>
-                    <button id="copy-lobby-link-btn" class="mt-2 text-xs text-gray-500 hover:text-blue-500 underline cursor-pointer">คัดลอกลิงก์เชิญเพื่อน</button>
-                </div>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-bold text-gray-700 dark:text-gray-300">ผู้เข้าร่วม (<span id="lobby-player-count">0</span>)</span>
-                    </div>
-                    <div id="lobby-players-list" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar-menu bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl border border-gray-100 dark:border-gray-700 min-h-[100px]">
-                        <!-- Players injected here -->
-                    </div>
-                </div>
-
-                <div class="flex gap-3 mt-6">
-                    <button id="lobby-leave-btn" class="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">ออก</button>
-                    <button id="lobby-start-btn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold shadow-lg hover:shadow-red-500/30 hover:scale-105 transition-all hidden">เริ่มแข่งขัน!</button>
-                    <div id="lobby-waiting-msg" class="flex-1 py-2.5 text-center text-sm text-gray-500 animate-pulse hidden">รอหัวหน้าห้องเริ่มเกม...</div>
-                </div>
-            </div>
-        </div>
-
         <!-- Scroll to Top Button -->
     <button id="scroll-to-top-btn" aria-label="เลื่อนขึ้นบนสุด"
         class="opacity-0 pointer-events-none fixed bottom-6 right-6 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-opacity duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 z-40">
@@ -196,37 +135,6 @@
                 }, 3000);
             }
         });
-
-        // Logic for Challenge Menu Modal
-        const challengeMenuBtn = document.getElementById('open-challenge-menu-btn');
-        const challengeMenuModal = document.getElementById('challenge-menu-modal');
-        const closeChallengeMenuBtn = document.getElementById('close-challenge-menu-btn');
-        const createBtn = document.getElementById('create-challenge-btn');
-        const joinBtn = document.getElementById('join-challenge-btn');
-
-        function toggleChallengeMenu() {
-            if (challengeMenuModal.classList.contains('hidden')) {
-                challengeMenuModal.classList.remove('hidden');
-                setTimeout(() => challengeMenuModal.classList.add('is-open'), 10);
-            } else {
-                challengeMenuModal.classList.remove('is-open');
-                setTimeout(() => challengeMenuModal.classList.add('hidden'), 300);
-            }
-        }
-
-        if (challengeMenuBtn) challengeMenuBtn.addEventListener('click', toggleChallengeMenu);
-        if (closeChallengeMenuBtn) closeChallengeMenuBtn.addEventListener('click', toggleChallengeMenu);
-        
-        // Close menu when an option is selected (ChallengeManager will handle the rest)
-        if (createBtn) createBtn.addEventListener('click', () => toggleChallengeMenu());
-        if (joinBtn) joinBtn.addEventListener('click', () => toggleChallengeMenu());
-
-        // Close on backdrop click
-        if (challengeMenuModal) {
-            challengeMenuModal.addEventListener('click', (e) => {
-                if (e.target === challengeMenuModal) toggleChallengeMenu();
-            });
-        }
     </script>
 </body>
 
