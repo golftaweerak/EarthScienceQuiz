@@ -58,7 +58,7 @@ export class ChallengeManager {
                             <span class="text-sm font-bold text-gray-700 dark:text-gray-300">ผู้เล่น (<span id="lobby-player-count">0</span>)</span>
                             <span id="lobby-waiting-msg" class="text-xs text-green-600 font-bold animate-pulse hidden">รอหัวหน้าห้องเริ่มเกม...</span>
                         </div>
-                        <div id="lobby-players-list" class="space-y-2 max-h-40 overflow-y-auto modern-scrollbar p-1">
+                        <div id="lobby-players-list" class="space-y-2 max-h-60 overflow-y-auto modern-scrollbar p-1">
                             <!-- Players injected here -->
                         </div>
                     </div>
@@ -294,7 +294,7 @@ export class ChallengeManager {
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all flex flex-col max-h-[80vh]">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกชุดข้อสอบ</h3>
                     
-                    <div class="overflow-y-auto flex-1 pr-2 custom-scrollbar space-y-2">
+                    <div class="overflow-y-auto flex-1 pr-2 modern-scrollbar space-y-2">
                         <button id="quiz-select-random" class="w-full flex items-center gap-3 p-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all text-left group mb-4">
                             <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform">🎲</div>
                             <div>
