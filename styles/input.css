@@ -9,7 +9,7 @@
 @layer base {
   option {
     background-color: white;
-    color: #111827;
+    color: #1f2937;
   }
   .dark option {
     background-color: #1f2937;
@@ -29,7 +29,7 @@ body {
   font-family: "Sarabun", sans-serif;
   word-break: thai;
   background-color: white;
-  color: #111827;
+  color: #1f2937;
   animation: fade-in 0.5s ease-in-out;
 }
 
