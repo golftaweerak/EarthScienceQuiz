@@ -467,3 +467,166 @@
         </div>
     </div>
 </div>
+
+<!-- Challenge System Modals -->
+
+<!-- Challenge Menu Modal -->
+<div id="challenge-menu-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4 font-sarabun" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all relative">
+        <button data-modal-close class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-kanit text-center">เล่นกับเพื่อน ⚔️</h3>
+        <div class="space-y-4">
+            <button id="challenge-create-btn" class="w-full py-4 rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold text-lg shadow-lg hover:shadow-red-500/30 hover:scale-105 transition-all flex items-center justify-center gap-3 btn-press-anim">
+                <span>👑</span> สร้างห้องใหม่
+            </button>
+            <button id="challenge-join-btn" class="w-full py-4 rounded-xl bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-white font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-all flex items-center justify-center gap-3 btn-press-anim">
+                <span>🔑</span> เข้าร่วมห้อง
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Join Lobby Modal -->
+<div id="join-lobby-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4 font-sarabun" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เข้าร่วมการแข่งขัน</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">รหัสห้อง (6 หลัก)</label>
+            <input type="text" id="join-room-code-input" maxlength="6" placeholder="000000" class="w-full text-center text-3xl font-mono tracking-widest py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 focus:border-blue-500 focus:ring-0 uppercase" />
+        </div>
+        <div class="flex gap-3">
+            <button id="cancel-join-btn" data-modal-close class="flex-1 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold btn-press-anim">ยกเลิก</button>
+            <button id="confirm-join-btn" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 btn-press-anim">เข้าร่วม</button>
+        </div>
+    </div>
+</div>
+
+<!-- Lobby Modal -->
+<div id="lobby-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4 font-sarabun" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+        <div class="text-center mb-6">
+            <div class="inline-block p-3 rounded-full bg-orange-100 dark:bg-orange-900/30 text-4xl mb-2">⛺</div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit">ห้องพักนักกีฬา</h3>
+            <div class="mt-2 flex items-center justify-center gap-2">
+                <span class="text-gray-500 dark:text-gray-400">รหัสห้อง:</span>
+                <span id="lobby-room-id-display" class="font-mono text-xl font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded cursor-pointer select-all" title="คลิกเพื่อคัดลอก">...</span>
+            </div>
+            <div id="lobby-quiz-name" class="mt-2 text-sm font-medium text-purple-600 dark:text-purple-400"></div>
+        </div>
+        
+        <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 mb-4 min-h-[150px]">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-bold text-gray-700 dark:text-gray-300">ผู้เล่น (<span id="lobby-player-count">0</span>)</span>
+                <span id="lobby-waiting-msg" class="text-xs text-green-600 font-bold animate-pulse hidden">รอหัวหน้าห้องเริ่มเกม...</span>
+            </div>
+            <div id="lobby-players-list" class="space-y-2 max-h-60 overflow-y-auto modern-scrollbar p-1">
+                <!-- Players injected here -->
+            </div>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="mb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div id="lobby-chat-messages" class="h-32 overflow-y-auto bg-white dark:bg-gray-900 rounded-lg p-2 mb-2 text-sm border border-gray-200 dark:border-gray-700 modern-scrollbar">
+                <!-- Chat messages -->
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="lobby-chat-input" class="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="พิมพ์ข้อความ...">
+                <button id="lobby-chat-send-btn" class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button id="lobby-leave-btn" class="flex-1 py-3 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors btn-press-anim">ออก</button>
+            <button id="lobby-start-btn" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold shadow-lg hover:shadow-green-500/30 hover:scale-105 transition-all hidden btn-press-anim">เริ่มเกม!</button>
+        </div>
+    </div>
+</div>
+
+<!-- Mode Selection Modal -->
+<div id="mode-select-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4 font-sarabun" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกโหมดการแข่งขัน</h3>
+        <div class="grid grid-cols-1 gap-4">
+            <button class="mode-select-btn w-full p-4 rounded-xl border-2 border-blue-100 dark:border-blue-900/30 hover:border-blue-500 dark:hover:border-blue-500 bg-blue-50 dark:bg-blue-900/10 transition-all text-left group btn-press-anim" data-mode="classic">
+                <div class="flex items-center gap-4">
+                    <div class="text-3xl group-hover:scale-110 transition-transform">🏆</div>
+                    <div>
+                        <div class="font-bold text-gray-900 dark:text-white">Classic Mode</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">แข่งกันทำคะแนนสูงสุดในเวลาที่กำหนด</div>
+                    </div>
+                </div>
+            </button>
+            <button class="mode-select-btn w-full p-4 rounded-xl border-2 border-purple-100 dark:border-purple-900/30 hover:border-purple-500 dark:hover:border-purple-500 bg-purple-50 dark:bg-purple-900/10 transition-all text-left group btn-press-anim" data-mode="speed">
+                <div class="flex items-center gap-4">
+                    <div class="text-3xl group-hover:scale-110 transition-transform">⚡</div>
+                    <div>
+                        <div class="font-bold text-gray-900 dark:text-white">Speed Run</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">ใครตอบถูกครบ 10 ข้อก่อนชนะ</div>
+                    </div>
+                </div>
+            </button>
+             <button class="mode-select-btn w-full p-4 rounded-xl border-2 border-green-100 dark:border-green-900/30 hover:border-green-500 dark:hover:border-green-500 bg-green-50 dark:bg-green-900/10 transition-all text-left group btn-press-anim" data-mode="coop">
+                <div class="flex items-center gap-4">
+                    <div class="text-3xl group-hover:scale-110 transition-transform">🤝</div>
+                    <div>
+                        <div class="font-bold text-gray-900 dark:text-white">Co-op Mode</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">ช่วยกันทำคะแนนรวมให้ถึงเป้าหมาย</div>
+                    </div>
+                </div>
+            </button>
+        </div>
+        <button data-modal-close class="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">ยกเลิก</button>
+    </div>
+</div>
+
+<!-- Kick Notification Modal -->
+<div id="kick-notification-modal" class="modal hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+            <span class="text-4xl animate-bounce">👢</span>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">คุณถูกเชิญออก</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-6 text-sm">หัวหน้าห้องได้เชิญคุณออกจากห้องเตรียมตัว</p>
+        <button id="kick-ack-btn" class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white font-bold hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-lg transform hover:scale-[1.02] btn-press-anim">รับทราบ</button>
+    </div>
+</div>
+
+<!-- Host Kick Confirmation Modal -->
+<div id="kick-confirm-modal" class="modal hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit mb-2">ยืนยันการเชิญออก</h3>
+        <p id="kick-confirm-desc" class="text-gray-600 dark:text-gray-300 mb-6 text-sm">คุณต้องการเชิญผู้เล่นนี้ออกจากห้องใช่หรือไม่?</p>
+        <div class="flex gap-3">
+            <button id="kick-confirm-cancel-btn" class="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors btn-press-anim">ยกเลิก</button>
+            <button id="kick-confirm-ok-btn" class="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-md btn-press-anim">เชิญออก</button>
+        </div>
+    </div>
+</div>
+
+<!-- Quiz Selection Modal (Challenge) -->
+<div id="quiz-select-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-75 p-4 font-sarabun" role="dialog" aria-modal="true">
+    <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all flex flex-col max-h-[80vh]">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกชุดข้อสอบ</h3>
+        
+        <div class="overflow-y-auto flex-1 pr-2 modern-scrollbar space-y-2">
+            <button id="quiz-select-random" class="w-full flex items-center gap-3 p-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all text-left group mb-4 btn-press-anim">
+                <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform">🎲</div>
+                <div>
+                    <div class="font-bold text-gray-800 dark:text-gray-100">สุ่มข้อสอบ (Random)</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">สุ่มจากทุกหมวดหมู่ 20 ข้อ</div>
+                </div>
+            </button>
+            
+            <div id="challenge-quiz-list" class="space-y-2">
+                <!-- Quiz items injected here -->
+            </div>
+        </div>
+        <button data-modal-close class="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">ยกเลิก</button>
+    </div>
+</div>

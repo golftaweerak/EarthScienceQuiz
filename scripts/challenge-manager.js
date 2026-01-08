@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp, collection, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp, collection, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { authManager } from './auth-manager.js';
 import { showToast } from './toast.js';
 import { ModalHandler } from './modal-handler.js';
@@ -15,6 +15,10 @@ export class ChallengeManager {
         this.kickModal = null; // Will be initialized after injection
         this.kickConfirmModal = null; // New: For host confirmation
         this.pendingKickUid = null; // New: Store UID to kick
+        this.mainMenuModal = null;
+        this.joinModal = null;
+        this.modeModal = null;
+        this.quizModal = null;
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -27,86 +31,18 @@ export class ChallengeManager {
     }
 
     init() {
-        this.injectLobbyModal(); // Inject HTML first
-        this.lobbyModal = new ModalHandler('lobby-modal'); // Then initialize handler
-        this.kickModal = new ModalHandler('kick-notification-modal'); // Initialize kick modal handler
-        this.kickConfirmModal = new ModalHandler('kick-confirm-modal'); // Initialize host confirm modal
+        
+        // Initialize handlers for existing modals
+        this.lobbyModal = new ModalHandler('lobby-modal');
+        this.kickModal = new ModalHandler('kick-notification-modal');
+        this.kickConfirmModal = new ModalHandler('kick-confirm-modal');
+        this.mainMenuModal = new ModalHandler('challenge-menu-modal');
+        this.joinModal = new ModalHandler('join-lobby-modal');
+        this.modeModal = new ModalHandler('mode-select-modal');
+        this.quizModal = new ModalHandler('quiz-select-modal');
+
         this.setupUI();
         this.checkUrlForLobby();
-    }
-
-    injectLobbyModal() {
-        if (document.getElementById('lobby-modal')) return;
-        
-        const modalHtml = `
-            <div id="lobby-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75" role="dialog" aria-modal="true">
-                <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all scale-100 relative">
-                    <div class="text-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">ห้องเตรียมตัว</h3>
-                        <p id="lobby-quiz-name" class="text-sm text-gray-500 dark:text-gray-400 mb-4">กำลังโหลด...</p>
-                        <div class="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg border border-blue-100 dark:border-blue-800">
-                            <span class="text-sm text-gray-500 dark:text-gray-400">รหัสห้อง:</span>
-                            <span id="lobby-room-id" class="text-xl font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider">------</span>
-                            <button id="copy-lobby-link-btn" class="ml-2 text-gray-400 hover:text-blue-500 transition-colors" title="คัดลอกรหัส">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <div class="flex justify-between items-end mb-2">
-                            <span class="text-sm font-bold text-gray-700 dark:text-gray-300">ผู้เล่น (<span id="lobby-player-count">0</span>)</span>
-                            <span id="lobby-waiting-msg" class="text-xs text-green-600 font-bold animate-pulse hidden">รอหัวหน้าห้องเริ่มเกม...</span>
-                        </div>
-                        <div id="lobby-players-list" class="space-y-2 max-h-60 overflow-y-auto modern-scrollbar p-1">
-                            <!-- Players injected here -->
-                        </div>
-                    </div>
-
-                    <!-- Chat Section -->
-                    <div class="mb-6">
-                        <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">แชทในห้อง</h4>
-                        <div id="lobby-chat-messages" class="h-32 overflow-y-auto modern-scrollbar bg-gray-50 dark:bg-gray-900/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 space-y-3 text-sm">
-                            <!-- Messages will be injected here -->
-                        </div>
-                        <div class="mt-2 flex gap-2">
-                            <input type="text" id="lobby-chat-input" class="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm" placeholder="พิมพ์ข้อความ...">
-                            <button id="lobby-chat-send-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 transition">ส่ง</button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="lobby-leave-btn" class="py-3 rounded-xl text-gray-600 dark:text-gray-300 font-bold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">ออกจากห้อง</button>
-                        <button id="lobby-start-btn" class="py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 transition-colors shadow-md hidden">เริ่มเกม 🚀</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kick Notification Modal -->
-            <div id="kick-notification-modal" class="modal hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
-                <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
-                    <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-                        <span class="text-4xl animate-bounce">👢</span>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">คุณถูกเชิญออก</h3>
-                    <p class="text-gray-600 dark:text-gray-300 mb-6 text-sm">หัวหน้าห้องได้เชิญคุณออกจากห้องเตรียมตัว</p>
-                    <button id="kick-ack-btn" class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white font-bold hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-lg transform hover:scale-[1.02]">รับทราบ</button>
-                </div>
-            </div>
-
-            <!-- Host Kick Confirmation Modal -->
-            <div id="kick-confirm-modal" class="modal hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true">
-                <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white font-kanit mb-2">ยืนยันการเชิญออก</h3>
-                    <p id="kick-confirm-desc" class="text-gray-600 dark:text-gray-300 mb-6 text-sm">คุณต้องการเชิญผู้เล่นนี้ออกจากห้องใช่หรือไม่?</p>
-                    <div class="flex gap-3">
-                        <button id="kick-confirm-cancel-btn" class="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">ยกเลิก</button>
-                        <button id="kick-confirm-ok-btn" class="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-md">เชิญออก</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
     setupUI() {
@@ -115,6 +51,19 @@ export class ChallengeManager {
         if (menuBtn) {
             menuBtn.addEventListener('click', () => this.openMainMenu());
         }
+        
+        // Menu Buttons (from modals_common.html)
+        const createBtn = document.getElementById('challenge-create-btn');
+        if (createBtn) createBtn.addEventListener('click', () => {
+            this.mainMenuModal.close();
+            this.openModeSelection();
+        });
+
+        const joinBtn = document.getElementById('challenge-join-btn');
+        if (joinBtn) joinBtn.addEventListener('click', () => {
+            this.mainMenuModal.close();
+            this.openJoinModal();
+        });
 
         const startBtn = document.getElementById('lobby-start-btn');
         if (startBtn) {
@@ -126,7 +75,7 @@ export class ChallengeManager {
             leaveBtn.addEventListener('click', () => this.leaveLobby());
         }
         
-        const copyBtn = document.getElementById('copy-lobby-link-btn');
+        const copyBtn = document.getElementById('lobby-room-id-display') || document.getElementById('copy-lobby-link-btn');
         if (copyBtn) {
             copyBtn.addEventListener('click', () => {
                 if (this.currentLobbyId) {
@@ -174,99 +123,57 @@ export class ChallengeManager {
                 this.kickConfirmModal.close();
             });
         }
+
+        // Join Modal Buttons
+        const confirmJoinBtn = document.getElementById('confirm-join-btn');
+        const joinInput = document.getElementById('join-room-code-input');
+        if (confirmJoinBtn && joinInput) {
+             confirmJoinBtn.addEventListener('click', () => this.handleJoinSubmit());
+             joinInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') this.handleJoinSubmit();
+             });
+             joinInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
+        }
+
+        // Mode Selection Buttons
+        document.querySelectorAll('.mode-select-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode;
+                this.modeModal.close();
+                this.openQuizSelection(mode);
+            });
+        });
+
+        // Quiz Select Random
+        const randomQuizBtn = document.getElementById('quiz-select-random');
+        if (randomQuizBtn) {
+            randomQuizBtn.addEventListener('click', () => {
+                this.quizModal.close();
+                this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)');
+            });
+        }
+
+        // Handle browser close/refresh
+        window.addEventListener('beforeunload', () => {
+            if (this.currentLobbyId) {
+                this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
+            }
+        });
     }
 
     openMainMenu() {
-        const modalHtml = `
-            <div id="challenge-menu-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
-                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 font-kanit text-center">โหมดท้าดวล ⚔️</h3>
-                    
-                    <div class="space-y-4">
-                        <button id="menu-create-btn" class="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all group">
-                            <div class="bg-white/20 p-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></div>
-                            <div class="text-left">
-                                <div class="font-bold text-lg">สร้างห้องใหม่</div>
-                                <div class="text-xs text-white/80">เป็นหัวหน้าห้องและชวนเพื่อน</div>
-                            </div>
-                        </button>
-
-                        <button id="menu-join-btn" class="w-full flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-gray-700 border-2 border-gray-100 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-600 transition-all group">
-                            <div class="bg-gray-100 dark:bg-gray-600 p-2 rounded-full text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg></div>
-                            <div class="text-left">
-                                <div class="font-bold text-gray-800 dark:text-white">เข้าร่วมห้อง</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">ใส่รหัสเพื่อเข้าร่วม</div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <button id="menu-close-btn" class="mt-6 w-full py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm font-medium transition-colors">ปิดเมนู</button>
-                </div>
-            </div>
-        `;
-
-        const existing = document.getElementById('challenge-menu-modal');
-        if (existing) existing.remove();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        document.getElementById('menu-create-btn').onclick = () => {
-            document.getElementById('challenge-menu-modal').remove();
-            this.openModeSelection();
-        };
-        document.getElementById('menu-join-btn').onclick = () => {
-            document.getElementById('challenge-menu-modal').remove();
-            this.openJoinModal();
-        };
-        document.getElementById('menu-close-btn').onclick = () => {
-            document.getElementById('challenge-menu-modal').remove();
-        };
+        this.mainMenuModal.open();
     }
 
     openModeSelection() {
-        const modalHtml = `
-            <div id="mode-select-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกโหมดการแข่งขัน</h3>
-                    <div class="grid grid-cols-1 gap-4">
-                        <button id="mode-challenge-btn" class="flex items-center gap-4 p-4 rounded-xl border-2 border-red-100 hover:border-red-500 bg-red-50 dark:bg-red-900/20 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all group text-left">
-                            <div class="text-3xl bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">⚔️</div>
-                            <div>
-                                <div class="font-bold text-red-600 dark:text-red-400">โหมดท้าดวล (Challenge)</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">แข่งกันทำคะแนนให้ได้มากที่สุด ใครดีใครได้!</div>
-                            </div>
-                        </button>
-                        <button id="mode-coop-btn" class="flex items-center gap-4 p-4 rounded-xl border-2 border-blue-100 hover:border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-900 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all group text-left">
-                            <div class="text-3xl bg-white dark:bg-gray-800 p-2 rounded-full shadow-sm group-hover:scale-110 transition-transform">🤝</div>
-                            <div>
-                                <div class="font-bold text-blue-600 dark:text-blue-400">โหมดร่วมมือ (Co-op)</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">ช่วยกันทำโจทย์ชุดเดียวกัน คะแนนรวมกันเป็นทีม</div>
-                            </div>
-                        </button>
-                    </div>
-                    <button id="mode-cancel-btn" class="mt-6 w-full py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-bold text-sm">ยกเลิก</button>
-                </div>
-            </div>
-        `;
-        
-        const existing = document.getElementById('mode-select-modal');
-        if (existing) existing.remove();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
-        document.getElementById('mode-challenge-btn').onclick = () => { 
-            document.getElementById('mode-select-modal').remove(); 
-            this.openQuizSelection('challenge'); 
-        };
-        document.getElementById('mode-coop-btn').onclick = () => { 
-            document.getElementById('mode-select-modal').remove(); 
-            this.openQuizSelection('coop'); 
-        };
-        document.getElementById('mode-cancel-btn').onclick = () => { document.getElementById('mode-select-modal').remove(); };
+        this.modeModal.open();
     }
 
     async openQuizSelection(mode) {
+        this.selectedMode = mode;
         let quizList = [];
         try {
-            const module = await import(`../data/quizzes-list.js?v=${Date.now()}`);
+            const module = await import(`../data/quizzes-list.js`);
             quizList = module.quizList || [];
         } catch (e) {
             console.error("Failed to load quiz list", e);
@@ -284,30 +191,17 @@ export class ChallengeManager {
 
         // Sort categories
         const sortedCategories = Object.keys(groupedQuizzes).sort((a, b) => {
-            const orderA = categoryDetails[a]?.order || 99;
-            const orderB = categoryDetails[b]?.order || 99;
+            const orderA = (categoryDetails && categoryDetails[a]?.order) || 99;
+            const orderB = (categoryDetails && categoryDetails[b]?.order) || 99;
             return orderA - orderB;
         });
 
-        const modalHtml = `
-            <div id="quiz-select-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all flex flex-col max-h-[80vh]">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เลือกชุดข้อสอบ</h3>
-                    
-                    <div class="overflow-y-auto flex-1 pr-2 modern-scrollbar space-y-2">
-                        <button id="quiz-select-random" class="w-full flex items-center gap-3 p-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all text-left group mb-4">
-                            <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-lg shadow-sm group-hover:scale-110 transition-transform">🎲</div>
-                            <div>
-                                <div class="font-bold text-gray-800 dark:text-gray-100">สุ่มคำถาม (Random)</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">สุ่มจากทุกวิชา 20 ข้อ</div>
-                            </div>
-                        </button>
-
-                        <div class="border-t border-gray-200 dark:border-gray-700 mb-4"></div>
-                        
+        const container = document.getElementById('challenge-quiz-list');
+        if (container) {
+            container.innerHTML = `
                         ${sortedCategories.map(catKey => {
                             const quizzes = groupedQuizzes[catKey];
-                            const catDetail = categoryDetails[catKey] || { title: catKey, icon: './assets/icons/study.png' };
+                            const catDetail = (categoryDetails && categoryDetails[catKey]) || { title: catKey, icon: './assets/icons/study.png' };
                             
                             // Sort quizzes by title
                             quizzes.sort((a, b) => a.title.localeCompare(b.title, 'th'));
@@ -351,20 +245,10 @@ export class ChallengeManager {
                                     </div>
                                 </div>
                             `;
-                        }).join('')}
-                    </div>
-
-                    <button id="quiz-select-cancel" class="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-bold text-sm">ย้อนกลับ</button>
-                </div>
-            </div>
-        `;
-
-        const existing = document.getElementById('quiz-select-modal');
-        if (existing) existing.remove();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+                        }).join('')}`;
 
         // Accordion Logic
-        document.querySelectorAll('.accordion-header').forEach(header => {
+        container.querySelectorAll('.accordion-header').forEach(header => {
             header.onclick = () => {
                 const content = header.nextElementSibling;
                 const chevron = header.querySelector('.chevron');
@@ -373,78 +257,50 @@ export class ChallengeManager {
             };
         });
 
-        document.getElementById('quiz-select-random').onclick = () => {
-            document.getElementById('quiz-select-modal').remove();
-            this.createLobby(mode, 'random', 'แบบทดสอบสุ่ม (Random)');
-        };
-
-        document.querySelectorAll('.quiz-select-item').forEach(btn => {
+        container.querySelectorAll('.quiz-select-item').forEach(btn => {
             btn.onclick = () => {
                 const quizId = btn.dataset.quizId;
                 const quizTitle = btn.dataset.quizTitle;
-                document.getElementById('quiz-select-modal').remove();
-                this.createLobby(mode, quizId, quizTitle);
+                this.quizModal.close();
+                this.createLobby(this.selectedMode, quizId, quizTitle);
             };
         });
-
-        document.getElementById('quiz-select-cancel').onclick = () => {
-            document.getElementById('quiz-select-modal').remove();
-            this.openModeSelection();
-        };
+        }
+        
+        this.quizModal.open();
     }
 
     openJoinModal() {
-        const modalHtml = `
-            <div id="join-lobby-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 anim-fade-in">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-200 dark:border-gray-700 transform scale-100 transition-all">
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 font-kanit text-center">เข้าร่วมการแข่งขัน</h3>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">รหัสห้อง (6 หลัก)</label>
-                        <input type="text" id="join-room-input" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-center text-2xl font-bold tracking-widest focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-white" placeholder="000000" maxlength="6">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="cancel-join-btn" class="py-2.5 rounded-xl text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">ยกเลิก</button>
-                        <button id="confirm-join-btn" class="py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-md">เข้าร่วม</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        const existing = document.getElementById('join-lobby-modal');
-        if (existing) existing.remove();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
-        const input = document.getElementById('join-room-input');
-        input.focus();
-        
-        input.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
-        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('confirm-join-btn').click(); });
+        this.joinModal.open();
+        setTimeout(() => document.getElementById('join-room-code-input')?.focus(), 100);
+    }
 
-        document.getElementById('confirm-join-btn').onclick = async () => {
-            const code = input.value;
-            if (code.length === 6) { 
-                const btn = document.getElementById('confirm-join-btn');
-                const originalText = btn.innerHTML;
-                
-                // Set loading state
-                btn.disabled = true;
-                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังเข้า...`;
-                btn.classList.add('opacity-75', 'cursor-not-allowed');
+    async handleJoinSubmit() {
+        const input = document.getElementById('join-room-code-input');
+        const code = input.value;
+        if (code.length === 6) { 
+            const btn = document.getElementById('confirm-join-btn');
+            const originalText = btn.innerHTML;
+            
+            // Set loading state
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังเข้า...`;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
 
-                const success = await this.joinLobby(code);
-                if (success) {
-                    document.getElementById('join-lobby-modal').remove();
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    input.focus();
-                }
-            } else { 
-                showToast('รหัสไม่ถูกต้อง', 'กรุณากรอกรหัส 6 หลัก', '⚠️', 'error'); 
-            }
-        };
-        document.getElementById('cancel-join-btn').onclick = () => { document.getElementById('join-lobby-modal').remove(); };
+            const success = await this.joinLobby(code);
+            if (success) {
+                this.joinModal.close();
+            } 
+            
+            // Reset button state
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            if (!success) input.focus();
+            
+        } else { 
+            showToast('รหัสไม่ถูกต้อง', 'กรุณากรอกรหัส 6 หลัก', '⚠️', 'error'); 
+        }
     }
 
     async checkUrlForLobby() {
@@ -604,6 +460,36 @@ export class ChallengeManager {
         }
     }
 
+    // New method to handle removal from DB
+    async removePlayerFromLobby(lobbyId, uid) {
+        if (!lobbyId || !uid) return;
+        try {
+            const lobbyRef = doc(db, 'lobbies', lobbyId);
+            const lobbySnap = await getDoc(lobbyRef);
+            
+            if (lobbySnap.exists()) {
+                const data = lobbySnap.data();
+                
+                // ถ้า Host ออกจากห้อง ให้ลบห้องทิ้งทันที (ปิดห้อง)
+                if (data.hostId === uid) {
+                    await deleteDoc(lobbyRef);
+                    return;
+                }
+
+                const players = data.players || [];
+                const updatedPlayers = players.filter(p => p.uid !== uid);
+
+                if (updatedPlayers.length === 0) {
+                    await deleteDoc(lobbyRef); // Delete empty lobby
+                } else {
+                    await updateDoc(lobbyRef, { players: updatedPlayers });
+                }
+            }
+        } catch (error) {
+            console.error("Error removing player from lobby:", error);
+        }
+    }
+
     async sendChatMessage() {
         if (!this.currentLobbyId) return;
         const user = authManager.currentUser;
@@ -678,6 +564,9 @@ export class ChallengeManager {
         const container = document.getElementById('lobby-chat-messages');
         if (!container) return;
 
+        // Check if user is near bottom before updating (to prevent jumping while reading history)
+        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
         const myUid = authManager.currentUser?.uid;
 
         container.innerHTML = messages.map(msg => {
@@ -704,8 +593,10 @@ export class ChallengeManager {
             return isMe ? `<div class="flex items-end justify-end gap-2.5 anim-fade-in">${messageBubble}${avatarElement}</div>` : `<div class="flex items-start gap-2.5 anim-fade-in">${avatarElement}${messageBubble}</div>`;
         }).join('');
 
-        // Auto-scroll to bottom
-        container.scrollTop = container.scrollHeight;
+        // Auto-scroll to bottom only if user was already near bottom
+        if (isNearBottom) {
+            container.scrollTop = container.scrollHeight;
+        }
     }
 
     listenToLobby(lobbyId) {
@@ -754,7 +645,7 @@ export class ChallengeManager {
     updateLobbyUI(data) {
         const container = document.getElementById('lobby-players-list');
         const countEl = document.getElementById('lobby-player-count');
-        const roomIdEl = document.getElementById('lobby-room-id');
+        const roomIdEl = document.getElementById('lobby-room-id-display') || document.getElementById('lobby-room-id');
         const titleEl = document.querySelector('#lobby-modal h3');
         const quizNameEl = document.getElementById('lobby-quiz-name');
         
@@ -894,12 +785,20 @@ export class ChallengeManager {
         window.location.href = `./quiz/index.html?id=${config.id}&mode=${mode || 'challenge'}&lobbyId=${this.currentLobbyId}&amount=${config.amount}&seed=${config.seed}`;
     }
 
-    leaveLobby() {
+    async leaveLobby() {
+        const lobbyId = this.currentLobbyId;
+        const user = authManager.currentUser;
+
         if (this.unsubscribe) this.unsubscribe();
         if (this.chatUnsubscribe) this.chatUnsubscribe();
         this.currentLobbyId = null;
         this.isHost = false;
         this.lobbyModal.close();
+
+        // Remove from DB
+        if (lobbyId && user) {
+            await this.removePlayerFromLobby(lobbyId, user.uid);
+        }
     }
 
     openLobbyUI(lobbyId) {

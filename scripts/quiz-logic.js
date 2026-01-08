@@ -306,6 +306,7 @@ function updateNextButtonAppearance(action) {
 
     const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
     const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
+    const isSpeedRunWin = state.mode === 'speed' && state.score >= 10;
 
     let buttonText = 'ข้อต่อไป';
     let buttonIcon = config.icons.next;
@@ -316,6 +317,7 @@ function updateNextButtonAppearance(action) {
         buttonIcon = config.icons.submit;
         buttonTitle = 'ส่งคำตอบ';
     } else if (isLastQuestion && isAnswered) {
+    } else if ((isLastQuestion && isAnswered) || isSpeedRunWin) {
         buttonText = 'ดูผลสรุป';
         buttonIcon = config.icons.submit; // Using the submit icon for "finish" is fine.
         buttonTitle = 'ดูผลสรุป';
@@ -1449,8 +1451,9 @@ function handleNextButtonClick() {
 
   // If we reach here, the question has been answered.
   const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
+  const isSpeedRunWin = state.mode === 'speed' && state.score >= 10;
 
-  if (isLastQuestion) {
+  if (isLastQuestion || isSpeedRunWin) {
     showResults();
   } else {
     showNextQuestion();
@@ -1472,7 +1475,11 @@ function showResults() {
   stopTimer(); // Stop any running timers.
   setFloatingNav(false); // Deactivate the floating navigation bar
 
-  const totalQuestions = state.shuffledQuestions.length;
+  let totalQuestions = state.shuffledQuestions.length;
+  if (state.mode === 'speed') {
+      totalQuestions = state.userAnswers.filter(a => a !== null).length;
+  }
+
   const correctAnswers = state.score;
   const incorrectAnswersCount = totalQuestions - correctAnswers;
   const percentage = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
@@ -1567,7 +1574,13 @@ function showResults() {
   }
 
   // Get the appropriate message and icon based on the score
-  const resultInfo = getResultInfo(percentage);
+  let resultInfo = getResultInfo(percentage);
+
+  if (state.mode === 'speed' && state.score >= 10) {
+      resultInfo = { ...resultInfo };
+      resultInfo.title = "Speed Run สำเร็จ! ⚡";
+      resultInfo.message = `สุดยอด! คุณตอบถูกครบ 10 ข้อแล้ว (ความแม่นยำ ${percentage}%)`;
+  }
 
   // --- GAMIFICATION: Calculate XP and Check Badges ---
   let xpEarned = 0;

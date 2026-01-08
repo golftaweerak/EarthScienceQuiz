@@ -120,7 +120,23 @@
         import { Gamification } from './scripts/gamification.js';
         new Gamification();
         import { ChallengeManager } from './scripts/challenge-manager.js';
-        new ChallengeManager();
+        
+        // Initialize ChallengeManager only after modals are loaded to prevent errors
+        const initChallengeManager = () => {
+            if (document.getElementById('challenge-menu-modal')) {
+                new ChallengeManager();
+            } else {
+                const observer = new MutationObserver((mutations, obs) => {
+                    if (document.getElementById('challenge-menu-modal')) {
+                        new ChallengeManager();
+                        obs.disconnect();
+                    }
+                });
+                const placeholder = document.getElementById('modals-placeholder');
+                if (placeholder) observer.observe(placeholder, { childList: true, subtree: true });
+            }
+        };
+        initChallengeManager();
 
         // แสดงการแจ้งเตือนเมื่อมีการซิงค์ข้อมูลสำเร็จ (รับ Event จาก AuthManager)
         const toast = document.getElementById('sync-toast');
