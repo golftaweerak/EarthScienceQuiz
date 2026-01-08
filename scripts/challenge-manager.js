@@ -145,6 +145,18 @@ export class ChallengeManager {
                 this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)');
         });
 
+        // Event delegation for the players list to handle kick buttons
+        this.dom.playersListContainer?.addEventListener('click', (e) => {
+            const kickBtn = e.target.closest('.kick-player-btn');
+            if (this.isHost && kickBtn) {
+                e.stopPropagation();
+                this.pendingKickUid = kickBtn.dataset.uid;
+                const playerName = kickBtn.dataset.name;
+                if (this.dom.kickConfirmDesc) this.dom.kickConfirmDesc.textContent = `คุณต้องการเชิญ "${playerName}" ออกจากห้องใช่หรือไม่?`;
+                this.kickConfirmModal.open();
+            }
+        });
+
         window.addEventListener('beforeunload', () => {
             if (this.currentLobbyId && !this.isTransitioning) {
                 this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
@@ -722,19 +734,6 @@ export class ChallengeManager {
                 </div>
             `}).join('');
 
-            // Bind kick button events
-            if (this.isHost) {
-                container.querySelectorAll('.kick-player-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        this.pendingKickUid = btn.dataset.uid;
-                        const playerName = btn.dataset.name;
-                        const descEl = this.dom.kickConfirmDesc;
-                        if (descEl) descEl.textContent = `คุณต้องการเชิญ "${playerName}" ออกจากห้องใช่หรือไม่?`;
-                        this.kickConfirmModal.open();
-                    });
-                });
-            }
         }
 
         // จัดการปุ่ม Start
