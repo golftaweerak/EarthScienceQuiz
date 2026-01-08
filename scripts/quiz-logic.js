@@ -243,6 +243,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
   // --- 2. State Initialization ---
   state = {
     quizData: quizData, // Use data passed from the loader
+    basePath: basePath, // Store basePath for use in other functions
     storageKey: storageKey, // Use key passed from the loader
     quizTitle: quizTitle || "แบบทดสอบ",
     customTime: customTime, // Store custom time
@@ -271,6 +272,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
     questionCount: 0,    // NEW
     lobbyId: null,       // NEW: For Real-time Challenge
     mode: null,          // NEW: 'challenge' or 'coop'
+    currentTeamScore: 0, // NEW: Track team score
     disableShuffle: disableShuffle, // NEW: Flag to prevent re-shuffling
   };
 
@@ -641,6 +643,8 @@ function setupCoopListener() {
             const data = docSnapshot.data();
             const players = data.players || [];
             const totalScore = players.reduce((sum, p) => sum + (p.score || 0), 0);
+            
+            state.currentTeamScore = totalScore; // Update state for result screen
             
             const currentDisplayScore = parseInt(teamScoreEl.dataset.score || 0);
             
@@ -1949,6 +1953,20 @@ function buildResultsLayout(resultInfo, stats) {
     `;
   layoutContainer.appendChild(messageContainer);
 
+  // NEW: Team Score Display for Coop Mode
+  if (state.mode === 'coop') {
+      const teamScoreContainer = document.createElement("div");
+      teamScoreContainer.className = "w-full max-w-md mx-auto p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800 text-center shadow-sm -mt-4";
+      teamScoreContainer.innerHTML = `
+          <h3 class="text-lg font-bold text-indigo-800 dark:text-indigo-300 font-kanit flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+            คะแนนรวมทีม
+          </h3>
+          <p class="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mt-2">${(state.currentTeamScore || 0).toLocaleString()}</p>
+      `;
+      layoutContainer.appendChild(teamScoreContainer);
+  }
+
   // --- 2. Data Container (for Circle + Stats) ---
   const dataContainer = document.createElement("div");
   dataContainer.className =
@@ -2247,8 +2265,8 @@ function buildResultsLayout(resultInfo, stats) {
               <span>🏆 ดูอันดับรวม (Lobby)</span>
           `;
           lobbyBtn.onclick = () => {
-              // Redirect back to main page with lobby param to open modal
-              window.location.href = `../index.html?lobby=${state.lobbyId}`;
+              // Redirect back to main page with lobby param to open modal (Use basePath to be safe)
+              window.location.href = `${state.basePath}index.html?lobby=${state.lobbyId}`;
           };
           
           // Insert at the beginning of the action container so it's prominent
