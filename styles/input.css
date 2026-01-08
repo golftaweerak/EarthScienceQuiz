@@ -493,6 +493,13 @@ body.dark {
     animation: option-select-pop 0.3s ease-out;
   }
 
+  .btn-press-anim {
+    transition: transform 0.1s ease-in-out;
+  }
+  .btn-press-anim:active {
+    transform: scale(0.95);
+  }
+
 .correct {
   background-color: #22c55e !important;
   color: white !important;
