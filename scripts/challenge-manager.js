@@ -420,10 +420,29 @@ export class ChallengeManager {
         input.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
         input.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('confirm-join-btn').click(); });
 
-        document.getElementById('confirm-join-btn').onclick = () => {
+        document.getElementById('confirm-join-btn').onclick = async () => {
             const code = input.value;
-            if (code.length === 6) { this.joinLobby(code); document.getElementById('join-lobby-modal').remove(); }
-            else { showToast('รหัสไม่ถูกต้อง', 'กรุณากรอกรหัส 6 หลัก', '⚠️', 'error'); }
+            if (code.length === 6) { 
+                const btn = document.getElementById('confirm-join-btn');
+                const originalText = btn.innerHTML;
+                
+                // Set loading state
+                btn.disabled = true;
+                btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังเข้า...`;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+                const success = await this.joinLobby(code);
+                if (success) {
+                    document.getElementById('join-lobby-modal').remove();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    input.focus();
+                }
+            } else { 
+                showToast('รหัสไม่ถูกต้อง', 'กรุณากรอกรหัส 6 หลัก', '⚠️', 'error'); 
+            }
         };
         document.getElementById('cancel-join-btn').onclick = () => { document.getElementById('join-lobby-modal').remove(); };
     }
@@ -504,13 +523,13 @@ export class ChallengeManager {
     async joinLobby(lobbyId) {
         if (!navigator.onLine) {
             showToast('ไม่มีสัญญาณเน็ต', 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', '📶', 'error');
-            return;
+            return false;
         }
 
         const user = authManager.currentUser;
         if (!user) {
             showToast('ไม่ได้เข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนเข้าร่วม', '🔒', 'error');
-            return;
+            return false;
         }
 
         try {
@@ -519,7 +538,7 @@ export class ChallengeManager {
 
             if (!lobbySnap.exists()) {
                 showToast('ไม่พบห้อง', 'รหัสห้องไม่ถูกต้องหรือห้องถูกปิดไปแล้ว', '❌', 'error');
-                return;
+                return false;
             }
 
             // ตรวจสอบว่ามีชื่ออยู่แล้วหรือไม่
@@ -529,7 +548,7 @@ export class ChallengeManager {
             // ถ้าเกมเริ่มแล้วและยังไม่ได้จอย จะเข้าไม่ได้
             if (lobbySnap.data().status !== 'waiting' && !isAlreadyJoined) {
                 showToast('เข้าห้องไม่ได้', 'การแข่งขันได้เริ่มไปแล้ว', '⚠️', 'error');
-                return;
+                return false;
             }
 
             if (!isAlreadyJoined) {
@@ -550,6 +569,7 @@ export class ChallengeManager {
             this.isHost = (lobbySnap.data().hostId === user.uid);
             this.openLobbyUI(lobbyId);
             this.listenToLobby(lobbyId);
+            return true;
         } catch (error) {
             console.error("Error joining lobby:", error);
             
@@ -561,6 +581,7 @@ export class ChallengeManager {
             }
             
             showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${msg}`, '❌', 'error');
+            return false;
         }
     }
 
