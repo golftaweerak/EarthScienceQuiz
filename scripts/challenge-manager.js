@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp, collection, addDoc, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot, arrayUnion, serverTimestamp, collection, addDoc, query, orderBy, limit, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { authManager } from './auth-manager.js';
 import { showToast } from './toast.js';
 import { ModalHandler } from './modal-handler.js';
@@ -15,13 +15,7 @@ export class ChallengeManager {
         this.isTransitioning = false; // สถานะกำลังเปลี่ยนหน้า (เพื่อไม่ให้ลบออกจากห้อง)
         this.countdownTimer = null; // ตัวเก็บ timer
         this.lobbyModal = null; // Will be initialized after injection
-        this.kickModal = null; // Will be initialized after injection
-        this.kickConfirmModal = null; // New: For host confirmation
-        this.pendingKickUid = null; // New: Store UID to kick
-        this.mainMenuModal = null;
-        this.joinModal = null;
-        this.modeModal = null;
-        this.quizModal = null;
+        this.dom = {}; // Object to hold cached DOM elements
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -34,129 +28,123 @@ export class ChallengeManager {
     }
 
     init() {
-        
         // Initialize handlers for existing modals
         this.lobbyModal = new ModalHandler('lobby-modal');
+
+        this._cacheDomElements();
+        this._attachEventListeners();
+        this.checkUrlForLobby();
+    }
+
+    /**
+     * Caches frequently accessed DOM elements to improve performance.
+     * @private
+     */
+    _cacheDomElements() {
+        this.dom.menuBtn = document.getElementById('open-challenge-menu-btn');
+        this.dom.createBtn = document.getElementById('challenge-create-btn');
+        this.dom.joinBtn = document.getElementById('challenge-join-btn');
+        this.dom.startBtn = document.getElementById('lobby-start-btn');
+        this.dom.leaveBtn = document.getElementById('lobby-leave-btn');
+        this.dom.copyBtn = document.getElementById('lobby-room-id-display') || document.getElementById('copy-lobby-link-btn');
+        this.dom.chatInput = document.getElementById('lobby-chat-input');
+        this.dom.chatSendBtn = document.getElementById('lobby-chat-send-btn');
+        this.dom.kickAckBtn = document.getElementById('kick-ack-btn');
+        this.dom.kickConfirmOk = document.getElementById('kick-confirm-ok-btn');
+        this.dom.kickConfirmCancel = document.getElementById('kick-confirm-cancel-btn');
+        this.dom.joinInput = document.getElementById('join-room-code-input');
+        this.dom.confirmJoinBtn = document.getElementById('confirm-join-btn');
+        this.dom.modeSelectButtons = document.querySelectorAll('.mode-select-btn');
+        this.dom.randomQuizBtn = document.getElementById('quiz-select-random');
+        this.dom.quizListContainer = document.getElementById('challenge-quiz-list');
+        this.dom.playersListContainer = document.getElementById('lobby-players-list');
+        this.dom.playerCount = document.getElementById('lobby-player-count');
+        this.dom.roomIdDisplay = document.getElementById('lobby-room-id-display') || document.getElementById('lobby-room-id');
+        this.dom.lobbyTitle = document.querySelector('#lobby-modal h3');
+        this.dom.quizName = document.getElementById('lobby-quiz-name');
+        this.dom.waitingMsg = document.getElementById('lobby-waiting-msg');
+        this.dom.chatContainer = document.getElementById('lobby-chat-messages');
+        this.dom.kickConfirmDesc = document.getElementById('kick-confirm-desc');
+
+        // Modals
         this.kickModal = new ModalHandler('kick-notification-modal');
         this.kickConfirmModal = new ModalHandler('kick-confirm-modal');
         this.mainMenuModal = new ModalHandler('challenge-menu-modal');
         this.joinModal = new ModalHandler('join-lobby-modal');
         this.modeModal = new ModalHandler('mode-select-modal');
         this.quizModal = new ModalHandler('quiz-select-modal');
-
-        this.setupUI();
-        this.checkUrlForLobby();
     }
 
-    setupUI() {
-        // Main Entry Point: Open Menu
-        const menuBtn = document.getElementById('open-challenge-menu-btn');
-        if (menuBtn) {
-            menuBtn.addEventListener('click', () => this.openMainMenu());
-        }
-        
-        // Menu Buttons (from modals_common.html)
-        const createBtn = document.getElementById('challenge-create-btn');
-        if (createBtn) createBtn.addEventListener('click', () => {
+    /**
+     * Attaches all necessary event listeners for the challenge UI.
+     * Uses event delegation for dynamic lists.
+     * @private
+     */
+    _attachEventListeners() {
+        this.dom.menuBtn?.addEventListener('click', () => this.openMainMenu());
+        this.dom.createBtn?.addEventListener('click', () => {
             this.mainMenuModal.close();
             this.openModeSelection();
         });
-
-        const joinBtn = document.getElementById('challenge-join-btn');
-        if (joinBtn) joinBtn.addEventListener('click', () => {
+        this.dom.joinBtn?.addEventListener('click', () => {
             this.mainMenuModal.close();
             this.openJoinModal();
         });
 
-        const startBtn = document.getElementById('lobby-start-btn');
-        if (startBtn) {
-            startBtn.addEventListener('click', () => this.startGame());
-        }
-
-        const leaveBtn = document.getElementById('lobby-leave-btn');
-        if (leaveBtn) {
-            leaveBtn.addEventListener('click', () => this.leaveLobby());
-        }
-        
-        const copyBtn = document.getElementById('lobby-room-id-display') || document.getElementById('copy-lobby-link-btn');
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => {
+        this.dom.startBtn?.addEventListener('click', () => this.startGame());
+        this.dom.leaveBtn?.addEventListener('click', () => this.leaveLobby());
+        this.dom.copyBtn?.addEventListener('click', () => {
                 if (this.currentLobbyId) {
                     navigator.clipboard.writeText(this.currentLobbyId).then(() => {
                         showToast('คัดลอกรหัสแล้ว', `รหัสห้อง: ${this.currentLobbyId}`, '📋');
                     });
                 }
-            });
-        }
+        });
 
-        const chatInput = document.getElementById('lobby-chat-input');
-        const chatSendBtn = document.getElementById('lobby-chat-send-btn');
-
-        if (chatInput && chatSendBtn) {
-            chatSendBtn.addEventListener('click', () => this.sendChatMessage());
-            chatInput.addEventListener('keydown', (e) => {
+        if (this.dom.chatInput && this.dom.chatSendBtn) {
+            this.dom.chatSendBtn.addEventListener('click', () => this.sendChatMessage());
+            this.dom.chatInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     this.sendChatMessage();
                 }
             });
         }
-
-        const kickAckBtn = document.getElementById('kick-ack-btn');
-        if (kickAckBtn) {
-            kickAckBtn.addEventListener('click', () => this.kickModal.close());
-        }
-
-        // Host Kick Confirmation Listeners
-        const kickConfirmOk = document.getElementById('kick-confirm-ok-btn');
-        const kickConfirmCancel = document.getElementById('kick-confirm-cancel-btn');
         
-        if (kickConfirmOk) {
-            kickConfirmOk.addEventListener('click', () => {
+        this.dom.kickAckBtn?.addEventListener('click', () => this.kickModal.close());
+        this.dom.kickConfirmOk?.addEventListener('click', () => {
                 if (this.pendingKickUid) {
                     this.kickPlayer(this.pendingKickUid);
                     this.pendingKickUid = null;
                     this.kickConfirmModal.close();
                 }
-            });
-        }
-        if (kickConfirmCancel) {
-            kickConfirmCancel.addEventListener('click', () => {
+        });
+        this.dom.kickConfirmCancel?.addEventListener('click', () => {
                 this.pendingKickUid = null;
                 this.kickConfirmModal.close();
-            });
-        }
+        });
 
-        // Join Modal Buttons
-        const confirmJoinBtn = document.getElementById('confirm-join-btn');
-        const joinInput = document.getElementById('join-room-code-input');
-        if (confirmJoinBtn && joinInput) {
-             confirmJoinBtn.addEventListener('click', () => this.handleJoinSubmit());
-             joinInput.addEventListener('keydown', (e) => {
+        if (this.dom.confirmJoinBtn && this.dom.joinInput) {
+             this.dom.confirmJoinBtn.addEventListener('click', () => this.handleJoinSubmit());
+             this.dom.joinInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') this.handleJoinSubmit();
              });
-             joinInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
+             this.dom.joinInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
         }
 
-        // Mode Selection Buttons
-        document.querySelectorAll('.mode-select-btn').forEach(btn => {
+        this.dom.modeSelectButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const mode = btn.dataset.mode;
                 this.modeModal.close();
                 this.openQuizSelection(mode);
             });
         });
-
-        // Quiz Select Random
-        const randomQuizBtn = document.getElementById('quiz-select-random');
-        if (randomQuizBtn) {
-            randomQuizBtn.addEventListener('click', () => {
+        
+        this.dom.randomQuizBtn?.addEventListener('click', () => {
                 this.quizModal.close();
                 this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)');
-            });
-        }
+        });
 
-        // Handle browser close/refresh
         window.addEventListener('beforeunload', () => {
             if (this.currentLobbyId && !this.isTransitioning) {
                 this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
@@ -275,7 +263,7 @@ export class ChallengeManager {
 
     openJoinModal() {
         this.joinModal.open();
-        setTimeout(() => document.getElementById('join-room-code-input')?.focus(), 100);
+        setTimeout(() => this.dom.joinInput?.focus(), 100);
     }
 
     async handleJoinSubmit() {
@@ -379,59 +367,54 @@ export class ChallengeManager {
         }
     }
 
+    /**
+     * Joins an existing lobby using a 6-digit code. Uses a Firestore transaction for atomicity.
+     * @param {string} lobbyId The 6-digit lobby code.
+     * @returns {Promise<boolean>} True if join was successful, false otherwise.
+     */
     async joinLobby(lobbyId) {
         if (!navigator.onLine) {
             showToast('ไม่มีสัญญาณเน็ต', 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', '📶', 'error');
             return false;
         }
-
         const user = authManager.currentUser;
         if (!user) {
             showToast('ไม่ได้เข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนเข้าร่วม', '🔒', 'error');
             return false;
         }
-
+    
         try {
             const lobbyRef = doc(db, 'lobbies', lobbyId);
-            const lobbySnap = await getDoc(lobbyRef);
-
-            if (!lobbySnap.exists()) {
-                showToast('ไม่พบห้อง', 'รหัสห้องไม่ถูกต้องหรือห้องถูกปิดไปแล้ว', '❌', 'error');
-                return false;
-            }
-
-            // ตรวจสอบว่ามีชื่ออยู่แล้วหรือไม่
-            const players = lobbySnap.data().players || [];
-            const isAlreadyJoined = players.some(p => p.uid === user.uid);
-
-            // ถ้าเกมเริ่มแล้วและยังไม่ได้จอย จะเข้าไม่ได้
-            if (lobbySnap.data().status !== 'waiting' && !isAlreadyJoined) {
-                showToast('เข้าห้องไม่ได้', 'การแข่งขันได้เริ่มไปแล้ว', '⚠️', 'error');
-                return false;
-            }
-
-            if (!isAlreadyJoined) {
-                const playerData = {
-                    uid: user.uid,
-                    name: user.displayName || 'Player',
-                    avatar: this.getUserAvatar() || '🧑‍🎓',
-                    ready: true,
-                    score: 0,
-                    progress: 0
-                };
-                await updateDoc(lobbyRef, {
-                    players: arrayUnion(playerData)
-                });
-            }
-
+            let hostId = null;
+    
+            await runTransaction(db, async (transaction) => {
+                const lobbySnap = await transaction.get(lobbyRef);
+                if (!lobbySnap.exists()) {
+                    throw new Error("Lobby not found");
+                }
+    
+                const data = lobbySnap.data();
+                hostId = data.hostId;
+                const players = data.players || [];
+                const isAlreadyJoined = players.some(p => p.uid === user.uid);
+    
+                if (data.status !== 'waiting' && !isAlreadyJoined) {
+                    throw new Error("Game has already started");
+                }
+    
+                if (!isAlreadyJoined) {
+                    const playerData = { uid: user.uid, name: user.displayName || 'Player', avatar: this.getUserAvatar(), ready: true, score: 0, progress: 0 };
+                    transaction.update(lobbyRef, { players: arrayUnion(playerData) });
+                }
+            });
+    
             this.currentLobbyId = lobbyId;
-            this.isHost = (lobbySnap.data().hostId === user.uid);
+            this.isHost = (hostId === user.uid);
             this.openLobbyUI(lobbyId);
             this.listenToLobby(lobbyId);
             return true;
         } catch (error) {
             console.error("Error joining lobby:", error);
-            
             let msg = error.message;
             if (error.code === 'permission-denied') {
                 msg = 'ไม่มีสิทธิ์เข้าร่วม (ห้องอาจเต็มหรือถูกปิด)';
@@ -439,7 +422,13 @@ export class ChallengeManager {
                 msg = 'เซิร์ฟเวอร์ไม่ตอบสนอง (ลองสลับ WiFi/เน็ตมือถือ)';
             }
             
-            showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${msg}`, '❌', 'error');
+            if (error.message === "Lobby not found") {
+                showToast('ไม่พบห้อง', 'รหัสห้องไม่ถูกต้องหรือห้องถูกปิดไปแล้ว', '❌', 'error');
+            } else if (error.message === "Game has already started") {
+                showToast('เข้าห้องไม่ได้', 'การแข่งขันได้เริ่มไปแล้ว', '⚠️', 'error');
+            } else {
+                showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${msg}`, '❌', 'error');
+            }
             return false;
         }
     }
@@ -447,49 +436,48 @@ export class ChallengeManager {
     async kickPlayer(targetUid) {
         if (!this.currentLobbyId || !this.isHost) return;
         
-        try {
-            const lobbyRef = doc(db, 'lobbies', this.currentLobbyId);
-            const lobbySnap = await getDoc(lobbyRef);
-            if (!lobbySnap.exists()) return;
-
-            const players = lobbySnap.data().players || [];
-            const updatedPlayers = players.filter(p => p.uid !== targetUid);
-
-            await updateDoc(lobbyRef, { players: updatedPlayers });
-            showToast('เตะผู้เล่นสำเร็จ', 'ผู้เล่นถูกลบออกจากห้องแล้ว', '👋');
-        } catch (error) {
-            console.error("Error kicking player:", error);
-            showToast('เกิดข้อผิดพลาด', 'ไม่สามารถเตะผู้เล่นได้', '❌', 'error');
-        }
+        await this.removePlayerFromLobby(this.currentLobbyId, targetUid);
+        showToast('เตะผู้เล่นสำเร็จ', 'ผู้เล่นถูกลบออกจากห้องแล้ว', '👋');
     }
 
-    // New method to handle removal from DB
+    /**
+     * Removes a player from a lobby. If the host leaves, the lobby is deleted.
+     * Uses a Firestore transaction for atomicity.
+     * @param {string} lobbyId The ID of the lobby.
+     * @param {string} uid The UID of the player to remove.
+     */
     async removePlayerFromLobby(lobbyId, uid) {
         if (!lobbyId || !uid) return;
         try {
             const lobbyRef = doc(db, 'lobbies', lobbyId);
-            const lobbySnap = await getDoc(lobbyRef);
-            
-            if (lobbySnap.exists()) {
+            await runTransaction(db, async (transaction) => {
+                const lobbySnap = await transaction.get(lobbyRef);
+                if (!lobbySnap.exists()) {
+                    return;
+                }
+
                 const data = lobbySnap.data();
-                
-                // ถ้า Host ออกจากห้อง ให้ลบห้องทิ้งทันที (ปิดห้อง)
+                // If the host is the one being removed, delete the entire lobby.
                 if (data.hostId === uid) {
-                    await deleteDoc(lobbyRef);
+                    transaction.delete(lobbyRef);
                     return;
                 }
 
                 const players = data.players || [];
                 const updatedPlayers = players.filter(p => p.uid !== uid);
 
+                // If the lobby becomes empty, delete it.
                 if (updatedPlayers.length === 0) {
-                    await deleteDoc(lobbyRef); // Delete empty lobby
-                } else {
-                    await updateDoc(lobbyRef, { players: updatedPlayers });
+                    transaction.delete(lobbyRef);
+                } 
+                // Only update if a player was actually removed.
+                else if (updatedPlayers.length < players.length) {
+                    transaction.update(lobbyRef, { players: updatedPlayers });
                 }
-            }
+            });
         } catch (error) {
-            console.error("Error removing player from lobby:", error);
+            console.error("Error in removePlayerFromLobby transaction:", error);
+            // Non-critical error, so no toast is shown to the user.
         }
     }
 
@@ -498,7 +486,7 @@ export class ChallengeManager {
         const user = authManager.currentUser;
         if (!user) return;
 
-        const input = document.getElementById('lobby-chat-input');
+        const input = this.dom.chatInput;
         const messageText = input.value.trim();
 
         if (messageText === '') return;
@@ -564,7 +552,7 @@ export class ChallengeManager {
     }
 
     updateChatUI(messages) {
-        const container = document.getElementById('lobby-chat-messages');
+        const container = this.dom.chatContainer;
         if (!container) return;
 
         // Check if user is near bottom before updating (to prevent jumping while reading history)
@@ -646,12 +634,12 @@ export class ChallengeManager {
     }
 
     updateLobbyUI(data) {
-        const container = document.getElementById('lobby-players-list');
-        const countEl = document.getElementById('lobby-player-count');
-        const roomIdEl = document.getElementById('lobby-room-id-display') || document.getElementById('lobby-room-id');
-        const titleEl = document.querySelector('#lobby-modal h3');
-        const quizNameEl = document.getElementById('lobby-quiz-name');
-        
+        const container = this.dom.playersListContainer;
+        const countEl = this.dom.playerCount;
+        const roomIdEl = this.dom.roomIdDisplay;
+        const titleEl = this.dom.lobbyTitle;
+        const quizNameEl = this.dom.quizName;
+
         if (roomIdEl) roomIdEl.textContent = this.currentLobbyId;
         if (countEl) countEl.textContent = data.players.length;
         if (quizNameEl) quizNameEl.textContent = data.quizConfig?.title || 'แบบทดสอบ';
@@ -680,7 +668,7 @@ export class ChallengeManager {
                 
                 let kickButtonHtml = '';
                 if (this.isHost && !isMe && data.status === 'waiting') {
-                    kickButtonHtml = `
+                    kickButtonHtml = /*html*/`
                         <button class="kick-player-btn ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all" data-uid="${p.uid}" data-name="${p.name}" title="เตะออกจากห้อง">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                         </button>
@@ -698,7 +686,7 @@ export class ChallengeManager {
                         scoreDisplay = `${score} <span class="text-xs text-gray-400">pts</span>`;
                     }
 
-                    statusHtml = `
+                    statusHtml = /*html*/`
                         <div class="flex flex-col items-end ml-auto min-w-[80px]">
                             <span class="text-lg font-bold text-blue-600 dark:text-blue-400">${scoreDisplay}</span>
                             <span class="text-[10px] text-gray-500 dark:text-gray-400">ข้อที่ ${progress}/${total}</span>
@@ -707,11 +695,11 @@ export class ChallengeManager {
                 } else {
                     // โหมดรอ
                     statusHtml = p.uid === data.hostId 
-                        ? '<span class="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-0.5 rounded-full ml-auto font-bold">Host</span>' 
-                        : '<span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full ml-auto font-bold">Ready</span>';
+                        ? /*html*/'<span class="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-0.5 rounded-full ml-auto font-bold">Host</span>' 
+                        : /*html*/'<span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full ml-auto font-bold">Ready</span>';
                 }
 
-                return `
+                return /*html*/`
                 <div class="flex items-center gap-3 p-3 ${isMe ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800' : 'bg-gray-50 dark:bg-gray-700/50 border-gray-100 dark:border-gray-600'} rounded-xl border anim-fade-in relative overflow-hidden transition-all duration-300">
                     ${data.status === 'started' ? `<div class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-500" style="width: ${percent}%"></div>` : ''}
                     
@@ -741,7 +729,7 @@ export class ChallengeManager {
                         e.stopPropagation();
                         this.pendingKickUid = btn.dataset.uid;
                         const playerName = btn.dataset.name;
-                        const descEl = document.getElementById('kick-confirm-desc');
+                        const descEl = this.dom.kickConfirmDesc;
                         if (descEl) descEl.textContent = `คุณต้องการเชิญ "${playerName}" ออกจากห้องใช่หรือไม่?`;
                         this.kickConfirmModal.open();
                     });
@@ -750,8 +738,8 @@ export class ChallengeManager {
         }
 
         // จัดการปุ่ม Start
-        const startBtn = document.getElementById('lobby-start-btn');
-        const waitingMsg = document.getElementById('lobby-waiting-msg');
+        const startBtn = this.dom.startBtn;
+        const waitingMsg = this.dom.waitingMsg;
         
         if (startBtn && waitingMsg) {
             if (data.status === 'started') {
@@ -759,7 +747,7 @@ export class ChallengeManager {
                 if (!this.isStarting) { // แสดงข้อความนี้เฉพาะตอนที่ยังไม่เริ่มนับถอยหลัง (เช่น เข้ามาทีหลัง)
                     waitingMsg.textContent = 'การแข่งขันกำลังดำเนินอยู่...';
                     waitingMsg.classList.remove('hidden');
-                    waitingMsg.classList.add('text-green-600', 'font-bold');
+                    waitingMsg.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
                 }
             } else {
                 if (this.isHost) {
@@ -768,23 +756,23 @@ export class ChallengeManager {
                 } else {
                     startBtn.classList.add('hidden');
                     waitingMsg.textContent = 'รอหัวหน้าห้องเริ่มเกม...';
-                    waitingMsg.classList.remove('hidden');
-                    waitingMsg.classList.remove('text-green-600', 'font-bold');
+                    waitingMsg.classList.remove('hidden', 'text-green-600', 'dark:text-green-400', 'font-bold');
+                    waitingMsg.classList.add('text-gray-500', 'dark:text-gray-400');
                 }
             }
         }
     }
 
     startCountdownAndGo(quizConfig, mode) {
-        const waitingMsg = document.getElementById('lobby-waiting-msg');
-        const startBtn = document.getElementById('lobby-start-btn');
+        const waitingMsg = this.dom.waitingMsg;
+        const startBtn = this.dom.startBtn;
         
         if (startBtn) startBtn.classList.add('hidden');
         
         if (waitingMsg) {
             waitingMsg.classList.remove('hidden');
             waitingMsg.classList.remove('text-gray-500');
-            waitingMsg.classList.add('text-green-600', 'font-bold', 'text-2xl', 'animate-pulse');
+            waitingMsg.classList.add('text-green-600', 'dark:text-green-400', 'font-bold', 'text-2xl', 'animate-pulse');
         }
 
         let count = 3;
