@@ -214,6 +214,10 @@ body.dark {
     margin-bottom: 0.75rem;
     border-radius: 0.5rem;
   }
+
+  #join-room-code-input {
+    @apply text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600;
+  }
 }
 
 @layer utilities {

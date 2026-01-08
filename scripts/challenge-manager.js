@@ -12,6 +12,7 @@ export class ChallengeManager {
         this.chatUnsubscribe = null;
         this.isHost = false;
         this.isStarting = false; // สถานะกำลังเริ่มเกม (นับถอยหลัง)
+        this.isTransitioning = false; // สถานะกำลังเปลี่ยนหน้า (เพื่อไม่ให้ลบออกจากห้อง)
         this.countdownTimer = null; // ตัวเก็บ timer
         this.lobbyModal = null; // Will be initialized after injection
         this.kickModal = null; // Will be initialized after injection
@@ -157,7 +158,7 @@ export class ChallengeManager {
 
         // Handle browser close/refresh
         window.addEventListener('beforeunload', () => {
-            if (this.currentLobbyId) {
+            if (this.currentLobbyId && !this.isTransitioning) {
                 this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
             }
         });
@@ -700,14 +701,14 @@ export class ChallengeManager {
                     statusHtml = `
                         <div class="flex flex-col items-end ml-auto min-w-[80px]">
                             <span class="text-lg font-bold text-blue-600 dark:text-blue-400">${scoreDisplay}</span>
-                            <span class="text-[10px] text-gray-500">ข้อที่ ${progress}/${total}</span>
+                            <span class="text-[10px] text-gray-500 dark:text-gray-400">ข้อที่ ${progress}/${total}</span>
                         </div>
                     `;
                 } else {
                     // โหมดรอ
                     statusHtml = p.uid === data.hostId 
-                        ? '<span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full ml-auto font-bold">Host</span>' 
-                        : '<span class="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full ml-auto font-bold">Ready</span>';
+                        ? '<span class="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-0.5 rounded-full ml-auto font-bold">Host</span>' 
+                        : '<span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full ml-auto font-bold">Ready</span>';
                 }
 
                 return `
@@ -818,6 +819,7 @@ export class ChallengeManager {
         // ถ้าอยู่ในหน้า Quiz อยู่แล้ว ไม่ต้อง Redirect ซ้ำ
         if (window.location.pathname.includes('/quiz/')) return;
 
+        this.isTransitioning = true;
         this.lobbyModal.close();
         window.location.href = `./quiz/index.html?id=${config.id}&mode=${mode || 'challenge'}&lobbyId=${this.currentLobbyId}&amount=${config.amount}&seed=${config.seed}`;
     }
