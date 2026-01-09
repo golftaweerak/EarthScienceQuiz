@@ -13,6 +13,7 @@ export class ChallengeManager {
         this.isHost = false;
         this.isStarting = false; // สถานะกำลังเริ่มเกม (นับถอยหลัง)
         this.isTransitioning = false; // สถานะกำลังเปลี่ยนหน้า (เพื่อไม่ให้ลบออกจากห้อง)
+        this.lastStatus = null; // NEW: Track previous status to prevent redirect loops
         this.countdownTimer = null; // ตัวเก็บ timer
         this.lobbyModal = null; // Will be initialized after injection
         this.dom = {}; // Object to hold cached DOM elements
@@ -605,14 +606,17 @@ export class ChallengeManager {
     listenToLobby(lobbyId) {
         if (this.unsubscribe) this.unsubscribe();
 
-        this.unsubscribe = onSnapshot(doc(db, 'lobbies', lobbyId), (doc) => {
-            if (!doc.exists()) {
+        // Reset status tracker when listening to a new lobby
+        this.lastStatus = null;
+
+        this.unsubscribe = onSnapshot(doc(db, 'lobbies', lobbyId), (docSnapshot) => {
+            if (!docSnapshot.exists()) {
                 this.leaveLobby();
                 showToast('ห้องถูกปิด', 'โฮสต์ได้ปิดห้องแล้ว', 'ℹ️');
                 return;
             }
 
-            const data = doc.data();
+            const data = docSnapshot.data();
             
             // ตรวจสอบว่าเราถูกเตะหรือไม่ (ถ้าไม่มีชื่อเราในรายการผู้เล่น)
             const myUid = authManager.currentUser?.uid;
@@ -627,13 +631,16 @@ export class ChallengeManager {
 
             this.updateLobbyUI(data);
 
-            // ถ้าสถานะเป็น started และเรายังไม่ได้อยู่ในหน้า Quiz ให้เด้งไป
+            // FIX: Prevent infinite redirect loop and handle game start transition
             const isInQuiz = window.location.pathname.includes('/quiz/');
             if (data.status === 'started' && !isInQuiz) {
-                // เพิ่มเงื่อนไข: ถ้าเราเป็น Host และอยากดู Scoreboard เฉยๆ อาจจะไม่ต้องเด้งก็ได้
-                // แต่เพื่อความง่าย ให้ทุกคนเด้งไปทำข้อสอบก่อน
-                this.goToQuiz(data.quizConfig, data.mode);
+                // Only auto-redirect if we witnessed the transition from 'waiting' to 'started'
+                if (this.lastStatus === 'waiting') {
+                    this.goToQuiz(data.quizConfig, data.mode);
+                }
+                // If lastStatus was null (first load) or 'started' (re-load), do NOT auto-redirect.
             }
+            this.lastStatus = data.status;
         }, (error) => {
             console.error("Lobby listener error:", error);
             if (error.code === 'permission-denied') {
@@ -744,9 +751,23 @@ export class ChallengeManager {
             if (data.status === 'started') {
                 startBtn.classList.add('hidden');
                 if (!this.isStarting) { // แสดงข้อความนี้เฉพาะตอนที่ยังไม่เริ่มนับถอยหลัง (เช่น เข้ามาทีหลัง)
-                    waitingMsg.textContent = 'การแข่งขันกำลังดำเนินอยู่...';
-                    waitingMsg.classList.remove('hidden');
-                    waitingMsg.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
+                    // NEW: Show manual join button for late joiners or re-joiners
+                    if (!this.isHost) {
+                        waitingMsg.innerHTML = `
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="text-green-600 dark:text-green-400 font-bold">การแข่งขันเริ่มแล้ว!</span>
+                                <button id="manual-join-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold shadow-md transition-transform transform hover:scale-105">
+                                    เข้าสู่การแข่งขัน
+                                </button>
+                            </div>
+                        `;
+                        waitingMsg.classList.remove('hidden');
+                        document.getElementById('manual-join-btn')?.addEventListener('click', () => this.goToQuiz(data.quizConfig, data.mode));
+                    } else {
+                        waitingMsg.textContent = 'การแข่งขันกำลังดำเนินอยู่...';
+                        waitingMsg.classList.remove('hidden');
+                        waitingMsg.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
+                    }
                 }
             } else {
                 if (this.isHost) {
