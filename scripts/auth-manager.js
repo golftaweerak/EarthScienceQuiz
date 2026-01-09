@@ -11,6 +11,7 @@ class AuthManagerInternal {
         this.isInitialized = false;
         this.isLoggingIn = false;
         this.LOCAL_STORAGE_KEY = 'app_gamification_data'; // คีย์หลักที่คุณใช้เก็บข้อมูลใน LocalStorage
+        this.unsubscribeAuth = null; // เก็บฟังก์ชันยกเลิก listener ของ Firebase Auth
         
         // Promise เพื่อรอให้ตรวจสอบ Auth เสร็จสิ้นครั้งแรก
         this.authReadyPromise = new Promise((resolve) => {
@@ -24,7 +25,7 @@ class AuthManagerInternal {
     }
 
     init() {
-        onAuthStateChanged(auth, async (user) => {
+        this.unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             const previousUser = this.currentUser; // เก็บสถานะผู้ใช้ก่อนหน้า
             this.isInitialized = true;
             this.currentUser = user;
@@ -284,6 +285,10 @@ class AuthManagerInternal {
         if (this.isInitialized) {
             callback(this.currentUser);
         }
+        // Return unsubscribe function to prevent memory leaks in consuming components
+        return () => {
+            this.onUserChangeCallbacks = this.onUserChangeCallbacks.filter(cb => cb !== callback);
+        };
     }
 
     notifyUserChange(user) {
