@@ -643,6 +643,20 @@ function setupLobbyListener() {
     state.lobbyUnsubscribe = onSnapshot(lobbyRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
             const data = docSnapshot.data();
+
+            // NEW: Check if game has been declared finished by a player
+            if (data.status === 'finished') {
+                if (state.lobbyUnsubscribe) {
+                    state.lobbyUnsubscribe();
+                    state.lobbyUnsubscribe = null;
+                }
+                // Only switch if not already on the results screen to prevent double-triggers
+                if (state.activeScreen !== elements.resultScreen) {
+                    showResults();
+                }
+                return; // Stop further processing for this snapshot
+            }
+
             const players = data.players || [];
             const totalScore = players.reduce((sum, p) => sum + (p.score || 0), 0);
             
@@ -2611,11 +2625,17 @@ function saveQuizState() {
 
   // NEW: Sync score to Lobby (Real-time)
   if (state.lobbyId) {
-      sendScoreToLobby();
+        const isWinner = (state.mode === 'time-attack' && state.score >= 10);
+        sendScoreToLobby(isWinner);
   }
 }
 
-async function sendScoreToLobby() {
+/**
+ * Sends the current player's score and progress to the Firestore lobby document.
+ * Can also trigger the end of the game if the win condition is met.
+ * @param {boolean} [isWinner=false] - Set to true if this player has met the win condition.
+ */
+async function sendScoreToLobby(isWinner = false) {
     if (!state.lobbyId || !state.game.authManager.currentUser) return;
 
     try {
@@ -2650,7 +2670,15 @@ async function sendScoreToLobby() {
                 return p;
             });
             
-            transaction.update(lobbyRef, { players: updatedPlayers });
+            const updateData = { players: updatedPlayers };
+
+            // If this player is the winner and the game isn't already finished, update the lobby status.
+            if (isWinner && data.status !== 'finished') {
+                updateData.status = 'finished';
+                updateData.winnerUid = uid;
+                updateData.winnerName = state.game.authManager.currentUser.displayName;
+            }
+            transaction.update(lobbyRef, updateData);
         });
     } catch (e) {
         console.error("Lobby sync error:", e);
