@@ -355,6 +355,13 @@ export class ChallengeManager {
         this.currentLobbyId = lobbyId;
         this.isHost = true;
 
+        // Determine question amount based on mode
+        let questionAmount = null;
+        // Time Attack: Don't limit questions, allow full set so players can reach 10 correct answers.
+        if (quizId === 'random') {
+            questionAmount = 20; // Random: 20 questions
+        }
+
         const lobbyData = {
             hostId: user.uid,
             hostName: user.displayName || 'Host',
@@ -372,7 +379,7 @@ export class ChallengeManager {
             quizConfig: {
                 id: quizId,
                 title: quizTitle,
-                amount: quizId === 'random' ? 20 : null,
+                amount: questionAmount,
                 seed: Date.now()
             }
         };
@@ -705,7 +712,15 @@ export class ChallengeManager {
                 const score = p.score || 0;
                 const progress = p.progress || 0;
                 const total = p.totalQuestions || 20; 
-                const percent = Math.round((progress / total) * 100) || 0;
+                
+                let percent = 0;
+                if (data.mode === 'time-attack') {
+                    // Time Attack: Progress based on Score (Target 10 points)
+                    percent = Math.min(100, Math.round((score / 10) * 100));
+                } else {
+                    // Classic/Co-op: Progress based on Questions Answered
+                    percent = Math.round((progress / total) * 100) || 0;
+                }
                 
                 let kickButtonHtml = '';
                 if (this.isHost && !isMe && data.status === 'waiting') {
