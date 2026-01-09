@@ -624,23 +624,6 @@ function setupLobbyListener() {
     if (!teamProgressBar) {
         const container = document.createElement('div');
         container.id = 'team-progress-container';
-        // z-[60] to be above header (z-50)
-        container.className = "fixed top-0 left-0 w-full h-1.5 z-[60] bg-gray-200 dark:bg-gray-800";
-        
-        teamProgressBar = document.createElement('div');
-        teamProgressBar.id = 'team-progress-bar';
-        teamProgressBar.className = "h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(168,85,247,0.5)]";
-        teamProgressBar.style.width = '0%';
-        
-        container.appendChild(teamProgressBar);
-        document.body.appendChild(container);
-    }
-
-    // --- NEW: Team Progress Bar (Fixed Top) ---
-    let teamProgressBar = document.getElementById('team-progress-bar');
-    if (!teamProgressBar) {
-        const container = document.createElement('div');
-        container.id = 'team-progress-container';
         container.className = "fixed top-0 left-0 w-full h-1.5 z-[60] bg-gray-200 dark:bg-gray-800";
         
         teamProgressBar = document.createElement('div');
