@@ -909,13 +909,17 @@ export class ChallengeManager {
         if (modeDisplayEl) {
             const modeLabels = {
                 'challenge': '⚔️ โหมดแข่งขัน (Classic)',
+                'classic': '⚔️ โหมดแข่งขัน (Classic)',
                 'time-attack': '⚡ โหมดความเร็ว (Time Attack)',
+                'speedrun': '⚡ โหมดความเร็ว (Time Attack)',
                 'coop': '🤝 โหมดร่วมมือ (Co-op)'
             };
-            modeDisplayEl.textContent = modeLabels[data.mode] || 'โหมดทั่วไป';
+            
+            const currentMode = data.mode || 'challenge';
+            modeDisplayEl.textContent = modeLabels[currentMode] || 'โหมดทั่วไป';
             modeDisplayEl.className = 'text-xs font-bold mt-1 ' + 
-                (data.mode === 'coop' ? 'text-green-600 dark:text-green-400' : 
-                 data.mode === 'time-attack' ? 'text-orange-600 dark:text-orange-400' : 
+                (currentMode === 'coop' ? 'text-green-600 dark:text-green-400' : 
+                 (currentMode === 'time-attack' || currentMode === 'speedrun') ? 'text-orange-600 dark:text-orange-400' : 
                  'text-blue-600 dark:text-blue-400');
         }
 
