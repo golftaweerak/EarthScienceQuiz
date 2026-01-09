@@ -12,6 +12,10 @@ class AuthManagerInternal {
         this.isLoggingIn = false;
         this.LOCAL_STORAGE_KEY = 'app_gamification_data'; // คีย์หลักที่คุณใช้เก็บข้อมูลใน LocalStorage
         this.unsubscribeAuth = null; // เก็บฟังก์ชันยกเลิก listener ของ Firebase Auth
+        this.networkStatusHandler = null; // เก็บฟังก์ชัน handler สำหรับ network status
+        this.networkCheckInterval = null; // เก็บ interval ID สำหรับเช็ค network UI
+        this.headerCheckInterval = null; // เก็บ interval ID สำหรับเช็ค header UI
+        this.onlineStatusTimeout = null; // เก็บ timeout ID สำหรับซ่อน status
         
         // Promise เพื่อรอให้ตรวจสอบ Auth เสร็จสิ้นครั้งแรก
         this.authReadyPromise = new Promise((resolve) => {
@@ -103,7 +107,7 @@ class AuthManagerInternal {
     }
 
     setupNetworkListeners() {
-        const updateStatus = () => {
+        this.networkStatusHandler = () => {
             const statusEl = document.getElementById('header-network-status');
             if (!statusEl) return;
 
@@ -139,27 +143,31 @@ class AuthManagerInternal {
             }
         };
 
-        window.addEventListener('online', updateStatus);
-        window.addEventListener('offline', updateStatus);
+        window.addEventListener('online', this.networkStatusHandler);
+        window.addEventListener('offline', this.networkStatusHandler);
         
         // Check periodically for header element injection
         let attempts = 0;
-        const checkHeader = setInterval(() => {
+        this.networkCheckInterval = setInterval(() => {
             const statusEl = document.getElementById('header-network-status');
             if (statusEl) {
-                clearInterval(checkHeader);
-                if (!navigator.onLine) updateStatus();
+                clearInterval(this.networkCheckInterval);
+                this.networkCheckInterval = null;
+                if (!navigator.onLine) this.networkStatusHandler();
             }
             // Stop checking after 10 seconds (10 attempts) to save resources
             attempts++;
-            if (attempts >= 10) clearInterval(checkHeader);
+            if (attempts >= 10) {
+                clearInterval(this.networkCheckInterval);
+                this.networkCheckInterval = null;
+            }
         }, 1000);
     }
 
     // จัดการ UI ของ Header (ปุ่ม Login/Logout)
     setupHeaderUI() {
         let attempts = 0;
-        const checkHeader = setInterval(() => {
+        this.headerCheckInterval = setInterval(() => {
             const loginBtn = document.getElementById('user-hub-login-btn');
             const logoutBtn = document.getElementById('user-hub-logout-btn');
             const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
@@ -167,7 +175,8 @@ class AuthManagerInternal {
 
             // ถ้าเจอ Element อย่างน้อยหนึ่งตัว แสดงว่า Header โหลดมาแล้ว
             if (loginBtn || logoutBtn) {
-                clearInterval(checkHeader);
+                clearInterval(this.headerCheckInterval);
+                this.headerCheckInterval = null;
 
                 // ผูก Event Click
                 if (loginBtn) loginBtn.addEventListener('click', () => this.login());
@@ -197,7 +206,10 @@ class AuthManagerInternal {
             }
             
             attempts++;
-            if (attempts >= 20) clearInterval(checkHeader); // หยุดหาหลังจาก 10 วินาที
+            if (attempts >= 20) {
+                clearInterval(this.headerCheckInterval); // หยุดหาหลังจาก 10 วินาที
+                this.headerCheckInterval = null;
+            }
         }, 500);
     }
 
@@ -695,6 +707,36 @@ class AuthManagerInternal {
         } catch (e) {
             console.error("Error saving quiz history item:", e);
         }
+    }
+
+    // ฟังก์ชันทำลาย instance และเคลียร์ listener ทั้งหมด
+    destroy() {
+        // 1. Unsubscribe Firebase Auth
+        if (this.unsubscribeAuth) {
+            this.unsubscribeAuth();
+            this.unsubscribeAuth = null;
+        }
+
+        // 2. Remove Window Listeners
+        if (this.networkStatusHandler) {
+            window.removeEventListener('online', this.networkStatusHandler);
+            window.removeEventListener('offline', this.networkStatusHandler);
+            this.networkStatusHandler = null;
+        }
+
+        // 3. Clear Intervals & Timeouts
+        if (this.networkCheckInterval) clearInterval(this.networkCheckInterval);
+        if (this.headerCheckInterval) clearInterval(this.headerCheckInterval);
+        if (this.onlineStatusTimeout) clearTimeout(this.onlineStatusTimeout);
+
+        this.networkCheckInterval = null;
+        this.headerCheckInterval = null;
+        this.onlineStatusTimeout = null;
+
+        // 4. Clear Callbacks
+        this.onUserChangeCallbacks = [];
+        this.isInitialized = false;
+        console.log("AuthManager destroyed and listeners cleared.");
     }
 }
 
