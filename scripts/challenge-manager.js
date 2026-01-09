@@ -38,6 +38,7 @@ export class ChallengeManager {
         this.lobbyModal = new ModalHandler('lobby-modal');
 
         this._cacheDomElements();
+        this._ensureReadyButton();
         this._attachEventListeners();
         this.checkUrlForLobby();
     }
@@ -80,6 +81,20 @@ export class ChallengeManager {
         this.joinModal = new ModalHandler('join-lobby-modal');
         this.modeModal = new ModalHandler('mode-select-modal');
         this.quizModal = new ModalHandler('quiz-select-modal');
+    }
+
+    _ensureReadyButton() {
+        if (!this.dom.readyBtn && this.dom.startBtn && this.dom.startBtn.parentNode) {
+            const btn = document.createElement('button');
+            btn.id = 'lobby-ready-btn';
+            // Default styling
+            btn.className = 'px-4 py-2 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 hidden mr-2';
+            // Insert before start button (or wherever fits best in the footer)
+            // Using insertBefore startBtn ensures it sits to the left of it (or replaces it visually if start is hidden)
+            this.dom.startBtn.parentNode.insertBefore(btn, this.dom.startBtn);
+            this.dom.readyBtn = btn;
+            this.dom.readyBtn.addEventListener('click', () => this.toggleReady());
+        }
     }
 
     /**
@@ -495,6 +510,35 @@ export class ChallengeManager {
         showToast('เตะผู้เล่นสำเร็จ', 'ผู้เล่นถูกลบออกจากห้องแล้ว', '👋');
     }
 
+    async toggleReady() {
+        if (!this.currentLobbyId) return;
+        const user = authManager.currentUser;
+        if (!user) return;
+
+        const lobbyRef = doc(db, 'lobbies', this.currentLobbyId);
+        
+        try {
+            await runTransaction(db, async (transaction) => {
+                const lobbySnap = await transaction.get(lobbyRef);
+                if (!lobbySnap.exists()) return;
+
+                const data = lobbySnap.data();
+                const players = data.players || [];
+                
+                const updatedPlayers = players.map(p => {
+                    if (p.uid === user.uid) {
+                        return { ...p, ready: !p.ready };
+                    }
+                    return p;
+                });
+
+                transaction.update(lobbyRef, { players: updatedPlayers });
+            });
+        } catch (e) {
+            console.error("Error toggling ready status:", e);
+        }
+    }
+
     /**
      * Removes a player from a lobby. If the host leaves, the lobby is deleted.
      * Uses a Firestore transaction for atomicity.
@@ -676,11 +720,10 @@ export class ChallengeManager {
             // FIX: Prevent infinite redirect loop and handle game start transition
             const isInQuiz = window.location.pathname.includes('/quiz/');
             if (data.status === 'started' && !isInQuiz) {
-                // Only auto-redirect if we witnessed the transition from 'waiting' to 'started'
-                if (this.lastStatus === 'waiting') {
-                    this.goToQuiz(data.quizConfig, data.mode);
+                // NEW: If status changes to 'started', begin the countdown for all players.
+                if (this.lastStatus === 'waiting' && !this.isStarting) {
+                    this.startCountdownAndGo(data.quizConfig, data.mode);
                 }
-                // If lastStatus was null (first load) or 'started' (re-load), do NOT auto-redirect.
             }
             this.lastStatus = data.status;
         }, (error) => {
@@ -701,6 +744,9 @@ export class ChallengeManager {
         const titleEl = this.dom.lobbyTitle;
         const quizNameEl = this.dom.quizName;
         const modeDisplayEl = this.dom.modeDisplay;
+
+        // Ensure ready button exists in DOM
+        this._ensureReadyButton();
 
         if (roomIdEl) roomIdEl.textContent = this.currentLobbyId;
         if (countEl) countEl.textContent = data.players.length;
@@ -777,9 +823,13 @@ export class ChallengeManager {
                     `;
                 } else {
                     // โหมดรอ
-                    statusHtml = p.uid === data.hostId 
-                        ? /*html*/'<span class="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-0.5 rounded-full ml-auto font-bold">Host</span>' 
-                        : /*html*/'<span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full ml-auto font-bold">Ready</span>';
+                    if (p.uid === data.hostId) {
+                        statusHtml = /*html*/'<span class="text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-0.5 rounded-full ml-auto font-bold">Host</span>';
+                    } else {
+                        statusHtml = p.ready 
+                            ? /*html*/'<span class="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-0.5 rounded-full ml-auto font-bold">Ready</span>'
+                            : /*html*/'<span class="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-2 py-0.5 rounded-full ml-auto font-bold">Not Ready</span>';
+                    }
                 }
 
                 return /*html*/`
@@ -837,6 +887,20 @@ export class ChallengeManager {
                 if (this.isHost) {
                     startBtn.classList.remove('hidden');
                     waitingMsg.classList.add('hidden');
+
+                    // ตรวจสอบว่าทุกคนพร้อมหรือยัง (Host จะ Ready เสมอโดยปริยาย)
+                    const allReady = data.players.every(p => p.ready);
+                    
+                    if (allReady) {
+                        startBtn.disabled = false;
+                        startBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+                        startBtn.innerHTML = '<span>เริ่มการแข่งขัน! 🚀</span>';
+                    } else {
+                        startBtn.disabled = true;
+                        startBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+                        const notReadyCount = data.players.filter(p => !p.ready).length;
+                        startBtn.innerHTML = `<span>รอคนพร้อม (${notReadyCount}) ⏳</span>`;
+                    }
                     
                     // NEW: Add warning for host to prevent accidental room closure
                     if (!document.getElementById('host-warning')) {
@@ -854,11 +918,33 @@ export class ChallengeManager {
                 }
             }
         }
+
+        // Update Ready Button State
+        if (this.dom.readyBtn) {
+            if (data.status === 'started' || this.isHost) {
+                this.dom.readyBtn.classList.add('hidden');
+            } else {
+                this.dom.readyBtn.classList.remove('hidden');
+                const me = data.players.find(p => p.uid === authManager.currentUser?.uid);
+                if (me) {
+                    if (me.ready) {
+                        this.dom.readyBtn.innerHTML = '<span>ยกเลิกพร้อม</span>';
+                        this.dom.readyBtn.className = 'px-4 py-2 rounded-lg font-bold shadow-sm transition-all transform hover:scale-105 bg-red-100 text-red-600 hover:bg-red-200 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 mr-2';
+                    } else {
+                        this.dom.readyBtn.innerHTML = '<span>พร้อมแล้ว!</span>';
+                        this.dom.readyBtn.className = 'px-4 py-2 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 bg-green-500 hover:bg-green-600 text-white border border-transparent mr-2';
+                    }
+                }
+            }
+        }
     }
 
     startCountdownAndGo(quizConfig, mode) {
         // FIX: Clear any existing timer before starting a new one to prevent overlap
         if (this.countdownTimer) clearInterval(this.countdownTimer);
+
+        // Set a flag to indicate the game is starting, preventing other actions.
+        this.isStarting = true;
 
         const waitingMsg = this.dom.waitingMsg;
         const startBtn = this.dom.startBtn;
