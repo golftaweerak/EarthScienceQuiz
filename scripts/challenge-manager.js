@@ -17,6 +17,7 @@ export class ChallengeManager {
         this.countdownTimer = null; // ตัวเก็บ timer
         this.lobbyModal = null; // Will be initialized after injection
         this.dom = {}; // Object to hold cached DOM elements
+        this.isInitialized = false; // NEW: Prevent double initialization
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -29,6 +30,10 @@ export class ChallengeManager {
     }
 
     init() {
+        // FIX: Prevent multiple initializations
+        if (this.isInitialized) return;
+        this.isInitialized = true;
+
         // Initialize handlers for existing modals
         this.lobbyModal = new ModalHandler('lobby-modal');
 
@@ -784,6 +789,9 @@ export class ChallengeManager {
     }
 
     startCountdownAndGo(quizConfig, mode) {
+        // FIX: Clear any existing timer before starting a new one to prevent overlap
+        if (this.countdownTimer) clearInterval(this.countdownTimer);
+
         const waitingMsg = this.dom.waitingMsg;
         const startBtn = this.dom.startBtn;
         
@@ -839,6 +847,7 @@ export class ChallengeManager {
         if (this.unsubscribe) this.unsubscribe();
         if (this.chatUnsubscribe) this.chatUnsubscribe();
         if (this.countdownTimer) clearInterval(this.countdownTimer);
+        this.countdownTimer = null; // Reset reference
         this.currentLobbyId = null;
         this.isHost = false;
         this.isStarting = false;
