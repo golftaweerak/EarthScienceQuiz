@@ -294,8 +294,8 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
   checkForSavedQuiz(action); // This will check localStorage and either show the start screen or a resume prompt.
   setupPowerUpUI(); // Setup the power-up bar
 
-  if (state.lobbyId && state.mode === 'coop') {
-      setupCoopListener();
+  if (state.lobbyId) {
+      setupLobbyListener();
   }
 }
 
@@ -308,7 +308,7 @@ function updateNextButtonAppearance(action) {
 
     const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
     const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
-    const isSpeedRunWin = state.mode === 'speed' && state.score >= 10;
+    const isSpeedRunWin = state.mode === 'time-attack' && state.score >= 10;
 
     let buttonText = 'ข้อต่อไป';
     let buttonIcon = config.icons.next;
@@ -592,21 +592,24 @@ function updatePlayersListUI(players, scoreChangedPlayers = new Set()) {
     }).join('');
 }
 
-function setupCoopListener() {
+function setupLobbyListener() {
     const scoreCounter = elements.scoreCounter;
     if (!scoreCounter) return;
 
-    // Create Team Score Element
-    const teamScoreEl = document.createElement('div');
-    teamScoreEl.id = 'team-score-counter';
-    teamScoreEl.className = "font-kanit text-sm sm:text-lg font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-all duration-300 transform ml-1 sm:ml-2 whitespace-nowrap flex-shrink-0";
-    teamScoreEl.innerHTML = `🤝 ทีม: 0`;
-    
-    // Insert after individual score
-    if (scoreCounter.parentNode) {
-        scoreCounter.parentNode.insertBefore(teamScoreEl, scoreCounter.nextSibling);
+    let teamScoreEl = null;
+    // Create Team Score Element (Only for Co-op)
+    if (state.mode === 'coop') {
+        teamScoreEl = document.createElement('div');
+        teamScoreEl.id = 'team-score-counter';
+        teamScoreEl.className = "font-kanit text-sm sm:text-lg font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-all duration-300 transform ml-1 sm:ml-2 whitespace-nowrap flex-shrink-0";
+        teamScoreEl.innerHTML = `🤝 ทีม: 0`;
+        
+        // Insert after individual score
+        if (scoreCounter.parentNode) {
+            scoreCounter.parentNode.insertBefore(teamScoreEl, scoreCounter.nextSibling);
+        }
+        elements.teamScoreDisplay = teamScoreEl;
     }
-    elements.teamScoreDisplay = teamScoreEl;
 
     // Create Players List Container if not exists
     if (!document.getElementById('quiz-players-list')) {
@@ -646,18 +649,35 @@ function setupCoopListener() {
             
             state.currentTeamScore = totalScore; // Update state for result screen
             
-            const currentDisplayScore = parseInt(teamScoreEl.dataset.score || 0);
-            
-            if (totalScore !== currentDisplayScore) {
-                animateValue(teamScoreEl, currentDisplayScore, totalScore, 1000, '🤝 ทีม: ');
-                teamScoreEl.dataset.score = totalScore;
-                
-                // Pop animation effect
-                teamScoreEl.classList.add('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
-                setTimeout(() => {
-                    teamScoreEl.classList.remove('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
-                }, 300);
+            // Update Team Score UI (Co-op only)
+            if (state.mode === 'coop' && teamScoreEl) {
+                const currentDisplayScore = parseInt(teamScoreEl.dataset.score || 0);
+                if (totalScore !== currentDisplayScore) {
+                    animateValue(teamScoreEl, currentDisplayScore, totalScore, 1000, '🤝 ทีม: ');
+                    teamScoreEl.dataset.score = totalScore;
+                    
+                    // Pop animation effect
+                    teamScoreEl.classList.add('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
+                    setTimeout(() => {
+                        teamScoreEl.classList.remove('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
+                    }, 300);
+                }
             }
+
+            // Calculate changes for animation
+            const scoreChangedPlayers = new Set();
+            if (!isFirstLoad) {
+                players.forEach(p => {
+                    const oldScore = previousPlayersData[p.uid]?.score || 0;
+                    if (p.score > oldScore) scoreChangedPlayers.add(p.uid);
+                });
+            }
+            // Update cache
+            players.forEach(p => previousPlayersData[p.uid] = { ...p });
+            isFirstLoad = false;
+
+            // Update Players List UI (All modes)
+            updatePlayersListUI(players, scoreChangedPlayers);
         }
     });
 }
@@ -1455,7 +1475,7 @@ function handleNextButtonClick() {
 
   // If we reach here, the question has been answered.
   const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
-  const isSpeedRunWin = state.mode === 'speed' && state.score >= 10;
+  const isSpeedRunWin = state.mode === 'time-attack' && state.score >= 10;
 
   if (isLastQuestion || isSpeedRunWin) {
     showResults();
@@ -1480,7 +1500,7 @@ function showResults() {
   setFloatingNav(false); // Deactivate the floating navigation bar
 
   let totalQuestions = state.shuffledQuestions.length;
-  if (state.mode === 'speed') {
+  if (state.mode === 'time-attack') {
       totalQuestions = state.userAnswers.filter(a => a !== null).length;
   }
 
@@ -1580,7 +1600,7 @@ function showResults() {
   // Get the appropriate message and icon based on the score
   let resultInfo = getResultInfo(percentage);
 
-  if (state.mode === 'speed' && state.score >= 10) {
+  if (state.mode === 'time-attack' && state.score >= 10) {
       resultInfo = { ...resultInfo };
       resultInfo.title = "Speed Run สำเร็จ! ⚡";
       resultInfo.message = `สุดยอด! คุณตอบถูกครบ 10 ข้อแล้ว (ความแม่นยำ ${percentage}%)`;
