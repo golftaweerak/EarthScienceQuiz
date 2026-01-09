@@ -4,6 +4,7 @@ import { authManager } from './auth-manager.js';
 import { showToast } from './toast.js';
 import { ModalHandler } from './modal-handler.js';
 import { categoryDetails } from './data-manager.js';
+import { getSavedCustomQuizzes } from './custom-quiz-handler.js';
 
 export class ChallengeManager {
     constructor() {
@@ -21,21 +22,18 @@ export class ChallengeManager {
         this.typingTimeout = null;
         this.typingUnsubscribe = null;
         this.lastTypingUpdateTime = 0;
+        this.currentQuizConfig = null; // Store current quiz config
+        this.currentMode = null; // Store current mode
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.init());
-        } else {
-            this.init();
-        }
     }
 
     init() {
         // FIX: Prevent multiple initializations
         if (this.isInitialized) return;
         this.isInitialized = true;
+        delete window.challengeContext; // Cleanup any stale context on init
 
         // Initialize handlers for existing modals
         this.lobbyModal = new ModalHandler('lobby-modal');
@@ -52,6 +50,7 @@ export class ChallengeManager {
      */
     _cacheDomElements() {
         this.dom.menuBtn = document.getElementById('open-challenge-menu-btn');
+        this.dom.headerMenuBtn = document.getElementById('header-challenge-menu-btn');
         this.dom.createBtn = document.getElementById('challenge-create-btn');
         this.dom.joinBtn = document.getElementById('challenge-join-btn');
         this.dom.startBtn = document.getElementById('lobby-start-btn');
@@ -76,6 +75,11 @@ export class ChallengeManager {
         this.dom.chatContainer = document.getElementById('lobby-chat-messages');
         this.dom.confirmModalTitle = document.getElementById('confirm-modal-title');
         this.dom.confirmModalDesc = document.getElementById('confirm-modal-description');
+        this.dom.challengeTimerModes = document.querySelectorAll('input[name="challenge-timer-mode"]');
+        this.dom.challengeTimerInputContainer = document.getElementById('challenge-timer-input-container');
+        this.dom.challengeTimerInput = document.getElementById('challenge-timer-input');
+        this.dom.challengeTimerUnit = document.getElementById('challenge-timer-unit');
+        this.dom.createCustomQuizBtn = document.getElementById('quiz-select-create-custom');
 
         // Modals
         this.kickModal = new ModalHandler('kick-notification-modal');
@@ -107,6 +111,7 @@ export class ChallengeManager {
      */
     _attachEventListeners() {
         this.dom.menuBtn?.addEventListener('click', () => this.openMainMenu());
+        this.dom.headerMenuBtn?.addEventListener('click', () => this.openMainMenu());
         this.dom.createBtn?.addEventListener('click', () => {
             this.mainMenuModal.close();
             this.openModeSelection();
@@ -151,27 +156,75 @@ export class ChallengeManager {
              this.dom.joinInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
         }
 
+        // Timer mode toggle logic
+        this.dom.challengeTimerModes.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const mode = e.target.value;
+                if (mode === 'none') {
+                    this.dom.challengeTimerInputContainer.classList.add('hidden');
+                } else {
+                    this.dom.challengeTimerInputContainer.classList.remove('hidden');
+                    if (mode === 'overall') {
+                        this.dom.challengeTimerInput.value = 20;
+                        this.dom.challengeTimerUnit.textContent = 'นาที';
+                    } else {
+                        this.dom.challengeTimerInput.value = 60;
+                        this.dom.challengeTimerUnit.textContent = 'วินาที';
+                    }
+                }
+            });
+        });
+
         this.dom.modeSelectButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const mode = btn.dataset.mode;
                 this.modeModal.close();
-                this.openQuizSelection(mode);
+                
+                if (this.currentLobbyId && this.isHost && this.currentQuizConfig) {
+                    this.updateLobbySettings(mode, this.currentQuizConfig.id, this.currentQuizConfig.title, this.currentQuizConfig.description, this.currentQuizConfig.totalQuestions);
+                } else {
+                    this.openQuizSelection(mode);
+                }
             });
         });
         
         this.dom.randomQuizBtn?.addEventListener('click', () => {
                 this.quizModal.close();
+                const { timerMode, customTime } = this.getTimerSettings();
                 if (this.currentLobbyId && this.isHost) {
-                    this.updateLobbySettings(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20);
+                    this.updateLobbySettings(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20, timerMode, customTime);
                 } else {
-                    this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20);
+                    this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20, timerMode, customTime);
                 }
+        });
+
+        this.dom.createCustomQuizBtn?.addEventListener('click', () => {
+            this.quizModal.close();
+            
+            // Setup context for custom quiz handler to intercept the creation
+            window.challengeContext = {
+                onQuizCreated: (quiz) => {
+                    try {
+                        if (this.currentLobbyId && this.isHost) {
+                            this.updateLobbySettings(this.selectedMode, quiz.customId, quiz.title, quiz.description, quiz.questions.length, quiz.timerMode, quiz.customTime);
+                        } else {
+                            this.createLobby(this.selectedMode, quiz.customId, quiz.title, quiz.description, quiz.questions.length, quiz.timerMode, quiz.customTime);
+                        }
+                    } finally {
+                        delete window.challengeContext; // Ensure cleanup happens even if error occurs
+                    }
+                }
+            };
+
+            // Trigger the custom quiz creation modal
+            const openBtn = document.getElementById('open-create-quiz-modal-btn');
+            if (openBtn) openBtn.click();
         });
 
         // Event delegation for the players list to handle kick buttons
         this.dom.playersListContainer?.addEventListener('click', (e) => {
             const kickBtn = e.target.closest('.kick-player-btn');
-            if (this.isHost && kickBtn) {
+            if (this.isHost && kickBtn && this.dom.confirmActionBtn) {
                 e.stopPropagation();
                 const targetUid = kickBtn.dataset.uid;
                 const playerName = kickBtn.dataset.name;
@@ -214,6 +267,17 @@ export class ChallengeManager {
         });
     }
 
+    getTimerSettings() {
+        const timerMode = document.querySelector('input[name="challenge-timer-mode"]:checked')?.value || 'none';
+        let customTime = null;
+        if (timerMode !== 'none') {
+            const val = parseInt(this.dom.challengeTimerInput.value, 10);
+            if (timerMode === 'overall') customTime = val * 60; // minutes to seconds
+            else customTime = val; // seconds
+        }
+        return { timerMode, customTime };
+    }
+
     openMainMenu() {
         this.mainMenuModal.open();
     }
@@ -224,6 +288,8 @@ export class ChallengeManager {
 
     async openQuizSelection(mode) {
         this.selectedMode = mode;
+        delete window.challengeContext; // Clear any stale context before starting selection
+        
         let quizList = [];
         try {
             const module = await import(`../data/quizzes-list.js`);
@@ -234,8 +300,13 @@ export class ChallengeManager {
             return;
         }
 
+        // Fetch custom quizzes
+        const customQuizzes = getSavedCustomQuizzes();
+        // Merge lists
+        const allQuizzes = [...quizList, ...customQuizzes];
+
         // Group quizzes by category
-        const groupedQuizzes = quizList.reduce((acc, quiz) => {
+        const groupedQuizzes = allQuizzes.reduce((acc, quiz) => {
             const category = quiz.category || "Uncategorized";
             if (!acc[category]) acc[category] = [];
             acc[category].push(quiz);
@@ -257,7 +328,7 @@ export class ChallengeManager {
                             const catDetail = (categoryDetails && categoryDetails[catKey]) || { title: catKey, icon: './assets/icons/study.png' };
                             
                             // Sort quizzes by title
-                            quizzes.sort((a, b) => a.title.localeCompare(b.title, 'th'));
+                            quizzes.sort((a, b) => a.title.localeCompare(b.title, 'th', { numeric: true }));
 
                             const quizzesHtml = quizzes.map(q => {
                                 const iconSrc = q.icon || './assets/icons/study.png';
@@ -317,10 +388,11 @@ export class ChallengeManager {
                 const quizDesc = btn.dataset.quizDesc;
                 const quizAmount = btn.dataset.quizAmount;
                 this.quizModal.close();
+                const { timerMode, customTime } = this.getTimerSettings();
                 if (this.currentLobbyId && this.isHost) {
-                    this.updateLobbySettings(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount);
+                    this.updateLobbySettings(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount, timerMode, customTime);
                 } else {
-                    this.createLobby(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount);
+                    this.createLobby(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount, timerMode, customTime);
                 }
             };
         });
@@ -391,7 +463,7 @@ export class ChallengeManager {
         }
     }
 
-    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม', quizDesc = '', quizTotal = null) {
+    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม', quizDesc = '', quizTotal = null, timerMode = 'none', customTime = null) {
         const user = authManager.currentUser;
         if (!user) {
             showToast('ต้องเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนสร้างห้อง', '🔒', 'error');
@@ -404,9 +476,17 @@ export class ChallengeManager {
 
         // Determine question amount based on mode
         let questionAmount = null;
+        let customQuestions = null;
+
         // Time Attack: Don't limit questions, allow full set so players can reach 10 correct answers.
         if (quizId === 'random') {
             questionAmount = 20; // Random: 20 questions
+        } else if (quizId.startsWith('custom_')) {
+             const customQuiz = getSavedCustomQuizzes().find(q => q.customId === quizId);
+             if (customQuiz) {
+                 customQuestions = customQuiz.questions;
+                 questionAmount = customQuiz.questions.length;
+             }
         }
 
         const lobbyData = {
@@ -429,7 +509,10 @@ export class ChallengeManager {
                 description: quizDesc,
                 totalQuestions: quizTotal,
                 amount: questionAmount,
-                seed: Date.now()
+                seed: Date.now(),
+                customQuestions: customQuestions,
+                timerMode: timerMode,
+                customTime: customTime
             }
         };
 
@@ -444,12 +527,20 @@ export class ChallengeManager {
         }
     }
 
-    async updateLobbySettings(mode, quizId, quizTitle, quizDesc, quizTotal) {
+    async updateLobbySettings(mode, quizId, quizTitle, quizDesc, quizTotal, timerMode = 'none', customTime = null) {
         if (!this.currentLobbyId || !this.isHost) return;
 
         let questionAmount = null;
+        let customQuestions = null;
+
         if (quizId === 'random') {
             questionAmount = 20;
+        } else if (quizId.startsWith('custom_')) {
+             const customQuiz = getSavedCustomQuizzes().find(q => q.customId === quizId);
+             if (customQuiz) {
+                 customQuestions = customQuiz.questions;
+                 questionAmount = customQuiz.questions.length;
+             }
         }
 
         const updateData = {
@@ -460,7 +551,10 @@ export class ChallengeManager {
                 description: quizDesc,
                 totalQuestions: quizTotal,
                 amount: questionAmount,
-                seed: Date.now()
+                seed: Date.now(),
+                customQuestions: customQuestions,
+                timerMode: timerMode,
+                customTime: customTime
             }
         };
 
@@ -876,6 +970,10 @@ export class ChallengeManager {
         const titleEl = this.dom.lobbyTitle;
         const quizNameEl = this.dom.quizName;
         const modeDisplayEl = this.dom.modeDisplay;
+        
+        // Store current state for quick updates
+        this.currentQuizConfig = data.quizConfig;
+        this.currentMode = data.mode;
 
         // Ensure ready button exists in DOM
         this._ensureReadyButton();
@@ -887,7 +985,7 @@ export class ChallengeManager {
             const countText = config.totalQuestions ? ` (${config.totalQuestions} ข้อ)` : (config.amount ? ` (${config.amount} ข้อ)` : '');
             
             const changeBtn = (this.isHost && data.status === 'waiting') 
-                ? `<button id="lobby-change-settings-btn" class="mt-2 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full transition-colors border border-gray-200 dark:border-gray-600 flex items-center gap-1 mx-auto hover:scale-105 transform duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>ตั้งค่าห้อง</button>` 
+                ? `<button id="lobby-change-quiz-btn" class="mt-2 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full transition-colors border border-gray-200 dark:border-gray-600 flex items-center gap-1 mx-auto hover:scale-105 transform duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" /></svg>เปลี่ยนชุดข้อสอบ</button>` 
                 : '';
 
             quizNameEl.innerHTML = `
@@ -900,8 +998,8 @@ export class ChallengeManager {
             `;
             
             if (this.isHost && data.status === 'waiting') {
-                document.getElementById('lobby-change-settings-btn')?.addEventListener('click', () => {
-                    this.openModeSelection();
+                document.getElementById('lobby-change-quiz-btn')?.addEventListener('click', () => {
+                    this.openQuizSelection(this.currentMode);
                 });
             }
         }
@@ -916,11 +1014,25 @@ export class ChallengeManager {
             };
             
             const currentMode = data.mode || 'challenge';
-            modeDisplayEl.textContent = modeLabels[currentMode] || 'โหมดทั่วไป';
-            modeDisplayEl.className = 'text-xs font-bold mt-1 ' + 
-                (currentMode === 'coop' ? 'text-green-600 dark:text-green-400' : 
+            const modeText = modeLabels[currentMode] || 'โหมดทั่วไป';
+            const colorClass = (currentMode === 'coop' ? 'text-green-600 dark:text-green-400' : 
                  (currentMode === 'time-attack' || currentMode === 'speedrun') ? 'text-orange-600 dark:text-orange-400' : 
                  'text-blue-600 dark:text-blue-400');
+
+            if (this.isHost && data.status === 'waiting') {
+                modeDisplayEl.innerHTML = `
+                    <button id="lobby-change-mode-btn" class="flex items-center gap-1 mx-auto hover:opacity-80 transition-opacity ${colorClass} text-xs font-bold mt-1">
+                        <span>${modeText}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                    </button>
+                `;
+                document.getElementById('lobby-change-mode-btn')?.addEventListener('click', () => {
+                    this.openModeSelection();
+                });
+            } else {
+                modeDisplayEl.textContent = modeText;
+                modeDisplayEl.className = `text-xs font-bold mt-1 ${colorClass}`;
+            }
         }
 
         // จัดเรียงผู้เล่น: ถ้าเริ่มเกมแล้ว เรียงตามคะแนน, ถ้ายังไม่เริ่ม เรียงตามเวลาเข้า
@@ -1169,6 +1281,9 @@ export class ChallengeManager {
         this.isHost = false;
         this.isStarting = false;
         this.lobbyModal.close();
+        
+        // Cleanup
+        delete window.challengeContext;
 
         // Remove from DB
         if (removeFromDb && lobbyId && user) {
@@ -1180,3 +1295,5 @@ export class ChallengeManager {
         this.lobbyModal.open();
     }
 }
+
+export const challengeManager = new ChallengeManager();

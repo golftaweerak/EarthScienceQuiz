@@ -48,6 +48,10 @@ function initializeAnchorScrollFix(toggleAccordion, getSectionToggles) {
  */
 async function main() {
     try {
+        // Optimization: Prefetch page-specific scripts in parallel
+        const mainScriptPromise = import('./main.js');
+        const customQuizHandlerPromise = import('./custom-quiz-handler.js');
+
         // Load all shared components concurrently for better performance.
         await Promise.all([
             loadComponent('#main_header-placeholder', './components/main_header.html'),
@@ -62,7 +66,7 @@ async function main() {
         // Then, initialize scripts specific to the page by checking for key elements.
         if (document.getElementById('quiz-categories-container')) {
             try {
-                const { initializePage, toggleAccordion, getSectionToggles } = await import('./main.js');
+                const { initializePage, toggleAccordion, getSectionToggles } = await mainScriptPromise;
                 initializePage();
                 initializeAnchorScrollFix(toggleAccordion, getSectionToggles);
             } catch (err) {
@@ -71,7 +75,7 @@ async function main() {
         }
         if (document.getElementById('create-custom-quiz-btn')) {
             try {
-                const { initializeCustomQuizHandler } = await import('./custom-quiz-handler.js');
+                const { initializeCustomQuizHandler } = await customQuizHandlerPromise;
                 initializeCustomQuizHandler();
             } catch (err) {
                 console.error("Failed to load custom quiz handler:", err);

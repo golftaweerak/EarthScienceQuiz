@@ -652,7 +652,15 @@ function setupLobbyListener() {
                 }
                 // Only switch if not already on the results screen to prevent double-triggers
                 if (state.activeScreen !== elements.resultScreen) {
-                    showResults();
+                    // แจ้งเตือนก่อนตัดจบเกม
+                    const winnerName = data.winnerName || 'ผู้เล่นอื่น';
+                    if (state.mode === 'time-attack') {
+                         showToast('จบเกม!', `${winnerName} เข้าเส้นชัยแล้ว!`, '🏁');
+                    } else {
+                         showToast('จบเกม!', `การแข่งขันสิ้นสุดลงแล้ว`, '🏁');
+                    }
+                    // หน่วงเวลาเล็กน้อยเพื่อให้เห็น Toast ก่อนตัดหน้า
+                    setTimeout(() => showResults(), 1000);
                 }
                 return; // Stop further processing for this snapshot
             }
@@ -687,6 +695,11 @@ function setupLobbyListener() {
                     const totalProgress = players.reduce((sum, p) => sum + (p.progress || 0), 0);
                     const playerCount = players.length || 1;
                     progressPercent = (totalProgress / (totalQ * playerCount)) * 100;
+                } else if (state.mode === 'time-attack') {
+                    // Time Attack: Progress based on Leader's Score vs Target (10)
+                    // ใช้คะแนนสูงสุดในห้องเป็นตัวกำหนดความคืบหน้าของแถบ
+                    const maxScore = Math.max(...players.map(p => p.score || 0));
+                    progressPercent = (maxScore / 10) * 100; 
                 } else {
                     // Challenge: Show Leader's progress
                     const maxProgress = Math.max(...players.map(p => p.progress || 0));
@@ -1920,72 +1933,6 @@ function createStatItem(value, label, icon, theme) {
         </div>
     `;
   return item;
-}
-
-/**
- * Renders a horizontal bar chart showing the score for each main category in the results.
- * @param {object} categoryStats - The stats object grouped by category.
- */
-function renderResultCategoryChart(categoryStats) {
-  const chartCanvas = document.getElementById('result-category-chart');
-  if (!chartCanvas) return;
-
-  // Check if Chart.js is loaded to prevent crash
-  if (typeof Chart === 'undefined') {
-    console.warn("Chart.js is not loaded. Skipping chart rendering.");
-    return;
-  }
-
-  try {
-    const ctx = chartCanvas.getContext('2d');
-
-    const sortedCategories = Object.entries(categoryStats).sort((a, b) => a[0].localeCompare(b[0], 'th'));
-
-    const labels = sortedCategories.map(([name, _]) => name);
-    const scores = sortedCategories.map(([_, data]) => data.total > 0 ? (data.correct / data.total) * 100 : 0);
-
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'คะแนน (%)',
-          data: scores,
-          backgroundColor: scores.map(score => score >= 75 ? 'rgba(34, 197, 94, 0.7)' : score >= 50 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(239, 68, 68, 0.7)'),
-          borderColor: scores.map(score => score >= 75 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626'),
-          borderWidth: 1,
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            beginAtZero: true,
-            max: 100,
-            ticks: {
-              color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
-              callback: value => value + '%'
-            }
-          },
-          y: {
-            ticks: {
-              color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#374151',
-              font: { family: "'Kanit', sans-serif" }
-            }
-          }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: context => `คะแนน: ${context.raw.toFixed(1)}% (${categoryStats[context.label].correct}/${categoryStats[context.label].total} ข้อ)` } }
-        }
-      }
-    });
-  } catch (error) {
-    console.error("Error rendering chart:", error);
-  }
 }
 
 /**

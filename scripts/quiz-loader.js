@@ -1,6 +1,8 @@
 
 import { init as initQuizApp } from './quiz-logic.js';
 import { getSavedCustomQuizzes } from './custom-quiz-handler.js';
+import { db } from './firebase-config.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Populates the common elements of the quiz page (titles, descriptions).
@@ -72,6 +74,7 @@ export async function initializeQuiz() {
     const urlParams = new URLSearchParams(window.location.search);
     const seedParam = urlParams.get('seed');
     const quizId = urlParams.get('id');
+    const lobbyId = urlParams.get('lobbyId');
     const action = urlParams.get('action'); // Get the action from URL, e.g., 'view_results'
 
     // If the action is to view results, immediately hide the start screen
@@ -83,10 +86,42 @@ export async function initializeQuiz() {
         }
     }
 
+    // --- NEW: Fetch Lobby Config if available ---
+    let lobbyConfig = null;
+    if (lobbyId) {
+        try {
+            const lobbyRef = doc(db, 'lobbies', lobbyId);
+            const lobbySnap = await getDoc(lobbyRef);
+            if (lobbySnap.exists()) {
+                lobbyConfig = lobbySnap.data().quizConfig;
+            }
+        } catch (e) {
+            console.error("Error fetching lobby config:", e);
+        }
+    }
+
     // --- NEW: Handle Custom Quiz ---
     if (quizId && quizId.startsWith('custom_')) {
+        let customQuizData = null;
+
+        // 1. Try Local Storage first (Host or local play)
         const allCustomQuizzes = getSavedCustomQuizzes();
-        const customQuizData = allCustomQuizzes.find(q => q.customId === quizId);
+        customQuizData = allCustomQuizzes.find(q => q.customId === quizId);
+
+        // 2. If not found locally and we are in a lobby, try fetching from Firestore
+        if (!customQuizData && lobbyConfig) {
+            if (lobbyConfig.customQuestions) {
+                customQuizData = {
+                    customId: quizId,
+                    title: lobbyConfig.title,
+                    description: lobbyConfig.description,
+                    questions: lobbyConfig.customQuestions,
+                    timerMode: lobbyConfig.timerMode || 'none',
+                    customTime: lobbyConfig.customTime || null,
+                    storageKey: `quizState-${quizId}`
+                };
+            }
+        }
 
         if (!customQuizData) {
             handleQuizError("ไม่พบข้อมูลแบบทดสอบ", `ไม่พบข้อมูลแบบทดสอบที่สร้างเองสำหรับ ID: ${quizId}`);
@@ -103,7 +138,25 @@ export async function initializeQuiz() {
             if (selectedTimerInput) selectedTimerInput.checked = true;
         }
 
-        initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, customQuizData.customTime, action);
+        // Override with lobby settings if present (for host updates)
+        let finalTimerMode = customQuizData.timerMode;
+        let finalCustomTime = customQuizData.customTime;
+        if (lobbyConfig) {
+            finalTimerMode = lobbyConfig.timerMode || 'none';
+            finalCustomTime = lobbyConfig.customTime;
+        }
+
+        // Apply lobby timer settings to UI if different
+        if (lobbyConfig) {
+             const timerOptions = document.getElementById('timer-options');
+             if (timerOptions) {
+                 timerOptions.classList.add('hidden');
+                 const selectedTimerInput = document.querySelector(`input[name="timer-mode"][value="${finalTimerMode}"]`);
+                 if (selectedTimerInput) selectedTimerInput.checked = true;
+             }
+        }
+
+        initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, finalCustomTime, action);
         return; // Stop further execution
     }
 
@@ -138,7 +191,18 @@ export async function initializeQuiz() {
             const selectedQuestions = allQuestions.slice(0, amount);
 
             // Init Quiz
-            initQuizApp(selectedQuestions, `quizState-challenge-${seed}`, "Challenge Mode", null, action, true);
+            let customTime = null;
+            if (lobbyConfig) {
+                const timerOptions = document.getElementById('timer-options');
+                if (timerOptions) {
+                    timerOptions.classList.add('hidden');
+                    const selectedTimerInput = document.querySelector(`input[name="timer-mode"][value="${lobbyConfig.timerMode}"]`);
+                    if (selectedTimerInput) selectedTimerInput.checked = true;
+                }
+                customTime = lobbyConfig.customTime;
+            }
+
+            initQuizApp(selectedQuestions, `quizState-challenge-${seed}`, "Challenge Mode", customTime, action, true);
             return;
 
         } catch (error) {
@@ -211,7 +275,17 @@ export async function initializeQuiz() {
         }
 
         // 6. Initialize the quiz logic with the processed data
-        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, null, action, !!seedParam);
+        let customTime = null;
+        if (lobbyConfig) {
+            const timerOptions = document.getElementById('timer-options');
+            if (timerOptions) {
+                timerOptions.classList.add('hidden');
+                const selectedTimerInput = document.querySelector(`input[name="timer-mode"][value="${lobbyConfig.timerMode}"]`);
+                if (selectedTimerInput) selectedTimerInput.checked = true;
+            }
+            customTime = lobbyConfig.customTime;
+        }
+        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, customTime, action, !!seedParam);
 
     } catch (error) {
         console.error(`Error loading quiz data for ID ${quizId}:`, error);

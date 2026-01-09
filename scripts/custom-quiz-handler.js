@@ -1502,6 +1502,17 @@ export function initializeCustomQuizHandler() {
                 categoryDisplay: allCategoryDetails[singleSubject]?.displayName || 'แบบทดสอบที่สร้างเอง'
             });
 
+            // NEW: Check if we are in Challenge/Lobby mode
+            if (window.challengeContext && typeof window.challengeContext.onQuizCreated === 'function') {
+                window.challengeContext.onQuizCreated(customQuiz);
+                customQuizModal.close();
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = 'เริ่มทำแบบทดสอบ';
+                }
+                return;
+            }
+
             window.location.href = `./quiz/index.html?id=${customQuiz.customId}`;
         } catch (error) {
             console.error("Error starting custom quiz:", error);

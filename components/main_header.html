@@ -6,7 +6,7 @@
         <div class="flex-1 flex justify-start">
             <nav class="relative" aria-label="Main navigation">
                 <button type="button" id="main-menu-btn" aria-label="เมนูแบบทดสอบและเนื้อหา"
-                    class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors">
+                    class="p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 active:scale-95">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -14,10 +14,10 @@
                     </svg>
                 </button>
                 <div id="main-menu-dropdown"
-                    class="hidden absolute left-0 mt-2 w-72 sm:w-80 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-[51] border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu">
+                    class="hidden absolute left-0 mt-3 w-72 sm:w-80 origin-top-left bg-white dark:bg-gray-800 rounded-2xl shadow-2xl z-[51] border border-gray-100 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 max-h-[80vh] overflow-y-auto custom-scrollbar-menu ring-1 ring-black ring-opacity-5">
                     <div class="p-2">
                         <a href="./index.html"
-                            class="nav-link text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path
@@ -27,7 +27,7 @@
                         </a>
 
                         <a href="./preview.html"
-                            class="nav-link text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -37,8 +37,17 @@
                             </svg>
                             <span>ตัวอย่างข้อสอบ (Preview)</span>
                         </a>
+                        <button type="button" id="header-challenge-menu-btn"
+                            class="w-full nav-link group text-gray-700 dark:text-gray-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-700 dark:hover:text-orange-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 text-left transition-all duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span>เล่นกับเพื่อน (Challenge)</span>
+                        </button>
                         <a href="./about.html" id="open-about-modal-btn"
-                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-700 dark:text-gray-200 hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:text-teal-700 dark:hover:text-teal-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path fill-rule="evenodd"
@@ -51,7 +60,7 @@
                         <div class="px-2.5 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase">
                             สำหรับผู้สอน</div>
                         <a href="./edit-scores.html"
-                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path
@@ -62,11 +71,14 @@
                         </a>
                         <hr class="my-2 border-gray-200 dark:border-gray-600">
                         <div id="menu-quiz-list" class="space-y-px"></div>
-                        
+
                         <hr class="my-2 border-gray-200 dark:border-gray-600">
-                        <button id="mobile-logout-btn" class="hidden w-full nav-link text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        <button id="mobile-logout-btn"
+                            class="hidden w-full nav-link text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                             <span>ออกจากระบบ</span>
                         </button>
@@ -79,11 +91,12 @@
 
         <!-- Center: Title -->
         <div class="flex-shrink-0">
-            <a href="./index.html" class="flex items-center gap-3" aria-label="กลับไปหน้าหลัก">
+            <a href="./index.html" class="flex items-center gap-3 group" aria-label="กลับไปหน้าหลัก">
                 <img src="./assets/images/saba.png" alt="SABA Logo" class="hidden sm:block"
-                    style="height: 2.5rem; width: auto; max-width: 100%;">
+                    style="height: 2.5rem; width: auto; max-width: 100%; transition: transform 0.3s ease;"
+                    class="group-hover:scale-105">
                 <h1
-                    class="font-kanit text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-center">
+                    class="font-kanit text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 text-center transition-all duration-300 group-hover:to-blue-600 dark:group-hover:to-blue-400">
                     เตรียมความพร้อม สอวน.
                 </h1>
             </a>
@@ -96,7 +109,7 @@
             <!-- User Hub Dropdown -->
             <div class="relative">
                 <button type="button" id="user-hub-btn" aria-label="เมนูผู้ใช้"
-                    class="p-2 rounded-full bg-gray-200/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors flex items-center justify-center h-10 w-10">
+                    class="p-1 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 active:scale-95 flex items-center justify-center h-10 w-10">
                     <span id="main-header-profile-link" class="flex items-center justify-center h-full w-full">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor" stroke-width="2">
@@ -106,13 +119,13 @@
                     </span>
                 </button>
                 <div id="user-hub-dropdown"
-                    class="hidden absolute right-0 mt-2 w-60 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-xl z-[51] border border-gray-200 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95">
+                    class="hidden absolute right-0 mt-3 w-64 origin-top-right bg-white dark:bg-gray-800 rounded-2xl shadow-2xl z-[51] border border-gray-100 dark:border-gray-700 font-sarabun transition-all duration-200 ease-out transform opacity-0 scale-95 ring-1 ring-black ring-opacity-5">
                     <div class="p-2">
                         <div id="user-hub-email"
                             class="px-2.5 py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 truncate hidden border-b border-gray-100 dark:border-gray-700 mb-1">
                         </div>
                         <a href="./profile.html"
-                            class="nav-link text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
@@ -121,7 +134,7 @@
                             <span>โปรไฟล์ของฉัน</span>
                         </a>
                         <a href="./stats.html"
-                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path
@@ -130,7 +143,7 @@
                             <span>สถิติของฉัน</span>
                         </a>
                         <a href="./leaderboard.html"
-                            class="nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-2">
+                            class="nav-link group text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-700 dark:hover:text-yellow-300 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center gap-3 transition-all duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path
@@ -141,19 +154,19 @@
                         <hr class="my-2 border-gray-200 dark:border-gray-600">
                         <div id="user-hub-auth-actions" class="px-2.5 py-1.5">
                             <button id="user-hub-login-btn"
-                                class="hidden w-full px-4 py-1.5 bg-white text-gray-700 border border-gray-300 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                class="hidden w-full px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
                                     class="w-4 h-4" alt="Google">
                                 เข้าสู่ระบบ
                             </button>
                             <button id="user-hub-logout-btn"
-                                class="hidden w-full px-3 py-1.5 bg-red-100 text-red-600 rounded-full text-sm font-bold hover:bg-red-200 transition-colors">
+                                class="hidden w-full px-3 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 transition-all duration-200 border border-red-100">
                                 ออกจากระบบ
                             </button>
                         </div>
                         <hr class="my-2 border-gray-200 dark:border-gray-600">
                         <button type="button" id="dark-mode-toggle" aria-label="สลับโหมดมืด/สว่าง"
-                            class="w-full nav-link text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center justify-between gap-2">
+                            class="w-full nav-link group text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2.5 rounded-xl text-sm font-medium flex items-center justify-between gap-3 transition-all duration-200">
                             <!-- เนื้อหาของปุ่ม (ไอคอนและข้อความ) จะถูกจัดการโดย JavaScript -->
                         </button>
                     </div>

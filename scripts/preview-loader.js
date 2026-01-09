@@ -18,9 +18,15 @@ function displayCriticalErrorToUser(errorMessage) {
  * This acts as the main entry point after the DOM is loaded.
  */
 async function main() {
+    // Optimization: Start importing modules in parallel
+    const componentLoaderPromise = import('./component-loader.js');
+    const commonInitPromise = import('./common-init.js');
+    const gamificationPromise = import('./gamification.js');
+    const previewPromise = import('./preview.js');
+
     // Dynamically load components and modules to gracefully handle loading/parsing errors.
     try {
-        const { loadComponent } = await import('./component-loader.js');
+        const { loadComponent } = await componentLoaderPromise;
         await Promise.all([
             loadComponent('#main_header-placeholder', './components/main_header.html'),
             loadComponent('#footer-placeholder', './components/footer.html'),
@@ -34,11 +40,11 @@ async function main() {
 
     // Initialize common UI components (header, menu, dark mode).
     try {
-        const { initializeCommonComponents } = await import('./common-init.js');
+        const { initializeCommonComponents } = await commonInitPromise;
         await initializeCommonComponents();
 
         // Initialize Gamification (Theme, Avatar, User State)
-        const { Gamification } = await import('./gamification.js');
+        const { Gamification } = await gamificationPromise;
         new Gamification();
     } catch (error) {
         // This is considered non-critical for the preview page's core function.
@@ -48,7 +54,7 @@ async function main() {
     // Initialize the core functionality specific to the preview page.
     // This block will now catch errors from parsing/loading preview.js itself.
     try {
-        const { initializePreviewPage } = await import('./preview.js');
+        const { initializePreviewPage } = await previewPromise;
         initializePreviewPage();
     } catch (error) {
         console.error("A critical error occurred while initializing the preview page:", error);

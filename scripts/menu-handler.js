@@ -49,6 +49,13 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
         iconContainerExtraClass = 'scale-110 shadow-lg shadow-blue-500/40';
     }
 
+    // Format title to put "ชุด ..." on a new line
+    let formattedTitle = quiz.title;
+    if (formattedTitle.includes(" ชุด")) {
+        formattedTitle = formattedTitle.replace(" ชุด", `<br><span class="text-xs opacity-85 font-normal">ชุด`);
+        formattedTitle += "</span>";
+    }
+
     return `
         <a href="${linkUrl}" data-storage-key="${storageKey}" data-total-questions="${totalQuestions}" data-quiz-title="${quiz.title}" class="quiz-menu-item group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors duration-200 border-l-2 border-transparent hover:border-blue-400 ${activeClass}">
             <div class="flex items-center gap-3">
@@ -56,7 +63,7 @@ function createMenuItemHTML(quiz, getQuizUrl, currentQuizId) {
                     <img src="${iconUrl}" alt="${iconAlt}" class="h-full w-full object-contain">
                 </div>
                 <div class="flex-grow min-w-0">
-                    <span class="${titleFontClass} whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">${titlePrefix}${quiz.title}</span>
+                    <span class="${titleFontClass} whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400 block leading-tight">${titlePrefix}${formattedTitle}</span>
                     ${progressHtml}
                 </div>
             </div>
@@ -169,16 +176,53 @@ export function initializeMenu() {
         const details = allCategoryDetails[categoryKey];
         if (!details || !quizzes || quizzes.length === 0) return;
 
+        const isActiveCategory = quizzes.some(q => q.id === currentQuizId);
+        const hiddenClass = isActiveCategory ? '' : 'hidden';
+        const rotateClass = isActiveCategory ? 'rotate-180' : '';
+
+        const completedCount = quizzes.filter(q => q.isFinished).length;
+        const totalCount = quizzes.length;
+        const countBadge = completedCount > 0 
+            ? `<span class="ml-auto px-1.5 py-0.5 text-[10px] font-bold text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-full flex-shrink-0">${completedCount}/${totalCount}</span>`
+            : `<span class="ml-auto text-[10px] text-gray-400 font-normal flex-shrink-0">(${totalCount})</span>`;
+
+        // Parse title for splitting (Thai top, English bottom)
+        let titleHtml = details.title;
+        const titleMatch = details.title.match(/(.+)\s+\((.+)\)/);
+        if (titleMatch) {
+            titleHtml = `
+                <span class="block">${titleMatch[1]}</span>
+                <span class="block text-[10px] font-normal opacity-80 tracking-normal normal-case">(${titleMatch[2]})</span>
+            `;
+        } else {
+             titleHtml = `<span class="block">${details.title}</span>`;
+        }
+
         menuHTML += `
-            <div class="px-4 pt-2 pb-1 flex items-center gap-2">
-                <img src="${details.icon}" class="h-4 w-4 opacity-70" alt="${details.title} icon">
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">${details.title}</h4>
-            </div>
+            <div class="menu-accordion border-b border-gray-100 dark:border-gray-700/50 last:border-0">
+                <button type="button" class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group menu-accordion-btn min-h-[3.5rem]">
+                    <div class="flex items-center gap-3 flex-grow min-w-0">
+                        <img src="${details.icon}" class="h-5 w-5 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" alt="${details.title} icon">
+                        <div class="text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 uppercase tracking-wider text-left flex-grow min-w-0">
+                            ${titleHtml}
+                        </div>
+                        ${countBadge}
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform duration-200 chevron-icon ${rotateClass} flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div class="${hiddenClass} menu-accordion-content pb-2">
         `;
 
         quizzes.forEach(quiz => {
             menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
         });
+
+        menuHTML += `
+                </div>
+            </div>
+        `;
     });
 
     // 3. Custom Quizzes
@@ -186,27 +230,58 @@ export function initializeMenu() {
         .filter(q => q.customId) // Filter for custom quizzes only
         .sort((a, b) => collator.compare(a.title, b.title)); // Sort custom quizzes using natural sort
     if (savedQuizzes.length > 0) {
+        const isActiveCategory = savedQuizzes.some(q => q.customId === currentQuizId);
+        const hiddenClass = isActiveCategory ? '' : 'hidden';
+        const rotateClass = isActiveCategory ? 'rotate-180' : '';
+
+        const completedCount = savedQuizzes.filter(q => q.isFinished).length;
+        const totalCount = savedQuizzes.length;
+        const countBadge = completedCount > 0 
+            ? `<span class="ml-auto px-1.5 py-0.5 text-[10px] font-bold text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30 rounded-full flex-shrink-0">${completedCount}/${totalCount}</span>`
+            : `<span class="ml-auto text-[10px] text-gray-400 font-normal flex-shrink-0">(${totalCount})</span>`;
+
         menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
         menuHTML += `
-            <div class="px-4 pt-2 pb-1 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" /></svg>
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">แบบทดสอบที่สร้างเอง</h4>
-            </div>
+            <div class="menu-accordion border-b border-gray-100 dark:border-gray-700/50 last:border-0">
+                <button type="button" class="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group menu-accordion-btn min-h-[3.5rem]">
+                    <div class="flex items-center gap-3 flex-grow min-w-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" /></svg>
+                        <div class="text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 uppercase tracking-wider text-left flex-grow min-w-0">
+                            <span class="block">แบบทดสอบที่สร้างเอง</span>
+                            <span class="block text-[10px] font-normal opacity-80 tracking-normal normal-case">(Custom Quizzes)</span>
+                        </div>
+                        ${countBadge}
+                    </div>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform duration-200 chevron-icon ${rotateClass} flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div class="${hiddenClass} menu-accordion-content pb-2">
         `;
 
         savedQuizzes.forEach((quiz) => {
             menuHTML += createMenuItemHTML(quiz, getQuizUrl, currentQuizId);
         });
+
+        menuHTML += `
+                </div>
+            </div>
+        `;
     }
 
-  // 4. Always add the stats link at the end
- // menuHTML += `<hr class="my-2 border-gray-200 dark:border-gray-600">`;
-  //menuHTML += `
-  //    <a href="./stats.html" class="group block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
-  //        <div class="font-medium whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400">📊 ดูสถิติทั้งหมด</div>
-   //   </a>`; 
-
     menuQuizListContainer.innerHTML = menuHTML;
+
+    // Add listeners for accordion toggles
+    menuQuizListContainer.querySelectorAll('.menu-accordion-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const content = btn.nextElementSibling;
+            const chevron = btn.querySelector('.chevron-icon');
+            content.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        });
+    });
 
     // --- Event Delegation for Menu Items ---
     menuDropdown.addEventListener('click', (event) => {

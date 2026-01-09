@@ -3,7 +3,16 @@
  */
 async function main() {
     try {
-        const { loadComponent } = await import('./component-loader.js');
+        // Optimization: Start importing all modules in parallel
+        const componentLoaderPromise = import('./component-loader.js');
+        const commonInitPromiseModule = import('./common-init.js');
+        const modalHandlerPromise = import('./modal-handler.js');
+        const authManagerPromise = import('./auth-manager.js');
+        const quizListPromise = import('../data/quizzes-list.js');
+        const customQuizHandlerPromise = import('./custom-quiz-handler.js');
+        const statsPromise = import('./stats.js');
+
+        const { loadComponent } = await componentLoaderPromise;
         // Load shared HTML components like header, footer, and modals
         const loadPromises = [];
         // โหลดเฉพาะถ้ามี placeholder อยู่จริง (stats.html อาจใช้ hardcoded header)
@@ -14,7 +23,7 @@ async function main() {
         await Promise.all(loadPromises);
 
         // Initialize common components like header, menu, etc.
-        const { initializeCommonComponents } = await import('./common-init.js');
+        const { initializeCommonComponents } = await commonInitPromiseModule;
         console.log("Initializing common components...");
         
         // Add a timeout to prevent hanging on menu initialization
@@ -26,11 +35,11 @@ async function main() {
 
         // --- Initialize Clear Button First ---
         // This ensures the user can always clear their data, even if the main stats page fails to render.
-        const { ModalHandler } = await import('./modal-handler.js');
+        const { ModalHandler } = await modalHandlerPromise;
         // Import authManager but we don't await its internal init here, just the module load.
-        const { authManager } = await import('./auth-manager.js'); 
-        const { quizList } = await import('../data/quizzes-list.js');
-        const { getSavedCustomQuizzes } = await import('./custom-quiz-handler.js');
+        const { authManager } = await authManagerPromise; 
+        const { quizList } = await quizListPromise;
+        const { getSavedCustomQuizzes } = await customQuizHandlerPromise;
 
         const clearStatsBtn = document.getElementById('clear-stats-btn');
         const confirmModal = new ModalHandler('confirm-action-modal');
@@ -70,7 +79,7 @@ async function main() {
 
         // --- Build the main stats page content ---
         console.log("Building stats page...");
-        const { buildStatsPage, initializeTabs } = await import('./stats.js');
+        const { buildStatsPage, initializeTabs } = await statsPromise;
         
         try {
             await buildStatsPage();

@@ -3,8 +3,27 @@
  * This acts as the main entry point after the DOM is loaded.
  */
 async function main() {
+    // Create and inject loading spinner immediately
+    const spinner = document.createElement('div');
+    spinner.id = 'quiz-loading-spinner';
+    spinner.className = 'fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-gray-900 transition-opacity duration-500';
+    spinner.innerHTML = `
+        <div class="relative w-20 h-20">
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-gray-200 dark:border-gray-700 rounded-full"></div>
+            <div class="absolute top-0 left-0 w-full h-full border-4 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-3xl animate-bounce">🌍</span>
+            </div>
+        </div>
+        <p class="mt-6 text-lg font-bold text-gray-700 dark:text-gray-300 font-kanit animate-pulse">กำลังเตรียมความพร้อม...</p>
+    `;
+    document.body.appendChild(spinner);
+
     try {
-        const { loadComponent } = await import('./component-loader.js');
+        // Optimization: Start importing modules in parallel to reduce load time
+        const componentLoaderPromise = import('./component-loader.js');
+        const commonInitPromise = import('./common-init.js');
+        const quizLoaderPromise = import('./quiz-loader.js');
         
         // Custom loader to fix paths BEFORE injection to prevent 404s in the quiz subdirectory
         const loadComponentWithFix = async (selector, path) => {
@@ -104,9 +123,9 @@ async function main() {
         setupMathObserver('question'); // For the question text itself
         setupMathObserver('feedback'); // For the explanation text in the feedback box
 
-        const { initializeQuiz } = await import('./quiz-loader.js');
         // Initialize the core quiz functionality.
         // This function will handle loading data and setting up the quiz logic.
+        const { initializeQuiz } = await quizLoaderPromise;
         await initializeQuiz();
     } catch (error) {
         console.error("A critical error occurred on the quiz page:", error);
@@ -119,6 +138,10 @@ async function main() {
                 <a href="../index.html" style="display: inline-block; margin-top: 24px; background-color: #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">กลับไปหน้าหลัก</a>
             </div>`;
         }
+    } finally {
+        // Hide and remove spinner
+        spinner.style.opacity = '0';
+        setTimeout(() => spinner.remove(), 500);
     }
 }
 

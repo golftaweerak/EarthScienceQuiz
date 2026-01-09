@@ -1,6 +1,7 @@
 import { initializeDarkMode } from './dark-mode.js';
 import { initializeDevTools } from './dev-tools-handler.js';
 import { authManager } from './auth-manager.js';
+import { challengeManager } from './challenge-manager.js';
 // ลบ static import ของ menu-handler ออก เพื่อป้องกัน error ตั้งแต่ต้นไฟล์
 
 /**
@@ -63,6 +64,9 @@ export async function initializeCommonComponents() {
     initializeDarkMode();
     initializeHeaderMenus();
     initializeDevTools();
+
+    // Initialize Challenge Manager (Lobby System)
+    challengeManager.init();
 
     // ใช้ Dynamic Import สำหรับ menu-handler
     // ถ้าไฟล์นี้มีปัญหา จะไม่ทำให้ส่วนอื่นของเว็บพังไปด้วย
