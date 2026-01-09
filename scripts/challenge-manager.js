@@ -153,7 +153,11 @@ export class ChallengeManager {
         
         this.dom.randomQuizBtn?.addEventListener('click', () => {
                 this.quizModal.close();
-                this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)');
+                if (this.currentLobbyId && this.isHost) {
+                    this.updateLobbySettings(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20);
+                } else {
+                    this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20);
+                }
         });
 
         // Event delegation for the players list to handle kick buttons
@@ -255,7 +259,7 @@ export class ChallengeManager {
                                     : `<span class="text-xl">${iconSrc}</span>`;
 
                                 return `
-                                    <button data-quiz-id="${q.id}" data-quiz-title="${q.title}" class="quiz-select-item w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all text-left group bg-white dark:bg-gray-800">
+                                    <button data-quiz-id="${q.id}" data-quiz-title="${q.title}" data-quiz-desc="${q.description || ''}" data-quiz-amount="${q.amount || ''}" class="quiz-select-item w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-all text-left group bg-white dark:bg-gray-800">
                                         <div class="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-gray-600 transition-colors overflow-hidden p-1">
                                             ${iconDisplay}
                                         </div>
@@ -302,8 +306,14 @@ export class ChallengeManager {
             btn.onclick = () => {
                 const quizId = btn.dataset.quizId;
                 const quizTitle = btn.dataset.quizTitle;
+                const quizDesc = btn.dataset.quizDesc;
+                const quizAmount = btn.dataset.quizAmount;
                 this.quizModal.close();
-                this.createLobby(this.selectedMode, quizId, quizTitle);
+                if (this.currentLobbyId && this.isHost) {
+                    this.updateLobbySettings(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount);
+                } else {
+                    this.createLobby(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount);
+                }
             };
         });
         }
@@ -373,7 +383,7 @@ export class ChallengeManager {
         }
     }
 
-    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม') {
+    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม', quizDesc = '', quizTotal = null) {
         const user = authManager.currentUser;
         if (!user) {
             showToast('ต้องเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนสร้างห้อง', '🔒', 'error');
@@ -408,6 +418,8 @@ export class ChallengeManager {
             quizConfig: {
                 id: quizId,
                 title: quizTitle,
+                description: quizDesc,
+                totalQuestions: quizTotal,
                 amount: questionAmount,
                 seed: Date.now()
             }
@@ -421,6 +433,35 @@ export class ChallengeManager {
         } catch (error) {
             console.error("Error creating lobby:", error);
             showToast('ข้อผิดพลาด', `ไม่สามารถสร้างห้องได้: ${error.message}`, '❌', 'error');
+        }
+    }
+
+    async updateLobbySettings(mode, quizId, quizTitle, quizDesc, quizTotal) {
+        if (!this.currentLobbyId || !this.isHost) return;
+
+        let questionAmount = null;
+        if (quizId === 'random') {
+            questionAmount = 20;
+        }
+
+        const updateData = {
+            mode: mode,
+            quizConfig: {
+                id: quizId,
+                title: quizTitle,
+                description: quizDesc,
+                totalQuestions: quizTotal,
+                amount: questionAmount,
+                seed: Date.now()
+            }
+        };
+
+        try {
+            await updateDoc(doc(db, 'lobbies', this.currentLobbyId), updateData);
+            showToast('อัปเดตห้องสำเร็จ', 'เปลี่ยนการตั้งค่าเรียบร้อยแล้ว', '✅');
+        } catch (error) {
+            console.error("Error updating lobby:", error);
+            showToast('ข้อผิดพลาด', `ไม่สามารถอัปเดตห้องได้: ${error.message}`, '❌', 'error');
         }
     }
 
@@ -659,28 +700,27 @@ export class ChallengeManager {
 
         const myUid = authManager.currentUser?.uid;
 
-        container.innerHTML = messages.map(msg => {
+        container.innerHTML = messages.map((msg) => {
             const isMe = msg.uid === myUid;
             const timestamp = msg.timestamp?.toDate().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) || '';
 
             const isImage = msg.avatar && (msg.avatar.includes('/') || msg.avatar.includes('.'));
             const avatarHtml = isImage 
                 ? `<img src="${msg.avatar}" class="w-full h-full object-cover rounded-full">`
-                : `<span class="text-sm">${msg.avatar || '🧑‍🎓'}</span>`;
+                : `<span class="text-base">${msg.avatar || '🧑‍🎓'}</span>`;
 
             const avatarElement = `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">${avatarHtml}</div>`;
+            
             const messageBubble = `
-                <div class="flex flex-col gap-1 w-full max-w-[80%]">
-                    <div class="flex items-center space-x-2 ${isMe ? 'justify-end' : 'rtl:space-x-reverse'}">
-                        <span class="text-xs font-semibold text-gray-900 dark:text-white">${isMe ? 'คุณ' : msg.name}</span>
-                        <span class="text-xs font-normal text-gray-500 dark:text-gray-400">${timestamp}</span>
+                <div class="flex flex-col w-fit max-w-[320px] leading-1.5 p-3 border-gray-200 dark:border-gray-700 ${isMe ? 'bg-blue-100 dark:bg-blue-900/50 rounded-s-xl rounded-t-xl' : 'bg-gray-100 dark:bg-gray-700 rounded-e-xl rounded-t-xl'}">
+                    <div class="flex items-center space-x-2 rtl:space-x-reverse ${isMe ? 'justify-end' : ''}">
+                        <span class="text-xs font-semibold text-gray-800 dark:text-white">${isMe ? 'คุณ' : msg.name}</span>
+                        <span class="text-[10px] font-normal text-gray-500 dark:text-gray-400">${timestamp}</span>
                     </div>
-                    <div class="leading-snug p-2.5 rounded-lg ${isMe ? 'rounded-br-none bg-blue-600 text-white' : 'rounded-bl-none bg-gray-200 dark:bg-gray-700'}">
-                        <p class="text-sm font-normal break-words">${msg.text}</p>
-                    </div>
+                    <p class="text-sm font-normal py-2 text-gray-900 dark:text-white break-words">${msg.text}</p>
                 </div>`;
 
-            return isMe ? `<div class="flex items-end justify-end gap-2.5 anim-fade-in">${messageBubble}${avatarElement}</div>` : `<div class="flex items-start gap-2.5 anim-fade-in">${avatarElement}${messageBubble}</div>`;
+            return `<div class="flex items-end gap-2.5 ${isMe ? 'justify-end' : 'justify-start'} anim-fade-in">${!isMe ? avatarElement : ''}${messageBubble}${isMe ? avatarElement : ''}</div>`;
         }).join('');
 
         // Auto-scroll to bottom only if user was already near bottom
@@ -750,7 +790,29 @@ export class ChallengeManager {
 
         if (roomIdEl) roomIdEl.textContent = this.currentLobbyId;
         if (countEl) countEl.textContent = data.players.length;
-        if (quizNameEl) quizNameEl.textContent = data.quizConfig?.title || 'แบบทดสอบ';
+        if (quizNameEl) {
+            const config = data.quizConfig || {};
+            const countText = config.totalQuestions ? ` (${config.totalQuestions} ข้อ)` : (config.amount ? ` (${config.amount} ข้อ)` : '');
+            
+            const changeBtn = (this.isHost && data.status === 'waiting') 
+                ? `<button id="lobby-change-settings-btn" class="mt-2 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full transition-colors border border-gray-200 dark:border-gray-600 flex items-center gap-1 mx-auto hover:scale-105 transform duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>ตั้งค่าห้อง</button>` 
+                : '';
+
+            quizNameEl.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <span class="text-lg font-bold text-gray-900 dark:text-white leading-tight text-center">${config.title || 'แบบทดสอบ'}</span>
+                    ${config.description ? `<span class="text-xs text-gray-500 dark:text-gray-400 font-normal mt-1 line-clamp-1 text-center max-w-xs">${config.description}</span>` : ''}
+                    ${countText ? `<span class="text-[10px] text-gray-400 mt-0.5 font-mono">${countText}</span>` : ''}
+                    ${changeBtn}
+                </div>
+            `;
+            
+            if (this.isHost && data.status === 'waiting') {
+                document.getElementById('lobby-change-settings-btn')?.addEventListener('click', () => {
+                    this.openModeSelection();
+                });
+            }
+        }
 
         if (modeDisplayEl) {
             const modeLabels = {
