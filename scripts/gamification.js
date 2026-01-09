@@ -1440,10 +1440,28 @@ export class Gamification {
             }
         }
 
+        // FIX: Fallback logic if topicXPs didn't capture the category (e.g. keywords mismatch)
+        // This ensures XP is assigned to the correct track based on Quiz Category/ID
+        let remainingXP = totalXP - newAstronomyTrackXP - newEarthTrackXP;
+        if (remainingXP > 0) {
+             const category = questStats.category || '';
+             const quizId = questStats.quizId || '';
+             const lowerCat = String(category).toLowerCase();
+             const lowerId = String(quizId).toLowerCase();
+
+             if (lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || lowerId.includes('astro') || lowerId.startsWith('junior') || lowerId.startsWith('senior')) {
+                 newAstronomyTrackXP += remainingXP;
+                 remainingXP = 0;
+             } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || lowerCat.includes('geology') || lowerCat.includes('ธรณี') || lowerId.startsWith('es') || lowerId.includes('earth')) {
+                 newEarthTrackXP += remainingXP;
+                 remainingXP = 0;
+             }
+        }
+
         this.state.xp += totalXP;
         this.state.astronomyTrackXP = (this.state.astronomyTrackXP || 0) + newAstronomyTrackXP;
         this.state.earthTrackXP = (this.state.earthTrackXP || 0) + newEarthTrackXP;
-        this.state.generalXP = (this.state.generalXP || 0) + (totalXP - newAstronomyTrackXP - newEarthTrackXP);
+        this.state.generalXP = (this.state.generalXP || 0) + remainingXP;
         this.state.quizzesCompleted += 1;
 
         // --- NEW: Bonus XP for every 20 questions answered ---
