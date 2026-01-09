@@ -636,6 +636,23 @@ function setupLobbyListener() {
         document.body.appendChild(container);
     }
 
+    // --- NEW: Team Progress Bar (Fixed Top) ---
+    let teamProgressBar = document.getElementById('team-progress-bar');
+    if (!teamProgressBar) {
+        const container = document.createElement('div');
+        container.id = 'team-progress-container';
+        container.className = "fixed top-0 left-0 w-full h-1.5 z-[60] bg-gray-200 dark:bg-gray-800";
+        
+        teamProgressBar = document.createElement('div');
+        teamProgressBar.id = 'team-progress-bar';
+        const gradient = state.mode === 'coop' ? "bg-gradient-to-r from-green-400 to-blue-500" : "bg-gradient-to-r from-orange-400 to-red-500";
+        teamProgressBar.className = `h-full ${gradient} transition-all duration-700 ease-out shadow-sm`;
+        teamProgressBar.style.width = '0%';
+        
+        container.appendChild(teamProgressBar);
+        document.body.appendChild(container);
+    }
+
     let previousPlayersData = {};
     let isFirstLoad = true;
 
@@ -662,6 +679,24 @@ function setupLobbyListener() {
                         teamScoreEl.classList.remove('scale-110', 'bg-indigo-100', 'dark:bg-indigo-800');
                     }, 300);
                 }
+            }
+
+            // Update Progress Bar
+            if (teamProgressBar) {
+                const totalQ = state.questionCount || 1;
+                let progressPercent = 0;
+                
+                if (state.mode === 'coop') {
+                    // Average progress of the team
+                    const totalProgress = players.reduce((sum, p) => sum + (p.progress || 0), 0);
+                    const playerCount = players.length || 1;
+                    progressPercent = (totalProgress / (totalQ * playerCount)) * 100;
+                } else {
+                    // Challenge: Show Leader's progress
+                    const maxProgress = Math.max(...players.map(p => p.progress || 0));
+                    progressPercent = (maxProgress / totalQ) * 100;
+                }
+                teamProgressBar.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
             }
 
             // Calculate changes for animation
@@ -1685,7 +1720,8 @@ function showResults() {
         correctTheory: correctTheory,
         correctCalculation: correctCalculation,
         questionCount: state.questionCount,
-        isCustomQuiz: state.isCustomQuiz
+        isCustomQuiz: state.isCustomQuiz,
+        quizId: state.storageKey ? state.storageKey.replace('quizState-', '') : ''
     };
 
     const result = game.submitQuizResult(xpEarned, percentage, state.questionCount, state.isCustomQuiz, topicXPs, questStats);
@@ -2622,7 +2658,7 @@ async function sendScoreToLobby() {
                         ...p, 
                         score: state.score,
                         progress: state.currentQuestionIndex + 1,
-                        totalQuestions: state.shuffledQuestions.length,
+                        totalQuestions: state.questionCount || state.shuffledQuestions.length,
                         lastAnswerStatus: lastAnswerStatus
                     };
                 }
