@@ -3,7 +3,7 @@ import { shuffleArray } from './utils.js';
 import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js';
 import { showToast } from './toast.js';
 import { db } from './firebase-config.js';
-import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, updateDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /**
  * Animates a numeric value in a specified element.
@@ -318,7 +318,6 @@ function updateNextButtonAppearance(action) {
         buttonText = 'ส่งคำตอบ';
         buttonIcon = config.icons.submit;
         buttonTitle = 'ส่งคำตอบ';
-    } else if (isLastQuestion && isAnswered) {
     } else if ((isLastQuestion && isAnswered) || isSpeedRunWin) {
         buttonText = 'ดูผลสรุป';
         buttonIcon = config.icons.submit; // Using the submit icon for "finish" is fine.
@@ -2621,19 +2620,22 @@ async function sendScoreToLobby() {
 
     try {
         const lobbyRef = doc(db, 'lobbies', state.lobbyId);
-        const snapshot = await getDoc(lobbyRef);
-
-        // Determine last answer status
-        let lastAnswerStatus = null;
-        const currentAns = state.userAnswers[state.currentQuestionIndex];
-        if (currentAns) {
-            lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
-        }
         
-        if (snapshot.exists()) {
+        // Use transaction to prevent race conditions when multiple players update scores simultaneously
+        await runTransaction(db, async (transaction) => {
+            const snapshot = await transaction.get(lobbyRef);
+            if (!snapshot.exists()) return;
+
             const data = snapshot.data();
             const players = data.players || [];
             const uid = state.game.authManager.currentUser.uid;
+
+            // Determine last answer status
+            let lastAnswerStatus = null;
+            const currentAns = state.userAnswers[state.currentQuestionIndex];
+            if (currentAns) {
+                lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
+            }
             
             const updatedPlayers = players.map(p => {
                 if (p.uid === uid) {
@@ -2648,10 +2650,11 @@ async function sendScoreToLobby() {
                 return p;
             });
             
-            await updateDoc(lobbyRef, { players: updatedPlayers });
-        }
+            transaction.update(lobbyRef, { players: updatedPlayers });
+        });
     } catch (e) {
         console.error("Lobby sync error:", e);
+        showToast('การเชื่อมต่อขัดข้อง', 'ไม่สามารถส่งคะแนนไปยังเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต', '⚠️', 'error');
     }
 }
 

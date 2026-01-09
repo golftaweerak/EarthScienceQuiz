@@ -166,6 +166,20 @@ export class ChallengeManager {
             }
         });
 
+        // Handle network status changes
+        window.addEventListener('offline', () => {
+            if (this.currentLobbyId) {
+                showToast('ขาดการเชื่อมต่อ', 'คุณกำลังออฟไลน์ ระบบอาจไม่ทำงาน', '⚠️', 'error');
+                if (this.dom.startBtn) this.dom.startBtn.disabled = true;
+            }
+        });
+        window.addEventListener('online', () => {
+            if (this.currentLobbyId) {
+                showToast('เชื่อมต่อสำเร็จ', 'กลับมาออนไลน์แล้ว', '✅', 'success');
+                if (this.dom.startBtn) this.dom.startBtn.disabled = false;
+            }
+        });
+
         window.addEventListener('beforeunload', () => {
             if (this.currentLobbyId && !this.isTransitioning) {
                 this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
