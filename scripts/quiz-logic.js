@@ -4,6 +4,7 @@ import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js'
 import { showToast } from './toast.js';
 import { db } from './firebase-config.js';
 import { doc, getDoc, updateDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { challengeManager } from './challenge-manager.js';
 
 /**
  * Animates a numeric value in a specified element.
@@ -2269,8 +2270,7 @@ function buildResultsLayout(resultInfo, stats) {
               <span>🏆 ดูอันดับรวม (Lobby)</span>
           `;
           lobbyBtn.onclick = () => {
-              // Redirect back to main page with lobby param to open modal (Use basePath to be safe)
-              window.location.href = `${state.basePath}index.html?lobby=${state.lobbyId}`;
+              challengeManager.joinLobby(state.lobbyId);
           };
           
           // Insert at the beginning of the action container so it's prominent
