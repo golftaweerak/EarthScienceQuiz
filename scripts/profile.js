@@ -41,6 +41,7 @@ let lastSyncTime = null;
 let previousXP = null;
 let previousAvatar = null;
 let previousTitle = null;
+let gamificationUpdateHandler = null; // NEW: Store handler reference for cleanup
 
 export async function initializeProfile(gameInstance) {
     const game = gameInstance || new Gamification();
@@ -85,7 +86,12 @@ export async function initializeProfile(gameInstance) {
     }
 
     // 4. NEW: Auto-refresh when data changes (e.g., after login/sync)
-    window.addEventListener('gamification-updated', async () => {
+    // FIX: Remove existing listener to prevent duplicates/memory leaks
+    if (gamificationUpdateHandler) {
+        window.removeEventListener('gamification-updated', gamificationUpdateHandler);
+    }
+
+    gamificationUpdateHandler = async () => {
         // Update UI elements
         renderUserInfo(game);
         renderTrackProgress(game);
@@ -102,7 +108,9 @@ export async function initializeProfile(gameInstance) {
             renderStrengthsWeaknesses()
         ]);
         setupRefreshChartsSystem(game); // Re-setup in case elements were re-rendered
-    });
+    };
+
+    window.addEventListener('gamification-updated', gamificationUpdateHandler);
 }
 
 /**
@@ -1260,7 +1268,11 @@ function renderBadges(game) {
 
     container.innerHTML = BADGES.map(badge => {
         const isEarned = earnedBadgeIds.includes(badge.id);
-        const opacityClass = isEarned ? 'opacity-100' : 'opacity-70 grayscale';
+        // FIX: Remove grayscale from container so progress bar stays colored
+        const opacityClass = isEarned ? 'opacity-100' : 'opacity-90';
+        // Apply grayscale only to icon and text
+        const contentFilter = isEarned ? '' : 'grayscale opacity-70';
+        
         const borderClass = isEarned 
             ? (badge.tier === 'gold' ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20' 
                 : badge.tier === 'silver' ? 'border-gray-400 bg-gray-50 dark:bg-gray-800' 
@@ -1290,8 +1302,8 @@ function renderBadges(game) {
 
         return `
             <div class="badge-card flex flex-col items-center p-3 rounded-xl border-2 ${borderClass} ${opacityClass} transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:scale-102 hover:z-10 relative group cursor-pointer" data-id="${badge.id}">
-                <div class="text-3xl mb-2">${badge.icon}</div>
-                <div class="text-xs font-bold text-center truncate w-full hidden lg:block mb-3">${badge.name}</div>
+                <div class="text-3xl mb-2 ${contentFilter}">${badge.icon}</div>
+                <div class="text-xs font-bold text-center truncate w-full hidden lg:block mb-3 ${contentFilter}">${badge.name}</div>
                 ${overlayHtml}
                 
                 <!-- Tooltip -->
