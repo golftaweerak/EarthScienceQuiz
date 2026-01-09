@@ -425,10 +425,10 @@ export class ChallengeManager {
             return false;
         }
     
+        const lobbyRef = doc(db, 'lobbies', lobbyId);
+
         try {
-            const lobbyRef = doc(db, 'lobbies', lobbyId);
-            let hostId = null;
-    
+            // Use a transaction to atomically add the player.
             await runTransaction(db, async (transaction) => {
                 const lobbySnap = await transaction.get(lobbyRef);
                 if (!lobbySnap.exists()) {
@@ -436,10 +436,10 @@ export class ChallengeManager {
                 }
     
                 const data = lobbySnap.data();
-                hostId = data.hostId;
                 const players = data.players || [];
                 const isAlreadyJoined = players.some(p => p.uid === user.uid);
     
+                // Allow rejoining if the game has started, but prevent new players from joining a started game.
                 if (data.status !== 'waiting' && !isAlreadyJoined) {
                     throw new Error("Game has already started");
                 }
@@ -450,11 +450,24 @@ export class ChallengeManager {
                 }
             });
     
+            // After successfully joining, get the definitive state of the lobby.
+            const finalLobbySnap = await getDoc(lobbyRef);
+            if (!finalLobbySnap.exists()) {
+                // This is an unlikely edge case, but a good safeguard.
+                throw new Error("Lobby disappeared immediately after joining.");
+            }
+            const finalLobbyData = finalLobbySnap.data();
+
+            // Set client state based on the definitive data.
             this.currentLobbyId = lobbyId;
-            this.isHost = (hostId === user.uid);
+            this.isHost = (finalLobbyData.hostId === user.uid);
+
+            // Open UI, render the initial state, and then start listening for updates.
             this.openLobbyUI(lobbyId);
+            this.updateLobbyUI(finalLobbyData); // Render initial state immediately.
             this.listenToLobby(lobbyId);
             return true;
+
         } catch (error) {
             console.error("Error joining lobby:", error);
             let msg = error.message;
