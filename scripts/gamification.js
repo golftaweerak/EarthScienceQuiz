@@ -1502,6 +1502,9 @@ export class Gamification {
         // NEW: Save state ONCE at the end of all calculations
         this.saveState();
         
+        // FIX: Update timestamp for charts in profile.js to detect changes
+        localStorage.setItem('last_quiz_completed_timestamp', Date.now().toString());
+
         const newLevelInfo = this.getCurrentLevel();
         const newAstronomy = this.getAstronomyTrackLevel();
         const newEarth = this.getEarthLevel();

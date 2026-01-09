@@ -441,13 +441,32 @@ class AuthManagerInternal {
                     lastUpdated: new Date()
                 }, { merge: true }));
             }
-            alert("ซิงค์ข้อมูลเก่าของคุณขึ้นระบบเรียบร้อยแล้ว!");
+            showToast('ซิงค์ข้อมูลสำเร็จ', 'ข้อมูลเก่าของคุณถูกบันทึกขึ้นระบบแล้ว', '☁️');
         } else {
-            // กรณี: มีข้อมูลบน Cloud อยู่แล้ว (อาจจะเล่นเครื่องอื่นมา)
-            // กลยุทธ์: ใช้ข้อมูลบน Cloud เป็นหลัก (Overwrite Local)
-            // หรือถ้าคุณต้องการ Logic ที่ซับซ้อนกว่านี้ (เช่น เอา XP ที่มากกว่า) ก็แก้ตรงนี้ได้
-            console.log("Found cloud data, syncing to local...");
-            const cloudData = docSnap.data();
+            // กรณี: มีข้อมูลบน Cloud อยู่แล้ว
+            console.log("Found cloud data, merging with local...");
+            let cloudData = docSnap.data();
+
+            // FIX: ผสานข้อมูล (Merge) หากมีการเล่นแบบ Guest มาก่อน (XP > 0)
+            if (localData.xp > 0 || localData.quizzesCompleted > 0) {
+                console.log("Merging guest data into cloud account...");
+                cloudData = {
+                    ...cloudData,
+                    xp: (cloudData.xp || 0) + (localData.xp || 0),
+                    astronomyTrackXP: (cloudData.astronomyTrackXP || 0) + (localData.astronomyTrackXP || 0),
+                    earthTrackXP: (cloudData.earthTrackXP || 0) + (localData.earthTrackXP || 0),
+                    generalXP: (cloudData.generalXP || 0) + (localData.generalXP || 0),
+                    quizzesCompleted: (cloudData.quizzesCompleted || 0) + (localData.quizzesCompleted || 0),
+                    totalCorrectAnswers: (cloudData.totalCorrectAnswers || 0) + (localData.totalCorrectAnswers || 0),
+                    // Merge Arrays (Set to unique)
+                    badges: [...new Set([...(cloudData.badges || []), ...(localData.badges || [])])],
+                    inventory: [...new Set([...(cloudData.inventory || []), ...(localData.inventory || [])])],
+                    unlockedAchievements: [...new Set([...(cloudData.unlockedAchievements || []), ...(localData.unlockedAchievements || [])])],
+                };
+                // บันทึกข้อมูลที่รวมแล้วกลับขึ้น Cloud
+                await this.retryOperation(() => setDoc(userRef, cloudData, { merge: true }));
+            }
+
             localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
         }
     }
