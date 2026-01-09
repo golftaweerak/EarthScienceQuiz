@@ -2949,7 +2949,6 @@ function bindEventListeners() {
     elements.skipBtn.addEventListener("click", skipQuestion);
   }
   elements.nextBtn.addEventListener("click", handleNextButtonClick);
-  if (elements.nextBtn) elements.nextBtn.addEventListener("click", handleNextButtonClick);
 
   // Keep other listeners as they are.
   elements.startBtn.addEventListener("click", startQuiz);
@@ -2957,11 +2956,6 @@ function bindEventListeners() {
   elements.restartBtn.addEventListener("click", startQuiz);
   elements.reviewBtn.addEventListener("click", showReview);
   elements.backToResultBtn.addEventListener("click", backToResult);
-  if (elements.startBtn) elements.startBtn.addEventListener("click", startQuiz);
-  if (elements.prevBtn) elements.prevBtn.addEventListener("click", showPreviousQuestion);
-  if (elements.restartBtn) elements.restartBtn.addEventListener("click", startQuiz);
-  if (elements.reviewBtn) elements.reviewBtn.addEventListener("click", showReview);
-  if (elements.backToResultBtn) elements.backToResultBtn.addEventListener("click", backToResult);
   if (elements.soundToggleBtn) {
     elements.soundToggleBtn.addEventListener("click", toggleSound);
   }
