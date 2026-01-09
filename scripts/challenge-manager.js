@@ -56,8 +56,7 @@ export class ChallengeManager {
         this.dom.chatInput = document.getElementById('lobby-chat-input');
         this.dom.chatSendBtn = document.getElementById('lobby-chat-send-btn');
         this.dom.kickAckBtn = document.getElementById('kick-ack-btn');
-        this.dom.kickConfirmOk = document.getElementById('kick-confirm-ok-btn');
-        this.dom.kickConfirmCancel = document.getElementById('kick-confirm-cancel-btn');
+        this.dom.confirmActionBtn = document.getElementById('confirm-action-btn');
         this.dom.joinInput = document.getElementById('join-room-code-input');
         this.dom.confirmJoinBtn = document.getElementById('confirm-join-btn');
         this.dom.modeSelectButtons = document.querySelectorAll('.mode-select-btn');
@@ -71,11 +70,12 @@ export class ChallengeManager {
         this.dom.modeDisplay = document.getElementById('lobby-mode-display');
         this.dom.waitingMsg = document.getElementById('lobby-waiting-msg');
         this.dom.chatContainer = document.getElementById('lobby-chat-messages');
-        this.dom.kickConfirmDesc = document.getElementById('kick-confirm-desc');
+        this.dom.confirmModalTitle = document.getElementById('confirm-modal-title');
+        this.dom.confirmModalDesc = document.getElementById('confirm-modal-description');
 
         // Modals
         this.kickModal = new ModalHandler('kick-notification-modal');
-        this.kickConfirmModal = new ModalHandler('kick-confirm-modal');
+        this.confirmModal = new ModalHandler('confirm-action-modal');
         this.mainMenuModal = new ModalHandler('challenge-menu-modal');
         this.joinModal = new ModalHandler('join-lobby-modal');
         this.modeModal = new ModalHandler('mode-select-modal');
@@ -119,17 +119,6 @@ export class ChallengeManager {
         }
         
         this.dom.kickAckBtn?.addEventListener('click', () => this.kickModal.close());
-        this.dom.kickConfirmOk?.addEventListener('click', () => {
-                if (this.pendingKickUid) {
-                    this.kickPlayer(this.pendingKickUid);
-                    this.pendingKickUid = null;
-                    this.kickConfirmModal.close();
-                }
-        });
-        this.dom.kickConfirmCancel?.addEventListener('click', () => {
-                this.pendingKickUid = null;
-                this.kickConfirmModal.close();
-        });
 
         if (this.dom.confirmJoinBtn && this.dom.joinInput) {
              this.dom.confirmJoinBtn.addEventListener('click', () => this.handleJoinSubmit());
@@ -157,10 +146,23 @@ export class ChallengeManager {
             const kickBtn = e.target.closest('.kick-player-btn');
             if (this.isHost && kickBtn) {
                 e.stopPropagation();
-                this.pendingKickUid = kickBtn.dataset.uid;
+                const targetUid = kickBtn.dataset.uid;
                 const playerName = kickBtn.dataset.name;
-                if (this.dom.kickConfirmDesc) this.dom.kickConfirmDesc.textContent = `คุณต้องการเชิญ "${playerName}" ออกจากห้องใช่หรือไม่?`;
-                this.kickConfirmModal.open();
+                
+                if (this.dom.confirmModalTitle) this.dom.confirmModalTitle.textContent = 'ยืนยันการเชิญออก';
+                if (this.dom.confirmModalDesc) this.dom.confirmModalDesc.innerHTML = `คุณต้องการเชิญ "<strong>${playerName}</strong>" ออกจากห้องใช่หรือไม่?`;
+                
+                // Clone button to remove old listeners
+                const newConfirmBtn = this.dom.confirmActionBtn.cloneNode(true);
+                this.dom.confirmActionBtn.parentNode.replaceChild(newConfirmBtn, this.dom.confirmActionBtn);
+                this.dom.confirmActionBtn = newConfirmBtn;
+                
+                this.dom.confirmActionBtn.addEventListener('click', () => {
+                    this.kickPlayer(targetUid);
+                    this.confirmModal.close();
+                });
+                
+                this.confirmModal.open();
             }
         });
 
