@@ -410,6 +410,11 @@ class AuthManagerInternal {
 
     // ฟังก์ชัน Sync ข้อมูลเก่าขึ้น Cloud เมื่อล็อกอินครั้งแรก
     async syncLocalToCloud(user) {
+        // FIX: ตรวจสอบว่าเคย Sync แล้วหรือยัง เพื่อป้องกันข้อมูลเบิ้ล (Double Counting)
+        if (localStorage.getItem('last_cloud_sync')) {
+            return;
+        }
+
         const localDataString = localStorage.getItem(this.LOCAL_STORAGE_KEY);
         if (!localDataString) return; // ไม่มีข้อมูลเก่า ไม่ต้องทำอะไร
 
