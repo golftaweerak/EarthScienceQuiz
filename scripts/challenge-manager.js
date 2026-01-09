@@ -18,6 +18,9 @@ export class ChallengeManager {
         this.lobbyModal = null; // Will be initialized after injection
         this.dom = {}; // Object to hold cached DOM elements
         this.isInitialized = false; // NEW: Prevent double initialization
+        this.typingTimeout = null;
+        this.typingUnsubscribe = null;
+        this.lastTypingUpdateTime = 0;
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -124,13 +127,18 @@ export class ChallengeManager {
         });
 
         if (this.dom.chatInput && this.dom.chatSendBtn) {
-            this.dom.chatSendBtn.addEventListener('click', () => this.sendChatMessage());
+            this.dom.chatSendBtn.addEventListener('click', () => {
+                this.sendChatMessage();
+                this.updateTypingStatus(false);
+            });
             this.dom.chatInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     this.sendChatMessage();
+                    this.updateTypingStatus(false);
                 }
             });
+            this.dom.chatInput.addEventListener('input', () => this.handleTyping());
         }
         
         this.dom.kickAckBtn?.addEventListener('click', () => this.kickModal.close());
@@ -729,6 +737,89 @@ export class ChallengeManager {
         }
     }
 
+    handleTyping() {
+        const now = Date.now();
+        // Update "start typing" immediately if not recently updated (throttle 2s)
+        if (now - this.lastTypingUpdateTime > 2000) {
+            this.updateTypingStatus(true);
+            this.lastTypingUpdateTime = now;
+        }
+
+        if (this.typingTimeout) clearTimeout(this.typingTimeout);
+
+        this.typingTimeout = setTimeout(() => {
+            this.updateTypingStatus(false);
+        }, 3000);
+    }
+
+    async updateTypingStatus(isTyping) {
+        if (!this.currentLobbyId || !authManager.currentUser) return;
+        const user = authManager.currentUser;
+        const typingRef = doc(db, 'lobbies', this.currentLobbyId, 'typing', user.uid);
+        
+        try {
+            if (isTyping) {
+                await setDoc(typingRef, {
+                    name: user.displayName || 'Player',
+                    isTyping: true,
+                    timestamp: serverTimestamp()
+                }, { merge: true });
+            } else {
+                await deleteDoc(typingRef);
+            }
+        } catch (e) {
+            // Ignore errors
+        }
+    }
+
+    listenToTyping(lobbyId) {
+        if (this.typingUnsubscribe) this.typingUnsubscribe();
+
+        const typingCol = collection(db, 'lobbies', lobbyId, 'typing');
+        
+        this.typingUnsubscribe = onSnapshot(typingCol, (snapshot) => {
+            const typingUsers = [];
+            const myUid = authManager.currentUser?.uid;
+            
+            snapshot.forEach(doc => {
+                if (doc.id !== myUid) {
+                    const data = doc.data();
+                    const timestamp = data.timestamp?.toDate();
+                    const now = new Date();
+                    if (data.isTyping && timestamp && (now - timestamp < 10000)) {
+                        typingUsers.push(data.name);
+                    }
+                }
+            });
+            this.renderTypingIndicator(typingUsers);
+        });
+    }
+
+    renderTypingIndicator(users) {
+        let indicator = document.getElementById('lobby-typing-indicator');
+        
+        if (!indicator && this.dom.chatContainer) {
+            indicator = document.createElement('div');
+            indicator.id = 'lobby-typing-indicator';
+            indicator.className = 'text-[10px] text-gray-500 dark:text-gray-400 italic px-4 h-4 transition-opacity duration-300 min-h-[1rem] mt-1';
+            this.dom.chatContainer.parentNode.insertBefore(indicator, this.dom.chatContainer.nextSibling);
+        }
+        
+        if (!indicator) return;
+
+        if (users.length === 0) {
+            indicator.textContent = '';
+            indicator.style.opacity = '0';
+        } else {
+            const text = users.length > 2 
+                ? 'หลายคนกำลังพิมพ์...' 
+                : `${users.join(', ')} กำลังพิมพ์...`;
+            
+            indicator.innerHTML = `<span class="animate-pulse">✍️ ${text}</span>`;
+            indicator.style.opacity = '1';
+        }
+    }
+
     listenToLobby(lobbyId) {
         if (this.unsubscribe) this.unsubscribe();
 
@@ -775,6 +866,7 @@ export class ChallengeManager {
         });
 
         this.listenToChat(lobbyId);
+        this.listenToTyping(lobbyId);
     }
 
     updateLobbyUI(data) {
@@ -1062,6 +1154,11 @@ export class ChallengeManager {
 
         if (this.unsubscribe) this.unsubscribe();
         if (this.chatUnsubscribe) this.chatUnsubscribe();
+        if (this.typingUnsubscribe) this.typingUnsubscribe();
+        if (this.typingTimeout) clearTimeout(this.typingTimeout);
+        
+        if (this.currentLobbyId) this.updateTypingStatus(false).catch(() => {});
+
         if (this.countdownTimer) clearInterval(this.countdownTimer);
         this.countdownTimer = null; // Reset reference
         this.currentLobbyId = null;
