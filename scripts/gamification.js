@@ -1391,18 +1391,12 @@ export class Gamification {
     addXP(amount, category = '', options = { shouldSave: true }) {
         this.state.xp += amount;
 
-        // ตรวจสอบสายวิชาจาก category
-        let isPhysics = false;
-        let isEarth = false;
-        const catString = (typeof category === 'string') ? category : (category?.main || String(category || ''));
-        const lowerCat = catString.toLowerCase();
-
-        if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || lowerCat.includes('astro') || lowerCat.includes('junior') || lowerCat.includes('senior')) {
+        const track = this.identifyTrack(category);
+        
+        if (track === 'astronomy') {
             this.state.astronomyTrackXP = (this.state.astronomyTrackXP || 0) + amount;
-            isPhysics = true;
-        } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก')) {
+        } else if (track === 'earth') {
             this.state.earthTrackXP = (this.state.earthTrackXP || 0) + amount;
-            isEarth = true;
         } else {
             // XP ที่ไม่มีหมวดหมู่ชัดเจน (เช่น จากเควส) จะถูกนับเป็น General XP
             this.state.generalXP = (this.state.generalXP || 0) + amount;
@@ -1444,15 +1438,12 @@ export class Gamification {
         // This ensures XP is assigned to the correct track based on Quiz Category/ID
         let remainingXP = totalXP - newAstronomyTrackXP - newEarthTrackXP;
         if (remainingXP > 0) {
-             const category = questStats.category || '';
-             const quizId = questStats.quizId || '';
-             const lowerCat = String(category).toLowerCase();
-             const lowerId = String(quizId).toLowerCase();
-
-             if (lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || lowerId.includes('astro') || lowerId.startsWith('junior') || lowerId.startsWith('senior')) {
+             const track = this.identifyTrack(questStats.category, questStats.quizId);
+             
+             if (track === 'astronomy') {
                  newAstronomyTrackXP += remainingXP;
                  remainingXP = 0;
-             } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || lowerCat.includes('geology') || lowerCat.includes('ธรณี') || lowerId.startsWith('es') || lowerId.includes('earth')) {
+             } else if (track === 'earth') {
                  newEarthTrackXP += remainingXP;
                  remainingXP = 0;
              }
@@ -1653,24 +1644,49 @@ export class Gamification {
         return newUnlocks;
     }
 
+    // Helper function to identify track from category/quizId
+    identifyTrack(category, quizId = '') {
+        const catString = (typeof category === 'string') ? category : (category?.main || String(category || ''));
+        const lowerCat = catString.toLowerCase();
+        const lowerId = String(quizId).toLowerCase();
+
+        // Astronomy / Physics Track
+        if (lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || 
+            lowerCat.includes('space') || lowerCat.includes('อวกาศ') || 
+            lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') ||
+            lowerId.includes('astro') || lowerId.startsWith('junior') || lowerId.startsWith('senior') || lowerId.includes('phy_')) {
+            return 'astronomy';
+        }
+
+        // Earth Science / Geology / Meteorology Track
+        if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || 
+            lowerCat.includes('geology') || lowerCat.includes('ธรณี') || 
+            lowerCat.includes('meteorology') || lowerCat.includes('อุตุนิยมวิทยา') || 
+            lowerCat.includes('oceanography') || lowerCat.includes('สมุทรศาสตร์') ||
+            lowerId.startsWith('es') || lowerId.includes('earth') || lowerId.includes('ess_')) {
+            return 'earth';
+        }
+
+        return 'general';
+    }
+
     checkCategoryMatch(quizCat, questCat, quizId = '') {
         if (!quizCat && !quizId) return false;
 
-        const catString = (typeof quizCat === 'string') ? quizCat : (quizCat?.main || String(quizCat || ''));
-        const lowerQuizCat = catString.toLowerCase();
-        const lowerQuizId = quizId.toLowerCase();
         const lowerQuestCat = questCat.toLowerCase();
 
         if (lowerQuestCat === 'astronomy') {
             // Prevent Earth Science Review (ESr) from matching Astronomy quests
-            if (lowerQuizId.startsWith('es')) return false;
-            return lowerQuizCat.includes('astronomy') || lowerQuizCat.includes('ดาราศาสตร์') || lowerQuizId.startsWith('astro') || lowerQuizId.startsWith('junior') || lowerQuizId.startsWith('senior');
+            if (String(quizId).toLowerCase().startsWith('es')) return false;
+            return this.identifyTrack(quizCat, quizId) === 'astronomy';
         }
         if (lowerQuestCat === 'earth') {
-            // Check for explicit earth science categories or ID prefixes.
-            return lowerQuizCat.includes('earth') || lowerQuizCat.includes('โลก') || lowerQuizCat.includes('วิทย์โลก') || lowerQuizId.startsWith('es');
+            return this.identifyTrack(quizCat, quizId) === 'earth';
         }
         if (lowerQuestCat === 'review') {
+            const catString = (typeof quizCat === 'string') ? quizCat : (quizCat?.main || String(quizCat || ''));
+            const lowerQuizCat = catString.toLowerCase();
+            const lowerQuizId = String(quizId).toLowerCase();
             return lowerQuizCat.includes('review') || lowerQuizCat.includes('ทบทวน') || lowerQuizId.startsWith('esr') || (lowerQuizId.startsWith('astro') && !lowerQuizId.includes('posn'));
         }
         return false;
