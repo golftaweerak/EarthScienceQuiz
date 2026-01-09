@@ -68,6 +68,7 @@ export class ChallengeManager {
         this.dom.roomIdDisplay = document.getElementById('lobby-room-id-display') || document.getElementById('lobby-room-id');
         this.dom.lobbyTitle = document.querySelector('#lobby-modal h3');
         this.dom.quizName = document.getElementById('lobby-quiz-name');
+        this.dom.modeDisplay = document.getElementById('lobby-mode-display');
         this.dom.waitingMsg = document.getElementById('lobby-waiting-msg');
         this.dom.chatContainer = document.getElementById('lobby-chat-messages');
         this.dom.kickConfirmDesc = document.getElementById('kick-confirm-desc');
@@ -286,7 +287,7 @@ export class ChallengeManager {
 
     async handleJoinSubmit() {
         const input = document.getElementById('join-room-code-input');
-        const code = input.value;
+        const code = input.value.trim();
         if (code.length === 6) { 
             const btn = document.getElementById('confirm-join-btn');
             const originalText = btn.innerHTML;
@@ -616,7 +617,7 @@ export class ChallengeManager {
 
         this.unsubscribe = onSnapshot(doc(db, 'lobbies', lobbyId), (docSnapshot) => {
             if (!docSnapshot.exists()) {
-                this.leaveLobby();
+                this.leaveLobby(false); // Don't try to remove from DB if doc is gone
                 showToast('ห้องถูกปิด', 'โฮสต์ได้ปิดห้องแล้ว', 'ℹ️');
                 return;
             }
@@ -628,7 +629,7 @@ export class ChallengeManager {
             if (myUid && data.players) {
                 const amIInList = data.players.some(p => p.uid === myUid);
                 if (!amIInList) {
-                    this.leaveLobby();
+                    this.leaveLobby(false); // Already removed from DB
                     if (this.kickModal) this.kickModal.open();
                     return;
                 }
@@ -663,10 +664,24 @@ export class ChallengeManager {
         const roomIdEl = this.dom.roomIdDisplay;
         const titleEl = this.dom.lobbyTitle;
         const quizNameEl = this.dom.quizName;
+        const modeDisplayEl = this.dom.modeDisplay;
 
         if (roomIdEl) roomIdEl.textContent = this.currentLobbyId;
         if (countEl) countEl.textContent = data.players.length;
         if (quizNameEl) quizNameEl.textContent = data.quizConfig?.title || 'แบบทดสอบ';
+
+        if (modeDisplayEl) {
+            const modeLabels = {
+                'challenge': '⚔️ โหมดแข่งขัน (Classic)',
+                'time-attack': '⚡ โหมดความเร็ว (Time Attack)',
+                'coop': '🤝 โหมดร่วมมือ (Co-op)'
+            };
+            modeDisplayEl.textContent = modeLabels[data.mode] || 'โหมดทั่วไป';
+            modeDisplayEl.className = 'text-xs font-bold mt-1 ' + 
+                (data.mode === 'coop' ? 'text-green-600 dark:text-green-400' : 
+                 data.mode === 'time-attack' ? 'text-orange-600 dark:text-orange-400' : 
+                 'text-blue-600 dark:text-blue-400');
+        }
 
         // จัดเรียงผู้เล่น: ถ้าเริ่มเกมแล้ว เรียงตามคะแนน, ถ้ายังไม่เริ่ม เรียงตามเวลาเข้า
         let players = [...data.players];
@@ -778,6 +793,15 @@ export class ChallengeManager {
                 if (this.isHost) {
                     startBtn.classList.remove('hidden');
                     waitingMsg.classList.add('hidden');
+                    
+                    // NEW: Add warning for host to prevent accidental room closure
+                    if (!document.getElementById('host-warning')) {
+                        const warning = document.createElement('div');
+                        warning.id = 'host-warning';
+                        warning.className = 'text-xs text-orange-500 text-center mt-2 font-medium animate-pulse';
+                        warning.textContent = '⚠️ ห้ามปิดหน้าจอหรือสลับแอป ห้องจะถูกปิดทันที';
+                        this.dom.lobbyTitle?.parentNode?.appendChild(warning);
+                    }
                 } else {
                     startBtn.classList.add('hidden');
                     waitingMsg.textContent = 'รอหัวหน้าห้องเริ่มเกม...';
@@ -840,7 +864,7 @@ export class ChallengeManager {
         window.location.href = `./quiz/index.html?id=${config.id}&mode=${mode || 'challenge'}&lobbyId=${this.currentLobbyId}&amount=${config.amount}&seed=${config.seed}`;
     }
 
-    async leaveLobby() {
+    async leaveLobby(removeFromDb = true) {
         const lobbyId = this.currentLobbyId;
         const user = authManager.currentUser;
 
@@ -854,7 +878,7 @@ export class ChallengeManager {
         this.lobbyModal.close();
 
         // Remove from DB
-        if (lobbyId && user) {
+        if (removeFromDb && lobbyId && user) {
             await this.removePlayerFromLobby(lobbyId, user.uid);
         }
     }
