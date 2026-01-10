@@ -275,6 +275,8 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
     mode: null,          // NEW: 'challenge' or 'coop'
     currentTeamScore: 0, // NEW: Track team score
     disableShuffle: disableShuffle, // NEW: Flag to prevent re-shuffling
+    action: action, // NEW: Store action to check if viewing results
+    isQuizFinished: false, // NEW: Prevent double submission
   };
 
   // --- 3. Initial Setup ---
@@ -1541,6 +1543,10 @@ function showPreviousQuestion() {
 
 // --- NEW: Function to display the final results screen ---
 function showResults() {
+  // NEW: Prevent double submission (unless viewing past results)
+  if (state.isQuizFinished && state.action !== 'view_results') return;
+  state.isQuizFinished = true;
+
   stopTimer(); // Stop any running timers.
   setFloatingNav(false); // Deactivate the floating navigation bar
 
@@ -1659,126 +1665,129 @@ function showResults() {
   let newAchievements = [];
   const topicXPs = {};
 
-  // NEW: Calculate correct answer types for quests
-  let correctTheory = 0;
-  let correctCalculation = 0;
-  state.userAnswers.forEach((ans, index) => {
-      if (ans && ans.isCorrect) {
-          const question = state.shuffledQuestions[index];
-          if (question) {
-              if (question.type === 'fill-in-number') correctCalculation++;
-              else correctTheory++;
+  // NEW: Only process gamification if not viewing past results
+  if (state.action !== 'view_results') {
+      // NEW: Calculate correct answer types for quests
+      let correctTheory = 0;
+      let correctCalculation = 0;
+      state.userAnswers.forEach((ans, index) => {
+          if (ans && ans.isCorrect) {
+              const question = state.shuffledQuestions[index];
+              if (question) {
+                  if (question.type === 'fill-in-number') correctCalculation++;
+                  else correctTheory++;
+              }
           }
-      }
-  });
+      });
 
-  try {
-    const game = state.game; // Use the instance from state
+      try {
+        const game = state.game; // Use the instance from state
 
-    state.userAnswers.forEach((ans, index) => {
-      if (!ans || !ans.isCorrect) return;
+        state.userAnswers.forEach((ans, index) => {
+          if (!ans || !ans.isCorrect) return;
 
-      const question = state.shuffledQuestions[index];
-      let points = 4; // Default points
-      if (question && (question.type === 'multiple-select' || question.type === 'fill-in-number')) {
-        points = 5;
-      }
-      xpEarned += points;
+          const question = state.shuffledQuestions[index];
+          let points = 4; // Default points
+          if (question && (question.type === 'multiple-select' || question.type === 'fill-in-number')) {
+            points = 5;
+          }
+          xpEarned += points;
 
-      // --- Topic & Track XP Calculation ---
-      let subCatStr = '';
-      if (ans.subCategory) {
-        if (typeof ans.subCategory === 'string') subCatStr = ans.subCategory;
-        else if (ans.subCategory.main) {
-            subCatStr = ans.subCategory.main;
-            // รวมหมวดหมู่ย่อยด้วยเพื่อให้การค้นหาแม่นยำขึ้น
-            if (ans.subCategory.specific) subCatStr += ' ' + ans.subCategory.specific;
-        }
-      }
-
-      for (const [groupKey, groupDef] of Object.entries(PROFICIENCY_GROUPS)) {
-        // FIX: ใช้ toLowerCase() เพื่อให้การตรวจสอบไม่ขึ้นกับตัวพิมพ์เล็ก-ใหญ่
-        if (groupDef.keywords.some(k => subCatStr.toLowerCase().includes(k.toLowerCase()))) {
-          topicXPs[groupDef.field] = (topicXPs[groupDef.field] || 0) + points;
-          break;
-        }
-      }
-    });
-
-    // Apply XP Multiplier
-    xpEarned *= state.xpMultiplier;
-    // FIX: Apply multiplier to topic XPs as well so tracks get the bonus correctly
-    for (const key in topicXPs) {
-        topicXPs[key] *= state.xpMultiplier;
-    }
-
-    // --- NEW: Prepare quest stats object ---
-    const firstAnswer = state.userAnswers.find(a => a);
-    let questCategory = 'General';
-    if (firstAnswer) {
-        if (firstAnswer.sourceQuizCategory) {
-            questCategory = firstAnswer.sourceQuizCategory;
-        } else if (firstAnswer.subCategory) {
-            questCategory = typeof firstAnswer.subCategory === 'object' ? firstAnswer.subCategory.main : firstAnswer.subCategory;
-        }
-    }
-    const questStats = {
-        correctAnswers: correctAnswers,
-        totalQuestions: totalQuestions,
-        category: questCategory,
-        percentage: percentage,
-        correctTheory: correctTheory,
-        correctCalculation: correctCalculation,
-        questionCount: state.questionCount,
-        isCustomQuiz: state.isCustomQuiz,
-        quizId: state.storageKey ? state.storageKey.replace('quizState-', '') : ''
-    };
-
-    const result = game.submitQuizResult(xpEarned, percentage, state.questionCount, state.isCustomQuiz, topicXPs, questStats);
-    levelResult = { overall: result.overall, astronomy: result.astronomy, earth: result.earth };
-    newBadges = result.newBadges || [];
-    newAchievements = result.newAchievements || [];
-    completedQuests = result.completedQuests || [];
-
-    // Play Sounds for Gamification
-    if (state.isSoundEnabled && levelResult) {
-        if (levelResult.overall?.leveledUp || levelResult.astronomy?.leveledUp || levelResult.earth?.leveledUp) {
-            if (state.levelUpSound) {
-                state.levelUpSound.currentTime = 0;
-                state.levelUpSound.play().catch(e => console.warn("Could not play level up sound", e));
+          // --- Topic & Track XP Calculation ---
+          let subCatStr = '';
+          if (ans.subCategory) {
+            if (typeof ans.subCategory === 'string') subCatStr = ans.subCategory;
+            else if (ans.subCategory.main) {
+                subCatStr = ans.subCategory.main;
+                // รวมหมวดหมู่ย่อยด้วยเพื่อให้การค้นหาแม่นยำขึ้น
+                if (ans.subCategory.specific) subCatStr += ' ' + ans.subCategory.specific;
             }
-        } else if (newBadges.length > 0) {
-            if (state.badgeSound) {
-                state.badgeSound.currentTime = 0;
-                state.badgeSound.play().catch(e => console.warn("Could not play badge sound", e));
+          }
+
+          for (const [groupKey, groupDef] of Object.entries(PROFICIENCY_GROUPS)) {
+            // FIX: ใช้ toLowerCase() เพื่อให้การตรวจสอบไม่ขึ้นกับตัวพิมพ์เล็ก-ใหญ่
+            if (groupDef.keywords.some(k => subCatStr.toLowerCase().includes(k.toLowerCase()))) {
+              topicXPs[groupDef.field] = (topicXPs[groupDef.field] || 0) + points;
+              break;
+            }
+          }
+        });
+
+        // Apply XP Multiplier
+        xpEarned *= state.xpMultiplier;
+        // FIX: Apply multiplier to topic XPs as well so tracks get the bonus correctly
+        for (const key in topicXPs) {
+            topicXPs[key] *= state.xpMultiplier;
+        }
+
+        // --- NEW: Prepare quest stats object ---
+        const firstAnswer = state.userAnswers.find(a => a);
+        let questCategory = 'General';
+        if (firstAnswer) {
+            if (firstAnswer.sourceQuizCategory) {
+                questCategory = firstAnswer.sourceQuizCategory;
+            } else if (firstAnswer.subCategory) {
+                questCategory = typeof firstAnswer.subCategory === 'object' ? firstAnswer.subCategory.main : firstAnswer.subCategory;
             }
         }
-    }
-  } catch (error) {
-    console.error("Gamification error:", error);
-  }
+        const questStats = {
+            correctAnswers: correctAnswers,
+            totalQuestions: totalQuestions,
+            category: questCategory,
+            percentage: percentage,
+            correctTheory: correctTheory,
+            correctCalculation: correctCalculation,
+            questionCount: state.questionCount,
+            isCustomQuiz: state.isCustomQuiz,
+            quizId: state.storageKey ? state.storageKey.replace('quizState-', '') : ''
+        };
 
-  // --- Show Toast Notifications ---
-  if (levelResult?.overall?.leveledUp) {
-    showToast('Level Up!', `ยินดีด้วย! เลเวลรวมของคุณคือ ${levelResult.overall.info.level}`, '🎉', 'gold');
-  }
-  
-  if (completedQuests.length > 0) {
-      completedQuests.forEach(res => {
-          showToast('ภารกิจประจำวันสำเร็จ!', `${res.quest.desc} (+${res.quest.xp} XP)`, '📜', 'gold');
-      });
-  }
+        const result = game.submitQuizResult(xpEarned, percentage, state.questionCount, state.isCustomQuiz, topicXPs, questStats);
+        levelResult = { overall: result.overall, astronomy: result.astronomy, earth: result.earth };
+        newBadges = result.newBadges || [];
+        newAchievements = result.newAchievements || [];
+        completedQuests = result.completedQuests || [];
 
-  if (newAchievements.length > 0) {
-      newAchievements.forEach(ach => {
-          showToast('ปลดล็อกความสำเร็จ!', `${ach.title}: ${ach.desc}`, ach.icon, 'success');
-      });
-  }
-  
-  if (newBadges.length > 0) {
-      newBadges.forEach(badge => {
-          showToast('ได้รับเหรียญรางวัลใหม่', `${badge.name}`, badge.icon, 'success');
-      });
+        // Play Sounds for Gamification
+        if (state.isSoundEnabled && levelResult) {
+            if (levelResult.overall?.leveledUp || levelResult.astronomy?.leveledUp || levelResult.earth?.leveledUp) {
+                if (state.levelUpSound) {
+                    state.levelUpSound.currentTime = 0;
+                    state.levelUpSound.play().catch(e => console.warn("Could not play level up sound", e));
+                }
+            } else if (newBadges.length > 0) {
+                if (state.badgeSound) {
+                    state.badgeSound.currentTime = 0;
+                    state.badgeSound.play().catch(e => console.warn("Could not play badge sound", e));
+                }
+            }
+        }
+      } catch (error) {
+        console.error("Gamification error:", error);
+      }
+
+      // --- Show Toast Notifications ---
+      if (levelResult?.overall?.leveledUp) {
+        showToast('Level Up!', `ยินดีด้วย! เลเวลรวมของคุณคือ ${levelResult.overall.info.level}`, '🎉', 'gold');
+      }
+      
+      if (completedQuests.length > 0) {
+          completedQuests.forEach(res => {
+              showToast('ภารกิจประจำวันสำเร็จ!', `${res.quest.desc} (+${res.quest.xp} XP)`, '📜', 'gold');
+          });
+      }
+
+      if (newAchievements.length > 0) {
+          newAchievements.forEach(ach => {
+              showToast('ปลดล็อกความสำเร็จ!', `${ach.title}: ${ach.desc}`, ach.icon, 'success');
+          });
+      }
+      
+      if (newBadges.length > 0) {
+          newBadges.forEach(badge => {
+              showToast('ได้รับเหรียญรางวัลใหม่', `${badge.name}`, badge.icon, 'success');
+          });
+      }
   }
 
   // NEW: Calculate display XP dynamically based on PROFICIENCY_GROUPS
@@ -2292,6 +2301,7 @@ function startQuiz() {
   clearSavedState();
   state.sessionStartTime = Date.now(); // Record start time for the session
   state.totalTimeSpent = 0; // Reset total time spent for a new quiz
+  state.isQuizFinished = false; // NEW: Reset finished state
 
   // Only read timer mode if the controls are visible (i.e., on the start screen).
   // On restart, it will reuse the previously selected mode.
