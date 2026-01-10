@@ -35,16 +35,19 @@ export class ModalHandler {
         this.open = this.open.bind(this);
         this.close = this.close.bind(this);
 
-        // Add event listeners
-        const closeButtons = this.modal.querySelectorAll("[data-modal-close]");
-        closeButtons.forEach((btn) => btn.addEventListener("click", this.close));
-        // Updated to handle a separate overlay div for backdrop clicks
-        this.modal.addEventListener("click", (e) => {
-            // Close if the click is on the modal's immediate background (the flex container) or on a specific overlay element.
+        // Store bound functions for removal
+        this.boundClose = this.close.bind(this);
+        this.boundBackdropClick = (e) => {
             if (e.target === this.modal || e.target.hasAttribute('data-modal-overlay')) {
                 this.close();
             }
-        });
+        };
+
+        // Add event listeners
+        this.closeButtons = this.modal.querySelectorAll("[data-modal-close]");
+        this.closeButtons.forEach((btn) => btn.addEventListener("click", this.boundClose));
+        // Updated to handle a separate overlay div for backdrop clicks
+        this.modal.addEventListener("click", this.boundBackdropClick);
     }
 
     /**
@@ -163,6 +166,18 @@ export class ModalHandler {
                     e.preventDefault();
                 }
             }
+        }
+    }
+
+    /**
+     * Removes all event listeners attached by this handler.
+     */
+    destroy() {
+        if (this.closeButtons) {
+            this.closeButtons.forEach((btn) => btn.removeEventListener("click", this.boundClose));
+        }
+        if (this.modal) {
+            this.modal.removeEventListener("click", this.boundBackdropClick);
         }
     }
 }

@@ -4,6 +4,8 @@ import { authManager } from './auth-manager.js';
 import { challengeManager } from './challenge-manager.js';
 // ลบ static import ของ menu-handler ออก เพื่อป้องกัน error ตั้งแต่ต้นไฟล์
 
+let isDocumentClickListenerAdded = false;
+
 /**
  * Initializes all header dropdown menus with robust open/close and outside-click logic.
  */
@@ -46,15 +48,18 @@ function initializeHeaderMenus() {
     setupMenu('main-menu-btn', 'main-menu-dropdown');
     setupMenu('user-hub-btn', 'user-hub-dropdown');
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('button[id$="-btn"]') && !e.target.closest('div[id$="-dropdown"]')) {
-            document.querySelectorAll('div[id$="-dropdown"]:not(.hidden)').forEach(dropdown => {
-                dropdown.classList.remove('opacity-100', 'scale-100');
-                dropdown.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => dropdown.classList.add('hidden'), 200);
-            });
-        }
-    });
+    if (!isDocumentClickListenerAdded) {
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('button[id$="-btn"]') && !e.target.closest('div[id$="-dropdown"]')) {
+                document.querySelectorAll('div[id$="-dropdown"]:not(.hidden)').forEach(dropdown => {
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => dropdown.classList.add('hidden'), 200);
+                });
+            }
+        });
+        isDocumentClickListenerAdded = true;
+    }
 }
 
 /**
@@ -86,6 +91,9 @@ export async function initializeCommonComponents() {
     // --- User Hub Auth Buttons ---
     const loginBtn = document.getElementById('user-hub-login-btn');
     const logoutBtn = document.getElementById('user-hub-logout-btn');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn'); // NEW: Handle mobile button
+    const userEmailEl = document.getElementById('user-hub-email');
+    const profileLink = document.getElementById('main-header-profile-link');
 
     if (loginBtn) {
         loginBtn.addEventListener('click', () => authManager.login());
@@ -93,12 +101,12 @@ export async function initializeCommonComponents() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => authManager.logout());
     }
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', () => authManager.logout());
+    }
 
-    // Update UI based on auth state
-    authManager.onUserChange(user => {
-        const profileLink = document.getElementById('main-header-profile-link');
-        const emailDisplay = document.getElementById('user-hub-email');
-
+    // Helper function to update UI instantly
+    const updateAuthUI = (user) => {
         if (user) {
             if (profileLink && user.photoURL) {
                 profileLink.innerHTML = `<img src="${user.photoURL}" alt="Profile" class="w-full h-full rounded-full object-cover">`;
@@ -106,10 +114,11 @@ export async function initializeCommonComponents() {
             
             if (loginBtn) loginBtn.classList.add('hidden');
             if (logoutBtn) logoutBtn.classList.remove('hidden');
+            if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
             
-            if (emailDisplay) {
-                emailDisplay.textContent = user.email;
-                emailDisplay.classList.remove('hidden');
+            if (userEmailEl) {
+                userEmailEl.textContent = user.email;
+                userEmailEl.classList.remove('hidden');
             }
         } else {
             if (profileLink) {
@@ -122,11 +131,21 @@ export async function initializeCommonComponents() {
 
             if (loginBtn) loginBtn.classList.remove('hidden');
             if (logoutBtn) logoutBtn.classList.add('hidden');
+            if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
             
-            if (emailDisplay) {
-                emailDisplay.classList.add('hidden');
-                emailDisplay.textContent = '';
+            if (userEmailEl) {
+                userEmailEl.classList.add('hidden');
+                userEmailEl.textContent = '';
             }
         }
-    });
+    };
+
+    // 1. Optimistic Update: Show cached user data immediately (Zero Latency)
+    const cachedUser = authManager.getCachedUser();
+    if (cachedUser) {
+        updateAuthUI(cachedUser);
+    }
+
+    // 2. Real Update: Update when Firebase confirms auth state
+    authManager.onUserChange(updateAuthUI);
 }

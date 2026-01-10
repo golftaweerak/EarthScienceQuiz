@@ -14,8 +14,9 @@ class AuthManagerInternal {
         this.unsubscribeAuth = null; // เก็บฟังก์ชันยกเลิก listener ของ Firebase Auth
         this.networkStatusHandler = null; // เก็บฟังก์ชัน handler สำหรับ network status
         this.networkCheckInterval = null; // เก็บ interval ID สำหรับเช็ค network UI
-        this.headerCheckInterval = null; // เก็บ interval ID สำหรับเช็ค header UI
         this.onlineStatusTimeout = null; // เก็บ timeout ID สำหรับซ่อน status
+        this.isSyncing = false; // NEW: ป้องกันการ Sync ซ้ำซ้อน
+        this.saveTimeout = null; // NEW: สำหรับ Debounce การบันทึกข้อมูล
         
         // Promise เพื่อรอให้ตรวจสอบ Auth เสร็จสิ้นครั้งแรก
         this.authReadyPromise = new Promise((resolve) => {
@@ -25,7 +26,6 @@ class AuthManagerInternal {
         this.init();
         this.handlePostLogout();
         this.setupNetworkListeners();
-        this.setupHeaderUI();
     }
 
     init() {
@@ -35,6 +35,8 @@ class AuthManagerInternal {
             this.currentUser = user;
             if (user) {
                 console.log("User signed in:", user.uid);
+                // NEW: Cache basic user info for faster load next time
+                this.cacheUser(user);
                 
                 // NEW: ตรวจสอบว่ามีการสลับบัญชีหรือไม่ (Switching Account)
                 // ถ้ามีผู้ใช้ก่อนหน้า และไม่ตรงกับผู้ใช้ใหม่ ให้ล้างข้อมูลในเครื่องทิ้งเพื่อไม่ให้ข้อมูลปนกัน
@@ -65,6 +67,8 @@ class AuthManagerInternal {
                 }
             } else {
                 console.log("User signed out");
+                // NEW: Clear cache on logout
+                this.clearCachedUser();
             }
             this.notifyUserChange(user);
             
@@ -164,53 +168,24 @@ class AuthManagerInternal {
         }, 1000);
     }
 
-    // จัดการ UI ของ Header (ปุ่ม Login/Logout)
-    setupHeaderUI() {
-        let attempts = 0;
-        this.headerCheckInterval = setInterval(() => {
-            const loginBtn = document.getElementById('user-hub-login-btn');
-            const logoutBtn = document.getElementById('user-hub-logout-btn');
-            const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-            const userEmailEl = document.getElementById('user-hub-email');
+    // NEW: Cache methods for instant UI loading
+    cacheUser(user) {
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL
+        };
+        localStorage.setItem('auth_user_cache', JSON.stringify(userData));
+    }
 
-            // ถ้าเจอ Element อย่างน้อยหนึ่งตัว แสดงว่า Header โหลดมาแล้ว
-            if (loginBtn || logoutBtn) {
-                clearInterval(this.headerCheckInterval);
-                this.headerCheckInterval = null;
+    clearCachedUser() {
+        localStorage.removeItem('auth_user_cache');
+    }
 
-                // ผูก Event Click
-                if (loginBtn) loginBtn.addEventListener('click', () => this.login());
-                if (logoutBtn) logoutBtn.addEventListener('click', () => this.logout());
-                if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', () => this.logout());
-
-                // ฟังก์ชันอัปเดตการแสดงผลปุ่ม
-                const updateUI = (user) => {
-                    if (user) {
-                        if (loginBtn) loginBtn.classList.add('hidden');
-                        if (logoutBtn) logoutBtn.classList.remove('hidden');
-                        if (mobileLogoutBtn) mobileLogoutBtn.classList.remove('hidden');
-                        if (userEmailEl) {
-                            userEmailEl.textContent = user.email;
-                            userEmailEl.classList.remove('hidden');
-                        }
-                    } else {
-                        if (loginBtn) loginBtn.classList.remove('hidden');
-                        if (logoutBtn) logoutBtn.classList.add('hidden');
-                        if (mobileLogoutBtn) mobileLogoutBtn.classList.add('hidden');
-                        if (userEmailEl) userEmailEl.classList.add('hidden');
-                    }
-                };
-
-                // ลงทะเบียนเพื่อรอรับการเปลี่ยนแปลงสถานะ User
-                this.onUserChange(updateUI);
-            }
-            
-            attempts++;
-            if (attempts >= 20) {
-                clearInterval(this.headerCheckInterval); // หยุดหาหลังจาก 10 วินาที
-                this.headerCheckInterval = null;
-            }
-        }, 500);
+    getCachedUser() {
+        const cached = localStorage.getItem('auth_user_cache');
+        return cached ? JSON.parse(cached) : null;
     }
 
     // ฟังก์ชัน Login
@@ -383,143 +358,160 @@ class AuthManagerInternal {
         // 1. บันทึกลง LocalStorage เสมอ (เพื่อความเร็วและ Offline เบื้องต้น)
         localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
 
-        // 2. ถ้าล็อกอิน ให้บันทึกลง Firestore ด้วย
+        // 2. ถ้าล็อกอิน ให้บันทึกลง Firestore (Debounced)
         if (this.currentUser) {
-            try {
-                const userRef = doc(db, "users", this.currentUser.uid);
-                // ใช้ setDoc แบบ merge: true เพื่อไม่ให้ข้อมูลอื่นหาย
-                await this.retryOperation(() => setDoc(userRef, dataToSave, { merge: true }));
-                this.updateLastSyncTime();
-                
-                // อัปเดต Leaderboard (ถ้ามี)
-                if (dataToSave.xp !== undefined) {
-                    const leaderboardRef = doc(db, "leaderboard", this.currentUser.uid);
-                    await this.retryOperation(() => setDoc(leaderboardRef, {
-                        displayName: this.currentUser.displayName || "Anonymous",
-                        photoURL: this.currentUser.photoURL,
-                        xp: dataToSave.xp,
-                        level: dataToSave.level || 1,
-                        astronomyTrackXP: dataToSave.astronomyTrackXP || 0,
-                        earthTrackXP: dataToSave.earthTrackXP || 0,
-                        astronomyXP: dataToSave.astronomyXP || 0,
-                        geologyXP: dataToSave.geologyXP || 0,
-                        meteorologyXP: dataToSave.meteorologyXP || 0,
-                        selectedTitle: dataToSave.selectedTitle || null,
-                        oceanographyXP: dataToSave.oceanographyXP || 0,
-                        avatar: dataToSave.avatar || null,
-                        lastUpdated: new Date()
-                    }, { merge: true }));
+            // ยกเลิก timeout เก่าถ้ามีการเรียกซ้ำภายในเวลาที่กำหนด
+            if (this.saveTimeout) clearTimeout(this.saveTimeout);
+
+            // ตั้งเวลาใหม่ (Debounce 2 วินาที)
+            this.saveTimeout = setTimeout(async () => {
+                try {
+                    const userRef = doc(db, "users", this.currentUser.uid);
+                    // ใช้ setDoc แบบ merge: true เพื่อไม่ให้ข้อมูลอื่นหาย
+                    await this.retryOperation(() => setDoc(userRef, dataToSave, { merge: true }));
+                    this.updateLastSyncTime();
+                    
+                    // อัปเดต Leaderboard (ถ้ามี)
+                    if (dataToSave.xp !== undefined) {
+                        const leaderboardRef = doc(db, "leaderboard", this.currentUser.uid);
+                        await this.retryOperation(() => setDoc(leaderboardRef, {
+                            displayName: this.currentUser.displayName || "Anonymous",
+                            photoURL: this.currentUser.photoURL,
+                            xp: dataToSave.xp,
+                            level: dataToSave.level || 1,
+                            astronomyTrackXP: dataToSave.astronomyTrackXP || 0,
+                            earthTrackXP: dataToSave.earthTrackXP || 0,
+                            astronomyXP: dataToSave.astronomyXP || 0,
+                            geologyXP: dataToSave.geologyXP || 0,
+                            meteorologyXP: dataToSave.meteorologyXP || 0,
+                            selectedTitle: dataToSave.selectedTitle || null,
+                            oceanographyXP: dataToSave.oceanographyXP || 0,
+                            avatar: dataToSave.avatar || null,
+                            lastUpdated: new Date()
+                        }, { merge: true }));
+                    }
+                } catch (e) {
+                    console.error("Error saving to cloud (Debounced):", e);
                 }
-            } catch (e) {
-                console.error("Error saving to cloud:", e);
-            }
+            }, 2000);
         }
     }
 
     // ฟังก์ชัน Sync ข้อมูลเก่าขึ้น Cloud เมื่อล็อกอินครั้งแรก
     async syncLocalToCloud(user) {
         // FIX: ตรวจสอบว่าเคย Sync แล้วหรือยัง เพื่อป้องกันข้อมูลเบิ้ล (Double Counting)
-        if (localStorage.getItem('last_cloud_sync')) {
+        // NEW: เพิ่มการเช็ค isSyncing เพื่อป้องกัน Race Condition
+        if (localStorage.getItem('last_cloud_sync') || this.isSyncing) {
             return;
         }
 
+        this.isSyncing = true;
         const localDataString = localStorage.getItem(this.LOCAL_STORAGE_KEY);
-        if (!localDataString) return; // ไม่มีข้อมูลเก่า ไม่ต้องทำอะไร
+        if (!localDataString) {
+            this.isSyncing = false;
+            return; // ไม่มีข้อมูลเก่า ไม่ต้องทำอะไร
+        }
 
         const localData = JSON.parse(localDataString);
         const userRef = doc(db, "users", user.uid);
-        const docSnap = await this.retryOperation(() => getDoc(userRef));
+        
+        try {
+            const docSnap = await this.retryOperation(() => getDoc(userRef));
 
-        if (!docSnap.exists()) {
-            // กรณี: ผู้ใช้ใหม่บน Cloud แต่มีข้อมูลในเครื่อง (ผู้เรียนเก่าเพิ่งล็อกอิน)
-            // ให้อัปโหลดข้อมูลในเครื่องขึ้น Cloud ทันที
-            console.log("Migrating local data to cloud...");
-            await this.retryOperation(() => setDoc(userRef, localData));
-            
-            // สร้าง Leaderboard entry ด้วย
-            if (localData.xp !== undefined || localData.totalXP) {
-                await this.retryOperation(() => setDoc(doc(db, "leaderboard", user.uid), {
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
-                    xp: localData.xp || localData.totalXP || 0,
-                    level: localData.level || 1,
-                    astronomyTrackXP: localData.astronomyTrackXP || 0,
-                    earthTrackXP: localData.earthTrackXP || 0,
-                    astronomyXP: localData.astronomyXP || 0,
-                    geologyXP: localData.geologyXP || 0,
-                    meteorologyXP: localData.meteorologyXP || 0,
-                    oceanographyXP: localData.oceanographyXP || 0,
-                    selectedTitle: localData.selectedTitle || null,
-                    avatar: localData.avatar || null,
-                    lastUpdated: new Date()
-                }, { merge: true }));
-            }
-            showToast('ซิงค์ข้อมูลสำเร็จ', 'ข้อมูลเก่าของคุณถูกบันทึกขึ้นระบบแล้ว', '☁️');
-        } else {
-            // กรณี: มีข้อมูลบน Cloud อยู่แล้ว
-            console.log("Found cloud data, merging with local...");
-            let cloudData = docSnap.data();
-            
-            // NEW: ตรวจสอบความปลอดภัยก่อนรวมคะแนน (Prevent Inflation)
-            const isOwnedByCurrentUser = localData.userId === user.uid;
-            const isGuestData = localData.displayName === 'ผู้เรียน (Guest)';
-            
-            // ถ้าข้อมูลในเครื่องเป็นของผู้ใช้นี้อยู่แล้ว (มี userId ตรงกัน) ไม่ต้องทำอะไร (ถือว่า Cloud เป็น Master หรือเท่ากัน)
-            if (isOwnedByCurrentUser) {
-                console.log("Local data belongs to current user. Skipping merge to prevent duplication.");
-                // อัปเดต LocalStorage ให้ตรงกับ Cloud เพื่อความชัวร์
+            if (!docSnap.exists()) {
+                // กรณี: ผู้ใช้ใหม่บน Cloud แต่มีข้อมูลในเครื่อง (ผู้เรียนเก่าเพิ่งล็อกอิน)
+                // ให้อัปโหลดข้อมูลในเครื่องขึ้น Cloud ทันที
+                console.log("Migrating local data to cloud...");
+                await this.retryOperation(() => setDoc(userRef, localData));
+                
+                // สร้าง Leaderboard entry ด้วย
+                if (localData.xp !== undefined || localData.totalXP) {
+                    await this.retryOperation(() => setDoc(doc(db, "leaderboard", user.uid), {
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        xp: localData.xp || localData.totalXP || 0,
+                        level: localData.level || 1,
+                        astronomyTrackXP: localData.astronomyTrackXP || 0,
+                        earthTrackXP: localData.earthTrackXP || 0,
+                        astronomyXP: localData.astronomyXP || 0,
+                        geologyXP: localData.geologyXP || 0,
+                        meteorologyXP: localData.meteorologyXP || 0,
+                        oceanographyXP: localData.oceanographyXP || 0,
+                        selectedTitle: localData.selectedTitle || null,
+                        avatar: localData.avatar || null,
+                        lastUpdated: new Date()
+                    }, { merge: true }));
+                }
+                showToast('ซิงค์ข้อมูลสำเร็จ', 'ข้อมูลเก่าของคุณถูกบันทึกขึ้นระบบแล้ว', '☁️');
+            } else {
+                // กรณี: มีข้อมูลบน Cloud อยู่แล้ว
+                console.log("Found cloud data, merging with local...");
+                let cloudData = docSnap.data();
+                
+                // NEW: ตรวจสอบความปลอดภัยก่อนรวมคะแนน (Prevent Inflation)
+                const isOwnedByCurrentUser = localData.userId === user.uid;
+                const isGuestData = localData.displayName === 'ผู้เรียน (Guest)';
+                
+                // ถ้าข้อมูลในเครื่องเป็นของผู้ใช้นี้อยู่แล้ว (มี userId ตรงกัน) ไม่ต้องทำอะไร (ถือว่า Cloud เป็น Master หรือเท่ากัน)
+                if (isOwnedByCurrentUser) {
+                    console.log("Local data belongs to current user. Skipping merge to prevent duplication.");
+                    // อัปเดต LocalStorage ให้ตรงกับ Cloud เพื่อความชัวร์
+                    localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
+                    this.isSyncing = false;
+                    return;
+                }
+
+                // จะรวมคะแนนก็ต่อเมื่อมั่นใจว่าเป็น Guest Data จริงๆ หรือข้อมูลมีความคืบหน้า
+                if ((localData.xp > 0 || localData.quizzesCompleted > 0)) {
+                    console.log("Merging guest data into cloud account...");
+                    
+                    // ถ้าไม่ใช่ Guest (มีชื่ออื่น) แต่ไม่มี userId (ข้อมูลเก่า) ให้ใช้ค่า MAX แทนการบวก เพื่อป้องกันคะแนนเฟ้อ
+                    const mergeStrategy = isGuestData ? 'sum' : 'max';
+                    
+                    cloudData = {
+                        ...cloudData,
+                        xp: mergeStrategy === 'sum' 
+                            ? (cloudData.xp || 0) + (localData.xp || 0) 
+                            : Math.max(cloudData.xp || 0, localData.xp || 0),
+                        
+                        astronomyTrackXP: mergeStrategy === 'sum'
+                            ? (cloudData.astronomyTrackXP || 0) + (localData.astronomyTrackXP || 0)
+                            : Math.max(cloudData.astronomyTrackXP || 0, localData.astronomyTrackXP || 0),
+                            
+                        earthTrackXP: mergeStrategy === 'sum'
+                            ? (cloudData.earthTrackXP || 0) + (localData.earthTrackXP || 0)
+                            : Math.max(cloudData.earthTrackXP || 0, localData.earthTrackXP || 0),
+                            
+                        generalXP: mergeStrategy === 'sum'
+                            ? (cloudData.generalXP || 0) + (localData.generalXP || 0)
+                            : Math.max(cloudData.generalXP || 0, localData.generalXP || 0),
+                            
+                        quizzesCompleted: mergeStrategy === 'sum'
+                            ? (cloudData.quizzesCompleted || 0) + (localData.quizzesCompleted || 0)
+                            : Math.max(cloudData.quizzesCompleted || 0, localData.quizzesCompleted || 0),
+                            
+                        totalCorrectAnswers: mergeStrategy === 'sum'
+                            ? (cloudData.totalCorrectAnswers || 0) + (localData.totalCorrectAnswers || 0)
+                            : Math.max(cloudData.totalCorrectAnswers || 0, localData.totalCorrectAnswers || 0),
+                        
+                        // NEW: Merge totalSpentXP to keep track of spending across devices
+                        totalSpentXP: mergeStrategy === 'sum'
+                            ? (cloudData.totalSpentXP || 0) + (localData.totalSpentXP || 0)
+                            : Math.max(cloudData.totalSpentXP || 0, localData.totalSpentXP || 0),
+                            
+                        // Merge Arrays (Set to unique)
+                        badges: [...new Set([...(cloudData.badges || []), ...(localData.badges || [])])],
+                        inventory: [...new Set([...(cloudData.inventory || []), ...(localData.inventory || [])])],
+                        unlockedAchievements: [...new Set([...(cloudData.unlockedAchievements || []), ...(localData.unlockedAchievements || [])])],
+                    };
+                    // บันทึกข้อมูลที่รวมแล้วกลับขึ้น Cloud
+                    await this.retryOperation(() => setDoc(userRef, cloudData, { merge: true }));
+                }
+
                 localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
-                return;
             }
-
-            // จะรวมคะแนนก็ต่อเมื่อมั่นใจว่าเป็น Guest Data จริงๆ หรือข้อมูลมีความคืบหน้า
-            if ((localData.xp > 0 || localData.quizzesCompleted > 0)) {
-                console.log("Merging guest data into cloud account...");
-                
-                // ถ้าไม่ใช่ Guest (มีชื่ออื่น) แต่ไม่มี userId (ข้อมูลเก่า) ให้ใช้ค่า MAX แทนการบวก เพื่อป้องกันคะแนนเฟ้อ
-                const mergeStrategy = isGuestData ? 'sum' : 'max';
-                
-                cloudData = {
-                    ...cloudData,
-                    xp: mergeStrategy === 'sum' 
-                        ? (cloudData.xp || 0) + (localData.xp || 0) 
-                        : Math.max(cloudData.xp || 0, localData.xp || 0),
-                    
-                    astronomyTrackXP: mergeStrategy === 'sum'
-                        ? (cloudData.astronomyTrackXP || 0) + (localData.astronomyTrackXP || 0)
-                        : Math.max(cloudData.astronomyTrackXP || 0, localData.astronomyTrackXP || 0),
-                        
-                    earthTrackXP: mergeStrategy === 'sum'
-                        ? (cloudData.earthTrackXP || 0) + (localData.earthTrackXP || 0)
-                        : Math.max(cloudData.earthTrackXP || 0, localData.earthTrackXP || 0),
-                        
-                    generalXP: mergeStrategy === 'sum'
-                        ? (cloudData.generalXP || 0) + (localData.generalXP || 0)
-                        : Math.max(cloudData.generalXP || 0, localData.generalXP || 0),
-                        
-                    quizzesCompleted: mergeStrategy === 'sum'
-                        ? (cloudData.quizzesCompleted || 0) + (localData.quizzesCompleted || 0)
-                        : Math.max(cloudData.quizzesCompleted || 0, localData.quizzesCompleted || 0),
-                        
-                    totalCorrectAnswers: mergeStrategy === 'sum'
-                        ? (cloudData.totalCorrectAnswers || 0) + (localData.totalCorrectAnswers || 0)
-                        : Math.max(cloudData.totalCorrectAnswers || 0, localData.totalCorrectAnswers || 0),
-                    
-                    // NEW: Merge totalSpentXP to keep track of spending across devices
-                    totalSpentXP: mergeStrategy === 'sum'
-                        ? (cloudData.totalSpentXP || 0) + (localData.totalSpentXP || 0)
-                        : Math.max(cloudData.totalSpentXP || 0, localData.totalSpentXP || 0),
-                        
-                    // Merge Arrays (Set to unique)
-                    badges: [...new Set([...(cloudData.badges || []), ...(localData.badges || [])])],
-                    inventory: [...new Set([...(cloudData.inventory || []), ...(localData.inventory || [])])],
-                    unlockedAchievements: [...new Set([...(cloudData.unlockedAchievements || []), ...(localData.unlockedAchievements || [])])],
-                };
-                // บันทึกข้อมูลที่รวมแล้วกลับขึ้น Cloud
-                await this.retryOperation(() => setDoc(userRef, cloudData, { merge: true }));
-            }
-
-            localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
+        } finally {
+            this.isSyncing = false;
         }
     }
 
@@ -797,11 +789,9 @@ class AuthManagerInternal {
 
         // 3. Clear Intervals & Timeouts
         if (this.networkCheckInterval) clearInterval(this.networkCheckInterval);
-        if (this.headerCheckInterval) clearInterval(this.headerCheckInterval);
         if (this.onlineStatusTimeout) clearTimeout(this.onlineStatusTimeout);
 
         this.networkCheckInterval = null;
-        this.headerCheckInterval = null;
         this.onlineStatusTimeout = null;
 
         // 4. Clear Callbacks

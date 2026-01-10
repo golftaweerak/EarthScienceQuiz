@@ -1046,6 +1046,7 @@ function renderDetailedList(stats) {
  * @param {string} storageKey - The localStorage key for the quiz's progress.
  */
 let finishedQuizModalHandler;
+let actionListenerController = null; // NEW: Controller to manage event listeners
 
 function showFinishedQuizModal(title, url, storageKey) {
     if (!finishedQuizModalHandler) return;
@@ -1085,6 +1086,12 @@ function setupActionListeners() {
     const container = document.getElementById("detailed-stats-container");
     if (!container) return;
 
+    // NEW: Remove previous listener if exists to prevent duplication
+    if (actionListenerController) {
+        actionListenerController.abort();
+    }
+    actionListenerController = new AbortController();
+
     container.addEventListener('click', (e) => {
         const statItem = e.target.closest('.quiz-stat-item');
         if (!statItem) return;
@@ -1109,7 +1116,7 @@ function setupActionListeners() {
             // For quizzes in progress, navigate directly to resume.
             window.location.href = url;
         }
-    });
+    }, { signal: actionListenerController.signal }); // Bind signal for cleanup
 }
 
 /**
@@ -1153,6 +1160,10 @@ export async function buildStatsPage() {
             const distributionData = calculateScoreDistribution(allStats);
             renderScoreDistributionChart(distributionData);
 
+            // NEW: Cleanup previous modal handler before creating a new one
+            if (finishedQuizModalHandler) {
+                finishedQuizModalHandler.destroy();
+            }
             finishedQuizModalHandler = new ModalHandler('finished-quiz-modal');
             setupActionListeners();
         } catch (error) {

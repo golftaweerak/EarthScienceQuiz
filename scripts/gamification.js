@@ -408,6 +408,10 @@ export class Gamification {
         if (this.unsubscribeAuth) {
             this.unsubscribeAuth();
         }
+        if (this.headerObserver) {
+            this.headerObserver.disconnect();
+            this.headerObserver = null;
+        }
     }
 
     // เพิ่มฟังก์ชันใหม่สำหรับตรวจสอบความถูกต้องของข้อมูล XP
@@ -527,8 +531,13 @@ export class Gamification {
 
     updateLevel() {
         let leveledUp = false;
+        let safetyCounter = 0; // NEW: Safety counter to prevent infinite loops
         // Loop to handle multiple level-ups in one go, but sequentially.
         while (true) {
+            if (safetyCounter++ > 50) {
+                console.warn("Possible infinite loop detected in updateLevel. Breaking.");
+                break;
+            }
             const currentLevel = this.state.level || 1;
             const nextLevelThreshold = XP_THRESHOLDS.find(t => t.level === currentLevel + 1);
 

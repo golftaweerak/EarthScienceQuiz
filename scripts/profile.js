@@ -315,7 +315,7 @@ function renderRecentBadges(game) {
             container.innerHTML = '<span class="text-sm text-gray-400">ยังไม่มีเหรียญรางวัล</span>';
     } else {
         container.innerHTML = recentBadges.map(b => `
-            <div class="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-xl shadow-sm border border-yellow-200 dark:border-yellow-700/50 transition-transform hover:scale-110 cursor-help" title="${b.name}: ${b.desc}">
+            <div class="recent-badge-item w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-xl shadow-sm border border-yellow-200 dark:border-yellow-700/50 transition-transform hover:scale-110 cursor-pointer" title="${b.name}: ${b.desc}" data-id="${b.id}">
                 ${b.icon}
             </div>
         `).join('');
@@ -1399,13 +1399,12 @@ function getBadgeProgress(game, badgeId) {
 
 function setupBadgeInteractions(game) {
     const container = document.getElementById('profile-badges-grid');
+    const recentContainer = document.getElementById('recent-badges');
     const modal = new ModalHandler('badge-details-modal');
     
-    if (!container) return;
-
-    container.addEventListener('click', (e) => {
-        const card = e.target.closest('.badge-card');
-        if (card) {
+    const handleBadgeClick = (e) => {
+        const card = e.target.closest('.badge-card, .recent-badge-item');
+        if (card && card.dataset.id) {
             const badgeId = card.dataset.id;
             const badge = BADGES.find(b => b.id === badgeId);
             if (badge) {
@@ -1424,6 +1423,11 @@ function setupBadgeInteractions(game) {
                     } else {
                         iconEl.classList.add('grayscale', 'opacity-50');
                     }
+
+                    // Add pop animation for smoother feel
+                    iconEl.classList.remove('anim-item-pop');
+                    void iconEl.offsetWidth; // Force reflow
+                    iconEl.classList.add('anim-item-pop');
                 }
                 if (nameEl) nameEl.textContent = badge.name;
                 if (descEl) descEl.textContent = badge.desc;
@@ -1439,7 +1443,10 @@ function setupBadgeInteractions(game) {
                 modal.open();
             }
         }
-    });
+    };
+
+    if (container) container.addEventListener('click', handleBadgeClick);
+    if (recentContainer) recentContainer.addEventListener('click', handleBadgeClick);
 }
 
 function renderAchievements(game) {

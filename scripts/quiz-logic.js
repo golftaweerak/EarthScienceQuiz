@@ -193,6 +193,38 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
       state.game.destroy();
   }
 
+  // FIX: Cleanup previous Firestore listener to prevent memory leaks
+  if (state.lobbyUnsubscribe) {
+      state.lobbyUnsubscribe();
+      state.lobbyUnsubscribe = null;
+  }
+
+  // FIX: Cleanup previous Timer to prevent multiple timers running
+  if (state.timerId) {
+      clearInterval(state.timerId);
+      state.timerId = null;
+  }
+
+  // FIX: Cleanup previous Team Score Element to prevent duplication
+  const oldTeamScoreEl = document.getElementById('team-score-counter');
+  if (oldTeamScoreEl) {
+      oldTeamScoreEl.remove();
+  }
+
+  // FIX: Cleanup floating UI elements appended to body to prevent ghosts
+  const oldPlayersList = document.getElementById('quiz-players-list');
+  if (oldPlayersList) {
+      oldPlayersList.remove();
+  }
+  const oldTeamProgressBar = document.getElementById('team-progress-container');
+  if (oldTeamProgressBar) {
+      oldTeamProgressBar.remove();
+  }
+
+  // NEW: Cleanup previous modal handlers
+  if (resumeModalHandler) resumeModalHandler.destroy();
+  if (powerupBuyModalHandler) powerupBuyModalHandler.destroy();
+
   const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
 
   // --- 1. Element Caching ---
@@ -283,6 +315,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
     action: action, // NEW: Store action to check if viewing results
     isQuizFinished: false, // NEW: Prevent double submission
   };
+  state.isProcessingNext = false; // NEW: Lock for next button
 
   // --- 3. Initial Setup ---
   resumeModalHandler = new ModalHandler('resume-modal');
@@ -533,18 +566,20 @@ function createCheckboxOption(optionText, previousAnswer) {
  */
 function setupPowerUpUI() {
     // Create container if it doesn't exist
-    if (!document.getElementById('power-up-bar')) {
-        const container = document.createElement('div');
+    let container = document.getElementById('power-up-bar');
+    if (!container) {
+        container = document.createElement('div');
         container.id = 'power-up-bar';
-        container.className = 'flex flex-wrap justify-center gap-3 mb-6 px-2';
         
         // Insert before the question container
         const questionContainer = document.getElementById('question');
         if (questionContainer && questionContainer.parentNode) {
             questionContainer.parentNode.insertBefore(container, questionContainer);
         }
-        elements.powerUpContainer = container;
     }
+    // FIX: ปรับ Layout เป็น Flex Wrap เพื่อให้ปุ่มเรียงตัวสวยงามไม่ว่าจะหน้าจอขนาดไหน
+    container.className = 'flex flex-wrap justify-center gap-2 sm:gap-3 mb-6 px-2 w-full max-w-4xl mx-auto';
+    elements.powerUpContainer = container;
 }
 
 function updatePlayersListUI(players, scoreChangedPlayers = new Set()) {
@@ -744,7 +779,8 @@ function renderPowerUps(animateItemId = null) {
     const isNumberQuestion = currentQuestion && currentQuestion.type === 'fill-in-number';
     const hasOptions = currentQuestion && (currentQuestion.options || currentQuestion.choices);
 
-    const consumables = SHOP_ITEMS.filter(i => i.type === 'consumable');
+    // FIX: กรอง item_streak_freeze ออก เพราะเป็น Passive Item ไม่ควรแสดงในห้องสอบ
+    const consumables = SHOP_ITEMS.filter(i => i.type === 'consumable' && i.id !== 'item_streak_freeze');
     
     elements.powerUpContainer.innerHTML = consumables.map(item => {
         // Filter items based on question type
@@ -753,6 +789,10 @@ function renderPowerUps(animateItemId = null) {
         }
         if (item.id === 'item_range_hint' || item.id === 'item_tolerance') {
             if (!isNumberQuestion) return '';
+        }
+        // FIX: ซ่อนไอเทมหยุดเวลาถ้าไม่ได้เล่นโหมดจับเวลา
+        if (item.id === 'item_time_freeze' && state.timerMode === 'none') {
+            return '';
         }
 
         const count = state.game.getItemCount(item.id);
@@ -769,7 +809,8 @@ function renderPowerUps(animateItemId = null) {
         const isTimerDisabled = state.timerMode === 'none';
         const isDisabled = isUsed || (isTimeFreeze && isTimerDisabled);
 
-        let btnClass = "relative group flex items-center justify-center lg:justify-start gap-0 lg:gap-2 p-2 lg:px-3 lg:py-1.5 rounded-xl lg:rounded-full transition-all shadow-sm border-2 ";
+        // FIX: ปรับปุ่มให้แสดงเฉพาะไอคอน (Square button)
+        let btnClass = "relative group flex items-center justify-center p-0 rounded-xl transition-all shadow-sm border-2 w-12 h-12 ";
         
         if (item.id === animateItemId) {
             btnClass += "anim-item-pop ";
@@ -787,12 +828,19 @@ function renderPowerUps(animateItemId = null) {
         }
 
         return `
-            <button class="power-up-btn ${btnClass}" data-id="${item.id}" ${isDisabled ? 'disabled' : ''} title="${item.name}">
-                <span class="text-xl lg:text-base leading-none">${item.icon}</span>
-                <span class="hidden lg:inline text-sm font-bold">${item.name}</span>
-                <span class="absolute -top-2 -right-2 lg:static lg:top-auto lg:right-auto bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded-full text-[10px] lg:text-xs font-bold min-w-[1.25rem] text-center border border-gray-200 dark:border-gray-500 shadow-sm z-10">
+            <button class="power-up-btn ${btnClass}" data-id="${item.id}" ${isDisabled ? 'disabled' : ''}>
+                <span class="text-2xl leading-none">${item.icon}</span>
+                <span class="absolute -top-2 -right-2 bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[1.25rem] text-center border border-gray-200 dark:border-gray-500 shadow-sm z-10 leading-none">
                     ${isUsed ? '✓' : count}
                 </span>
+                
+                <!-- Custom Tooltip -->
+                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 hidden group-hover:block w-max max-w-[200px] p-2.5 bg-gray-900/95 dark:bg-gray-800/95 text-white text-xs rounded-lg shadow-xl z-50 text-center pointer-events-none backdrop-blur-sm border border-gray-700/50">
+                    <div class="font-bold text-yellow-400 mb-1 text-sm">${item.name}</div>
+                    <div class="text-gray-200 font-normal leading-snug">${item.desc || ''}</div>
+                    <!-- Arrow -->
+                    <div class="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gray-900/95 dark:bg-gray-800/95 rotate-45 border-r border-b border-gray-700/50"></div>
+                </div>
             </button>
         `;
     }).join('');
@@ -1006,6 +1054,7 @@ function showQuestion() {
 
   // Start per-question timer if the mode is selected
   if (state.timerMode === "perQuestion" && !previousAnswer) {
+    resetQuestionTimer(); // Reset time for new question
     startTimer();
   }
 
@@ -1495,44 +1544,54 @@ function showNextQuestion() {
  * Central handler for the main action button (Next/Submit).
  */
 function handleNextButtonClick() {
-  const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
+  // NEW: Prevent double clicking
+  if (state.isProcessingNext) return;
+  state.isProcessingNext = true;
 
-  // If the current question is not answered, it must be a 'submit' action.
-  if (!isAnswered) {
-    const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
-    if (!currentQuestion) {
-      showResults(); // Fallback
+  try {
+    const isAnswered = state.userAnswers[state.currentQuestionIndex] !== null;
+
+    // If the current question is not answered, it must be a 'submit' action.
+    if (!isAnswered) {
+      const currentQuestion = state.shuffledQuestions[state.currentQuestionIndex];
+      if (!currentQuestion) {
+        showResults(); // Fallback
+        return;
+      }
+      // Evaluate the answer based on type
+      switch (currentQuestion.type) {
+        case 'multiple-select':
+          evaluateMultipleAnswer();
+          break;
+        case 'fill-in':
+          evaluateFillInAnswer();
+          break;
+        case 'fill-in-number':
+          evaluateFillInNumberAnswer();
+          break;
+        default:
+          // This case should not be reached for a 'submit' button.
+          // As a safe fallback, we'll just move on.
+          console.warn(`handleNextButtonClick called for an unanswered question of unhandled type: ${currentQuestion.type}`);
+          showNextQuestion();
+          break;
+      }
       return;
     }
-    // Evaluate the answer based on type
-    switch (currentQuestion.type) {
-      case 'multiple-select':
-        evaluateMultipleAnswer();
-        break;
-      case 'fill-in':
-        evaluateFillInAnswer();
-        break;
-      case 'fill-in-number':
-        evaluateFillInNumberAnswer();
-        break;
-      default:
-        // This case should not be reached for a 'submit' button.
-        // As a safe fallback, we'll just move on.
-        console.warn(`handleNextButtonClick called for an unanswered question of unhandled type: ${currentQuestion.type}`);
-        showNextQuestion();
-        break;
+
+    // If we reach here, the question has been answered.
+    const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
+    const isSpeedRunWin = state.mode === 'time-attack' && state.score >= 10;
+
+    if (isLastQuestion || isSpeedRunWin) {
+      showResults();
+    } else {
+      showNextQuestion();
     }
-    return;
-  }
-
-  // If we reach here, the question has been answered.
-  const isLastQuestion = state.currentQuestionIndex === state.shuffledQuestions.length - 1;
-  const isSpeedRunWin = state.mode === 'time-attack' && state.score >= 10;
-
-  if (isLastQuestion || isSpeedRunWin) {
-    showResults();
-  } else {
-    showNextQuestion();
+  } catch (error) {
+    console.error("Error in handleNextButtonClick:", error);
+  } finally {
+    setTimeout(() => { state.isProcessingNext = false; }, 300); // Release lock after delay
   }
 }
 
@@ -2804,6 +2863,27 @@ function startTimer() {
     elements.timerDisplay.classList.add("hidden");
     return;
   }
+
+  // FIX: ถ้าเวลาถูกหยุดอยู่ (Time Freeze) ไม่ต้องเริ่มนับถอยหลัง แต่ให้แสดงผลเวลา
+  if (state.isTimeFrozen) {
+      elements.timerDisplay.classList.remove("hidden");
+      updateTimerDisplay();
+      return;
+  }
+
+  // FIX: แยก Logic การรีเซ็ตเวลาออกจาก startTimer เพื่อไม่ให้เวลาเด้งกลับไปเต็มตอน Resume
+  // (Logic การตั้งค่า state.timeLeft ย้ายไปอยู่ที่ showQuestion หรือ init แทน)
+  
+  // ป้องกันการรันซ้ำ
+  if (state.timerId) clearInterval(state.timerId);
+
+  elements.timerDisplay.classList.remove("hidden");
+  updateTimerDisplay();
+  state.timerId = setInterval(tick, 1000);
+}
+
+// Helper function to reset time for per-question mode
+function resetQuestionTimer() {
   if (state.timerMode === "perQuestion") {
     // Use custom time if provided, otherwise use default
     state.timeLeft = (state.customTime && state.customTime > 0)
@@ -2811,21 +2891,27 @@ function startTimer() {
       : config.timerDefaults.perQuestion;
     state.initialTime = state.timeLeft;
   }
-
-  elements.timerDisplay.classList.remove("hidden");
-  updateTimerDisplay();
-  state.timerId = setInterval(tick, 1000);
 }
 
 function freezeTime() {
     stopTimer();
     state.isTimeFrozen = true;
+    
+    // Clear existing timeout to prevent stacking
+    if (state.freezeTimeout) clearTimeout(state.freezeTimeout);
+
     if (elements.timerDisplay) elements.timerDisplay.classList.add('text-blue-500', 'animate-pulse');
     
-    setTimeout(() => {
+    state.freezeTimeout = setTimeout(() => {
         state.isTimeFrozen = false;
+        state.freezeTimeout = null;
+        
         if (elements.timerDisplay) elements.timerDisplay.classList.remove('text-blue-500', 'animate-pulse');
-        state.timerId = setInterval(tick, 1000); // Resume timer
+        
+        // Resume timer only if quiz is active
+        if (!state.isQuizFinished && state.activeScreen === elements.quizScreen) {
+            startTimer(); 
+        }
     }, 30000);
 }
 
@@ -2937,6 +3023,25 @@ function initializeSound() {
 // --- Event Binding ---
 
 function bindEventListeners() {
+  // NEW: Helper to replace element with clone to strip old listeners
+  const replaceWithClone = (el) => {
+      if (!el) return null;
+      const newEl = el.cloneNode(true);
+      el.parentNode.replaceChild(newEl, el);
+      return newEl;
+  };
+
+  // Refresh elements with clones to ensure clean slate
+  if (elements.skipBtn) elements.skipBtn = replaceWithClone(elements.skipBtn);
+  elements.nextBtn = replaceWithClone(elements.nextBtn);
+  elements.startBtn = replaceWithClone(elements.startBtn);
+  elements.prevBtn = replaceWithClone(elements.prevBtn);
+  elements.restartBtn = replaceWithClone(elements.restartBtn);
+  elements.reviewBtn = replaceWithClone(elements.reviewBtn);
+  elements.backToResultBtn = replaceWithClone(elements.backToResultBtn);
+  if (elements.soundToggleBtn) elements.soundToggleBtn = replaceWithClone(elements.soundToggleBtn);
+  if (elements.hintBtn) elements.hintBtn = replaceWithClone(elements.hintBtn);
+
   // The main action button now has a central handler.
   if (elements.skipBtn) {
     elements.skipBtn.addEventListener("click", skipQuestion);
