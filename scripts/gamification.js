@@ -308,6 +308,12 @@ export class Gamification {
         this.storageKey = 'app_gamification_data';
         this.authManager = authManager;
 
+        // NEW: ตัวแปรสำหรับป้องกันการส่งคะแนนซ้ำ (ไม่บันทึกลง Storage)
+        this.lastProcessedQuiz = {
+            id: null,
+            timestamp: 0
+        };
+
         const isNewToGamification = !localStorage.getItem(this.storageKey);
         
         this.state = this.loadState();
@@ -449,9 +455,17 @@ export class Gamification {
             // Total XP was incremented, but the parts (especially generalXP) were not.
             // We attribute the difference to generalXP.
             const difference = this.state.xp - sumOfParts;
-            console.log(`Attributing unaccounted ${difference} XP to generalXP.`);
-            this.state.generalXP = (this.state.generalXP || 0) + difference;
-            needsSave = true;
+            // FIX: ปรับปรุงเงื่อนไข ไม่เติม General XP พร่ำเพรื่อ
+            // จะเติมก็ต่อเมื่อ General XP เป็น 0 (กรณี Migration ข้อมูลเก่า) หรือผลต่างไม่มากผิดปกติ
+            if (this.state.generalXP === 0 || difference < 5000) {
+                console.log(`Attributing unaccounted ${difference} XP to generalXP.`);
+                this.state.generalXP = (this.state.generalXP || 0) + difference;
+                needsSave = true;
+            } else {
+                console.warn(`Detected large XP discrepancy (${difference}). Correcting total XP downwards to match sum of parts.`);
+                this.state.xp = sumOfParts;
+                needsSave = true;
+            }
         }
 
         return needsSave;
@@ -486,6 +500,19 @@ export class Gamification {
             astronomyXP: 0, geologyXP: 0, meteorologyXP: 0, oceanographyXP: 0,
             freeNameChangeAvailable: true, generalXP: 0, accumulatedQuestionsForBonus: 0,
         };
+    }
+
+    // ฟังก์ชันสำหรับลบ XP ที่เฟ้อเกินจริง (เรียกใช้เมื่อต้องการล้างค่าที่ผิดปกติ)
+    fixInflatedXP() {
+        const sumOfParts = (this.state.astronomyTrackXP || 0) + (this.state.earthTrackXP || 0) + (this.state.generalXP || 0);
+        if (this.state.xp > sumOfParts) {
+            const difference = this.state.xp - sumOfParts;
+            console.log(`Removing inflated XP: ${difference}. Resetting total XP from ${this.state.xp} to ${sumOfParts}.`);
+            this.state.xp = sumOfParts;
+            this.saveState();
+            return true;
+        }
+        return false;
     }
 
     updateLevel() {
@@ -639,8 +666,12 @@ export class Gamification {
                             const lowerCat = String(category).toLowerCase();
                             if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || key.includes('phy_') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || key.includes('astro') || key.includes('junior') || key.includes('senior')) {
                                 quizAstronomyXP = calculatedXp;
+                                // FIX: เพิ่มลงใน topicXPs ด้วย เพื่อให้สอดคล้องกับ Track XP
+                                topicXPs['astronomyXP'] = (topicXPs['astronomyXP'] || 0) + calculatedXp;
                             } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || key.includes('ess_') || key.includes('ES') || key.includes('ESR') || lowerCat.includes('geology') || lowerCat.includes('ธรณีวิทยา') || lowerCat.includes('meteorology') || lowerCat.includes('อุตุนิยมวิทยา') || lowerCat.includes('oceanography') || lowerCat.includes('สมุทรศาสตร์') || key.includes('earth')) {
                                 quizEarthTrackXP = calculatedXp;
+                                // FIX: เพิ่มลงใน topicXPs ด้วย (เลือก geologyXP เป็นตัวแทนคร่าวๆ หากระบุไม่ได้)
+                                topicXPs['geologyXP'] = (topicXPs['geologyXP'] || 0) + calculatedXp;
                             }
                         }
 
@@ -1417,6 +1448,21 @@ export class Gamification {
     // นี่คือฟังก์ชันหลักที่ quiz-logic.js เรียกใช้เมื่อส่งคำตอบ
     // จัดการทั้ง XP, สถิติรายข้อ, และการปลดล็อก Badge/Achievement ในที่เดียว
     submitQuizResult(totalXP, percentage, questionCount, isCustomQuiz, topicXPs = {}, questStats = {}) {
+        // FIX: ป้องกันการส่งคะแนนซ้ำ (Debounce / Idempotency Check)
+        // ตรวจสอบว่า Quiz ID นี้เพิ่งถูกประมวลผลไปเมื่อไม่นานมานี้หรือไม่ (< 5 วินาที)
+        const now = Date.now();
+        if (this.lastProcessedQuiz.id === questStats.quizId && (now - this.lastProcessedQuiz.timestamp < 5000)) {
+            console.warn("Duplicate quiz submission detected. Skipping XP update.");
+            return {
+                overall: { leveledUp: false, info: this.getCurrentLevel() },
+                astronomy: { leveledUp: false, info: this.getAstronomyTrackLevel() },
+                earth: { leveledUp: false, info: this.getEarthLevel() },
+                newBadges: [],
+                newAchievements: []
+            };
+        }
+        this.lastProcessedQuiz = { id: questStats.quizId, timestamp: now };
+
         const oldLevelInfo = this.getCurrentLevel();
         const oldAstronomy = this.getAstronomyTrackLevel();
         const oldEarth = this.getEarthLevel();
