@@ -339,7 +339,7 @@ export class Gamification {
         this.saveState();
 
         if (isNewToGamification) {
-            this.syncProgress();
+            this.recalculateFromHistory();
         }
 
         this.updateStreak();
@@ -348,21 +348,25 @@ export class Gamification {
 
         // IMPROVEMENT: Cross-tab synchronization
         // เมื่อมีการเปลี่ยนแปลงข้อมูลใน Tab อื่น ให้โหลดข้อมูลใหม่และอัปเดตหน้าจอนี้ทันที
-        window.addEventListener('storage', (e) => {
+        this.storageListener = (e) => {
             if (e.key === this.storageKey) {
                 this.state = this.loadState();
                 this.onStateUpdated();
             }
-        });
+        };
+        window.addEventListener('storage', this.storageListener);
 
         // เชื่อมต่อกับ AuthManager เพื่อโหลดข้อมูลเมื่อสถานะ Login เปลี่ยนแปลง
-        this.authManager.onUserChange(async (user) => {
+        this.unsubscribeAuth = this.authManager.onUserChange(async (user) => {
             // โหลดข้อมูลล่าสุด (จะจัดการให้เองว่ามาจาก Cloud หรือ Local)
             try {
                 const data = await this.authManager.loadUserData();
                 if (data) {
                     // Merge data from Cloud with Default State for completeness
                     this.state = { ...this.getDefaultState(), ...data };
+
+                    // NEW: คำนวณคะแนนใหม่ทุกครั้งที่โหลดข้อมูลเพื่อความถูกต้อง (Recalculate on login)
+                    this.recalculateFromHistory();
 
                     // --- Data Consistency Check & Correction ---
                     // เรียกใช้ฟังก์ชันตรวจสอบความถูกต้องที่สร้างขึ้นใหม่
@@ -394,6 +398,16 @@ export class Gamification {
                 this.onStateUpdated();
             }
         });
+    }
+
+    // NEW: ฟังก์ชันสำหรับทำลาย Instance และล้าง Listeners เพื่อป้องกัน Memory Leak
+    destroy() {
+        if (this.storageListener) {
+            window.removeEventListener('storage', this.storageListener);
+        }
+        if (this.unsubscribeAuth) {
+            this.unsubscribeAuth();
+        }
     }
 
     // เพิ่มฟังก์ชันใหม่สำหรับตรวจสอบความถูกต้องของข้อมูล XP
@@ -443,14 +457,9 @@ export class Gamification {
         // This ensures that data from older versions (without generalXP) is corrected.
         const sumOfParts = (this.state.astronomyTrackXP || 0) + (this.state.earthTrackXP || 0) + (this.state.generalXP || 0);
 
-        if (this.state.xp < sumOfParts) {
-            // This case is unlikely but indicates a major inconsistency.
-            // The total XP should never be less than the sum of its components.
-            // We correct the total XP to match the sum.
-            console.log(`Correcting total XP upwards from ${this.state.xp} to ${sumOfParts}`);
-            this.state.xp = sumOfParts;
-            needsSave = true;
-        } else if (this.state.xp > sumOfParts) {
+        // FIX: ยกเลิกการดันคะแนนขึ้น (xp < sumOfParts) เพราะ XP ปัจจุบันอาจน้อยกว่าผลรวมได้ (จากการซื้อของ)
+        // แต่ยังคงตรวจสอบกรณีคะแนนเฟ้อ (xp > sumOfParts)
+        if (this.state.xp > sumOfParts) {
             // This is the more likely case for older data:
             // Total XP was incremented, but the parts (especially generalXP) were not.
             // We attribute the difference to generalXP.
@@ -499,6 +508,7 @@ export class Gamification {
             weekendQuizzesCompleted: 0,
             astronomyXP: 0, geologyXP: 0, meteorologyXP: 0, oceanographyXP: 0,
             freeNameChangeAvailable: true, generalXP: 0, accumulatedQuestionsForBonus: 0,
+            totalSpentXP: 0, // NEW: ติดตามยอด XP ที่ใช้ไปทั้งหมด (ป้องกันการคืน XP จากไอเทมที่ใช้แล้ว)
         };
     }
 
@@ -558,7 +568,7 @@ export class Gamification {
     // ฟังก์ชันสำหรับดึงข้อมูลการทำโจทย์เก่าๆ มาคำนวณเป็น XP เริ่มต้น
     // Logic: สแกน LocalStorage หา key ที่ขึ้นต้นด้วย 'quizState-'
     // แล้วคำนวณ XP ย้อนหลังให้ผู้ใช้ที่เคยเล่นก่อนมีระบบ Gamification
-    syncProgress() { // This function is for migrating old user data.
+    recalculateFromHistory() { // Renamed from syncProgress to be a general purpose recalculation tool
         let totalXP = 0;
         let astronomyTrackXP = 0;
         let earthTrackXP = 0;
@@ -569,6 +579,7 @@ export class Gamification {
         const topicXPs = {};
         let weekendQuizzes = 0;
         let generalQuizXP = 0;
+        let totalQuestionsAnswered = 0; // NEW: นับจำนวนข้อที่ตอบทั้งหมดเพื่อคำนวณ Bonus
 
         // วนลูปดูข้อมูลทั้งหมดใน LocalStorage
         for (let i = 0; i < localStorage.length; i++) {
@@ -603,6 +614,8 @@ export class Gamification {
                         // นับจำนวนชุดที่ทำเสร็จ (ดูจากจำนวนข้อที่ตอบเทียบกับจำนวนข้อทั้งหมด)
                         const totalQ = data.shuffledQuestions ? data.shuffledQuestions.length : 0;
                         const answered = data.userAnswers.filter(a => a).length;
+                        totalQuestionsAnswered += answered; // สะสมจำนวนข้อที่ตอบ
+
                         if (totalQ > 0 && answered >= totalQ) {
                             completed++;
 
@@ -687,9 +700,42 @@ export class Gamification {
             }
         }
 
+        // NEW: คำนวณ Bonus XP ย้อนหลัง (ทุก 20 ข้อ ได้ 20 XP)
+        const bonusXP = Math.floor(totalQuestionsAnswered / 20) * 20;
+        totalXP += bonusXP;
+        this.state.accumulatedQuestionsForBonus = totalQuestionsAnswered % 20;
+
+        // NEW: รวม XP จากประวัติภารกิจ (Quest History) เพื่อไม่ให้คะแนนหาย
+        if (this.state.questHistory) {
+            this.state.questHistory.forEach(item => {
+                if (item.xp) totalXP += item.xp;
+            });
+        }
+
+        // NEW: ใช้ค่า totalSpentXP ที่บันทึกไว้เป็นหลัก (เพื่อความถูกต้องของไอเทมที่ใช้ไปแล้ว)
+        // หากไม่มี (ข้อมูลเก่า) ให้คำนวณจากของที่มีอยู่เป็นค่าเริ่มต้น (Fallback)
+        let spentXP = this.state.totalSpentXP || 0;
+        
+        if (spentXP === 0) {
+            if (this.state.inventory) {
+                this.state.inventory.forEach(itemId => {
+                    const item = SHOP_ITEMS.find(i => i.id === itemId);
+                    if (item) spentXP += item.cost;
+                });
+            }
+            if (this.state.consumables) {
+                Object.entries(this.state.consumables).forEach(([itemId, count]) => {
+                    const item = SHOP_ITEMS.find(i => i.id === itemId);
+                    if (item) spentXP += (item.cost * count);
+                });
+            }
+            // บันทึกค่าเริ่มต้นกลับไปเพื่อใช้ในอนาคต
+            this.state.totalSpentXP = spentXP;
+        }
+
         // ถ้าพบข้อมูลเก่า ให้อัปเดตสถานะเริ่มต้นทันที
-        if (totalXP > 0) {
-            this.state.xp = totalXP;
+        // FIX: Always update if called manually, even if totalXP is 0 (to reset inflated stats)
+            this.state.xp = Math.max(0, totalXP - spentXP); // XP สุทธิ = ที่หาได้ - ที่ใช้ไป
             this.state.astronomyTrackXP = astronomyTrackXP;
             this.state.earthTrackXP = earthTrackXP;
             this.state.quizzesCompleted = completed;
@@ -708,8 +754,9 @@ export class Gamification {
             // ตรวจสอบและปลดล็อกเหรียญรางวัลจากข้อมูลเก่าทันที
             this.checkBadges(0); 
             this.saveState();
-            console.log(`Synced old progress: ${totalXP} XP, ${completed} Quizzes`);
-        }
+            console.log(`Recalculated progress: ${totalXP} XP, ${completed} Quizzes`);
+            
+            return { totalXP, completed };
     }
 
     saveState() {
@@ -764,6 +811,17 @@ export class Gamification {
         this.saveState();
     }
 
+    // NEW: ฟังก์ชันกลางสำหรับหัก XP (ใช้แทนการลบตรงๆ เพื่อบันทึกยอดใช้จ่าย)
+    spendXP(amount) {
+        if (this.state.xp >= amount) {
+            this.state.xp -= amount;
+            this.state.totalSpentXP = (this.state.totalSpentXP || 0) + amount;
+            this.saveState();
+            return true;
+        }
+        return false;
+    }
+
     buyItem(itemId) {
         const item = SHOP_ITEMS.find(i => i.id === itemId);
         if (!item) return { success: false, message: "ไม่พบสินค้า" };
@@ -771,12 +829,14 @@ export class Gamification {
 
         if (item.type === 'consumable') {
             this.state.xp -= item.cost;
+            this.state.totalSpentXP = (this.state.totalSpentXP || 0) + item.cost; // Track spending
             this.state.consumables[itemId] = (this.state.consumables[itemId] || 0) + 1;
             this.saveState();
             return { success: true, message: `ซื้อ ${item.name} สำเร็จ! (มี: ${this.state.consumables[itemId]})`, item };
         } else {
             if (this.state.inventory.includes(itemId)) return { success: false, message: "คุณมีสินค้านี้แล้ว" };
             this.state.xp -= item.cost;
+            this.state.totalSpentXP = (this.state.totalSpentXP || 0) + item.cost; // Track spending
             this.state.inventory.push(itemId);
             
             // Check Shop Badges

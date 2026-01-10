@@ -372,37 +372,41 @@ class AuthManagerInternal {
 
     // ฟังก์ชันหลักสำหรับบันทึกข้อมูล (ใช้แทนการ setItem)
     async saveUserData(data) {
+        // Clone data to prevent race conditions if the original object is mutated 
+        // while async operations are pending.
+        const dataToSave = JSON.parse(JSON.stringify(data));
+
         // NEW: บันทึก userId ลงในข้อมูลด้วย เพื่อใช้ตรวจสอบความเป็นเจ้าของตอน Sync
         if (this.currentUser) {
-            data.userId = this.currentUser.uid;
+            dataToSave.userId = this.currentUser.uid;
         }
         // 1. บันทึกลง LocalStorage เสมอ (เพื่อความเร็วและ Offline เบื้องต้น)
-        localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(data));
+        localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
 
         // 2. ถ้าล็อกอิน ให้บันทึกลง Firestore ด้วย
         if (this.currentUser) {
             try {
                 const userRef = doc(db, "users", this.currentUser.uid);
                 // ใช้ setDoc แบบ merge: true เพื่อไม่ให้ข้อมูลอื่นหาย
-                await this.retryOperation(() => setDoc(userRef, data, { merge: true }));
+                await this.retryOperation(() => setDoc(userRef, dataToSave, { merge: true }));
                 this.updateLastSyncTime();
                 
                 // อัปเดต Leaderboard (ถ้ามี)
-                if (data.xp !== undefined) {
+                if (dataToSave.xp !== undefined) {
                     const leaderboardRef = doc(db, "leaderboard", this.currentUser.uid);
                     await this.retryOperation(() => setDoc(leaderboardRef, {
                         displayName: this.currentUser.displayName || "Anonymous",
                         photoURL: this.currentUser.photoURL,
-                        xp: data.xp,
-                        level: data.level || 1,
-                        astronomyTrackXP: data.astronomyTrackXP || 0,
-                        earthTrackXP: data.earthTrackXP || 0,
-                        astronomyXP: data.astronomyXP || 0,
-                        geologyXP: data.geologyXP || 0,
-                        meteorologyXP: data.meteorologyXP || 0,
-                        selectedTitle: data.selectedTitle || null,
-                        oceanographyXP: data.oceanographyXP || 0,
-                        avatar: data.avatar || null,
+                        xp: dataToSave.xp,
+                        level: dataToSave.level || 1,
+                        astronomyTrackXP: dataToSave.astronomyTrackXP || 0,
+                        earthTrackXP: dataToSave.earthTrackXP || 0,
+                        astronomyXP: dataToSave.astronomyXP || 0,
+                        geologyXP: dataToSave.geologyXP || 0,
+                        meteorologyXP: dataToSave.meteorologyXP || 0,
+                        selectedTitle: dataToSave.selectedTitle || null,
+                        oceanographyXP: dataToSave.oceanographyXP || 0,
+                        avatar: dataToSave.avatar || null,
                         lastUpdated: new Date()
                     }, { merge: true }));
                 }
@@ -500,6 +504,11 @@ class AuthManagerInternal {
                     totalCorrectAnswers: mergeStrategy === 'sum'
                         ? (cloudData.totalCorrectAnswers || 0) + (localData.totalCorrectAnswers || 0)
                         : Math.max(cloudData.totalCorrectAnswers || 0, localData.totalCorrectAnswers || 0),
+                    
+                    // NEW: Merge totalSpentXP to keep track of spending across devices
+                    totalSpentXP: mergeStrategy === 'sum'
+                        ? (cloudData.totalSpentXP || 0) + (localData.totalSpentXP || 0)
+                        : Math.max(cloudData.totalSpentXP || 0, localData.totalSpentXP || 0),
                         
                     // Merge Arrays (Set to unique)
                     badges: [...new Set([...(cloudData.badges || []), ...(localData.badges || [])])],

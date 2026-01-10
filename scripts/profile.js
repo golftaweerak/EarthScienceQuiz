@@ -63,6 +63,7 @@ export async function initializeProfile(gameInstance) {
     setupTitleSystem(game);
     setupThemeSystem(game);
     setupResetSystem(game);
+    setupRecalculateSystem(game); // NEW: Add recalculate button setup
     setupCollapsibleSections();
     setupManualSync(game);
     setupLeaderboardSystem(game);
@@ -107,7 +108,6 @@ export async function initializeProfile(gameInstance) {
             renderProficiencyHistoryChart(game),
             renderStrengthsWeaknesses()
         ]);
-        setupRefreshChartsSystem(game); // Re-setup in case elements were re-rendered
     };
 
     window.addEventListener('gamification-updated', gamificationUpdateHandler);
@@ -378,15 +378,22 @@ function setupNameEditSystem(game) {
                 if (isFree) {
                     game.state.freeNameChangeAvailable = false;
                     toastMsg = `เปลี่ยนชื่อเรียบร้อยแล้ว (ฟรี)`;
+                    game.setDisplayName(newName);
+                    renderUserInfo(game);
+                    nameModal.close();
+                    showToast('บันทึกสำเร็จ', toastMsg, '✏️');
                 } else {
-                    game.state.xp -= NAME_CHANGE_COST;
-                    toastMsg = `เปลี่ยนชื่อเรียบร้อยแล้ว (-${NAME_CHANGE_COST} XP)`;
+                    // FIX: ใช้ spendXP เพื่อบันทึกประวัติการใช้จ่าย (ป้องกัน XP เด้งคืนตอนคำนวณใหม่)
+                    if (game.spendXP(NAME_CHANGE_COST)) {
+                        toastMsg = `เปลี่ยนชื่อเรียบร้อยแล้ว (-${NAME_CHANGE_COST} XP)`;
+                        game.setDisplayName(newName);
+                        renderUserInfo(game);
+                        nameModal.close();
+                        showToast('บันทึกสำเร็จ', toastMsg, '✏️');
+                    } else {
+                        showToast('ข้อผิดพลาด', 'XP ไม่เพียงพอ', '❌', 'error');
+                    }
                 }
-
-                game.setDisplayName(newName);
-                renderUserInfo(game);
-                nameModal.close();
-                showToast('บันทึกสำเร็จ', toastMsg, '✏️');
             } else {
                 showToast('ข้อผิดพลาด', 'กรุณาระบุชื่อ', '⚠️', 'error');
             }
@@ -434,6 +441,35 @@ function setupResetSystem(game) {
         });
         
         confirmModal.open();
+    });
+}
+
+function setupRecalculateSystem(game) {
+    const recalcBtn = document.getElementById('recalculate-xp-btn');
+    if (!recalcBtn) return;
+
+    recalcBtn.addEventListener('click', () => {
+        // Add loading animation
+        const icon = recalcBtn.querySelector('svg');
+        if (icon) icon.classList.add('animate-spin');
+        recalcBtn.disabled = true;
+        recalcBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+        setTimeout(() => {
+            try {
+                const result = game.recalculateFromHistory();
+                renderUserInfo(game);
+                renderTrackProgress(game);
+                showToast('คำนวณใหม่สำเร็จ', `คะแนนของคุณคือ ${result.totalXP.toLocaleString()} XP จาก ${result.completed} แบบทดสอบ`, '✅');
+            } catch (e) {
+                console.error(e);
+                showToast('เกิดข้อผิดพลาด', 'ไม่สามารถคำนวณคะแนนใหม่ได้', '❌', 'error');
+            } finally {
+                if (icon) icon.classList.remove('animate-spin');
+                recalcBtn.disabled = false;
+                recalcBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }, 500); // Fake delay for UX
     });
 }
 

@@ -5,6 +5,8 @@ import { authManager } from './auth-manager.js'; // authManager now handles db o
 import { showToast } from './toast.js';
 import { subCategoryData, LEVELS } from '../data/sub-category-data.js';
 
+let isSyncingCustomQuizzes = false;
+
 /**
  * Safely retrieves and parses the list of custom quizzes from localStorage.
  * If the user is logged in, it syncs the local list with Firestore.
@@ -35,18 +37,23 @@ export function getSavedCustomQuizzes() {
     }
 
     // Background Sync (Fire and Forget)
-    (async () => {
-        try {
-            await authManager.waitForAuthReady();
-            if (authManager.currentUser) {
-                const syncedQuizzes = await authManager.syncCustomQuizzes(localQuizzes);
-                localStorage.setItem("customQuizzesList", JSON.stringify(syncedQuizzes));
-                window.dispatchEvent(new CustomEvent('custom-quizzes-synced', { detail: syncedQuizzes }));
+    if (!isSyncingCustomQuizzes) {
+        (async () => {
+            isSyncingCustomQuizzes = true;
+            try {
+                await authManager.waitForAuthReady();
+                if (authManager.currentUser) {
+                    const syncedQuizzes = await authManager.syncCustomQuizzes(localQuizzes);
+                    localStorage.setItem("customQuizzesList", JSON.stringify(syncedQuizzes));
+                    window.dispatchEvent(new CustomEvent('custom-quizzes-synced', { detail: syncedQuizzes }));
+                }
+            } catch (e) {
+                console.warn("Background sync of custom quizzes failed:", e);
+            } finally {
+                isSyncingCustomQuizzes = false;
             }
-        } catch (e) {
-            console.warn("Background sync of custom quizzes failed:", e);
-        }
-    })();
+        })();
+    }
 
     return localQuizzes;
 }

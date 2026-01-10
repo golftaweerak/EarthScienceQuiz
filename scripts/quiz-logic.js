@@ -188,6 +188,11 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
   ensurePowerUpModalExists();
   injectQuizAnimations();
 
+  // NEW: Cleanup previous game instance to prevent memory leaks
+  if (state.game && typeof state.game.destroy === 'function') {
+      state.game.destroy();
+  }
+
   const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
 
   // --- 1. Element Caching ---
