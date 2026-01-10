@@ -372,6 +372,10 @@ class AuthManagerInternal {
 
     // ฟังก์ชันหลักสำหรับบันทึกข้อมูล (ใช้แทนการ setItem)
     async saveUserData(data) {
+        // NEW: บันทึก userId ลงในข้อมูลด้วย เพื่อใช้ตรวจสอบความเป็นเจ้าของตอน Sync
+        if (this.currentUser) {
+            data.userId = this.currentUser.uid;
+        }
         // 1. บันทึกลง LocalStorage เสมอ (เพื่อความเร็วและ Offline เบื้องต้น)
         localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(data));
 
@@ -451,18 +455,52 @@ class AuthManagerInternal {
             // กรณี: มีข้อมูลบน Cloud อยู่แล้ว
             console.log("Found cloud data, merging with local...");
             let cloudData = docSnap.data();
+            
+            // NEW: ตรวจสอบความปลอดภัยก่อนรวมคะแนน (Prevent Inflation)
+            const isOwnedByCurrentUser = localData.userId === user.uid;
+            const isGuestData = localData.displayName === 'ผู้เรียน (Guest)';
+            
+            // ถ้าข้อมูลในเครื่องเป็นของผู้ใช้นี้อยู่แล้ว (มี userId ตรงกัน) ไม่ต้องทำอะไร (ถือว่า Cloud เป็น Master หรือเท่ากัน)
+            if (isOwnedByCurrentUser) {
+                console.log("Local data belongs to current user. Skipping merge to prevent duplication.");
+                // อัปเดต LocalStorage ให้ตรงกับ Cloud เพื่อความชัวร์
+                localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
+                return;
+            }
 
-            // FIX: ผสานข้อมูล (Merge) หากมีการเล่นแบบ Guest มาก่อน (XP > 0)
-            if (localData.xp > 0 || localData.quizzesCompleted > 0) {
+            // จะรวมคะแนนก็ต่อเมื่อมั่นใจว่าเป็น Guest Data จริงๆ หรือข้อมูลมีความคืบหน้า
+            if ((localData.xp > 0 || localData.quizzesCompleted > 0)) {
                 console.log("Merging guest data into cloud account...");
+                
+                // ถ้าไม่ใช่ Guest (มีชื่ออื่น) แต่ไม่มี userId (ข้อมูลเก่า) ให้ใช้ค่า MAX แทนการบวก เพื่อป้องกันคะแนนเฟ้อ
+                const mergeStrategy = isGuestData ? 'sum' : 'max';
+                
                 cloudData = {
                     ...cloudData,
-                    xp: (cloudData.xp || 0) + (localData.xp || 0),
-                    astronomyTrackXP: (cloudData.astronomyTrackXP || 0) + (localData.astronomyTrackXP || 0),
-                    earthTrackXP: (cloudData.earthTrackXP || 0) + (localData.earthTrackXP || 0),
-                    generalXP: (cloudData.generalXP || 0) + (localData.generalXP || 0),
-                    quizzesCompleted: (cloudData.quizzesCompleted || 0) + (localData.quizzesCompleted || 0),
-                    totalCorrectAnswers: (cloudData.totalCorrectAnswers || 0) + (localData.totalCorrectAnswers || 0),
+                    xp: mergeStrategy === 'sum' 
+                        ? (cloudData.xp || 0) + (localData.xp || 0) 
+                        : Math.max(cloudData.xp || 0, localData.xp || 0),
+                    
+                    astronomyTrackXP: mergeStrategy === 'sum'
+                        ? (cloudData.astronomyTrackXP || 0) + (localData.astronomyTrackXP || 0)
+                        : Math.max(cloudData.astronomyTrackXP || 0, localData.astronomyTrackXP || 0),
+                        
+                    earthTrackXP: mergeStrategy === 'sum'
+                        ? (cloudData.earthTrackXP || 0) + (localData.earthTrackXP || 0)
+                        : Math.max(cloudData.earthTrackXP || 0, localData.earthTrackXP || 0),
+                        
+                    generalXP: mergeStrategy === 'sum'
+                        ? (cloudData.generalXP || 0) + (localData.generalXP || 0)
+                        : Math.max(cloudData.generalXP || 0, localData.generalXP || 0),
+                        
+                    quizzesCompleted: mergeStrategy === 'sum'
+                        ? (cloudData.quizzesCompleted || 0) + (localData.quizzesCompleted || 0)
+                        : Math.max(cloudData.quizzesCompleted || 0, localData.quizzesCompleted || 0),
+                        
+                    totalCorrectAnswers: mergeStrategy === 'sum'
+                        ? (cloudData.totalCorrectAnswers || 0) + (localData.totalCorrectAnswers || 0)
+                        : Math.max(cloudData.totalCorrectAnswers || 0, localData.totalCorrectAnswers || 0),
+                        
                     // Merge Arrays (Set to unique)
                     badges: [...new Set([...(cloudData.badges || []), ...(localData.badges || [])])],
                     inventory: [...new Set([...(cloudData.inventory || []), ...(localData.inventory || [])])],
