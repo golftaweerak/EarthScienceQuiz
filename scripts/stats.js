@@ -16,10 +16,13 @@ function tailwindBorderToRgba(tailwindClass, opacity = 0.7) {
         'border-indigo-500': '99, 102, 241',
         'border-teal-500': '20, 184, 166',
         'border-orange-500': '249, 115, 22',
+        'border-orange-400': '251, 146, 60',
         'border-rose-400': '251, 113, 133',
         'border-red-500': '239, 68, 68',
         'border-amber-500': '245, 158, 11',
         'border-green-400': '74, 222, 128',        
+        'border-green-500': '34, 197, 94',
+        'border-blue-500': '59, 130, 246',
         'border-purple-500': '168, 85, 247',        
         'border-indigo-600': '79, 70, 229', // Dark Indigo
     };
@@ -35,7 +38,10 @@ function tailwindBorderToRgba(tailwindClass, opacity = 0.7) {
 function tailwindBorderToHex(tailwindClass) {
     const colorMap = {
         'border-gray-500': '#6b7280', 'border-indigo-500': '#6366f1', 'border-teal-500': '#14b8a6',
-        'border-orange-500': '#f97316', 'border-rose-400': '#fb7185', 'border-green-400': '#4ade80',
+        'border-orange-500': '#f97316', 'border-orange-400': '#fb923c',
+        'border-rose-400': '#fb7185', 'border-green-400': '#4ade80',
+        'border-green-500': '#22c55e',
+        'border-blue-500': '#3b82f6',
         'border-purple-500': '#a855f7',
         'border-red-500': '#ef4444',
         'border-amber-500': '#f59e0b',
@@ -139,7 +145,15 @@ function calculateProficiencyPerformance(stats) {
             let subCatStr = '';
             if (question.subCategory) {
                 if (typeof question.subCategory === 'string') subCatStr = question.subCategory;
-                else if (question.subCategory.main) subCatStr = question.subCategory.main;
+                else if (question.subCategory.main) {
+                    subCatStr = question.subCategory.main;
+                    if (question.subCategory.specific) {
+                        const specific = Array.isArray(question.subCategory.specific) 
+                            ? question.subCategory.specific.filter(s => s).join(' ') 
+                            : question.subCategory.specific;
+                        subCatStr += ' ' + (specific || '');
+                    }
+                }
             }
             // Also consider the main category of the quiz for broader matching
             subCatStr += ' ' + (question.sourceQuizCategory || stat.category || '');
@@ -339,8 +353,9 @@ function calculateScoreDistribution(stats) {
  * @param {object} trendData - Data from calculateScoreTrend.
  */
 function renderScoreTrendChart(trendData) {
-    const chartContainer = document.getElementById('score-trend-chart')?.closest('section');
-    const ctx = document.getElementById('score-trend-chart')?.getContext('2d');
+    const canvas = document.getElementById('score-trend-chart');
+    const chartContainer = canvas?.closest('section');
+    const ctx = canvas?.getContext('2d');
 
     // Destroy existing chart to prevent duplicates on re-render
     if (ctx) {
@@ -356,16 +371,23 @@ function renderScoreTrendChart(trendData) {
         return;
     }
 
+    // Remove any existing no-data message
+    const existingMsg = chartContainer.querySelector('.no-data-message');
+    if (existingMsg) existingMsg.remove();
+
     // If there's not enough data to show a meaningful trend, display a message instead.
     if (trendData.labels.length < 2) {
-        chartContainer.innerHTML = `
-            <h2 class="text-xl font-bold font-kanit mb-4 text-center">แนวโน้มคะแนน (Score Trend)</h2>
-            <div class="flex items-center justify-center h-56">
-                <p class="text-center text-gray-500 dark:text-gray-400">ทำแบบทดสอบให้เสร็จอย่างน้อย 2 ชุด<br>เพื่อดูแนวโน้มคะแนนของคุณที่นี่</p>
-            </div>
-        `;
+        canvas.classList.add('hidden');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'no-data-message flex items-center justify-center h-56';
+        msgDiv.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">ทำแบบทดสอบให้เสร็จอย่างน้อย 2 ชุด<br>เพื่อดูแนวโน้มคะแนนของคุณที่นี่</p>`;
+        // Append message after the title (assuming title is the first child of section)
+        chartContainer.appendChild(msgDiv);
         return;
     }
+    
+    // Show canvas
+    canvas.classList.remove('hidden');
 
     const isDarkMode = document.documentElement.classList.contains('dark');
     const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
@@ -404,8 +426,9 @@ function renderScoreTrendChart(trendData) {
  * @param {object} distributionData - Data from calculateScoreDistribution.
  */
 function renderScoreDistributionChart(distributionData) {
-    const chartContainer = document.getElementById('score-distribution-chart')?.closest('section');
-    const ctx = document.getElementById('score-distribution-chart')?.getContext('2d');
+    const canvas = document.getElementById('score-distribution-chart');
+    const chartContainer = canvas?.closest('section');
+    const ctx = canvas?.getContext('2d');
 
     if (ctx) {
         const existingChart = Chart.getChart(ctx);
@@ -418,16 +441,22 @@ function renderScoreDistributionChart(distributionData) {
         return;
     }
 
+    // Remove any existing no-data message
+    const existingMsg = chartContainer.querySelector('.no-data-message');
+    if (existingMsg) existingMsg.remove();
+
     const totalScores = distributionData.data.reduce((a, b) => a + b, 0);
     if (totalScores === 0) {
-        chartContainer.innerHTML = `
-            <h2 class="text-xl font-bold font-kanit mb-4 text-center">การกระจายของคะแนน (Score Distribution)</h2>
-            <div class="flex items-center justify-center h-56">
-                <p class="text-center text-gray-500 dark:text-gray-400">ทำแบบทดสอบให้เสร็จเพื่อดูการกระจายของคะแนน</p>
-            </div>
-        `;
+        canvas.classList.add('hidden');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'no-data-message flex items-center justify-center h-56';
+        msgDiv.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400">ทำแบบทดสอบให้เสร็จเพื่อดูการกระจายของคะแนน</p>`;
+        chartContainer.appendChild(msgDiv);
         return;
     }
+
+    // Show canvas
+    canvas.classList.remove('hidden');
 
     const isDarkMode = document.documentElement.classList.contains('dark');
     const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
@@ -558,12 +587,23 @@ function calculateGroupedPerformance(stats) {
 
             // Use the question's own original category if available, otherwise fall back to the quiz's category.
             const subject = answer.sourceQuizCategory || stat.category || 'Uncategorized';
-            if (typeof answer.subCategory !== 'object' || !answer.subCategory.main || !answer.subCategory.specific) {
-                return;
-            }
+            
+            let chapter;
+            let learningOutcomes = [];
 
-            const chapter = answer.subCategory.main;
-            const learningOutcome = answer.subCategory.specific;
+            if (answer.subCategory && typeof answer.subCategory === 'object' && answer.subCategory.main) {
+                chapter = answer.subCategory.main;
+                const specific = answer.subCategory.specific;
+                if (Array.isArray(specific)) {
+                    learningOutcomes = specific.filter(s => s);
+                    if (learningOutcomes.length === 0) learningOutcomes = ['General'];
+                } else {
+                    learningOutcomes = [specific || 'General'];
+                }
+            } else {
+                chapter = (typeof answer.subCategory === 'string') ? answer.subCategory : 'General';
+                learningOutcomes = ['General'];
+            }
 
             // Initialize structures
             if (!performanceBySubject[subject]) {
@@ -572,15 +612,18 @@ function calculateGroupedPerformance(stats) {
             if (!performanceBySubject[subject][chapter]) {
                 performanceBySubject[subject][chapter] = {};
             }
-            if (!performanceBySubject[subject][chapter][learningOutcome]) {
-                performanceBySubject[subject][chapter][learningOutcome] = { correct: 0, total: 0 };
-            }
 
-            // Increment counts.
-            performanceBySubject[subject][chapter][learningOutcome].total++;
-            if (answer.isCorrect) {
-                performanceBySubject[subject][chapter][learningOutcome].correct++;
-            }
+            learningOutcomes.forEach(outcome => {
+                if (!performanceBySubject[subject][chapter][outcome]) {
+                    performanceBySubject[subject][chapter][outcome] = { correct: 0, total: 0 };
+                }
+
+                // Increment counts.
+                performanceBySubject[subject][chapter][outcome].total++;
+                if (answer.isCorrect) {
+                    performanceBySubject[subject][chapter][outcome].correct++;
+                }
+            });
         });
     });
 
@@ -753,8 +796,7 @@ function renderSubjectPerformanceChart(subjectData) {
         return;
     }
     const ctx = document.getElementById('subject-performance-chart')?.getContext('2d');
-    if (!ctx || subjectData.length === 0) return;
-
+    
     // Destroy existing chart to prevent duplicates on re-render
     if (ctx) {
         const existingChart = Chart.getChart(ctx);
@@ -762,6 +804,8 @@ function renderSubjectPerformanceChart(subjectData) {
             existingChart.destroy();
         }
     }
+
+    if (!ctx || subjectData.length === 0) return;
 
     const labels = subjectData.map(d => d.subject);
     const scores = subjectData.map(d => d.score);

@@ -1,5 +1,9 @@
 import { loadComponent } from './component-loader.js';
 import { initializeCommonComponents } from './common-init.js';
+import { Gamification } from './gamification.js';
+import { initializeDarkMode } from './dark-mode.js';
+
+let isAnchorScrollInitialized = false;
 
 /**
  * Handles anchor link clicks from the page header to ensure smooth scrolling
@@ -7,6 +11,7 @@ import { initializeCommonComponents } from './common-init.js';
  * accordions cause a layout shift, making the browser scroll to the wrong position.
  */
 function initializeAnchorScrollFix(toggleAccordion, getSectionToggles) {
+    if (isAnchorScrollInitialized) return;
     const headerPlaceholder = document.getElementById('header-placeholder');
     if (!headerPlaceholder) return;
 
@@ -41,6 +46,7 @@ function initializeAnchorScrollFix(toggleAccordion, getSectionToggles) {
             }, 550); // Adjust duration to be slightly longer than the CSS animation.
         }
     });
+    isAnchorScrollInitialized = true;
 }
 
 /**
@@ -51,6 +57,11 @@ async function main() {
         // Optimization: Prefetch page-specific scripts in parallel
         const mainScriptPromise = import('./main.js');
         const customQuizHandlerPromise = import('./custom-quiz-handler.js');
+
+        // FIX: Initialize Theme & Gamification early to prevent FOUC (Flash of Unstyled Content)
+        // This applies classes to <html> immediately before waiting for network requests.
+        initializeDarkMode();
+        new Gamification();
 
         // Load all shared components concurrently for better performance.
         await Promise.all([

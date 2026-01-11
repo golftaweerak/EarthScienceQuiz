@@ -31,8 +31,6 @@ class AuthManagerInternal {
     init() {
         this.unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             const previousUser = this.currentUser; // เก็บสถานะผู้ใช้ก่อนหน้า
-            this.isInitialized = true;
-            this.currentUser = user;
             if (user) {
                 console.log("User signed in:", user.uid);
                 // NEW: Cache basic user info for faster load next time
@@ -70,6 +68,10 @@ class AuthManagerInternal {
                 // NEW: Clear cache on logout
                 this.clearCachedUser();
             }
+            
+            // FIX: Update state and notify listeners AFTER sync is complete to prevent race conditions
+            this.currentUser = user;
+            this.isInitialized = true;
             this.notifyUserChange(user);
             
             // แจ้งว่า Auth ตรวจสอบเสร็จแล้ว (ไม่ว่าจะล็อกอินหรือไม่)

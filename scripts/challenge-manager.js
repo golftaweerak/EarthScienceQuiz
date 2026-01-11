@@ -44,7 +44,7 @@ export class ChallengeManager {
         this._cacheDomElements();
         this._ensureReadyButton();
         this._attachEventListeners();
-        this.checkUrlForLobby();
+        this.checkPendingLobby(); // Renamed to cover both URL and Storage
     }
 
     /**
@@ -457,20 +457,34 @@ export class ChallengeManager {
         }
     }
 
-    async checkUrlForLobby() {
+    async checkPendingLobby() {
         const urlParams = new URLSearchParams(window.location.search);
         const lobbyId = urlParams.get('lobby');
-        if (lobbyId) {
-            const cleanLobbyId = lobbyId.trim();
+        
+        // Check for pending lobby from session storage (persisted across login redirect)
+        const pendingLobby = sessionStorage.getItem('pending_lobby_join');
+        const targetLobbyId = lobbyId ? lobbyId.trim() : pendingLobby;
+
+        if (targetLobbyId) {
             const user = await authManager.waitForAuthReady();
             if (user) {
-                this.joinLobby(cleanLobbyId);
+                // Logged in, proceed to join
+                sessionStorage.removeItem('pending_lobby_join'); // Clear pending
+                this.joinLobby(targetLobbyId);
             } else {
-                showToast('กรุณาเข้าสู่ระบบ', 'เพื่อเข้าร่วมการแข่งขัน', '🔒');
+                // Not logged in
+                if (lobbyId) {
+                    // Save intent to join after login
+                    sessionStorage.setItem('pending_lobby_join', lobbyId.trim());
+                    showToast('กรุณาเข้าสู่ระบบ', 'ระบบจะพาเข้าห้องอัตโนมัติหลังล็อกอิน', '🔒');
+                }
             }
-            // ล้าง URL เพื่อความสะอาด
-            const newUrl = window.location.pathname;
-            window.history.replaceState({}, document.title, newUrl);
+            
+            // Clean URL if param exists
+            if (lobbyId) {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
         }
     }
 
@@ -895,21 +909,34 @@ export class ChallengeManager {
 
             const isImage = msg.avatar && (msg.avatar.includes('/') || msg.avatar.includes('.'));
             const avatarHtml = isImage 
-                ? `<img src="${escapeHtml(msg.avatar)}" class="w-full h-full object-cover rounded-full">`
-                : `<span class="text-base">${escapeHtml(msg.avatar || '🧑‍🎓')}</span>`;
+                ? `<img src="${escapeHtml(msg.avatar)}" class="w-full h-full object-cover rounded-full ring-2 ring-white dark:ring-gray-800">`
+                : `<span class="text-xs font-bold">${escapeHtml(msg.avatar || '🧑‍🎓')}</span>`;
 
-            const avatarElement = `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">${avatarHtml}</div>`;
+            const avatarElement = `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm self-end mb-1">${avatarHtml}</div>`;
             
+            // Modern bubble styles
+            const bubbleClass = isMe 
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-none shadow-md' 
+                : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 dark:border-gray-700';
+
+            const nameClass = isMe
+                ? 'text-blue-100 text-[10px]'
+                : 'text-gray-500 dark:text-gray-400 text-[10px]';
+
+            const timeClass = isMe
+                ? 'text-blue-200 text-[9px]'
+                : 'text-gray-400 text-[9px]';
+
             const messageBubble = `
-                <div class="flex flex-col w-fit max-w-[320px] leading-1.5 p-3 border-gray-200 dark:border-gray-700 ${isMe ? 'bg-blue-100 dark:bg-blue-900/50 rounded-s-xl rounded-t-xl' : 'bg-gray-100 dark:bg-gray-700 rounded-e-xl rounded-t-xl'}">
-                    <div class="flex items-center space-x-2 rtl:space-x-reverse ${isMe ? 'justify-end' : ''}">
-                        <span class="text-xs font-semibold text-gray-800 dark:text-white">${isMe ? 'คุณ' : escapeHtml(msg.name)}</span>
-                        <span class="text-[10px] font-normal text-gray-500 dark:text-gray-400">${timestamp}</span>
+                <div class="flex flex-col max-w-[85%] ${bubbleClass} px-4 py-2 relative group">
+                    <div class="flex items-baseline justify-between gap-3 mb-0.5">
+                        <span class="font-bold ${nameClass}">${isMe ? 'คุณ' : escapeHtml(msg.name)}</span>
+                        <span class="${timeClass}">${timestamp}</span>
                     </div>
-                    <p class="text-sm font-normal py-2 text-gray-900 dark:text-white break-words">${escapeHtml(msg.text)}</p>
+                    <p class="text-sm leading-relaxed break-words">${escapeHtml(msg.text)}</p>
                 </div>`;
 
-            return `<div class="flex items-end gap-2.5 ${isMe ? 'justify-end' : 'justify-start'} anim-fade-in">${!isMe ? avatarElement : ''}${messageBubble}${isMe ? avatarElement : ''}</div>`;
+            return `<div class="flex items-end gap-2 mb-3 ${isMe ? 'justify-end' : 'justify-start'} anim-fade-in">${!isMe ? avatarElement : ''}${messageBubble}${isMe ? avatarElement : ''}</div>`;
         }).join('');
 
         // Auto-scroll to bottom only if user was already near bottom
@@ -1109,11 +1136,16 @@ export class ChallengeManager {
                  (currentMode === 'time-attack' || currentMode === 'speedrun' || currentMode === 'speed') ? 'text-orange-600 dark:text-orange-400' : 
                  (currentMode === 'survival') ? 'text-red-600 dark:text-red-400' : 
                  'text-blue-600 dark:text-blue-400');
+            
+            let livesText = '';
+            if (currentMode === 'survival' && data.quizConfig?.lives) {
+                livesText = ` (${data.quizConfig.lives} ❤️)`;
+            }
 
             if (this.isHost && data.status === 'waiting') {
                 modeDisplayEl.innerHTML = `
                     <button id="lobby-change-mode-btn" class="flex items-center gap-1 mx-auto hover:opacity-80 transition-opacity ${colorClass} text-xs font-bold mt-1">
-                        <span>${modeText}</span>
+                        <span>${modeText}${livesText}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
                     </button>
                 `;
@@ -1121,7 +1153,7 @@ export class ChallengeManager {
                     this.openModeSelection();
                 });
             } else {
-                modeDisplayEl.textContent = modeText;
+                modeDisplayEl.textContent = modeText + livesText;
                 modeDisplayEl.className = `text-xs font-bold mt-1 ${colorClass}`;
             }
         }

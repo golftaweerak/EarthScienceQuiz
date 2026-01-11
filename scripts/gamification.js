@@ -101,11 +101,11 @@ export const PROFICIENCY_GROUPS = {
 
 // NEW: Theme definitions moved to a constant for reuse
 const THEME_DEFINITIONS = {
-    'forest': { main: '#059669', hover: '#047857', secondary: '#34d399', light_bg: '#d1fae5', dark_bg: 'rgba(6, 78, 59, 0.5)', ring: '#34d399' },
-    'sunset': { main: '#ea580c', hover: '#c2410c', secondary: '#f59e0b', light_bg: '#ffedd5', dark_bg: 'rgba(124, 45, 18, 0.5)', ring: '#fbbf24' },
-    'ocean': { main: '#0891b2', hover: '#0e7490', secondary: '#22d3ee', light_bg: '#cffafe', dark_bg: 'rgba(22, 78, 99, 0.5)', ring: '#67e8f9' },
-    'berry': { main: '#db2777', hover: '#be185d', secondary: '#c026d3', light_bg: '#fce7f3', dark_bg: 'rgba(131, 24, 67, 0.5)', ring: '#e879f9' },
-    'sakura': { main: '#f43f5e', hover: '#e11d48', secondary: '#fb7185', light_bg: '#ffe4e6', dark_bg: 'rgba(159, 18, 57, 0.5)', ring: '#fda4af' },
+    'forest': { main: '#059669', hover: '#047857', secondary: '#34d399', light_bg: '#d1fae5', dark_bg: 'rgba(6, 78, 59, 0.5)', ring: '#34d399', dark_text: '#34d399' },
+    'sunset': { main: '#ea580c', hover: '#c2410c', secondary: '#f59e0b', light_bg: '#ffedd5', dark_bg: 'rgba(124, 45, 18, 0.5)', ring: '#fbbf24', dark_text: '#fb923c' },
+    'ocean': { main: '#0891b2', hover: '#0e7490', secondary: '#22d3ee', light_bg: '#cffafe', dark_bg: 'rgba(22, 78, 99, 0.5)', ring: '#67e8f9', dark_text: '#22d3ee' },
+    'berry': { main: '#db2777', hover: '#be185d', secondary: '#c026d3', light_bg: '#fce7f3', dark_bg: 'rgba(131, 24, 67, 0.5)', ring: '#e879f9', dark_text: '#f472b6' },
+    'sakura': { main: '#e11d48', hover: '#be123c', secondary: '#fb7185', light_bg: '#ffe4e6', dark_bg: 'rgba(159, 18, 57, 0.5)', ring: '#fda4af', dark_text: '#fb7185' },
     'midnight': { 
         main: '#475569',        
         hover: '#334155',       
@@ -426,6 +426,7 @@ export class Gamification {
         if (typeof this.state.oceanographyXP !== 'number') { this.state.oceanographyXP = Number(this.state.oceanographyXP) || 0; needsSave = true; }
         // 1. ตรวจสอบว่าค่า XP หลักเป็นตัวเลข
         if (typeof this.state.xp !== 'number') { this.state.xp = Number(this.state.xp) || 0; needsSave = true; }
+        if (typeof this.state.level !== 'number') { this.state.level = Number(this.state.level) || 1; needsSave = true; }
         if (typeof this.state.astronomyTrackXP !== 'number') { this.state.astronomyTrackXP = Number(this.state.astronomyTrackXP) || 0; needsSave = true; }
         if (typeof this.state.earthTrackXP !== 'number') { this.state.earthTrackXP = Number(this.state.earthTrackXP) || 0; needsSave = true; }
 
@@ -539,7 +540,7 @@ export class Gamification {
                 console.warn("Possible infinite loop detected in updateLevel. Breaking.");
                 break;
             }
-            const currentLevel = this.state.level || 1;
+            const currentLevel = parseInt(this.state.level) || 1;
             const nextLevelThreshold = XP_THRESHOLDS.find(t => t.level === currentLevel + 1);
 
             if (!nextLevelThreshold) {

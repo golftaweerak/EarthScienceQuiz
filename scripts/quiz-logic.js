@@ -104,6 +104,22 @@ function injectQuizAnimations() {
             animation: heart-break-anim 1.5s ease-out forwards;
             text-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
+        @keyframes badge-pop-in {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+            80% { transform: scale(0.9) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .anim-badge-pop {
+            animation: badge-pop-in 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes shine-rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .anim-shine-rotate {
+            animation: shine-rotate 20s linear infinite;
+        }
     `;
     document.head.appendChild(style);
 }
@@ -128,6 +144,56 @@ function triggerHeartBreak() {
     setTimeout(() => {
         heart.remove();
     }, 1500);
+}
+
+function showBadgeUnlockPopup(badges) {
+    if (!badges || badges.length === 0) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 opacity-0';
+    overlay.id = 'badge-unlock-overlay';
+    
+    let currentIndex = 0;
+
+    const showNext = () => {
+        if (currentIndex >= badges.length) {
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => overlay.remove(), 300);
+            return;
+        }
+
+        const badge = badges[currentIndex];
+        
+        overlay.innerHTML = `
+            <div class="bg-white dark:bg-gray-800 rounded-3xl p-8 text-center shadow-2xl transform scale-0 max-w-sm w-full mx-4 relative overflow-hidden border-4 border-yellow-400 badge-card-popup">
+                <div class="absolute top-1/2 left-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(250,204,21,0.2)_20deg,transparent_40deg,rgba(250,204,21,0.2)_60deg,transparent_80deg,rgba(250,204,21,0.2)_100deg,transparent_120deg,rgba(250,204,21,0.2)_140deg,transparent_160deg,rgba(250,204,21,0.2)_180deg,transparent_200deg,rgba(250,204,21,0.2)_220deg,transparent_240deg,rgba(250,204,21,0.2)_260deg,transparent_280deg,rgba(250,204,21,0.2)_300deg,transparent_320deg,rgba(250,204,21,0.2)_340deg,transparent_360deg)] anim-shine-rotate pointer-events-none"></div>
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="text-xs font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-widest mb-4 bg-yellow-100 dark:bg-yellow-900/30 px-3 py-1 rounded-full">New Badge Unlocked!</div>
+                    <div class="text-9xl mb-6 anim-badge-pop drop-shadow-xl filter">${badge.icon}</div>
+                    <h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-kanit">${badge.name}</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-8 text-sm leading-relaxed">${badge.desc}</p>
+                    <button id="badge-claim-btn" class="px-8 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 w-full">
+                        ${currentIndex < badges.length - 1 ? 'ถัดไป' : 'เยี่ยมเลย!'}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const btn = overlay.querySelector('#badge-claim-btn');
+        btn.onclick = () => {
+            currentIndex++;
+            showNext();
+        };
+    };
+
+    document.body.appendChild(overlay);
+    
+    requestAnimationFrame(() => {
+        overlay.classList.remove('opacity-0');
+        overlay.classList.add('opacity-100');
+        showNext();
+    });
 }
 
 let confettiInterval = null; // Module-level variable to track confetti interval
@@ -1231,6 +1297,13 @@ function undoLastAnswer() {
     }
     // Reset answer state
     state.userAnswers[state.currentQuestionIndex] = null;
+
+    // FIX: Restore life in survival mode when undoing
+    if (state.mode === 'survival') {
+        state.lives++;
+        updateLivesUI();
+    }
+
     // Note: Score was not incremented for wrong answer, so no need to decrement.
     saveQuizState();
     
@@ -2017,6 +2090,7 @@ function showResults() {
           newBadges.forEach(badge => {
               showToast('ได้รับเหรียญรางวัลใหม่', `${badge.name}`, badge.icon, 'success');
           });
+          showBadgeUnlockPopup(newBadges);
       }
   }
 
@@ -2778,6 +2852,7 @@ function loadStateFromSave(savedState) {
   state.initialTime = savedState.initialTime || 0;
   state.totalTimeSpent = savedState.totalTimeSpent || 0; // Load accumulated time
   if (savedState.lives !== undefined) state.lives = savedState.lives; // FIX: Load lives
+  if (savedState.xpMultiplier !== undefined) state.xpMultiplier = savedState.xpMultiplier; // FIX: Load XP multiplier
 
   // Update the score display on the UI to reflect the loaded score.
   elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
@@ -2805,6 +2880,7 @@ function saveQuizState() {
     totalTimeSpent: state.totalTimeSpent,
     lastAttemptTimestamp: Date.now(), // Add timestamp for recency tracking
     lives: state.lives, // FIX: Persist lives to prevent reset on refresh
+    xpMultiplier: state.xpMultiplier, // FIX: Persist XP multiplier
   };
   try {
     localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));

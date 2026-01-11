@@ -498,30 +498,44 @@ export async function calculateStrengthsAndWeaknesses() {
     quiz.userAnswers.forEach((answer) => {
       if (!answer) return;
 
-      // Determine the topic name (Main Category)
-      let topicName = "General";
+      // Determine the topic name(s)
+      // Prioritize specific sub-category to align with sub-category-data.js structure
+      let topics = [];
+      
       if (answer.subCategory) {
-        if (typeof answer.subCategory === "object" && answer.subCategory.main) {
-          topicName = answer.subCategory.main;
+        if (typeof answer.subCategory === "object") {
+            if (answer.subCategory.specific) {
+                if (Array.isArray(answer.subCategory.specific)) {
+                    topics = answer.subCategory.specific;
+                } else {
+                    topics = [answer.subCategory.specific];
+                }
+            } else if (answer.subCategory.main) {
+                topics = [answer.subCategory.main];
+            }
         } else if (typeof answer.subCategory === "string") {
-          topicName = answer.subCategory;
+          topics = [answer.subCategory];
         }
       } else if (quiz.subCategory) {
         // Fallback to quiz level subCategory
-        topicName = quiz.subCategory;
+        topics = [quiz.subCategory];
       }
 
-      // Clean up topic name (remove prefixes like "บทที่ 1: ")
-      topicName = topicName.replace(/^บทที่\s*\d+:\s*/, "").trim();
+      if (topics.length === 0) topics = ["General"];
 
-      if (!topicStats[topicName]) {
-        topicStats[topicName] = { correct: 0, total: 0 };
-      }
+      topics.forEach(topicName => {
+          // Clean up topic name (remove prefixes like "บทที่ 1: ")
+          const cleanName = topicName.replace(/^บทที่\s*\d+:\s*/, "").trim();
 
-      topicStats[topicName].total++;
-      if (answer.isCorrect) {
-        topicStats[topicName].correct++;
-      }
+          if (!topicStats[cleanName]) {
+            topicStats[cleanName] = { correct: 0, total: 0 };
+          }
+
+          topicStats[cleanName].total++;
+          if (answer.isCorrect) {
+            topicStats[cleanName].correct++;
+          }
+      });
     });
   });
 

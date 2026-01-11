@@ -29,6 +29,8 @@ export class ModalHandler {
         this.isAnimating = false;
         this.isOpen = false;
         this.triggerElement = null; // The element that opened the modal
+        this.animationTimeout = null; // Store timeout reference
+        this.currentTransitionHandler = null; // Store event listener reference
 
         // Bind methods to ensure 'this' context is correct
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -59,6 +61,8 @@ export class ModalHandler {
 
         this.isOpen = true;
         this.isAnimating = true;
+        this._cleanupAnimation(); // Clear any pending animations
+
         this.triggerElement = triggerElement || document.activeElement;
 
         document.body.style.overflow = "hidden";
@@ -75,17 +79,16 @@ export class ModalHandler {
         document.addEventListener("keydown", this.handleKeyDown);
 
         // Safety timeout in case transitionend doesn't fire
-        const transitionTimeout = setTimeout(() => {
+        const handler = () => {
+            this._cleanupAnimation();
             this.isAnimating = false;
             this.setFocus();
-        }, 400); // 300ms duration + buffer
+        };
 
+        this.currentTransitionHandler = handler;
+        this.animationTimeout = setTimeout(handler, 400); // 300ms duration + buffer
         // Wait for the animation to finish before setting focus
-        this.modalContainer?.addEventListener('transitionend', () => {
-            clearTimeout(transitionTimeout);
-            this.isAnimating = false;
-            this.setFocus();
-        }, { once: true });
+        this.modalContainer?.addEventListener('transitionend', handler, { once: true });
     }
 
     /**
@@ -95,6 +98,7 @@ export class ModalHandler {
         if (!this.isOpen || this.isAnimating) return;
 
         this.isAnimating = true;
+        this._cleanupAnimation(); // Clear any pending animations
         this.modal.classList.remove("is-open");
 
         const cleanup = () => {
@@ -108,16 +112,27 @@ export class ModalHandler {
 
             this.isAnimating = false;
             this.isOpen = false;
+            this._cleanupAnimation();
         };
 
-        // Safety timeout
-        const transitionTimeout = setTimeout(cleanup, 400);
+        this.currentTransitionHandler = cleanup;
+        this.animationTimeout = setTimeout(cleanup, 400);
+        this.modalContainer?.addEventListener('transitionend', cleanup, { once: true });
+    }
 
-        // Wait for the animation to finish before hiding the modal completely
-        this.modalContainer?.addEventListener('transitionend', () => {
-            clearTimeout(transitionTimeout);
-            cleanup();
-        }, { once: true });
+    /**
+     * Cleans up any pending animation timeouts and listeners.
+     * @private
+     */
+    _cleanupAnimation() {
+        if (this.animationTimeout) {
+            clearTimeout(this.animationTimeout);
+            this.animationTimeout = null;
+        }
+        if (this.currentTransitionHandler && this.modalContainer) {
+            this.modalContainer.removeEventListener('transitionend', this.currentTransitionHandler);
+            this.currentTransitionHandler = null;
+        }
     }
 
     /**
@@ -173,6 +188,7 @@ export class ModalHandler {
      * Removes all event listeners attached by this handler.
      */
     destroy() {
+        this._cleanupAnimation();
         if (this.closeButtons) {
             this.closeButtons.forEach((btn) => btn.removeEventListener("click", this.boundClose));
         }
