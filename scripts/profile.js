@@ -260,6 +260,9 @@ function renderUserInfo(game) {
     renderRecentBadges(game);
     previousTitle = currentTitle;
     previousXP = currentXP;
+
+    // FIX: Force update header avatar to ensure it matches profile
+    game.updateHeaderAvatar();
 }
 
 function renderSyncStatus(game) {
