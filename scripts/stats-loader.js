@@ -101,6 +101,12 @@ async function main() {
             await buildStatsPage().catch(e => console.error("Rebuild failed:", e));
         });
 
+        // FIX: Re-build stats page when custom quizzes are synced (prevents empty list on first load)
+        window.addEventListener('custom-quizzes-synced', async () => {
+            console.log("Custom quizzes synced, rebuilding stats page...");
+            await buildStatsPage().catch(e => console.error("Rebuild failed:", e));
+        });
+
     } catch (error) {
         console.error("Failed to initialize stats page:", error);
         const container = document.getElementById('stats-container');

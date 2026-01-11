@@ -141,9 +141,11 @@ export async function initializeQuiz() {
         // Override with lobby settings if present (for host updates)
         let finalTimerMode = customQuizData.timerMode;
         let finalCustomTime = customQuizData.customTime;
+        let lives = 1;
         if (lobbyConfig) {
             finalTimerMode = lobbyConfig.timerMode || 'none';
             finalCustomTime = lobbyConfig.customTime;
+            lives = lobbyConfig.lives || 1;
         }
 
         // Apply lobby timer settings to UI if different
@@ -156,7 +158,7 @@ export async function initializeQuiz() {
              }
         }
 
-        initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, finalCustomTime, action);
+        initQuizApp(customQuizData.questions, customQuizData.storageKey, customQuizData.title, finalCustomTime, action, false, lives);
         return; // Stop further execution
     }
 
@@ -192,6 +194,7 @@ export async function initializeQuiz() {
 
             // Init Quiz
             let customTime = null;
+            let lives = 1;
             if (lobbyConfig) {
                 const timerOptions = document.getElementById('timer-options');
                 if (timerOptions) {
@@ -200,9 +203,10 @@ export async function initializeQuiz() {
                     if (selectedTimerInput) selectedTimerInput.checked = true;
                 }
                 customTime = lobbyConfig.customTime;
+                lives = lobbyConfig.lives || 1;
             }
 
-            initQuizApp(selectedQuestions, `quizState-challenge-${seed}`, "Challenge Mode", customTime, action, true);
+            initQuizApp(selectedQuestions, `quizState-challenge-${seed}`, "Challenge Mode", customTime, action, true, lives);
             return;
 
         } catch (error) {
@@ -276,6 +280,7 @@ export async function initializeQuiz() {
 
         // 6. Initialize the quiz logic with the processed data
         let customTime = null;
+        let lives = 1;
         if (lobbyConfig) {
             const timerOptions = document.getElementById('timer-options');
             if (timerOptions) {
@@ -284,8 +289,9 @@ export async function initializeQuiz() {
                 if (selectedTimerInput) selectedTimerInput.checked = true;
             }
             customTime = lobbyConfig.customTime;
+            lives = lobbyConfig.lives || 1;
         }
-        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, customTime, action, !!seedParam);
+        initQuizApp(processedQuizData, quizInfo.storageKey, quizInfo.title, customTime, action, !!seedParam, lives);
 
     } catch (error) {
         console.error(`Error loading quiz data for ID ${quizId}:`, error);

@@ -535,6 +535,11 @@ class AuthManagerInternal {
      */
     async deleteQuizHistoryItem(key) {
         localStorage.removeItem(key); // Remove from local
+        // FIX: Validate key to prevent path traversal
+        if (!key || typeof key !== 'string' || key.includes('/')) {
+            console.warn("Invalid history key:", key);
+            return;
+        }
         if (this.currentUser) {
             try {
                 const docRef = doc(db, "users", this.currentUser.uid, "quiz_history", key);
@@ -675,6 +680,11 @@ class AuthManagerInternal {
 
     async saveCustomQuiz(quizData) {
         if (!this.currentUser) return;
+        // FIX: Validate customId
+        if (!quizData.customId || quizData.customId.includes('/')) {
+             console.warn("Invalid customId:", quizData.customId);
+             return;
+        }
         try {
             const docRef = doc(db, "users", this.currentUser.uid, "custom_quizzes", quizData.customId);
             await this.retryOperation(() => setDoc(docRef, quizData));
@@ -688,6 +698,11 @@ class AuthManagerInternal {
 
     async deleteCustomQuiz(quizData) {
         if (!this.currentUser || !quizData || !quizData.customId) return;
+        // FIX: Validate customId
+        if (quizData.customId.includes('/')) {
+             console.warn("Invalid customId:", quizData.customId);
+             return;
+        }
         try {
             const batch = writeBatch(db);
             const quizDefRef = doc(db, "users", this.currentUser.uid, "custom_quizzes", quizData.customId);
@@ -709,6 +724,11 @@ class AuthManagerInternal {
 
     async updateCustomQuiz(customId, dataToUpdate) {
         if (!this.currentUser || !customId) return;
+        // FIX: Validate customId
+        if (customId.includes('/')) {
+             console.warn("Invalid customId:", customId);
+             return;
+        }
         try {
             const docRef = doc(db, "users", this.currentUser.uid, "custom_quizzes", customId);
             await this.retryOperation(() => updateDoc(docRef, dataToUpdate));
@@ -762,6 +782,11 @@ class AuthManagerInternal {
     // ฟังก์ชันบันทึกประวัติรายข้อ (เรียกใช้ตอนทำข้อสอบ)
     async saveQuizHistoryItem(key, data) {
         if (!this.currentUser) return;
+        // FIX: Validate key
+        if (!key || typeof key !== 'string' || key.includes('/')) {
+             console.warn("Invalid history key for saving:", key);
+             return;
+        }
         try {
             // บันทึกลง Subcollection 'quiz_history' โดยใช้ key เป็น ID เอกสาร
             const docRef = doc(db, "users", this.currentUser.uid, "quiz_history", key);

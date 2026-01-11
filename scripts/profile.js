@@ -5,6 +5,7 @@ import { ModalHandler } from './modal-handler.js';
 import { showToast } from './toast.js';
 import { collection, query, orderBy, limit, getDocs, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
+import { escapeHtml } from './utils.js';
 
 const AVATARS = [
     '🧑‍🎓', '👩‍🎓', '👨‍🔬', '👩‍🔬', '👨‍🚀', '👩‍🚀', '👽', '🤖','👻','💩'
@@ -201,7 +202,7 @@ function renderUserInfo(game) {
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline-block mr-1.5 -mt-0.5 opacity-70" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>${user.email}
+                </svg>${escapeHtml(user.email)}
             `;
             emailEl.classList.remove('hidden');
         } else {
@@ -242,7 +243,7 @@ function renderUserInfo(game) {
     const titleBtn = document.getElementById('edit-title-btn');
     if (titleBtn) {
         if (game.state.selectedTitle) {
-            titleBtn.innerHTML = `<span class="text-purple-600 dark:text-purple-400 font-bold">《 ${game.state.selectedTitle} 》</span>`;
+            titleBtn.innerHTML = `<span class="text-purple-600 dark:text-purple-400 font-bold">《 ${escapeHtml(game.state.selectedTitle)} 》</span>`;
         } else {
             titleBtn.innerHTML = `🏷️ เปลี่ยนฉายา`;
         }

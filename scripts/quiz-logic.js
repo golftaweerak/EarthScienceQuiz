@@ -1,5 +1,5 @@
 import { ModalHandler } from './modal-handler.js';
-import { shuffleArray } from './utils.js';
+import { shuffleArray, escapeHtml } from './utils.js';
 import { Gamification, SHOP_ITEMS, PROFICIENCY_GROUPS } from './gamification.js';
 import { showToast } from './toast.js';
 import { db } from './firebase-config.js';
@@ -43,6 +43,26 @@ function injectQuizAnimations() {
         .anim-screen-shake {
             animation: screen-shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
+        @keyframes screen-shake-hard {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-10px, -10px) rotate(-5deg); }
+            20% { transform: translate(10px, 10px) rotate(5deg); }
+            30% { transform: translate(-10px, 10px) rotate(-5deg); }
+            40% { transform: translate(10px, -10px) rotate(5deg); }
+            50% { transform: translate(-5px, 0px) rotate(-3deg); }
+            60% { transform: translate(5px, 0px) rotate(3deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .anim-screen-shake-hard {
+            animation: screen-shake-hard 0.5s ease-in-out both;
+        }
+        @keyframes red-flash {
+            0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+            50% { box-shadow: inset 0 0 0 200vmax rgba(220, 38, 38, 0.4); }
+        }
+        .anim-red-flash {
+            animation: red-flash 0.5s ease-in-out both;
+        }
         @keyframes score-pop-up {
             0% { transform: scale(1); }
             50% { transform: scale(1.3); color: #22c55e; }
@@ -66,9 +86,51 @@ function injectQuizAnimations() {
             background-size: 200% 100% !important;
             animation: progress-shimmer 0.8s linear forwards;
         }
+        @keyframes heart-break-anim {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            30% { transform: translate(-50%, -50%) scale(1) rotate(-5deg); }
+            45% { transform: translate(-50%, -50%) scale(1) rotate(5deg); }
+            60% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; filter: blur(4px); }
+        }
+        .anim-heart-break {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            font-size: 8rem;
+            z-index: 9999;
+            pointer-events: none;
+            animation: heart-break-anim 1.5s ease-out forwards;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
     `;
     document.head.appendChild(style);
 }
+
+function triggerSurvivalShake() {
+    const element = document.body;
+    element.classList.remove('anim-screen-shake-hard', 'anim-red-flash');
+    void element.offsetWidth; // Force reflow
+    element.classList.add('anim-screen-shake-hard', 'anim-red-flash');
+    
+    setTimeout(() => {
+        element.classList.remove('anim-screen-shake-hard', 'anim-red-flash');
+    }, 500);
+}
+
+function triggerHeartBreak() {
+    const heart = document.createElement('div');
+    heart.textContent = '💔';
+    heart.className = 'anim-heart-break';
+    document.body.appendChild(heart);
+    
+    setTimeout(() => {
+        heart.remove();
+    }, 1500);
+}
+
+let confettiInterval = null; // Module-level variable to track confetti interval
 
 // state: Stores all dynamic data of the quiz
 let state = {};
@@ -183,7 +245,7 @@ function ensurePowerUpModalExists() {
  * @param {string} quizTitle - The title of the current quiz.
  * @param {number|null} customTime - Custom time in seconds, if provided.
  */
-export function init(quizData, storageKey, quizTitle, customTime, action, disableShuffle = false) {
+export function init(quizData, storageKey, quizTitle, customTime, action, disableShuffle = false, lives = 1) {
   // Ensure the power-up modal exists in the DOM
   ensurePowerUpModalExists();
   injectQuizAnimations();
@@ -205,6 +267,17 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
       state.timerId = null;
   }
 
+  // FIX: Cleanup previous Freeze Timeout to prevent it from resuming timer in new game
+  if (state.freezeTimeout) {
+      clearTimeout(state.freezeTimeout);
+  }
+
+  // FIX: Cleanup previous Confetti Interval
+  if (confettiInterval) {
+      clearInterval(confettiInterval);
+      confettiInterval = null;
+  }
+
   // FIX: Cleanup previous Team Score Element to prevent duplication
   const oldTeamScoreEl = document.getElementById('team-score-counter');
   if (oldTeamScoreEl) {
@@ -219,6 +292,12 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
   const oldTeamProgressBar = document.getElementById('team-progress-container');
   if (oldTeamProgressBar) {
       oldTeamProgressBar.remove();
+  }
+
+  // FIX: Cleanup Survival Lives Display to prevent it from persisting in other modes
+  const oldLivesDisplay = document.getElementById('survival-lives-display');
+  if (oldLivesDisplay) {
+      oldLivesDisplay.remove();
   }
 
   // NEW: Cleanup previous modal handlers
@@ -314,6 +393,7 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
     disableShuffle: disableShuffle, // NEW: Flag to prevent re-shuffling
     action: action, // NEW: Store action to check if viewing results
     isQuizFinished: false, // NEW: Prevent double submission
+    lives: lives, // NEW: Survival Lives
   };
   state.isProcessingNext = false; // NEW: Lock for next button
 
@@ -423,6 +503,22 @@ function setFloatingNav(active) {
       elements.quizScreen.style.paddingBottom = '';
     }
   }
+}
+
+function updateLivesUI() {
+    if (state.mode !== 'survival') return;
+    
+    let livesContainer = document.getElementById('survival-lives-display');
+    if (!livesContainer) {
+        livesContainer = document.createElement('div');
+        livesContainer.id = 'survival-lives-display';
+        livesContainer.className = "font-kanit text-lg font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-lg border border-red-200 dark:border-red-800 transition-all duration-300 transform ml-2 whitespace-nowrap flex-shrink-0";
+        if (elements.scoreCounter && elements.scoreCounter.parentNode) {
+            elements.scoreCounter.parentNode.insertBefore(livesContainer, elements.scoreCounter.nextSibling);
+        }
+    }
+    
+    livesContainer.innerHTML = `❤️ ${state.lives}`;
 }
 
 // --- UI / Rendering Functions ---
@@ -625,7 +721,7 @@ function updatePlayersListUI(players, scoreChangedPlayers = new Set()) {
             <div class="flex items-center gap-3 p-2 rounded-xl border shadow-sm transition-all duration-500 ${bgClass} backdrop-blur-sm transform translate-x-0">
                 <div class="flex-shrink-0">${avatarHtml}</div>
                 <div class="flex-grow min-w-0">
-                    <div class="text-xs font-bold ${textClass} truncate max-w-[100px]">${p.name}</div>
+                    <div class="text-xs font-bold ${textClass} truncate max-w-[100px]">${escapeHtml(p.name)}</div>
                     <div class="text-[10px] font-mono ${scoreClass}">${score} pts</div>
                 </div>
                 <div class="flex-shrink-0">${statusHtml}</div>
@@ -1248,7 +1344,6 @@ function evaluateMultipleAnswer() {
     sourceQuizTitle: currentQuestion.sourceQuizTitle,
     sourceQuizCategory: currentQuestion.sourceQuizCategory
   };
-  saveQuizState();
 
   if (isCorrect) {
     state.score++;
@@ -1258,7 +1353,26 @@ function evaluateMultipleAnswer() {
   } else {
     state.game.resetCorrectStreak();
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
+
+    // Survival Mode Check
+    if (state.mode === 'survival') {
+        state.lives--;
+        updateLivesUI();
+        
+        if (state.lives <= 0) {
+            triggerSurvivalShake();
+            triggerHeartBreak();
+            showToast('Game Over', 'คุณใช้โควตาหัวใจหมดแล้ว!', '💀', 'error');
+            setTimeout(() => showResults(), 1500);
+        } else {
+            triggerSurvivalShake();
+            showToast('ตอบผิด!', `เหลือหัวใจ ${state.lives} ดวง`, '💔', 'warning');
+        }
+    }
   }
+
+  // FIX: Save state AFTER updating score and lives
+  saveQuizState();
 
   // Show feedback and disable options
   showFeedback(isCorrect, currentQuestion.explanation, correctAnswers);
@@ -1318,7 +1432,6 @@ function evaluateFillInAnswer() {
     sourceQuizTitle: currentQuestion.sourceQuizTitle,
     sourceQuizCategory: currentQuestion.sourceQuizCategory
   };
-  saveQuizState();
 
   if (isCorrect) {
     state.score++;
@@ -1328,7 +1441,26 @@ function evaluateFillInAnswer() {
   } else {
     state.game.resetCorrectStreak();
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
+
+    // Survival Mode Check
+    if (state.mode === 'survival') {
+        state.lives--;
+        updateLivesUI();
+        
+        if (state.lives <= 0) {
+            triggerSurvivalShake();
+            triggerHeartBreak();
+            showToast('Game Over', 'คุณใช้โควตาหัวใจหมดแล้ว!', '💀', 'error');
+            setTimeout(() => showResults(), 1500);
+        } else {
+            triggerSurvivalShake();
+            showToast('ตอบผิด!', `เหลือหัวใจ ${state.lives} ดวง`, '💔', 'warning');
+        }
+    }
   }
+
+  // FIX: Save state AFTER updating score and lives
+  saveQuizState();
 
   // Show feedback
   showFeedback(isCorrect, currentQuestion.explanation, currentQuestion.answer.join(' หรือ '));
@@ -1388,7 +1520,6 @@ function evaluateFillInNumberAnswer() {
     sourceQuizTitle: currentQuestion.sourceQuizTitle,
     sourceQuizCategory: currentQuestion.sourceQuizCategory
   };
-  saveQuizState();
 
   if (isCorrect) {
     state.score++;
@@ -1402,7 +1533,26 @@ function evaluateFillInNumberAnswer() {
     answerInput.classList.add('bg-red-100', 'dark:bg-red-900/30', 'border-red-500', 'dark:border-red-600', 'text-red-800', 'dark:text-red-400', 'anim-shake');
     state.game.resetCorrectStreak();
     if (state.isSoundEnabled) state.incorrectSound.play().catch(e => console.error("Error playing sound:", e));
+
+    // Survival Mode Check
+    if (state.mode === 'survival') {
+        state.lives--;
+        updateLivesUI();
+        
+        if (state.lives <= 0) {
+            triggerSurvivalShake();
+            triggerHeartBreak();
+            showToast('Game Over', 'คุณใช้โควตาหัวใจหมดแล้ว!', '💀', 'error');
+            setTimeout(() => showResults(), 1500);
+        } else {
+            triggerSurvivalShake();
+            showToast('ตอบผิด!', `เหลือหัวใจ ${state.lives} ดวง`, '💔', 'warning');
+        }
+    }
   }
+
+  // FIX: Save state AFTER updating score and lives
+  saveQuizState();
 
   showFeedback(isCorrect, currentQuestion.explanation, formattedCorrectAnswer);
   updateNextButtonAppearance('next');
@@ -1452,9 +1602,6 @@ function selectAnswer(e) {
     sourceQuizCategory: state.shuffledQuestions[state.currentQuestionIndex]?.sourceQuizCategory
   };
 
-  // Save state immediately after an answer is recorded for better data persistence.
-  saveQuizState();
-
   if (correct) {
     state.score++;
     elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
@@ -1469,7 +1616,26 @@ function selectAnswer(e) {
       state.incorrectSound
         .play()
         .catch((e) => console.error("Error playing sound:", e));
+
+    // Survival Mode Check
+    if (state.mode === 'survival') {
+        state.lives--;
+        updateLivesUI();
+        
+        if (state.lives <= 0) {
+            triggerSurvivalShake();
+            triggerHeartBreak();
+            showToast('Game Over', 'คุณใช้โควตาหัวใจหมดแล้ว!', '💀', 'error');
+            setTimeout(() => showResults(), 1500);
+        } else {
+            triggerSurvivalShake();
+            showToast('ตอบผิด!', `เหลือหัวใจ ${state.lives} ดวง`, '💔', 'warning');
+        }
+    }
   }
+
+  // FIX: Save state AFTER updating score and lives to prevent race condition in Lobby Sync
+  saveQuizState();
 
   // Show feedback and disable all options
   showFeedback(
@@ -1913,6 +2079,8 @@ function triggerConfetti() {
     return;
   }
 
+  if (confettiInterval) clearInterval(confettiInterval); // Clear existing if any
+
   const duration = 3 * 1000; // 3 seconds
   const animationEnd = Date.now() + duration;
   const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
@@ -1921,11 +2089,13 @@ function triggerConfetti() {
     return Math.random() * (max - min) + min;
   }
 
-  const interval = setInterval(function () {
+  confettiInterval = setInterval(function () {
     const timeLeft = animationEnd - Date.now();
 
     if (timeLeft <= 0) {
-      return clearInterval(interval);
+      clearInterval(confettiInterval);
+      confettiInterval = null;
+      return;
     }
 
     const particleCount = 50 * (timeLeft / duration);
@@ -2406,6 +2576,7 @@ function startQuiz() {
   elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
 
   showQuestion();
+  updateLivesUI(); // Show lives if survival mode
   saveQuizState();
 }
 
@@ -2606,6 +2777,7 @@ function loadStateFromSave(savedState) {
   state.timeLeft = savedState.timeLeft || 0;
   state.initialTime = savedState.initialTime || 0;
   state.totalTimeSpent = savedState.totalTimeSpent || 0; // Load accumulated time
+  if (savedState.lives !== undefined) state.lives = savedState.lives; // FIX: Load lives
 
   // Update the score display on the UI to reflect the loaded score.
   elements.scoreCounter.textContent = `คะแนน: ${state.score}`;
@@ -2632,6 +2804,7 @@ function saveQuizState() {
     initialTime: state.initialTime,
     totalTimeSpent: state.totalTimeSpent,
     lastAttemptTimestamp: Date.now(), // Add timestamp for recency tracking
+    lives: state.lives, // FIX: Persist lives to prevent reset on refresh
   };
   try {
     localStorage.setItem(state.storageKey, JSON.stringify(stateToSave));
@@ -2677,6 +2850,12 @@ async function sendScoreToLobby(isWinner = false) {
             if (currentAns) {
                 lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
             }
+
+            // Survival Mode Elimination
+            let isEliminated = p.eliminated || false;
+            if (state.mode === 'survival' && lastAnswerStatus === 'incorrect' && state.lives <= 0) {
+                isEliminated = true;
+            }
             
             const updatedPlayers = players.map(p => {
                 if (p.uid === uid) {
@@ -2685,7 +2864,8 @@ async function sendScoreToLobby(isWinner = false) {
                         score: state.score,
                         progress: state.currentQuestionIndex + 1,
                         totalQuestions: state.questionCount || state.shuffledQuestions.length,
-                        lastAnswerStatus: lastAnswerStatus
+                        lastAnswerStatus: lastAnswerStatus,
+                        eliminated: isEliminated
                     };
                 }
                 return p;
@@ -2988,7 +3168,24 @@ function handleTimeUp() {
       Array.from(elements.options.children).forEach((button) => (button.disabled = true));
     }
 
+    // Survival Mode Check for Timeout
+    if (state.mode === 'survival') {
+        state.lives--;
+        updateLivesUI();
+        
+        if (state.lives <= 0) {
+            triggerSurvivalShake();
+            triggerHeartBreak();
+            showToast('Game Over', 'หมดเวลา! คุณใช้โควตาหัวใจหมดแล้ว', '💀', 'error');
+            setTimeout(() => showResults(), 1500);
+        } else {
+            triggerSurvivalShake();
+            showToast('หมดเวลา!', `เหลือหัวใจ ${state.lives} ดวง`, '💔', 'warning');
+        }
+    }
+
     // Common actions for any per-question timeout
+    // FIX: Save state AFTER updating lives
     saveQuizState();
     elements.nextBtn.classList.remove("hidden");
     updateNextButtonAppearance('next');

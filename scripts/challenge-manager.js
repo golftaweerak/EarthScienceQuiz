@@ -5,6 +5,7 @@ import { showToast } from './toast.js';
 import { ModalHandler } from './modal-handler.js';
 import { categoryDetails } from './data-manager.js';
 import { getSavedCustomQuizzes } from './custom-quiz-handler.js';
+import { escapeHtml } from './utils.js';
 
 export class ChallengeManager {
     constructor() {
@@ -24,6 +25,7 @@ export class ChallengeManager {
         this.lastTypingUpdateTime = 0;
         this.currentQuizConfig = null; // Store current quiz config
         this.currentMode = null; // Store current mode
+        this.selectedLives = 1; // Default lives
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -178,12 +180,13 @@ export class ChallengeManager {
         this.dom.modeSelectButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const mode = btn.dataset.mode;
+                const lives = parseInt(btn.dataset.lives || '1');
                 this.modeModal.close();
                 
                 if (this.currentLobbyId && this.isHost && this.currentQuizConfig) {
-                    this.updateLobbySettings(mode, this.currentQuizConfig.id, this.currentQuizConfig.title, this.currentQuizConfig.description, this.currentQuizConfig.totalQuestions);
+                    this.updateLobbySettings(mode, this.currentQuizConfig.id, this.currentQuizConfig.title, this.currentQuizConfig.description, this.currentQuizConfig.totalQuestions, this.currentQuizConfig.timerMode, this.currentQuizConfig.customTime, lives);
                 } else {
-                    this.openQuizSelection(mode);
+                    this.openQuizSelection(mode, lives);
                 }
             });
         });
@@ -192,9 +195,9 @@ export class ChallengeManager {
                 this.quizModal.close();
                 const { timerMode, customTime } = this.getTimerSettings();
                 if (this.currentLobbyId && this.isHost) {
-                    this.updateLobbySettings(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20, timerMode, customTime);
+                    this.updateLobbySettings(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20, timerMode, customTime, this.selectedLives);
                 } else {
-                    this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20, timerMode, customTime);
+                    this.createLobby(this.selectedMode, 'random', 'แบบทดสอบสุ่ม (Random)', 'สุ่มโจทย์จากคลังข้อสอบทั้งหมด', 20, timerMode, customTime, this.selectedLives);
                 }
         });
 
@@ -206,9 +209,9 @@ export class ChallengeManager {
                 onQuizCreated: (quiz) => {
                     try {
                         if (this.currentLobbyId && this.isHost) {
-                            this.updateLobbySettings(this.selectedMode, quiz.customId, quiz.title, quiz.description, quiz.questions.length, quiz.timerMode, quiz.customTime);
+                            this.updateLobbySettings(this.selectedMode, quiz.customId, quiz.title, quiz.description, quiz.questions.length, quiz.timerMode, quiz.customTime, this.selectedLives);
                         } else {
-                            this.createLobby(this.selectedMode, quiz.customId, quiz.title, quiz.description, quiz.questions.length, quiz.timerMode, quiz.customTime);
+                            this.createLobby(this.selectedMode, quiz.customId, quiz.title, quiz.description, quiz.questions.length, quiz.timerMode, quiz.customTime, this.selectedLives);
                         }
                     } finally {
                         delete window.challengeContext; // Ensure cleanup happens even if error occurs
@@ -286,8 +289,9 @@ export class ChallengeManager {
         this.modeModal.open();
     }
 
-    async openQuizSelection(mode) {
+    async openQuizSelection(mode, lives = 1) {
         this.selectedMode = mode;
+        this.selectedLives = lives;
         delete window.challengeContext; // Clear any stale context before starting selection
         
         let quizList = [];
@@ -390,9 +394,9 @@ export class ChallengeManager {
                 this.quizModal.close();
                 const { timerMode, customTime } = this.getTimerSettings();
                 if (this.currentLobbyId && this.isHost) {
-                    this.updateLobbySettings(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount, timerMode, customTime);
+                    this.updateLobbySettings(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount, timerMode, customTime, this.selectedLives);
                 } else {
-                    this.createLobby(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount, timerMode, customTime);
+                    this.createLobby(this.selectedMode, quizId, quizTitle, quizDesc, quizAmount, timerMode, customTime, this.selectedLives);
                 }
             };
         });
@@ -463,7 +467,7 @@ export class ChallengeManager {
         }
     }
 
-    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม', quizDesc = '', quizTotal = null, timerMode = 'none', customTime = null) {
+    async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม', quizDesc = '', quizTotal = null, timerMode = 'none', customTime = null, lives = 1) {
         const user = authManager.currentUser;
         if (!user) {
             showToast('ต้องเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนสร้างห้อง', '🔒', 'error');
@@ -512,7 +516,8 @@ export class ChallengeManager {
                 seed: Date.now(),
                 customQuestions: customQuestions,
                 timerMode: timerMode,
-                customTime: customTime
+                customTime: customTime,
+                lives: lives
             }
         };
 
@@ -527,7 +532,7 @@ export class ChallengeManager {
         }
     }
 
-    async updateLobbySettings(mode, quizId, quizTitle, quizDesc, quizTotal, timerMode = 'none', customTime = null) {
+    async updateLobbySettings(mode, quizId, quizTitle, quizDesc, quizTotal, timerMode = 'none', customTime = null, lives = 1) {
         if (!this.currentLobbyId || !this.isHost) return;
 
         let questionAmount = null;
@@ -554,7 +559,8 @@ export class ChallengeManager {
                 seed: Date.now(),
                 customQuestions: customQuestions,
                 timerMode: timerMode,
-                customTime: customTime
+                customTime: customTime,
+                lives: lives
             }
         };
 
@@ -580,6 +586,13 @@ export class ChallengeManager {
         const user = authManager.currentUser;
         if (!user) {
             showToast('ไม่ได้เข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนเข้าร่วม', '🔒', 'error');
+            return false;
+        }
+
+        // FIX: Validate lobbyId format to prevent NoSQL Injection / Path Traversal
+        // Lobby ID must be a 6-digit number
+        if (!lobbyId || typeof lobbyId !== 'string' || !/^\d{6}$/.test(lobbyId)) {
+            showToast('รหัสห้องไม่ถูกต้อง', 'รหัสห้องต้องเป็นตัวเลข 6 หลัก', '⚠️', 'error');
             return false;
         }
     
@@ -816,10 +829,10 @@ export class ChallengeManager {
             const messageBubble = `
                 <div class="flex flex-col w-fit max-w-[320px] leading-1.5 p-3 border-gray-200 dark:border-gray-700 ${isMe ? 'bg-blue-100 dark:bg-blue-900/50 rounded-s-xl rounded-t-xl' : 'bg-gray-100 dark:bg-gray-700 rounded-e-xl rounded-t-xl'}">
                     <div class="flex items-center space-x-2 rtl:space-x-reverse ${isMe ? 'justify-end' : ''}">
-                        <span class="text-xs font-semibold text-gray-800 dark:text-white">${isMe ? 'คุณ' : msg.name}</span>
+                        <span class="text-xs font-semibold text-gray-800 dark:text-white">${isMe ? 'คุณ' : escapeHtml(msg.name)}</span>
                         <span class="text-[10px] font-normal text-gray-500 dark:text-gray-400">${timestamp}</span>
                     </div>
-                    <p class="text-sm font-normal py-2 text-gray-900 dark:text-white break-words">${msg.text}</p>
+                    <p class="text-sm font-normal py-2 text-gray-900 dark:text-white break-words">${escapeHtml(msg.text)}</p>
                 </div>`;
 
             return `<div class="flex items-end gap-2.5 ${isMe ? 'justify-end' : 'justify-start'} anim-fade-in">${!isMe ? avatarElement : ''}${messageBubble}${isMe ? avatarElement : ''}</div>`;
@@ -990,8 +1003,8 @@ export class ChallengeManager {
 
             quizNameEl.innerHTML = `
                 <div class="flex flex-col items-center">
-                    <span class="text-lg font-bold text-gray-900 dark:text-white leading-tight text-center">${config.title || 'แบบทดสอบ'}</span>
-                    ${config.description ? `<span class="text-xs text-gray-500 dark:text-gray-400 font-normal mt-1 line-clamp-1 text-center max-w-xs">${config.description}</span>` : ''}
+                    <span class="text-lg font-bold text-gray-900 dark:text-white leading-tight text-center">${escapeHtml(config.title) || 'แบบทดสอบ'}</span>
+                    ${config.description ? `<span class="text-xs text-gray-500 dark:text-gray-400 font-normal mt-1 line-clamp-1 text-center max-w-xs">${escapeHtml(config.description)}</span>` : ''}
                     ${countText ? `<span class="text-[10px] text-gray-400 mt-0.5 font-mono">${countText}</span>` : ''}
                     ${changeBtn}
                 </div>
@@ -999,7 +1012,7 @@ export class ChallengeManager {
             
             if (this.isHost && data.status === 'waiting') {
                 document.getElementById('lobby-change-quiz-btn')?.addEventListener('click', () => {
-                    this.openQuizSelection(this.currentMode);
+                    this.openQuizSelection(this.currentMode, this.selectedLives);
                 });
             }
         }
@@ -1010,13 +1023,16 @@ export class ChallengeManager {
                 'classic': '⚔️ โหมดแข่งขัน (Classic)',
                 'time-attack': '⚡ โหมดความเร็ว (Time Attack)',
                 'speedrun': '⚡ โหมดความเร็ว (Time Attack)',
-                'coop': '🤝 โหมดร่วมมือ (Co-op)'
+                'speed': '⚡ โหมดความเร็ว (Time Attack)',
+                'coop': '🤝 โหมดร่วมมือ (Co-op)',
+                'survival': '💀 โหมดเอาชีวิตรอด (Survival)'
             };
             
             const currentMode = data.mode || 'challenge';
             const modeText = modeLabels[currentMode] || 'โหมดทั่วไป';
             const colorClass = (currentMode === 'coop' ? 'text-green-600 dark:text-green-400' : 
-                 (currentMode === 'time-attack' || currentMode === 'speedrun') ? 'text-orange-600 dark:text-orange-400' : 
+                 (currentMode === 'time-attack' || currentMode === 'speedrun' || currentMode === 'speed') ? 'text-orange-600 dark:text-orange-400' : 
+                 (currentMode === 'survival') ? 'text-red-600 dark:text-red-400' : 
                  'text-blue-600 dark:text-blue-400');
 
             if (this.isHost && data.status === 'waiting') {
@@ -1057,7 +1073,7 @@ export class ChallengeManager {
                 const total = p.totalQuestions || 20; 
                 
                 let percent = 0;
-                if (data.mode === 'time-attack') {
+                if (data.mode === 'time-attack' || data.mode === 'speed' || data.mode === 'speedrun') {
                     // Time Attack: Progress based on Score (Target 10 points)
                     percent = Math.min(100, Math.round((score / 10) * 100));
                 } else {
@@ -1081,6 +1097,8 @@ export class ChallengeManager {
                     if (data.mode === 'coop') {
                         // ในโหมด Co-op แสดงคะแนนที่ช่วยทีมได้
                         scoreDisplay = `+${score}`;
+                    } else if (p.eliminated) {
+                        scoreDisplay = `<span class="text-red-500 font-bold">💀 OUT</span>`;
                     } else {
                         scoreDisplay = `${score} <span class="text-xs text-gray-400">pts</span>`;
                     }
@@ -1118,7 +1136,7 @@ export class ChallengeManager {
                     </div>
                     
                     <div class="flex flex-col min-w-0">
-                        <div class="font-bold text-gray-700 dark:text-gray-200 text-sm truncate">${p.name} ${isMe ? '(คุณ)' : ''}</div>
+                        <div class="font-bold text-gray-700 dark:text-gray-200 text-sm truncate">${escapeHtml(p.name)} ${isMe ? '(คุณ)' : ''}</div>
                     </div>
                     ${statusHtml}
                     ${kickButtonHtml}
