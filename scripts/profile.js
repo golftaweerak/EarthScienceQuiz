@@ -219,9 +219,9 @@ function renderUserInfo(game) {
         if (previousAvatar !== avatar) {
             const isImage = avatar.includes('/') || avatar.includes('.');
             if (isImage) {
-                avatarEl.innerHTML = `<img src="${avatar}" alt="Profile Avatar" class="w-full h-full rounded-full object-cover">`;
+                avatarEl.innerHTML = `<img src="${escapeHtml(avatar)}" alt="Profile Avatar" class="w-full h-full rounded-full object-cover">`;
             } else {
-                avatarEl.innerHTML = avatar;
+                avatarEl.innerHTML = escapeHtml(avatar);
             }
             avatarEl.classList.remove('anim-avatar-pop');
             void avatarEl.offsetWidth; // Force reflow
@@ -923,8 +923,8 @@ function renderAvatarGrid(game, grid) {
     grid.innerHTML = uniqueAvatars.map(avatar => {
         const isImage = avatar.includes('/') || avatar.includes('.');
         const content = isImage 
-            ? `<img src="${avatar}" alt="Avatar" class="w-8 h-8 rounded-full object-cover mx-auto">` 
-            : avatar;
+            ? `<img src="${escapeHtml(avatar)}" alt="Avatar" class="w-8 h-8 rounded-full object-cover mx-auto">` 
+            : escapeHtml(avatar);
 
         // Determine frame class based on price
         const shopItem = SHOP_ITEMS.find(i => i.value === avatar && i.type === 'avatar');

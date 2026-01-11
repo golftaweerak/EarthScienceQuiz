@@ -213,8 +213,8 @@ export async function initializeLeaderboard() {
                 const avatar = user.avatar || '🧑‍🎓';
                 const isImage = avatar.includes('/') || avatar.includes('.');
                 const avatarContent = isImage 
-                    ? `<img src="${avatar}" class="w-full h-full rounded-full object-cover">`
-                    : `<span class="text-3xl">${avatar}</span>`;
+                    ? `<img src="${escapeHtml(avatar)}" class="w-full h-full rounded-full object-cover">`
+                    : `<span class="text-3xl">${escapeHtml(avatar)}</span>`;
                 
                 const levelBorderClass = getLevelBorderClass(level);
                 const avatarFrameClass = getAvatarFrameClass(avatar, 'small');

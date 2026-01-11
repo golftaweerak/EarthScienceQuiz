@@ -712,8 +712,8 @@ function updatePlayersListUI(players, scoreChangedPlayers = new Set()) {
         const avatar = p.avatar || '🧑‍🎓';
         const isImage = avatar.includes('/') || avatar.includes('.');
         const avatarHtml = isImage 
-            ? `<img src="${avatar}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">`
-            : `<span class="text-xl">${avatar}</span>`;
+            ? `<img src="${escapeHtml(avatar)}" class="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-gray-600">`
+            : `<span class="text-xl">${escapeHtml(avatar)}</span>`;
 
         const scoreClass = isScoreChanged ? 'anim-score-pop font-bold text-green-600 dark:text-green-400' : `opacity-80 ${textClass}`;
 

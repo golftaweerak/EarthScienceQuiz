@@ -17,6 +17,7 @@ export class ChallengeManager {
         this.isTransitioning = false; // สถานะกำลังเปลี่ยนหน้า (เพื่อไม่ให้ลบออกจากห้อง)
         this.lastStatus = null; // NEW: Track previous status to prevent redirect loops
         this.countdownTimer = null; // ตัวเก็บ timer
+        this.transitionTimeout = null; // NEW: Track transition timeout to clear on leave
         this.lobbyModal = null; // Will be initialized after injection
         this.dom = {}; // Object to hold cached DOM elements
         this.isInitialized = false; // NEW: Prevent double initialization
@@ -268,6 +269,22 @@ export class ChallengeManager {
                 this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
             }
         });
+
+        // NEW: Watch for lobby modal closing to ensure we leave the lobby if the user closes it manually (e.g. backdrop click)
+        if (this.lobbyModal && this.lobbyModal.modal) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isHidden = this.lobbyModal.modal.classList.contains('hidden');
+                        // Only leave if hidden, we have a lobby, we are NOT transitioning to quiz, and NOT starting (countdown)
+                        if (isHidden && this.currentLobbyId && !this.isTransitioning && !this.isStarting) {
+                            this.leaveLobby(); 
+                        }
+                    }
+                });
+            });
+            observer.observe(this.lobbyModal.modal, { attributes: true });
+        }
     }
 
     getTimerSettings() {
@@ -412,9 +429,11 @@ export class ChallengeManager {
 
     async handleJoinSubmit() {
         const input = document.getElementById('join-room-code-input');
+        if (!input) return;
         const code = input.value.trim();
         if (code.length === 6) { 
             const btn = document.getElementById('confirm-join-btn');
+            if (!btn) return;
             const originalText = btn.innerHTML;
             
             // Set loading state
@@ -442,9 +461,10 @@ export class ChallengeManager {
         const urlParams = new URLSearchParams(window.location.search);
         const lobbyId = urlParams.get('lobby');
         if (lobbyId) {
+            const cleanLobbyId = lobbyId.trim();
             const user = await authManager.waitForAuthReady();
             if (user) {
-                this.joinLobby(lobbyId);
+                this.joinLobby(cleanLobbyId);
             } else {
                 showToast('กรุณาเข้าสู่ระบบ', 'เพื่อเข้าร่วมการแข่งขัน', '🔒');
             }
@@ -472,6 +492,11 @@ export class ChallengeManager {
         if (!user) {
             showToast('ต้องเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนสร้างห้อง', '🔒', 'error');
             return;
+        }
+
+        // FIX: Ensure we leave any existing lobby before creating a new one to prevent ghost players
+        if (this.currentLobbyId) {
+            await this.leaveLobby();
         }
 
         const lobbyId = this.generateRoomId();
@@ -529,6 +554,9 @@ export class ChallengeManager {
         } catch (error) {
             console.error("Error creating lobby:", error);
             showToast('ข้อผิดพลาด', `ไม่สามารถสร้างห้องได้: ${error.message}`, '❌', 'error');
+            // FIX: Reset state on failure
+            this.currentLobbyId = null;
+            this.isHost = false;
         }
     }
 
@@ -583,7 +611,8 @@ export class ChallengeManager {
             showToast('ไม่มีสัญญาณเน็ต', 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', '📶', 'error');
             return false;
         }
-        const user = authManager.currentUser;
+        // FIX: Wait for auth to be ready to avoid null currentUser on quick actions
+        const user = await authManager.waitForAuthReady();
         if (!user) {
             showToast('ไม่ได้เข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนเข้าร่วม', '🔒', 'error');
             return false;
@@ -596,6 +625,17 @@ export class ChallengeManager {
             return false;
         }
     
+        // FIX: Check if already in this lobby to prevent redundant joins
+        if (this.currentLobbyId === lobbyId) {
+            this.openLobbyUI(lobbyId);
+            return true;
+        }
+
+        // FIX: Ensure we leave any existing lobby before joining a new one
+        if (this.currentLobbyId) {
+            await this.leaveLobby();
+        }
+
         const lobbyRef = doc(db, 'lobbies', lobbyId);
 
         try {
@@ -641,20 +681,34 @@ export class ChallengeManager {
 
         } catch (error) {
             console.error("Error joining lobby:", error);
-            let msg = error.message;
-            if (error.code === 'permission-denied') {
-                msg = 'ไม่มีสิทธิ์เข้าร่วม (ห้องอาจเต็มหรือถูกปิด)';
+            
+            let title = 'ข้อผิดพลาด';
+            let message = 'ไม่สามารถเข้าร่วมห้องได้';
+            let icon = '❌';
+
+            if (error.message === "Lobby not found") {
+                title = 'ไม่พบห้อง';
+                message = 'รหัสห้องไม่ถูกต้อง หรือห้องถูกปิดไปแล้ว';
+            } else if (error.message === "Game has already started") {
+                title = 'เข้าห้องไม่ได้';
+                message = 'การแข่งขันได้เริ่มไปแล้ว ไม่สามารถเข้าร่วมกลางคันได้';
+                icon = '⚠️';
+            } else if (error.message === "Lobby disappeared immediately after joining.") {
+                title = 'เกิดข้อผิดพลาด';
+                message = 'ห้องถูกปิดขณะกำลังเข้าร่วม';
+            } else if (error.code === 'permission-denied') {
+                title = 'ไม่มีสิทธิ์เข้าร่วม';
+                message = 'ห้องอาจเต็ม หรือคุณถูกจำกัดสิทธิ์การเข้าถึง';
             } else if (error.code === 'unavailable') {
-                msg = 'เซิร์ฟเวอร์ไม่ตอบสนอง (ลองสลับ WiFi/เน็ตมือถือ)';
+                title = 'การเชื่อมต่อขัดข้อง';
+                message = 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต';
+                icon = '📶';
+            } else {
+                // General error fallback
+                message = `เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ: ${error.message}`;
             }
             
-            if (error.message === "Lobby not found") {
-                showToast('ไม่พบห้อง', 'รหัสห้องไม่ถูกต้องหรือห้องถูกปิดไปแล้ว', '❌', 'error');
-            } else if (error.message === "Game has already started") {
-                showToast('เข้าห้องไม่ได้', 'การแข่งขันได้เริ่มไปแล้ว', '⚠️', 'error');
-            } else {
-                showToast('ข้อผิดพลาด', `ไม่สามารถเข้าร่วมห้องได้: ${msg}`, '❌', 'error');
-            }
+            showToast(title, message, icon, 'error');
             return false;
         }
     }
@@ -662,8 +716,12 @@ export class ChallengeManager {
     async kickPlayer(targetUid) {
         if (!this.currentLobbyId || !this.isHost) return;
         
-        await this.removePlayerFromLobby(this.currentLobbyId, targetUid);
-        showToast('เตะผู้เล่นสำเร็จ', 'ผู้เล่นถูกลบออกจากห้องแล้ว', '👋');
+        const success = await this.removePlayerFromLobby(this.currentLobbyId, targetUid);
+        if (success) {
+            showToast('เตะผู้เล่นสำเร็จ', 'ผู้เล่นถูกลบออกจากห้องแล้ว', '👋');
+        } else {
+            showToast('เกิดข้อผิดพลาด', 'ไม่สามารถเตะผู้เล่นได้ (ไม่มีสิทธิ์)', '❌', 'error');
+        }
     }
 
     async toggleReady() {
@@ -702,7 +760,12 @@ export class ChallengeManager {
      * @param {string} uid The UID of the player to remove.
      */
     async removePlayerFromLobby(lobbyId, uid) {
-        if (!lobbyId || !uid) return;
+        if (!lobbyId || !uid) return false;
+
+        // FIX: IDOR Prevention - Verify requester permissions
+        const currentUser = authManager.currentUser;
+        if (!currentUser) return false;
+
         try {
             const lobbyRef = doc(db, 'lobbies', lobbyId);
             await runTransaction(db, async (transaction) => {
@@ -712,6 +775,15 @@ export class ChallengeManager {
                 }
 
                 const data = lobbySnap.data();
+                
+                // Check permissions: Must be self (leaving) or host (kicking)
+                const isSelf = currentUser.uid === uid;
+                const isHost = data.hostId === currentUser.uid;
+                
+                if (!isSelf && !isHost) {
+                    throw new Error("Unauthorized: You cannot remove this player.");
+                }
+
                 // If the host is the one being removed, delete the entire lobby.
                 if (data.hostId === uid) {
                     transaction.delete(lobbyRef);
@@ -730,9 +802,11 @@ export class ChallengeManager {
                     transaction.update(lobbyRef, { players: updatedPlayers });
                 }
             });
+            return true;
         } catch (error) {
             console.error("Error in removePlayerFromLobby transaction:", error);
             // Non-critical error, so no toast is shown to the user.
+            return false;
         }
     }
 
@@ -821,8 +895,8 @@ export class ChallengeManager {
 
             const isImage = msg.avatar && (msg.avatar.includes('/') || msg.avatar.includes('.'));
             const avatarHtml = isImage 
-                ? `<img src="${msg.avatar}" class="w-full h-full object-cover rounded-full">`
-                : `<span class="text-base">${msg.avatar || '🧑‍🎓'}</span>`;
+                ? `<img src="${escapeHtml(msg.avatar)}" class="w-full h-full object-cover rounded-full">`
+                : `<span class="text-base">${escapeHtml(msg.avatar || '🧑‍🎓')}</span>`;
 
             const avatarElement = `<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">${avatarHtml}</div>`;
             
@@ -918,9 +992,10 @@ export class ChallengeManager {
             indicator.textContent = '';
             indicator.style.opacity = '0';
         } else {
-            const text = users.length > 2 
+            const escapedUsers = users.map(name => escapeHtml(name));
+            const text = escapedUsers.length > 2 
                 ? 'หลายคนกำลังพิมพ์...' 
-                : `${users.join(', ')} กำลังพิมพ์...`;
+                : `${escapedUsers.join(', ')} กำลังพิมพ์...`;
             
             indicator.innerHTML = `<span class="animate-pulse">✍️ ${text}</span>`;
             indicator.style.opacity = '1';
@@ -1084,7 +1159,7 @@ export class ChallengeManager {
                 let kickButtonHtml = '';
                 if (this.isHost && !isMe && data.status === 'waiting') {
                     kickButtonHtml = /*html*/`
-                        <button class="kick-player-btn ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all" data-uid="${p.uid}" data-name="${p.name}" title="เตะออกจากห้อง">
+                        <button class="kick-player-btn ml-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all" data-uid="${p.uid}" data-name="${escapeHtml(p.name)}" title="เตะออกจากห้อง">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                         </button>
                     `;
@@ -1130,8 +1205,8 @@ export class ChallengeManager {
                         ${(() => {
                             const isImage = p.avatar && (p.avatar.includes('/') || p.avatar.includes('.'));
                             return isImage 
-                                ? `<img src="${p.avatar}" class="w-full h-full rounded-full object-cover">`
-                                : (p.avatar || '🧑‍🎓');
+                                ? `<img src="${escapeHtml(p.avatar)}" class="w-full h-full rounded-full object-cover">`
+                                : escapeHtml(p.avatar || '🧑‍🎓');
                         })()}
                     </div>
                     
@@ -1259,7 +1334,7 @@ export class ChallengeManager {
                 clearInterval(this.countdownTimer);
                 this.countdownTimer = null;
                 if (waitingMsg) waitingMsg.textContent = "ไปลุยกันเลย! 🚀";
-                setTimeout(() => {
+                this.transitionTimeout = setTimeout(() => {
                     this.goToQuiz(quizConfig, mode);
                 }, 500);
             }
@@ -1268,6 +1343,10 @@ export class ChallengeManager {
 
     async startGame() {
         if (!this.isHost || !this.currentLobbyId) return;
+        
+        // FIX: Disable start button immediately to prevent double clicks/race conditions
+        if (this.dom.startBtn) this.dom.startBtn.disabled = true;
+
         await updateDoc(doc(db, 'lobbies', this.currentLobbyId), {
             status: 'started'
         });
@@ -1286,15 +1365,32 @@ export class ChallengeManager {
         const lobbyId = this.currentLobbyId;
         const user = authManager.currentUser;
 
-        if (this.unsubscribe) this.unsubscribe();
-        if (this.chatUnsubscribe) this.chatUnsubscribe();
-        if (this.typingUnsubscribe) this.typingUnsubscribe();
-        if (this.typingTimeout) clearTimeout(this.typingTimeout);
+        if (this.unsubscribe) {
+            this.unsubscribe();
+            this.unsubscribe = null;
+        }
+        if (this.chatUnsubscribe) {
+            this.chatUnsubscribe();
+            this.chatUnsubscribe = null;
+        }
+        if (this.typingUnsubscribe) {
+            this.typingUnsubscribe();
+            this.typingUnsubscribe = null;
+        }
+        if (this.typingTimeout) {
+            clearTimeout(this.typingTimeout);
+            this.typingTimeout = null;
+        }
         
         if (this.currentLobbyId) this.updateTypingStatus(false).catch(() => {});
 
         if (this.countdownTimer) clearInterval(this.countdownTimer);
         this.countdownTimer = null; // Reset reference
+        
+        // FIX: Clear transition timeout if user leaves during the final delay
+        if (this.transitionTimeout) clearTimeout(this.transitionTimeout);
+        this.transitionTimeout = null;
+
         this.currentLobbyId = null;
         this.isHost = false;
         this.isStarting = false;

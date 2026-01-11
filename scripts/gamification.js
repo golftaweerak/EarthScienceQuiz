@@ -2,6 +2,7 @@
 
 import { authManager } from './auth-manager.js';
 import { showToast } from './toast.js';
+import { escapeHtml } from './utils.js';
 
 // กำหนดเกณฑ์ XP สำหรับทุกสาย (ใช้เกณฑ์เดียวกันเพื่อความง่าย)
 // แต่ละเลเวลจะมีเงื่อนไข (Quest) ที่ต้องทำให้สำเร็จก่อนจึงจะเลื่อนระดับได้
@@ -920,9 +921,9 @@ export class Gamification {
             let contentHtml = '';
             
             if (isImage) {
-                contentHtml = `<img src="${avatar}" alt="Avatar" class="w-full h-full rounded-full object-cover">`;
+                contentHtml = `<img src="${escapeHtml(avatar)}" alt="Avatar" class="w-full h-full rounded-full object-cover">`;
             } else {
-                contentHtml = `<span class="text-xl leading-none flex items-center justify-center h-full w-full select-none">${avatar}</span>`;
+                contentHtml = `<span class="text-xl leading-none flex items-center justify-center h-full w-full select-none">${escapeHtml(avatar)}</span>`;
             }
 
             const levelBorderClass = getLevelBorderClass(level);
