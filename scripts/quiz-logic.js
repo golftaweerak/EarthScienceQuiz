@@ -2908,6 +2908,19 @@ function saveQuizState() {
 async function sendScoreToLobby(isWinner = false) {
     if (!state.lobbyId || !state.game.authManager.currentUser) return;
 
+    // FIX: Snapshot state values immediately to prevent race conditions during async transaction
+    const currentScore = state.score;
+    const currentIndex = state.currentQuestionIndex;
+    const currentLives = state.lives;
+    const currentAns = state.userAnswers[currentIndex];
+    const totalQ = state.questionCount || state.shuffledQuestions.length;
+    
+    // Determine last answer status based on snapshotted state
+    let lastAnswerStatus = null;
+    if (currentAns) {
+        lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
+    }
+
     try {
         const lobbyRef = doc(db, 'lobbies', state.lobbyId);
         
@@ -2920,26 +2933,20 @@ async function sendScoreToLobby(isWinner = false) {
             const players = data.players || [];
             const uid = state.game.authManager.currentUser.uid;
 
-            // Determine last answer status
-            let lastAnswerStatus = null;
-            const currentAns = state.userAnswers[state.currentQuestionIndex];
-            if (currentAns) {
-                lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
-            }
-
-            // Survival Mode Elimination
-            let isEliminated = p.eliminated || false;
-            if (state.mode === 'survival' && lastAnswerStatus === 'incorrect' && state.lives <= 0) {
-                isEliminated = true;
-            }
-            
             const updatedPlayers = players.map(p => {
                 if (p.uid === uid) {
+                    // FIX: Moved elimination logic inside the map loop where 'p' is defined
+                    let isEliminated = p.eliminated || false;
+                    // Check elimination using snapshotted values
+                    if (state.mode === 'survival' && lastAnswerStatus === 'incorrect' && currentLives <= 0) {
+                        isEliminated = true;
+                    }
+
                     return { 
                         ...p, 
-                        score: state.score,
-                        progress: state.currentQuestionIndex + 1,
-                        totalQuestions: state.questionCount || state.shuffledQuestions.length,
+                        score: currentScore,
+                        progress: currentIndex + 1,
+                        totalQuestions: totalQ,
                         lastAnswerStatus: lastAnswerStatus,
                         eliminated: isEliminated
                     };

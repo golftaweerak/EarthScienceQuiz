@@ -31,6 +31,11 @@ export class ChallengeManager {
         this.currentQuizConfig = null; // Store current quiz config
         this.currentMode = null; // Store current mode
         this.selectedLives = 1; // Default lives
+
+        // NEW: Store references for cleanup
+        this.modalObserver = null;
+        this.onOffline = null;
+        this.onOnline = null;
         
         const basePath = window.location.pathname.includes('/quiz/') ? '../' : './';
         this.notificationSound = new Audio(`${basePath}assets/audio/notification.mp3`);
@@ -103,16 +108,25 @@ export class ChallengeManager {
     }
 
     _ensureReadyButton() {
-        if (!this.dom.readyBtn && this.dom.startBtn && this.dom.startBtn.parentNode) {
-            const btn = document.createElement('button');
+        // FIX: Check DOM first to avoid duplicates if re-initialized
+        let btn = document.getElementById('lobby-ready-btn');
+        
+        if (!btn && this.dom.startBtn && this.dom.startBtn.parentNode) {
+            btn = document.createElement('button');
             btn.id = 'lobby-ready-btn';
             // Default styling
             btn.className = 'px-4 py-2 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 hidden mr-2';
-            // Insert before start button (or wherever fits best in the footer)
-            // Using insertBefore startBtn ensures it sits to the left of it (or replaces it visually if start is hidden)
+            // Insert before start button
             this.dom.startBtn.parentNode.insertBefore(btn, this.dom.startBtn);
+        }
+
+        if (btn) {
             this.dom.readyBtn = btn;
-            this.dom.readyBtn.addEventListener('click', () => this.toggleReady());
+            // Prevent duplicate listeners using dataset flag
+            if (!btn.dataset.hasListener) {
+                btn.addEventListener('click', () => this.toggleReady());
+                btn.dataset.hasListener = 'true';
+            }
         }
     }
 
@@ -260,22 +274,25 @@ export class ChallengeManager {
         });
 
         // Handle network status changes
-        window.addEventListener('offline', () => {
+        this.onOffline = () => {
             if (this.currentLobbyId && !this.isTransitioning) {
                 showToast('ขาดการเชื่อมต่อ', 'คุณกำลังออฟไลน์ ระบบอาจไม่ทำงาน', '⚠️', 'error');
                 if (this.dom.startBtn) this.dom.startBtn.disabled = true;
             }
-        });
-        window.addEventListener('online', () => {
+        };
+        this.onOnline = () => {
             if (this.currentLobbyId) {
                 showToast('เชื่อมต่อสำเร็จ', 'กลับมาออนไลน์แล้ว', '✅', 'success');
                 if (this.dom.startBtn) this.dom.startBtn.disabled = false;
             }
-        });
+        };
+
+        window.addEventListener('offline', this.onOffline);
+        window.addEventListener('online', this.onOnline);
 
         // NEW: Watch for lobby modal closing to ensure we leave the lobby if the user closes it manually (e.g. backdrop click)
         if (this.lobbyModal && this.lobbyModal.modal) {
-            const observer = new MutationObserver((mutations) => {
+            this.modalObserver = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
                         const isHidden = this.lobbyModal.modal.classList.contains('hidden');
@@ -286,7 +303,7 @@ export class ChallengeManager {
                     }
                 });
             });
-            observer.observe(this.lobbyModal.modal, { attributes: true });
+            this.modalObserver.observe(this.lobbyModal.modal, { attributes: true });
         }
     }
 
@@ -461,6 +478,9 @@ export class ChallengeManager {
     }
 
     async checkPendingLobby() {
+        // FIX: Do not auto-join lobby if we are already in the quiz page.
+        if (window.location.pathname.includes('/quiz/')) return;
+
         // 1. Check for Reconnect (Highest Priority)
         const reconnectId = sessionStorage.getItem('reconnect_lobby_id');
         if (reconnectId) {
@@ -1381,23 +1401,17 @@ export class ChallengeManager {
             if (data.status === 'started') {
                 startBtn.classList.add('hidden');
                 if (!this.isStarting) { // แสดงข้อความนี้เฉพาะตอนที่ยังไม่เริ่มนับถอยหลัง (เช่น เข้ามาทีหลัง)
-                    // NEW: Show manual join button for late joiners or re-joiners
-                    if (!this.isHost) {
-                        waitingMsg.innerHTML = `
-                            <div class="flex flex-col items-center gap-2">
-                                <span class="text-green-600 dark:text-green-400 font-bold">การแข่งขันเริ่มแล้ว!</span>
-                                <button id="manual-join-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold shadow-md transition-transform transform hover:scale-105">
-                                    เข้าสู่การแข่งขัน
-                                </button>
-                            </div>
-                        `;
-                        waitingMsg.classList.remove('hidden');
-                        document.getElementById('manual-join-btn')?.addEventListener('click', () => this.goToQuiz(data.quizConfig, data.mode));
-                    } else {
-                        waitingMsg.textContent = 'การแข่งขันกำลังดำเนินอยู่...';
-                        waitingMsg.classList.remove('hidden');
-                        waitingMsg.classList.add('text-green-600', 'dark:text-green-400', 'font-bold');
-                    }
+                    // FIX: Allow BOTH Host and Participants to manually join/re-join if the game is started
+                    waitingMsg.innerHTML = `
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-green-600 dark:text-green-400 font-bold">การแข่งขันกำลังดำเนินอยู่!</span>
+                            <button id="manual-join-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold shadow-md transition-transform transform hover:scale-105">
+                                ${this.isHost ? 'กลับสู่การแข่งขัน (Host)' : 'เข้าสู่การแข่งขัน'}
+                            </button>
+                        </div>
+                    `;
+                    waitingMsg.classList.remove('hidden');
+                    document.getElementById('manual-join-btn')?.addEventListener('click', () => this.goToQuiz(data.quizConfig, data.mode));
                 }
             } else {
                 if (this.isHost) {
@@ -1478,7 +1492,7 @@ export class ChallengeManager {
             waitingMsg.classList.add('text-green-600', 'dark:text-green-400', 'font-bold', 'text-2xl', 'animate-pulse');
         }
 
-        let count = 3;
+        let count = 5;
         const updateCount = () => {
             if (waitingMsg) waitingMsg.textContent = `เริ่มเกมใน ${count}...`;
         };
@@ -1494,7 +1508,7 @@ export class ChallengeManager {
                 if (waitingMsg) waitingMsg.textContent = "ไปลุยกันเลย! 🚀";
                 this.transitionTimeout = setTimeout(() => {
                     this.goToQuiz(quizConfig, mode);
-                }, 500);
+                }, 1500);
             }
         }, 1000);
     }
@@ -1505,9 +1519,15 @@ export class ChallengeManager {
         // FIX: Disable start button immediately to prevent double clicks/race conditions
         if (this.dom.startBtn) this.dom.startBtn.disabled = true;
 
-        await updateDoc(doc(db, 'lobbies', this.currentLobbyId), {
-            status: 'started'
-        });
+        try {
+            await updateDoc(doc(db, 'lobbies', this.currentLobbyId), {
+                status: 'started'
+            });
+        } catch (e) {
+            console.error("Start game failed:", e);
+            if (this.dom.startBtn) this.dom.startBtn.disabled = false;
+            showToast('เริ่มเกมไม่สำเร็จ', 'เกิดข้อผิดพลาดในการเริ่มเกม', '❌', 'error');
+        }
     }
 
     goToQuiz(config, mode) {
@@ -1596,6 +1616,16 @@ export class ChallengeManager {
 
     openLobbyUI(lobbyId) {
         this.lobbyModal.open();
+    }
+
+    destroy() {
+        this.leaveLobby(false);
+        
+        if (this.onOffline) window.removeEventListener('offline', this.onOffline);
+        if (this.onOnline) window.removeEventListener('online', this.onOnline);
+        if (this.modalObserver) this.modalObserver.disconnect();
+        
+        this.isInitialized = false;
     }
 }
 
