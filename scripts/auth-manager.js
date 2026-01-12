@@ -64,7 +64,8 @@ class AuthManagerInternal {
                 await new Promise(resolve => setTimeout(resolve, 1000));
 
                 // NEW: Check if auth state changed during delay (Race Condition Fix)
-                if (auth.currentUser && auth.currentUser.uid !== user.uid) {
+                // FIX: Check if logged out (null) OR switched user
+                if (!auth.currentUser || auth.currentUser.uid !== user.uid) {
                      console.warn("Auth state changed during init delay. Aborting sync for", user.uid);
                      return;
                 }
