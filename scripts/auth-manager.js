@@ -456,6 +456,12 @@ class AuthManagerInternal {
         try {
             const docSnap = await this.retryOperation(() => getDoc(userRef));
 
+            // NEW: Check if auth state changed during await (Race Condition Fix)
+            if (!auth.currentUser || auth.currentUser.uid !== user.uid) {
+                console.warn("Auth state changed during syncLocalToCloud. Aborting.");
+                return;
+            }
+
             if (!docSnap.exists()) {
                 // กรณี: ผู้ใช้ใหม่บน Cloud แต่มีข้อมูลในเครื่อง (ผู้เรียนเก่าเพิ่งล็อกอิน)
                 // ให้อัปโหลดข้อมูลในเครื่องขึ้น Cloud ทันที
@@ -494,6 +500,10 @@ class AuthManagerInternal {
                 if (isOwnedByCurrentUser) {
                     console.log("Local data belongs to current user. Skipping merge to prevent duplication.");
                     // อัปเดต LocalStorage ให้ตรงกับ Cloud เพื่อความชัวร์
+                    if (!auth.currentUser || auth.currentUser.uid !== user.uid) {
+                        console.warn("Auth state changed during syncLocalToCloud merge. Aborting local save.");
+                        return;
+                    }
                     localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
                     this.isSyncing = false;
                     return;
@@ -546,6 +556,10 @@ class AuthManagerInternal {
                     await this.retryOperation(() => setDoc(userRef, cloudData, { merge: true }));
                 }
 
+                if (!auth.currentUser || auth.currentUser.uid !== user.uid) {
+                    console.warn("Auth state changed during syncLocalToCloud save. Aborting local save.");
+                    return;
+                }
                 localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
             }
         } finally {
@@ -650,6 +664,12 @@ class AuthManagerInternal {
         try {
             // 1. ดึงข้อมูลจาก Cloud มาเทียบ
             const cloudSnapshot = await this.retryOperation(() => getDocs(historyRef));
+            
+            // NEW: Check if auth state changed during await
+            if (!auth.currentUser || auth.currentUser.uid !== user.uid) {
+                return;
+            }
+
             const cloudMap = new Map();
             cloudSnapshot.forEach(doc => {
                 cloudMap.set(doc.id, doc.data());
@@ -695,6 +715,7 @@ class AuthManagerInternal {
 
             // 3. เช็คข้อมูลที่มีบน Cloud แต่ไม่มีในเครื่อง (กรณีเครื่องใหม่)
             cloudMap.forEach((data, key) => {
+                if (!auth.currentUser || auth.currentUser.uid !== user.uid) return;
                 if (!localStorage.getItem(key)) {
                     localStorage.setItem(key, JSON.stringify(data));
                     hasChanges = true;
@@ -779,11 +800,17 @@ class AuthManagerInternal {
 
     // ฟังก์ชันซิงค์รายการ Custom Quiz (เรียกจาก custom-quiz-handler.js)
     async syncCustomQuizzes(localQuizzes) {
-        if (!this.currentUser) return localQuizzes;
+        const user = this.currentUser;
+        if (!user) return localQuizzes;
 
         try {
-            const customQuizzesRef = collection(db, 'users', this.currentUser.uid, 'custom_quizzes');
+            const customQuizzesRef = collection(db, 'users', user.uid, 'custom_quizzes');
             const cloudSnapshot = await this.retryOperation(() => getDocs(customQuizzesRef));
+            
+            // NEW: Check consistency
+            if (!auth.currentUser || auth.currentUser.uid !== user.uid) {
+                 throw new Error("Auth state changed during syncCustomQuizzes");
+            }
             
             const cloudQuizzesMap = new Map();
             cloudSnapshot.forEach(doc => cloudQuizzesMap.set(doc.id, doc.data()));
