@@ -39,6 +39,12 @@ class AuthManagerInternal {
                 // NEW: ตรวจสอบว่ามีการสลับบัญชีหรือไม่ (Switching Account)
                 // ถ้ามีผู้ใช้ก่อนหน้า และไม่ตรงกับผู้ใช้ใหม่ ให้ล้างข้อมูลในเครื่องทิ้งเพื่อไม่ให้ข้อมูลปนกัน
                 if (previousUser && previousUser.uid !== user.uid) {
+                    // NEW: Clear pending save timeout to prevent overwriting new user data
+                    if (this.saveTimeout) {
+                        clearTimeout(this.saveTimeout);
+                        this.saveTimeout = null;
+                    }
+
                     console.log("Account switched. Clearing local data to prevent merge.");
                     localStorage.removeItem(this.LOCAL_STORAGE_KEY);
                     localStorage.removeItem('last_cloud_sync');
@@ -56,6 +62,12 @@ class AuthManagerInternal {
                 
                 // Add delay to allow connection to stabilize
                 await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // NEW: Check if auth state changed during delay (Race Condition Fix)
+                if (auth.currentUser && auth.currentUser.uid !== user.uid) {
+                     console.warn("Auth state changed during init delay. Aborting sync for", user.uid);
+                     return;
+                }
 
                 try {
                     await this.syncLocalToCloud(user);
@@ -236,6 +248,12 @@ class AuthManagerInternal {
     // ฟังก์ชัน Logout
     async logout() {
         try {
+            // NEW: Clear pending save timeout immediately
+            if (this.saveTimeout) {
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = null;
+            }
+
             await signOut(auth);
             
             // Clear main gamification data to prevent data leakage
@@ -323,13 +341,21 @@ class AuthManagerInternal {
 
     // ฟังก์ชันหลักสำหรับโหลดข้อมูล (ใช้แทนการดึง localStorage โดยตรง)
     async loadUserData() {
-        if (this.currentUser) {
+        const currentUser = this.currentUser; // Capture current user reference
+        if (currentUser) {
             // ถ้าล็อกอิน ให้ดึงจาก Firestore
-            const docRef = doc(db, "users", this.currentUser.uid);
+            const targetUid = currentUser.uid;
+            const docRef = doc(db, "users", targetUid);
             
             try {
                 const docSnap = await this.retryOperation(() => getDoc(docRef));
                 
+                // NEW: Race Condition Check - Ensure user hasn't changed during await
+                if (!this.currentUser || this.currentUser.uid !== targetUid) {
+                    console.warn("User context changed during loadUserData. Discarding result.");
+                    return null;
+                }
+
                 if (docSnap.exists()) {
                     const cloudData = docSnap.data();
                     // อัปเดตลง LocalStorage ด้วยเพื่อให้โค้ดเดิมทำงานต่อได้ (Hybrid)
@@ -352,30 +378,39 @@ class AuthManagerInternal {
         // Clone data to prevent race conditions if the original object is mutated 
         // while async operations are pending.
         const dataToSave = JSON.parse(JSON.stringify(data));
+        const currentUser = this.currentUser; // Capture current user reference
 
         // NEW: บันทึก userId ลงในข้อมูลด้วย เพื่อใช้ตรวจสอบความเป็นเจ้าของตอน Sync
-        if (this.currentUser) {
-            dataToSave.userId = this.currentUser.uid;
+        if (currentUser) {
+            dataToSave.userId = currentUser.uid;
         }
         // 1. บันทึกลง LocalStorage เสมอ (เพื่อความเร็วและ Offline เบื้องต้น)
         localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
 
         // 2. ถ้าล็อกอิน ให้บันทึกลง Firestore (Debounced)
-        if (this.currentUser) {
+        if (currentUser) {
+            const targetUid = currentUser.uid; // Capture UID for consistency check
+
             // ยกเลิก timeout เก่าถ้ามีการเรียกซ้ำภายในเวลาที่กำหนด
             if (this.saveTimeout) clearTimeout(this.saveTimeout);
 
             // ตั้งเวลาใหม่ (Debounce 2 วินาที)
             this.saveTimeout = setTimeout(async () => {
+                // NEW: Race Condition Check inside timeout
+                if (!this.currentUser || this.currentUser.uid !== targetUid) {
+                    console.warn("User changed or logged out during save debounce. Aborting save.");
+                    return;
+                }
+
                 try {
-                    const userRef = doc(db, "users", this.currentUser.uid);
+                    const userRef = doc(db, "users", targetUid);
                     // ใช้ setDoc แบบ merge: true เพื่อไม่ให้ข้อมูลอื่นหาย
                     await this.retryOperation(() => setDoc(userRef, dataToSave, { merge: true }));
                     this.updateLastSyncTime();
                     
                     // อัปเดต Leaderboard (ถ้ามี)
                     if (dataToSave.xp !== undefined) {
-                        const leaderboardRef = doc(db, "leaderboard", this.currentUser.uid);
+                        const leaderboardRef = doc(db, "leaderboard", targetUid);
                         await this.retryOperation(() => setDoc(leaderboardRef, {
                             displayName: this.currentUser.displayName || "Anonymous",
                             photoURL: this.currentUser.photoURL,

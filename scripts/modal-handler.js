@@ -19,12 +19,21 @@ export class ModalHandler {
             return;
         }
 
+        // NEW: Prevent duplicate handlers on the same element to avoid memory leaks
+        if (this.modal._modalHandler) {
+            // console.warn(`Modal "${modalId}" already has a handler. Destroying the old one.`);
+            this.modal._modalHandler.destroy();
+        }
+        this.modal._modalHandler = this;
+
         // Find the container that has the transition classes
         this.modalContainer = this.modal.querySelector('.modal-container');
         if (!this.modalContainer) {
             console.warn(`Modal with id "${modalId}" is missing a .modal-container child. Transitions might not work correctly.`);
             this.modalContainer = this.modal; // Fallback to the modal itself
         }
+
+        this._injectStyles();
 
         this.isAnimating = false;
         this.isOpen = false;
@@ -50,6 +59,37 @@ export class ModalHandler {
         this.closeButtons.forEach((btn) => btn.addEventListener("click", this.boundClose));
         // Updated to handle a separate overlay div for backdrop clicks
         this.modal.addEventListener("click", this.boundBackdropClick);
+    }
+
+    /**
+     * Injects custom CSS for smoother modal animations.
+     * @private
+     */
+    _injectStyles() {
+        if (document.getElementById('modal-smooth-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'modal-smooth-styles';
+        style.textContent = `
+            .modal {
+                transition: opacity 0.3s ease-out, backdrop-filter 0.3s ease-out;
+                opacity: 0;
+                pointer-events: none;
+            }
+            .modal.is-open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .modal .modal-container {
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-out;
+                transform: scale(0.95) translateY(8px);
+                opacity: 0;
+            }
+            .modal.is-open .modal-container {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     /**
@@ -146,7 +186,14 @@ export class ModalHandler {
         if (focusableElements.length > 0) {
             this.firstFocusableElement = focusableElements[0];
             this.lastFocusableElement = focusableElements[focusableElements.length - 1];
-            this.firstFocusableElement.focus();
+            
+            // NEW: Check for autofocus element
+            const autoFocusElement = this.modal.querySelector('[data-modal-autofocus]');
+            if (autoFocusElement && !autoFocusElement.disabled && autoFocusElement.offsetParent !== null) {
+                autoFocusElement.focus();
+            } else {
+                this.firstFocusableElement.focus();
+            }
         } else {
             // Make modal focusable if it has no focusable children
             this.modal.setAttribute("tabindex", "-1");
@@ -161,6 +208,22 @@ export class ModalHandler {
     handleKeyDown(e) {
         if (e.key === "Escape") {
             this.close();
+            return;
+        }
+
+        // NEW: Handle Enter key for default confirmation
+        if (e.key === "Enter") {
+            const active = document.activeElement;
+            // If focus is on an interactive element that handles Enter, let it be.
+            if (active && (active.tagName === 'BUTTON' || active.tagName === 'A' || active.tagName === 'TEXTAREA' || active.tagName === 'INPUT' || active.tagName === 'SELECT')) {
+                return;
+            }
+            
+            const confirmBtn = this.modal.querySelector('[data-modal-confirm]');
+            if (confirmBtn && !confirmBtn.disabled && confirmBtn.offsetParent !== null) {
+                e.preventDefault();
+                confirmBtn.click();
+            }
             return;
         }
 
@@ -195,5 +258,15 @@ export class ModalHandler {
         if (this.modal) {
             this.modal.removeEventListener("click", this.boundBackdropClick);
         }
+        document.removeEventListener("keydown", this.handleKeyDown);
+
+        // NEW: Clear references to DOM elements to allow Garbage Collection
+        if (this.modal) {
+            delete this.modal._modalHandler;
+            this.modal = null;
+        }
+        this.closeButtons = null;
+        this.modalContainer = null;
+        this.triggerElement = null;
     }
 }

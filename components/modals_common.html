@@ -37,7 +37,7 @@
             </div>
         </div>
         <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-            <button id="confirm-action-btn" type="button"
+            <button id="confirm-action-btn" type="button" data-modal-confirm data-modal-autofocus
                 class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm transition-all btn-press-anim">
                 ยืนยัน
             </button>
@@ -614,11 +614,11 @@
 <!-- Kick Notification Modal -->
 <div id="kick-notification-modal" class="modal hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black bg-opacity-75 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="kick-notification-title">
     <div class="modal-container bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center border border-gray-200 dark:border-gray-700 transform transition-all">
-        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
-            <span class="text-4xl animate-bounce">👢</span>
+        <div id="kick-notification-icon-container" class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+            <span id="kick-notification-icon" class="text-4xl animate-bounce">👢</span>
         </div>
         <h3 id="kick-notification-title" class="text-2xl font-bold text-gray-900 dark:text-white font-kanit mb-2">คุณถูกเชิญออก</h3>
-        <p class="text-gray-600 dark:text-gray-300 mb-6 text-sm">หัวหน้าห้องได้เชิญคุณออกจากห้องเตรียมตัว</p>
+        <p id="kick-notification-desc" class="text-gray-600 dark:text-gray-300 mb-6 text-sm">หัวหน้าห้องได้เชิญคุณออกจากห้องเตรียมตัว</p>
         <button id="kick-ack-btn" class="w-full py-3 rounded-xl bg-gray-900 dark:bg-gray-700 text-white font-bold hover:bg-gray-800 dark:hover:bg-gray-600 transition-all shadow-lg transform hover:scale-[1.02] btn-press-anim">รับทราบ</button>
     </div>
 </div>

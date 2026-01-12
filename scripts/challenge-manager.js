@@ -23,6 +23,10 @@ export class ChallengeManager {
         this.isInitialized = false; // NEW: Prevent double initialization
         this.typingTimeout = null;
         this.typingUnsubscribe = null;
+        this.presenceUnsubscribe = null; // NEW: Listener for player presence
+        this.presenceInterval = null; // NEW: Interval for sending heartbeat
+        this.playerPresences = {}; // NEW: Store presence data
+        this.lastLobbyData = null; // NEW: Store last lobby data for re-rendering
         this.lastTypingUpdateTime = 0;
         this.currentQuizConfig = null; // Store current quiz config
         this.currentMode = null; // Store current mode
@@ -62,6 +66,11 @@ export class ChallengeManager {
         this.dom.chatInput = document.getElementById('lobby-chat-input');
         this.dom.chatSendBtn = document.getElementById('lobby-chat-send-btn');
         this.dom.kickAckBtn = document.getElementById('kick-ack-btn');
+        this.dom.kickTitle = document.getElementById('kick-notification-title');
+        this.dom.kickDesc = document.getElementById('kick-notification-desc');
+        this.dom.kickIcon = document.getElementById('kick-notification-icon');
+        this.dom.kickIconContainer = document.getElementById('kick-notification-icon-container');
+
         this.dom.confirmActionBtn = document.getElementById('confirm-action-btn');
         this.dom.joinInput = document.getElementById('join-room-code-input');
         this.dom.confirmJoinBtn = document.getElementById('confirm-join-btn');
@@ -252,7 +261,7 @@ export class ChallengeManager {
 
         // Handle network status changes
         window.addEventListener('offline', () => {
-            if (this.currentLobbyId) {
+            if (this.currentLobbyId && !this.isTransitioning) {
                 showToast('ขาดการเชื่อมต่อ', 'คุณกำลังออฟไลน์ ระบบอาจไม่ทำงาน', '⚠️', 'error');
                 if (this.dom.startBtn) this.dom.startBtn.disabled = true;
             }
@@ -261,12 +270,6 @@ export class ChallengeManager {
             if (this.currentLobbyId) {
                 showToast('เชื่อมต่อสำเร็จ', 'กลับมาออนไลน์แล้ว', '✅', 'success');
                 if (this.dom.startBtn) this.dom.startBtn.disabled = false;
-            }
-        });
-
-        window.addEventListener('beforeunload', () => {
-            if (this.currentLobbyId && !this.isTransitioning) {
-                this.removePlayerFromLobby(this.currentLobbyId, authManager.currentUser?.uid);
             }
         });
 
@@ -458,6 +461,22 @@ export class ChallengeManager {
     }
 
     async checkPendingLobby() {
+        // 1. Check for Reconnect (Highest Priority)
+        const reconnectId = sessionStorage.getItem('reconnect_lobby_id');
+        if (reconnectId) {
+            const user = await authManager.waitForAuthReady();
+            if (user) {
+                console.log("Attempting to reconnect to lobby:", reconnectId);
+                const success = await this.joinLobby(reconnectId);
+                if (success) {
+                    showToast('กลับเข้าห้อง', 'ระบบพาคุณกลับเข้าห้องเดิมอัตโนมัติ', '🔄');
+                    return; // Stop processing other pending joins
+                } else {
+                    sessionStorage.removeItem('reconnect_lobby_id');
+                }
+            }
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const lobbyId = urlParams.get('lobby');
         
@@ -502,7 +521,8 @@ export class ChallengeManager {
     }
 
     async createLobby(mode = 'challenge', quizId = 'random', quizTitle = 'แบบทดสอบสุ่ม', quizDesc = '', quizTotal = null, timerMode = 'none', customTime = null, lives = 1) {
-        const user = authManager.currentUser;
+        // FIX: Wait for auth to be fully initialized to prevent false negatives
+        const user = await authManager.waitForAuthReady();
         if (!user) {
             showToast('ต้องเข้าสู่ระบบ', 'กรุณาเข้าสู่ระบบก่อนสร้างห้อง', '🔒', 'error');
             return;
@@ -515,6 +535,7 @@ export class ChallengeManager {
 
         const lobbyId = this.generateRoomId();
         this.currentLobbyId = lobbyId;
+        sessionStorage.setItem('reconnect_lobby_id', lobbyId);
         this.isHost = true;
 
         // Determine question amount based on mode
@@ -685,6 +706,7 @@ export class ChallengeManager {
 
             // Set client state based on the definitive data.
             this.currentLobbyId = lobbyId;
+            sessionStorage.setItem('reconnect_lobby_id', lobbyId);
             this.isHost = (finalLobbyData.hostId === user.uid);
 
             // Open UI, render the initial state, and then start listening for updates.
@@ -1029,16 +1051,94 @@ export class ChallengeManager {
         }
     }
 
+    // NEW: Heartbeat System for Online Status
+    async startHeartbeat(lobbyId) {
+        if (this.presenceInterval) clearInterval(this.presenceInterval);
+        
+        const user = authManager.currentUser;
+        if (!user) return;
+
+        const updatePresence = async () => {
+            try {
+                const presenceRef = doc(db, 'lobbies', lobbyId, 'presence', user.uid);
+                await setDoc(presenceRef, {
+                    lastSeen: serverTimestamp(),
+                    isOnline: true,
+                    name: user.displayName || 'Player'
+                }, { merge: true });
+            } catch (e) {
+                console.warn("Heartbeat failed", e);
+            }
+        };
+
+        await updatePresence(); // Immediate update
+        this.presenceInterval = setInterval(updatePresence, 10000); // Update every 10s
+    }
+
+    stopHeartbeat() {
+        if (this.presenceInterval) {
+            clearInterval(this.presenceInterval);
+            this.presenceInterval = null;
+        }
+        // Optional: Mark as offline immediately when leaving cleanly
+        if (this.currentLobbyId && authManager.currentUser) {
+             const presenceRef = doc(db, 'lobbies', this.currentLobbyId, 'presence', authManager.currentUser.uid);
+             deleteDoc(presenceRef).catch(() => {});
+        }
+    }
+
+    listenToPresence(lobbyId) {
+        if (this.presenceUnsubscribe) this.presenceUnsubscribe();
+
+        const presenceCol = collection(db, 'lobbies', lobbyId, 'presence');
+        this.presenceUnsubscribe = onSnapshot(presenceCol, (snapshot) => {
+            const presences = {};
+            snapshot.forEach(doc => {
+                presences[doc.id] = doc.data();
+            });
+            this.playerPresences = presences;
+            
+            // Trigger UI update if we have lobby data to refresh status indicators
+            if (this.lastLobbyData) {
+                this.updateLobbyUI(this.lastLobbyData);
+            }
+        });
+    }
+
+    showKickedModal() {
+        if (this.dom.kickTitle) this.dom.kickTitle.textContent = 'คุณถูกเชิญออก';
+        if (this.dom.kickDesc) this.dom.kickDesc.textContent = 'หัวหน้าห้องได้เชิญคุณออกจากห้องเตรียมตัว';
+        if (this.dom.kickIcon) this.dom.kickIcon.textContent = '👢';
+        if (this.dom.kickIconContainer) {
+            this.dom.kickIconContainer.className = 'w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner';
+        }
+        if (this.kickModal) this.kickModal.open();
+    }
+
+    showLobbyClosedModal() {
+        if (this.dom.kickTitle) this.dom.kickTitle.textContent = 'ห้องถูกปิดแล้ว';
+        if (this.dom.kickDesc) this.dom.kickDesc.textContent = 'หัวหน้าห้องได้ปิดห้องการแข่งขันนี้แล้ว';
+        if (this.dom.kickIcon) this.dom.kickIcon.textContent = '🔒';
+        if (this.dom.kickIconContainer) {
+            this.dom.kickIconContainer.className = 'w-20 h-20 bg-gray-100 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner';
+        }
+        if (this.kickModal) this.kickModal.open();
+    }
+
     listenToLobby(lobbyId) {
         if (this.unsubscribe) this.unsubscribe();
 
         // Reset status tracker when listening to a new lobby
         this.lastStatus = null;
 
+        // NEW: Start heartbeat and listen to presence
+        this.startHeartbeat(lobbyId);
+        this.listenToPresence(lobbyId);
+
         this.unsubscribe = onSnapshot(doc(db, 'lobbies', lobbyId), (docSnapshot) => {
             if (!docSnapshot.exists()) {
                 this.leaveLobby(false); // Don't try to remove from DB if doc is gone
-                showToast('ห้องถูกปิด', 'โฮสต์ได้ปิดห้องแล้ว', 'ℹ️');
+                this.showLobbyClosedModal();
                 return;
             }
 
@@ -1050,7 +1150,7 @@ export class ChallengeManager {
                 const amIInList = data.players.some(p => p.uid === myUid);
                 if (!amIInList) {
                     this.leaveLobby(false); // Already removed from DB
-                    if (this.kickModal) this.kickModal.open();
+                    this.showKickedModal();
                     return;
                 }
             }
@@ -1079,6 +1179,7 @@ export class ChallengeManager {
     }
 
     updateLobbyUI(data) {
+        this.lastLobbyData = data; // Save for presence updates
         const container = this.dom.playersListContainer;
         const countEl = this.dom.playerCount;
         const roomIdEl = this.dom.roomIdDisplay;
@@ -1178,6 +1279,25 @@ export class ChallengeManager {
                 const score = p.score || 0;
                 const progress = p.progress || 0;
                 const total = p.totalQuestions || 20; 
+
+                // Check Online Status
+                const presence = this.playerPresences[p.uid];
+                let isOnline = false;
+                const now = Date.now();
+                
+                if (isMe) {
+                    isOnline = true;
+                } else if (presence && presence.lastSeen) {
+                    // Handle Firestore Timestamp
+                    const lastSeenTime = presence.lastSeen.toMillis ? presence.lastSeen.toMillis() : (presence.lastSeen.toDate ? presence.lastSeen.toDate().getTime() : 0);
+                    if (now - lastSeenTime < 25000) { // 25s threshold (allow some missed beats)
+                        isOnline = true;
+                    }
+                }
+
+                const onlineIndicator = isOnline 
+                    ? `<span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 bg-green-500 shadow-sm" title="Online"></span>`
+                    : `<span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-300 dark:bg-gray-600 shadow-sm" title="Offline"></span>`;
                 
                 let percent = 0;
                 if (data.mode === 'time-attack' || data.mode === 'speed' || data.mode === 'speedrun') {
@@ -1233,13 +1353,14 @@ export class ChallengeManager {
                     
                     ${data.status === 'started' && data.mode !== 'coop' ? `<div class="font-bold text-gray-400 w-6 text-center">${index + 1}</div>` : ''}
                     
-                    <div class="text-3xl bg-white dark:bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-sm flex-shrink-0 animate-wiggle" style="animation-delay: ${index * 0.2}s">
+                    <div class="relative text-3xl bg-white dark:bg-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow-sm flex-shrink-0 animate-wiggle" style="animation-delay: ${index * 0.2}s">
                         ${(() => {
                             const isImage = p.avatar && (p.avatar.includes('/') || p.avatar.includes('.'));
                             return isImage 
                                 ? `<img src="${escapeHtml(p.avatar)}" class="w-full h-full rounded-full object-cover">`
                                 : escapeHtml(p.avatar || '🧑‍🎓');
                         })()}
+                        ${onlineIndicator}
                     </div>
                     
                     <div class="flex flex-col min-w-0">
@@ -1338,6 +1459,11 @@ export class ChallengeManager {
         // FIX: Clear any existing timer before starting a new one to prevent overlap
         if (this.countdownTimer) clearInterval(this.countdownTimer);
 
+        if (!quizConfig) {
+            console.error("Missing quiz config for countdown");
+            return;
+        }
+
         // Set a flag to indicate the game is starting, preventing other actions.
         this.isStarting = true;
 
@@ -1387,13 +1513,35 @@ export class ChallengeManager {
     goToQuiz(config, mode) {
         // ถ้าอยู่ในหน้า Quiz อยู่แล้ว ไม่ต้อง Redirect ซ้ำ
         if (window.location.pathname.includes('/quiz/')) return;
+        
+        // Safety check: If lobby ID is missing, we can't proceed correctly in multiplayer context
+        if (!this.currentLobbyId) {
+            console.error("Cannot go to quiz: Lobby ID is missing");
+            return;
+        }
 
         this.isTransitioning = true;
         this.lobbyModal.close();
-        window.location.href = `./quiz/index.html?id=${config.id}&mode=${mode || 'challenge'}&lobbyId=${this.currentLobbyId}&amount=${config.amount}&seed=${config.seed}`;
+        
+        // Clean up URL parameters using URLSearchParams
+        const params = new URLSearchParams();
+        params.set('id', config.id);
+        params.set('mode', mode || 'challenge');
+        params.set('lobbyId', this.currentLobbyId);
+        
+        if (config.amount !== null && config.amount !== undefined) {
+            params.set('amount', config.amount);
+        }
+        if (config.seed !== null && config.seed !== undefined) {
+            params.set('seed', config.seed);
+        }
+
+        window.location.href = `./quiz/index.html?${params.toString()}`;
     }
 
     async leaveLobby(removeFromDb = true) {
+        if (this.isTransitioning) return;
+
         const lobbyId = this.currentLobbyId;
         const user = authManager.currentUser;
 
@@ -1424,6 +1572,15 @@ export class ChallengeManager {
         this.transitionTimeout = null;
 
         this.currentLobbyId = null;
+        
+        // NEW: Stop heartbeat and presence listener
+        this.stopHeartbeat();
+        if (this.presenceUnsubscribe) {
+            this.presenceUnsubscribe();
+            this.presenceUnsubscribe = null;
+        }
+
+        sessionStorage.removeItem('reconnect_lobby_id');
         this.isHost = false;
         this.isStarting = false;
         this.lobbyModal.close();
