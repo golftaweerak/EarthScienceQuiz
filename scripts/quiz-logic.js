@@ -295,7 +295,7 @@ function ensurePowerUpModalExists() {
 
                 <div class="w-full flex gap-3">
                     <button data-modal-close class="flex-1 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition">ยกเลิก</button>
-                    <button id="powerup-confirm-buy-btn" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-md">ยืนยัน</button>
+                    <button id="powerup-confirm-buy-btn" data-modal-confirm data-modal-autofocus class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-md">ยืนยัน</button>
                 </div>
             </div>
         </div>

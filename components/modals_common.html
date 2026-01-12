@@ -398,7 +398,7 @@
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">คุณต้องการทำแบบทดสอบต่อจากครั้งก่อนหรือไม่?</p>
         <div class="flex flex-col sm:flex-row-reverse gap-3">
-            <button id="resume-confirm-btn"
+            <button id="resume-confirm-btn" data-modal-confirm data-modal-autofocus
                 class="w-full sm:w-auto flex-1 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 btn-press-anim">
                 ทำต่อ
             </button>
@@ -454,7 +454,7 @@
             </div>
 
             <div class="flex gap-3 pt-2">
-                <button id="random-all-confirm-btn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:-translate-y-0.5 btn-press-anim flex items-center justify-center gap-2">
+                <button id="random-all-confirm-btn" data-modal-confirm class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transform hover:-translate-y-0.5 btn-press-anim flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                     </svg>
@@ -498,7 +498,7 @@
         </div>
         <div class="flex gap-3">
             <button id="cancel-join-btn" data-modal-close class="flex-1 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold btn-press-anim">ยกเลิก</button>
-            <button id="confirm-join-btn" class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 btn-press-anim">เข้าร่วม</button>
+            <button id="confirm-join-btn" data-modal-confirm class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 btn-press-anim">เข้าร่วม</button>
         </div>
     </div>
 </div>
@@ -630,7 +630,7 @@
         <p id="kick-confirm-desc" class="text-gray-600 dark:text-gray-300 mb-6 text-sm">คุณต้องการเชิญผู้เล่นนี้ออกจากห้องใช่หรือไม่?</p>
         <div class="flex gap-3">
             <button id="kick-confirm-cancel-btn" class="flex-1 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors btn-press-anim">ยกเลิก</button>
-            <button id="kick-confirm-ok-btn" class="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-md btn-press-anim">เชิญออก</button>
+            <button id="kick-confirm-ok-btn" data-modal-confirm data-modal-autofocus class="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 transition-colors shadow-md btn-press-anim">เชิญออก</button>
         </div>
     </div>
 </div>
