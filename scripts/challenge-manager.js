@@ -692,6 +692,7 @@ export class ChallengeManager {
         }
 
         const lobbyRef = doc(db, 'lobbies', lobbyId);
+        let hostIdFromTransaction = null; // NEW: Capture hostId from transaction
 
         try {
             // Use a transaction to atomically add the player.
@@ -702,6 +703,8 @@ export class ChallengeManager {
                 }
     
                 const data = lobbySnap.data();
+                hostIdFromTransaction = data.hostId; // Capture hostId
+
                 const players = data.players || [];
                 const isAlreadyJoined = players.some(p => p.uid === user.uid);
     
@@ -716,22 +719,33 @@ export class ChallengeManager {
                 }
             });
     
-            // After successfully joining, get the definitive state of the lobby.
-            const finalLobbySnap = await getDoc(lobbyRef);
-            if (!finalLobbySnap.exists()) {
-                // This is an unlikely edge case, but a good safeguard.
-                throw new Error("Lobby disappeared immediately after joining.");
+            // Transaction succeeded. User is in.
+            
+            // NEW: Try to get definitive state, but don't fail if network blips.
+            let finalLobbyData = null;
+            try {
+                const finalLobbySnap = await getDoc(lobbyRef);
+                if (finalLobbySnap.exists()) {
+                    finalLobbyData = finalLobbySnap.data();
+                }
+            } catch (e) {
+                console.warn("Failed to fetch final lobby state immediately after join, relying on listener:", e);
             }
-            const finalLobbyData = finalLobbySnap.data();
 
-            // Set client state based on the definitive data.
+            // Set client state based on the definitive data or fallback.
             this.currentLobbyId = lobbyId;
             sessionStorage.setItem('reconnect_lobby_id', lobbyId);
-            this.isHost = (finalLobbyData.hostId === user.uid);
+            
+            if (finalLobbyData) {
+                this.isHost = (finalLobbyData.hostId === user.uid);
+                this.updateLobbyUI(finalLobbyData); // Render initial state immediately.
+            } else {
+                // Fallback if getDoc failed but transaction succeeded
+                this.isHost = (hostIdFromTransaction === user.uid);
+            }
 
-            // Open UI, render the initial state, and then start listening for updates.
+            // Open UI and start listening for updates.
             this.openLobbyUI(lobbyId);
-            this.updateLobbyUI(finalLobbyData); // Render initial state immediately.
             this.listenToLobby(lobbyId);
             return true;
 
@@ -973,7 +987,7 @@ export class ChallengeManager {
                 <div class="flex flex-col max-w-[85%] ${bubbleClass} px-4 py-2 relative group">
                     <div class="flex items-baseline justify-between gap-3 mb-0.5">
                         <span class="font-bold ${nameClass}">${isMe ? 'คุณ' : escapeHtml(msg.name)}</span>
-                        <span class="${timeClass}">${timestamp}</span>
+                        <span class="text="${timeClass}">${timestamp}</span>
                     </div>
                     <p class="text-sm leading-relaxed break-words">${escapeHtml(msg.text)}</p>
                 </div>`;
@@ -1293,9 +1307,12 @@ export class ChallengeManager {
             if (titleEl) titleEl.textContent = "ห้องเตรียมตัว";
         }
 
+        // FIX: Use cached user as fallback if auth isn't fully ready yet to ensure 'isMe' works
+        const currentUser = authManager.currentUser || authManager.getCachedUser();
+
         if (container) {
             container.innerHTML = players.map((p, index) => {
-                const isMe = p.uid === authManager.currentUser?.uid;
+                const isMe = p.uid === currentUser?.uid;
                 const score = p.score || 0;
                 const progress = p.progress || 0;
                 const total = p.totalQuestions || 20; 
