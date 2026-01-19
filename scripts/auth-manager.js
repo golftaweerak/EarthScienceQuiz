@@ -829,13 +829,25 @@ class AuthManagerInternal {
             }
             if (hasCloudUploads) await this.retryOperation(() => batch.commit());
 
-            // 2. Merge Cloud -> Local (เอาของ Cloud มาเติมใส่ Local)
-            const mergedQuizzes = [...localQuizzes];
+            // 2. Merge Cloud -> Local
+            // Strategy: Cloud wins for conflicts (to enable cross-device updates), 
+            // Local wins for new items (not in cloud yet).
+            
+            const mergedQuizzes = [];
+            const processedIds = new Set();
+
+            // 1. Add all Cloud quizzes (Source of Truth)
             cloudQuizzesMap.forEach((cloudQuiz, customId) => {
-                if (!localQuizzesMap.has(customId)) {
-                    mergedQuizzes.push(cloudQuiz);
-                }
+                mergedQuizzes.push(cloudQuiz);
+                processedIds.add(customId);
             });
+
+            // 2. Add Local quizzes that are NOT in Cloud
+            for (const localQuiz of localQuizzes) {
+                if (!processedIds.has(localQuiz.customId)) {
+                    mergedQuizzes.push(localQuiz);
+                }
+            }
 
             return mergedQuizzes;
         } catch (e) {

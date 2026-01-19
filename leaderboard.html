@@ -25,28 +25,7 @@
                 <div class="p-4 sm:p-6">
                     <!-- New Tab Structure -->
                     <div id="leaderboard-tabs-container" class="flex flex-wrap items-center gap-2 sm:gap-3 border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
-                        <button class="leaderboard-tab whitespace-nowrap py-2 px-4 rounded-full text-sm font-bold transition-all bg-blue-600 text-white shadow-md" data-type="xp" data-main-tab="true">คะแนนรวม</button>
-                        <button class="leaderboard-tab whitespace-nowrap py-2 px-4 rounded-full text-sm font-bold transition-all bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600" data-type="astronomyTrackXP" data-main-tab="true">สอวน. ดาราศาสตร์</button>
-                        
-                        <!-- Earth Science Dropdown -->
-                        <div class="relative" id="earth-science-dropdown-container">
-                            <button id="earth-science-dropdown-btn" class="leaderboard-tab flex items-center whitespace-nowrap py-2 px-4 rounded-full text-sm font-bold transition-all bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600" data-main-tab="true">
-                                <span id="earth-science-btn-label">สอวน. วิทย์โลก (รวม)</span>
-                                <svg class="h-4 w-4 ml-1.5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                            <div id="earth-science-dropdown" class="hidden absolute left-0 mt-2 w-56 origin-top-left bg-white dark:bg-gray-800 rounded-lg shadow-xl z-10 border border-gray-200 dark:border-gray-700">
-                                <div class="p-1">
-                                    <a href="#" class="leaderboard-tab block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" data-type="earthTrackXP" data-label="สอวน. วิทย์โลก (รวม)">คะแนนรวม</a>
-                                    <hr class="my-1 border-gray-200 dark:border-gray-600">
-                                    <a href="#" class="leaderboard-tab block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" data-type="geologyXP" data-label="ธรณีวิทยา">ธรณีวิทยา</a>
-                                    <a href="#" class="leaderboard-tab block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" data-type="meteorologyXP" data-label="อุตุนิยมวิทยา">อุตุนิยมวิทยา</a>
-                                    <a href="#" class="leaderboard-tab block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" data-type="oceanographyXP" data-label="สมุทรศาสตร์">สมุทรศาสตร์</a>
-                                    <a href="#" class="leaderboard-tab block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md" data-type="astronomyXP" data-label="ดาราศาสตร์ (ย่อย)">ดาราศาสตร์ (ย่อย)</a>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Tabs will be injected by JavaScript -->
                     </div>
                     <!-- List -->
                     <div id="leaderboard-list-full" class="space-y-2 min-h-[400px]">

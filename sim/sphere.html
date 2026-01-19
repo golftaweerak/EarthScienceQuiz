@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celestial Sphere V7: Bug Fixes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; margin: 0; overflow: hidden; background-color: #050508; color: white; }
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+        
+        /* Clean Labels */
+        .label {
+            position: absolute;
+            font-size: 11px;
+            pointer-events: none;
+            user-select: none;
+            white-space: nowrap;
+            text-shadow: 1px 1px 3px #000, -1px -1px 3px #000;
+            transition: opacity 0.1s;
+        }
+        .label-star { color: #ffffff; font-weight: 600; font-size: 10px; opacity: 0.95; }
+        .label-con { color: #60a5fa; font-style: italic; font-size: 12px; opacity: 0.8; }
+        .label-cardinal { color: #4ade80; font-weight: bold; font-size: 13px; text-shadow: 0 0 5px #000; }
+        .label-eq { color: #00ffff; font-size: 9px; opacity: 0.6; }
+        .label-ec { color: #ffcc00; font-size: 9px; opacity: 0.6; }
+        .label-meridian { color: #4ade80; font-size: 9px; opacity: 0.5; font-style: italic; }
+        .label-sun { color: #ffff00; font-weight: bold; font-size: 12px; text-shadow: 0 0 8px #000; }
+
+        /* Controls Panel */
+        .controls-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 500px; 
+            background: rgba(15, 20, 30, 0.95);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            pointer-events: auto;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            transition: width 0.3s;
+            overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        @media (min-width: 768px) {
+            .controls-container {
+                left: auto;
+                right: 20px;
+                transform: none;
+                width: 350px;
+            }
+        }
+        .controls-container.collapsed { width: 220px; }
+
+        .panel-header {
+            padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .panel-title { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; }
+        
+        .panel-body { padding: 15px; display: flex; flex-direction: column; gap: 12px; transition: max-height 0.3s; max-height: 500px; }
+        .controls-container.collapsed .panel-body { max-height: 0; padding: 0; opacity: 0; pointer-events: none; }
+
+        .control-row { display: flex; gap: 10px; align-items: center; }
+        .slider-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8; }
+        
+        /* Improved Slider Styles */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: 2px solid #1e293b;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: 2px solid #1e293b;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+        
+        .toggle-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .toggle-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #9ca3af;
+            padding: 5px 0; border-radius: 4px; font-size: 0.7rem; cursor: pointer; text-align: center;
+        }
+        .toggle-btn.active { background: #1d4ed8; border-color: #3b82f6; color: white; font-weight: 600; }
+
+        /* Info Box */
+        .info-box {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0,0,0,0.7); padding: 10px 15px;
+            border-radius: 8px; border-left: 3px solid #facc15; pointer-events: auto;
+        }
+        .info-val { font-family: monospace; color: #facc15; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="info-box">
+            <div class="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Sun Position</div>
+            <div class="text-sm text-gray-200 mt-1">
+                Alt: <span id="sunAlt" class="info-val">0.0°</span> 
+                Az: <span id="sunAz" class="info-val">0.0°</span>
+                HA: <span id="sunHA" class="info-val">0.0h</span>
+            </div>
+            <div class="text-[11px] text-gray-400 mt-2 pt-2 border-t border-gray-600 flex flex-col gap-1">
+                <div class="flex justify-between gap-4">
+                    <span>LST: <span id="lstVal" class="text-gray-200">00:00</span></span>
+                    <span>Solar: <span id="solarTimeVal" class="text-gray-200">12:00</span></span>
+                </div>
+                <div class="flex justify-between gap-4">
+                    <span id="dateDisplay">Date: Mar 21</span>
+                    <span id="latDisplay">Lat: 13.8°N</span>
+                </div>
+            </div>
+            <div id="starInfo" class="hidden mt-2 pt-2 border-t border-gray-600 text-xs transition-all">
+                <div class="font-bold text-blue-300 mb-0.5 text-sm" id="selName">Star Name</div>
+                <div class="text-yellow-500 font-semibold mb-1" id="selCon">Constellation</div>
+                <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-gray-400">
+                    <span>RA: <span id="selRA" class="text-gray-200"></span></span>
+                    <span>Dec: <span id="selDec" class="text-gray-200"></span></span>
+                    <span>HA: <span id="selHA" class="text-gray-200"></span></span>
+                    <span>Mag: <span id="selMag" class="text-gray-200"></span></span>
+                    <span class="col-span-2 border-t border-gray-700 pt-1 mt-1">Dist: <span id="selDist" class="text-green-300 font-bold"></span> ly</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-container" id="mainPanel">
+            <div class="panel-header" onclick="togglePanel()">
+                <div class="panel-title">Settings (การตั้งค่า)</div>
+                <div class="text-gray-400 text-xs">▼</div>
+            </div>
+
+            <div class="panel-body">
+                <div class="control-row">
+                    <div class="slider-wrap">
+                        <div class="slider-label"><span>Latitude</span> <span id="latVal" class="text-blue-400">13.8°</span></div>
+                        <input type="range" id="latSlider" min="-90" max="90" value="13.75" step="0.5">
+                    </div>
+                    <div class="slider-wrap">
+                        <div class="slider-label"><span>Time</span> <span id="timeVal" class="text-yellow-400">12:00</span></div>
+                        <input type="range" id="timeSlider" min="0" max="24" value="12" step="0.05">
+                    </div>
+                </div>
+
+                <div class="control-row">
+                    <div class="slider-wrap" style="flex:2;">
+                        <div class="slider-label"><span>Date (Day of Year)</span> <span id="dayVal" class="text-green-400">Mar 21</span></div>
+                        <input type="range" id="daySlider" min="0" max="365" value="80">
+                    </div>
+                    <button id="btnAnimate" class="bg-gray-700 hover:bg-green-600 text-white w-16 py-1 rounded text-xs transition h-8 mt-4 border border-gray-600 shadow">▶ Play</button>
+                    <button id="btnNow" class="bg-gray-700 hover:bg-blue-600 text-white w-10 py-1 rounded text-xs transition h-8 mt-4 border border-gray-600 shadow">Now</button>
+                    <button id="btnReset" class="bg-gray-700 hover:bg-gray-600 text-white w-8 py-1 rounded text-xs transition h-8 mt-4 border border-gray-600 shadow">↺</button>
+                </div>
+
+                <div class="mt-2">
+                    <div class="text-[10px] text-gray-500 uppercase font-bold mb-2">Display Options</div>
+                    <div class="toggle-grid">
+                        <button class="toggle-btn active" onclick="toggleVis('ground', this)">Ground</button>
+                        <button class="toggle-btn active" onclick="toggleVis('stars', this)">Stars</button>
+                        <button class="toggle-btn active" onclick="toggleVis('conLines', this)">Lines</button>
+                        <button class="toggle-btn active" onclick="toggleVis('conNames', this)">Con. Names</button>
+                        <button class="toggle-btn active" onclick="toggleVis('starNames', this)">Names</button>
+                        <button class="toggle-btn active" onclick="toggleVis('equator', this)">Equator</button>
+                        <button class="toggle-btn active" onclick="toggleVis('raScale', this)">RA Scale</button>
+                        <button class="toggle-btn active" onclick="toggleVis('ecliptic', this)">Ecliptic</button>
+                        <button class="toggle-btn active" onclick="toggleVis('ecScale', this)">Ec. Scale</button>
+                        <button class="toggle-btn active" onclick="toggleVis('moonOrbit', this)">Moon Orb.</button>
+                        <button class="toggle-btn active" onclick="toggleVis('planets', this)">Planets</button>
+                        <button class="toggle-btn active" onclick="toggleVis('milkyWay', this)">Milky Way</button>
+                        <button class="toggle-btn" onclick="toggleVis('raDecGrid', this)">RA/Dec Grid</button>
+                        <button class="toggle-btn" onclick="toggleVis('altAzGrid', this)">Alt/Az Grid</button>
+                        <button class="toggle-btn active" onclick="toggleVis('atmosphere', this)">Sky Color</button>
+                        <button class="toggle-btn" onclick="toggleVis('trails', this)">Trails</button>
+                        <button class="toggle-btn" onclick="toggleVis('meridian', this)">Meridian</button>
+                        <button class="toggle-btn" onclick="toggleVis('meridianScale', this)">Mer. Scale</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="labels-container"></div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- DATA ---
+        const realStars = {
+            // --- Circumpolar North ---
+            // Ursa Minor
+            polaris: { name: "Polaris", ra: 2.53, dec: 89.26, mag: 2.0, color: 0xffffee, dist: 433 },
+            yildun: { name: "", ra: 17.53, dec: 86.58, mag: 4.35, color: 0xffffff, dist: 183 },
+            epsilonUMi: { name: "", ra: 16.76, dec: 82.03, mag: 4.21, color: 0xffffff, dist: 347 },
+            zetaUMi: { name: "", ra: 15.73, dec: 77.79, mag: 4.29, color: 0xffffff, dist: 380 },
+            etaUMi: { name: "", ra: 16.29, dec: 75.75, mag: 4.95, color: 0xffffff, dist: 97 },
+            kochab: { name: "Kochab", ra: 14.84, dec: 74.15, mag: 2.0, color: 0xffccaa, dist: 130 },
+            pherkad: { name: "Pherkad", ra: 15.34, dec: 71.83, mag: 3.0, color: 0xffffff, dist: 487 },
+            
+            // Ursa Major
+            dubhe: { name: "Dubhe", ra: 11.06, dec: 61.75, mag: 1.8, color: 0xffccaa, dist: 123 },
+            merak: { name: "Merak", ra: 11.03, dec: 56.38, mag: 2.3, color: 0xffffff, dist: 79 },
+            phecda: { name: "Phecda", ra: 11.89, dec: 53.69, mag: 2.4, color: 0xffffff, dist: 83 },
+            megrez: { name: "Megrez", ra: 12.25, dec: 57.03, mag: 3.3, color: 0xffffff, dist: 58 },
+            alioth: { name: "Alioth", ra: 12.90, dec: 55.95, mag: 1.7, color: 0xffffff, dist: 82 },
+            mizar: { name: "Mizar", ra: 13.39, dec: 54.92, mag: 2.2, color: 0xffffff, dist: 86 },
+            alkaid: { name: "Alkaid", ra: 13.79, dec: 49.31, mag: 1.8, color: 0xaaddff, dist: 103 },
+            
+            // Cassiopeia
+            schedar: { name: "Schedar", ra: 0.67, dec: 56.53, mag: 2.2, color: 0xffccaa, dist: 228 },
+            caph: { name: "Caph", ra: 0.15, dec: 59.15, mag: 2.2, color: 0xffffee, dist: 55 },
+            gammaCas: { name: "Gamma Cas", ra: 0.94, dec: 60.71, mag: 2.1, color: 0xaaddff, dist: 550 },
+            ruchbah: { name: "Ruchbah", ra: 1.43, dec: 60.23, mag: 2.6, color: 0xffffff, dist: 99 },
+            segin: { name: "Segin", ra: 1.90, dec: 63.67, mag: 3.3, color: 0xffffff, dist: 410 },
+            
+            // Draco
+            thuban: { name: "Thuban", ra: 14.07, dec: 64.37, mag: 3.6, color: 0xffffff, dist: 303 },
+            eltanin: { name: "Eltanin", ra: 17.94, dec: 51.48, mag: 2.2, color: 0xffccaa, dist: 154 },
+            rastaban: { name: "Rastaban", ra: 17.51, dec: 52.30, mag: 2.8, color: 0xffffff, dist: 380 },
+
+            // Orion
+            betelgeuse: { name: "Betelgeuse", ra: 5.91, dec: 7.40, mag: 0.45, color: 0xff4444, dist: 642 }, // More red
+            rigel: { name: "Rigel", ra: 5.24, dec: -8.20, mag: 0.12, color: 0x66ccff, dist: 860 }, // More blue
+            bellatrix: { name: "Bellatrix", ra: 5.41, dec: 6.34, mag: 1.6, color: 0xaaddff, dist: 250 },
+            saiph: { name: "Saiph", ra: 5.79, dec: -9.66, mag: 2.0, color: 0xffffff, dist: 650 },
+            alnitak: { name: "Alnitak", ra: 5.67, dec: -1.94, mag: 1.7, color: 0xaaddff, dist: 1260 },
+            alnilam: { name: "Alnilam", ra: 5.60, dec: -1.20, mag: 1.6, color: 0xaaddff, dist: 2000 },
+            mintaka: { name: "Mintaka", ra: 5.53, dec: -0.29, mag: 2.2, color: 0xaaddff, dist: 1200 },
+            nihal: { name: "Nihal", ra: 5.13, dec: 1.95, mag: 2.9, color: 0xaaddff, dist: 160 },
+            
+            // Canis Major
+            sirius: { name: "Sirius", ra: 6.75, dec: -16.72, mag: -1.46, color: 0xaaddff, dist: 8.6 },
+            mirzam: { name: "Mirzam", ra: 6.38, dec: -17.96, mag: 1.98, color: 0xaaddff, dist: 500 },
+            wezen: { name: "Wezen", ra: 7.14, dec: -26.39, mag: 1.8, color: 0xffffee, dist: 1600 },
+            adhara: { name: "Adhara", ra: 6.98, dec: -28.97, mag: 1.5, color: 0xaaddff, dist: 430 },
+            aludra: { name: "Aludra", ra: 7.40, dec: -29.30, mag: 2.4, color: 0xaaddff, dist: 2000 },
+
+            // Canis Minor
+            procyon: { name: "Procyon", ra: 7.65, dec: 5.22, mag: 0.34, color: 0xffffee, dist: 11.5 },
+            gomeisa: { name: "Gomeisa", ra: 7.45, dec: 8.29, mag: 2.9, color: 0xaaddff, dist: 170 },
+            
+            // Summer Triangle Stars
+            vega: { name: "Vega", ra: 18.62, dec: 38.78, mag: 0.03, color: 0xaaddff, dist: 25 },
+            altair: { name: "Altair", ra: 19.85, dec: 8.87, mag: 0.77, color: 0xffffff, dist: 16.7 },
+            tarazed: { name: "Tarazed", ra: 19.77, dec: 10.61, mag: 2.7, color: 0xffccaa, dist: 460 },
+            deneb: { name: "Deneb", ra: 20.69, dec: 45.28, mag: 1.25, color: 0xaaddff, dist: 2600 },
+            albireo: { name: "Albireo", ra: 19.51, dec: 27.96, mag: 3.0, color: 0xffccaa, dist: 430 }, // Cygnus head
+            sadr: { name: "Sadr", ra: 20.37, dec: 40.26, mag: 2.2, color: 0xffffee, dist: 1800 },
+            gienah: { name: "Gienah", ra: 20.77, dec: 33.97, mag: 2.5, color: 0xffccaa, dist: 73 },
+
+            // --- ZODIAC & OPHIUCHUS ---
+            // Aries
+            hamal: { name: "Hamal", ra: 2.12, dec: 23.46, mag: 2.0, color: 0xffccaa, dist: 66 },
+            sheratan: { name: "Sheratan", ra: 1.91, dec: 20.81, mag: 2.6, color: 0xffffff, dist: 60 },
+            mesarthim: { name: "Mesarthim", ra: 1.89, dec: 19.29, mag: 3.88, color: 0xffffff, dist: 164 },
+            botein: { name: "Botein", ra: 3.19, dec: 19.72, mag: 4.35, color: 0xffccaa, dist: 168 },
+            ari41: { name: "", ra: 3.08, dec: 27.26, mag: 3.6, color: 0xaaddff, dist: 160 },
+            
+            // Taurus
+            aldebaran: { name: "Aldebaran", ra: 4.60, dec: 16.51, mag: 0.87, color: 0xffaa66, dist: 65 },
+            elnath: { name: "Elnath", ra: 5.43, dec: 28.60, mag: 1.65, color: 0xaaddff, dist: 134 },
+            alcyone: { name: "Pleiades", ra: 3.79, dec: 24.10, mag: 2.8, color: 0xaaddff, dist: 440 }, // M45
+            tianguan: { name: "Tianguan", ra: 5.62, dec: 21.14, mag: 3.0, color: 0xaaddff, dist: 440 },
+            hyadum1: { name: "", ra: 4.33, dec: 15.63, mag: 3.65, color: 0xffccaa, dist: 155 },
+            hyadum2: { name: "", ra: 4.38, dec: 17.55, mag: 3.77, color: 0xffffff, dist: 150 },
+            ain: { name: "Ain", ra: 4.47, dec: 19.18, mag: 3.53, color: 0xffccaa, dist: 147 },
+            tau119: { name: "", ra: 5.53, dec: 18.59, mag: 4.3, color: 0xff4444, dist: 1800 },
+            
+            // Auriga (Near Taurus)
+            capella: { name: "Capella", ra: 5.27, dec: 46.00, mag: 0.08, color: 0xffccaa, dist: 43 },
+            menkalinan: { name: "Menkalinan", ra: 6.00, dec: 44.95, mag: 1.9, color: 0xffffff, dist: 81 },
+            elnath_aur: { name: "", ra: 5.43, dec: 28.60, mag: 1.65, color: 0xaaddff, dist: 134 }, // Shared star
+            hyadum_aur: { name: "", ra: 4.33, dec: 15.63, mag: 3.65, color: 0xffccaa, dist: 155 }, // Shared star
+            zetaAur: { name: "Zeta Aur", ra: 5.91, dec: 42.03, mag: 3.7, color: 0xffffff, dist: 790 },
+
+            // Gemini
+            pollux: { name: "Pollux", ra: 7.76, dec: 28.03, mag: 1.14, color: 0xffccaa, dist: 34 },
+            castor: { name: "Castor", ra: 7.58, dec: 31.88, mag: 1.58, color: 0xffffff, dist: 51 },
+            alhena: { name: "Alhena", ra: 6.63, dec: 16.39, mag: 1.9, color: 0xffffff, dist: 109 },
+            wasat: { name: "Wasat", ra: 7.34, dec: 21.98, mag: 3.5, color: 0xffffff, dist: 60 },
+            mekbuda: { name: "Mekbuda", ra: 7.07, dec: 20.57, mag: 3.8, color: 0xffccaa, dist: 1100 },
+            propus: { name: "Propus", ra: 6.25, dec: 22.50, mag: 3.3, color: 0xff4444, dist: 350 },
+            tejat: { name: "Tejat", ra: 6.38, dec: 22.51, mag: 2.87, color: 0xff4444, dist: 230 },
+            mebsuta: { name: "Mebsuta", ra: 6.73, dec: 25.13, mag: 3.06, color: 0xffccaa, dist: 840 },
+            kappaGem: { name: "", ra: 7.74, dec: 24.39, mag: 3.57, color: 0xffccaa, dist: 141 },
+            lambdaGem: { name: "", ra: 7.30, dec: 16.54, mag: 3.58, color: 0xffffff, dist: 94 },
+            epsilonGem: { name: "", ra: 6.89, dec: 22.84, mag: 3.06, color: 0xffccaa, dist: 840 },
+
+            // Cancer
+            acubens: { name: "Acubens", ra: 8.97, dec: 11.85, mag: 4.2, color: 0xffffff, dist: 174 },
+            altarf: { name: "Altarf", ra: 8.27, dec: 9.19, mag: 3.5, color: 0xffccaa, dist: 290 },
+            asellusBor: { name: "", ra: 8.72, dec: 21.47, mag: 4.66, color: 0xffffff, dist: 180 },
+            asellusAus: { name: "", ra: 8.74, dec: 18.15, mag: 3.94, color: 0xffccaa, dist: 131 },
+            iotaCnc: { name: "", ra: 8.78, dec: 28.76, mag: 4.03, color: 0xffccaa, dist: 300 },
+            
+
+            // Leo
+            regulus: { name: "Regulus", ra: 10.14, dec: 11.97, mag: 1.36, color: 0xaaddff, dist: 79 },
+            denebola: { name: "Denebola", ra: 11.82, dec: 14.57, mag: 2.14, color: 0xffffff, dist: 36 },
+            algieba: { name: "Algieba", ra: 10.33, dec: 19.84, mag: 2.0, color: 0xffccaa, dist: 130 },
+            zosma: { name: "Zosma", ra: 11.24, dec: 20.52, mag: 2.56, color: 0xffffff, dist: 58 },
+            adhafera: { name: "Adhafera", ra: 10.28, dec: 23.41, mag: 3.44, color: 0xffffff, dist: 270 },
+            rasalas: { name: "Rasalas", ra: 9.88, dec: 26.00, mag: 3.88, color: 0xffccaa, dist: 126 },
+            chertan: { name: "Chertan", ra: 11.23, dec: 15.43, mag: 3.33, color: 0xffffff, dist: 165 },
+            rhoLeo: { name: "", ra: 10.55, dec: 9.30, mag: 3.85, color: 0xaaddff, dist: 5000 },
+            iotaLeo: { name: "", ra: 11.40, dec: 10.53, mag: 4.00, color: 0xffffff, dist: 79 },
+            etaLeo: { name: "Al Jabhah", ra: 10.12, dec: 16.76, mag: 3.5, color: 0xffffff, dist: 1200 },
+           
+            
+            // Boötes (Near Virgo)
+            arcturus: { name: "Arcturus", ra: 14.26, dec: 19.18, mag: -0.05, color: 0xffaa66, dist: 37 },
+            izar: { name: "Izar", ra: 14.75, dec: 27.07, mag: 2.3, color: 0xffccaa, dist: 203 },
+            muphrid: { name: "Muphrid", ra: 13.91, dec: 18.39, mag: 2.7, color: 0xffffee, dist: 37 },
+
+            // Virgo
+            spica: { name: "Spica", ra: 13.42, dec: -11.16, mag: 0.98, color: 0xaaddff, dist: 250 },
+            porrima: { name: "Porrima", ra: 12.69, dec: -1.45, mag: 2.7, color: 0xffffff, dist: 38 },
+            vindemiatrix: { name: "Vindemiatrix", ra: 13.04, dec: 10.96, mag: 2.8, color: 0xffccaa, dist: 102 },
+            auva: { name: "Auva", ra: 12.93, dec: 3.40, mag: 3.38, color: 0xff4444, dist: 198 },
+            heze: { name: "Heze", ra: 13.58, dec: -0.60, mag: 3.37, color: 0xffffff, dist: 74 },
+            zaniah: { name: "Zaniah", ra: 12.33, dec: -0.66, mag: 3.89, color: 0xffffff, dist: 46 },
+            syrma: { name: "Syrma", ra: 14.22, dec: -5.99, mag: 4.08, color: 0xffffff, dist: 70 },
+            rijlAlAwwa: { name: "", ra: 14.72, dec: -5.65, mag: 3.88, color: 0xffffff, dist: 60 },
+            vir109: { name: "", ra: 14.77, dec: 1.89, mag: 3.73, color: 0xffffff, dist: 129 },
+
+            // Libra
+            zubenelgenubi: { name: "Zubenelgenubi", ra: 14.84, dec: -16.04, mag: 2.75, color: 0xffffff, dist: 75 },
+            zubeneschamali: { name: "Zubeneschamali", ra: 15.28, dec: -9.38, mag: 2.6, color: 0xaaddff, dist: 185 },
+            brachium: { name: "Brachium", ra: 15.07, dec: -25.28, mag: 3.29, color: 0xff4444, dist: 290 },
+            upsilonLib: { name: "", ra: 15.62, dec: -28.14, mag: 3.6, color: 0xffccaa, dist: 200 },
+            tauLib: { name: "", ra: 15.64, dec: -29.78, mag: 3.66, color: 0xaaddff, dist: 360 },
+            gammaLib: { name: "", ra: 15.59, dec: -14.79, mag: 3.91, color: 0xffccaa, dist: 163 },
+
+            // Scorpius
+            antares: { name: "Antares", ra: 16.49, dec: -26.43, mag: 1.06, color: 0xff4444, dist: 550 },
+            shaula: { name: "Shaula", ra: 17.56, dec: -37.10, mag: 1.62, color: 0xaaddff, dist: 570 },
+            graffias: { name: "Graffias", ra: 16.09, dec: -19.80, mag: 2.5, color: 0xaaddff, dist: 400 },
+            dschubba: { name: "Dschubba", ra: 16.00, dec: -22.62, mag: 2.3, color: 0xaaddff, dist: 490 },
+            sargas: { name: "Sargas", ra: 17.62, dec: -43.00, mag: 1.8, color: 0xffffff, dist: 300 },
+            jabbah: { name: "Jabbah", ra: 16.20, dec: -19.46, mag: 4.0, color: 0xaaddff, dist: 440 },
+            piSco: { name: "Pi Sco", ra: 15.98, dec: -26.11, mag: 2.89, color: 0xaaddff, dist: 590 },
+            sigmaSco: { name: "Al Niyat", ra: 16.35, dec: -25.59, mag: 2.88, color: 0xaaddff, dist: 696 },
+            tauSco: { name: "Tau Sco", ra: 16.60, dec: -28.21, mag: 2.82, color: 0xaaddff, dist: 470 },
+            epsilonSco: { name: "Larawag", ra: 16.83, dec: -34.29, mag: 2.29, color: 0xffccaa, dist: 64 },
+            mu1Sco: { name: "Mu1 Sco", ra: 16.86, dec: -38.04, mag: 3.0, color: 0xaaddff, dist: 500 },
+            zeta1Sco: { name: "", ra: 16.90, dec: -42.36, mag: 4.7, color: 0xffccaa, dist: 130 },
+            etaSco: { name: "Eta Sco", ra: 17.20, dec: -43.23, mag: 3.33, color: 0xffffff, dist: 74 },
+            kappaSco: { name: "Girtab", ra: 17.70, dec: -39.03, mag: 2.39, color: 0xaaddff, dist: 480 },
+            iota1Sco: { name: "Iota1 Sco", ra: 17.79, dec: -40.12, mag: 2.99, color: 0xffffff, dist: 1900 },
+
+            // Ophiuchus
+            rasalhague: { name: "Rasalhague", ra: 17.58, dec: 12.56, mag: 2.0, color: 0xffffff, dist: 48 },
+            sabik: { name: "Sabik", ra: 17.17, dec: -15.72, mag: 2.4, color: 0xffffff, dist: 88 },
+            cebalrai: { name: "Cebalrai", ra: 17.72, dec: 4.57, mag: 2.7, color: 0xffccaa, dist: 81 },
+            yedPrior: { name: "Yed Prior", ra: 16.23, dec: -3.69, mag: 2.73, color: 0xff4444, dist: 171 },
+            yedPosterior: { name: "Yed Posterior", ra: 16.30, dec: -4.44, mag: 3.23, color: 0xffccaa, dist: 108 },
+            zetaOph: { name: "Zeta Oph", ra: 16.62, dec: -10.57, mag: 2.57, color: 0xaaddff, dist: 366 },
+            kappaOph: { name: "Kappa Oph", ra: 16.96, dec: 9.38, mag: 3.19, color: 0xffccaa, dist: 91 },
+            nuOph: { name: "Nu Oph", ra: 17.89, dec: -9.77, mag: 3.32, color: 0xffccaa, dist: 151 },
+
+            // Sagittarius
+            kausAus: { name: "Kaus Australis", ra: 18.40, dec: -34.38, mag: 1.8, color: 0xaaddff, dist: 143 },
+            nunki: { name: "Nunki", ra: 18.92, dec: -26.29, mag: 2.0, color: 0xaaddff, dist: 228 },
+            ascella: { name: "Ascella", ra: 19.04, dec: -29.88, mag: 2.6, color: 0xffffff, dist: 88 },
+            kausMed: { name: "Kaus Media", ra: 18.35, dec: -29.83, mag: 2.7, color: 0xffccaa, dist: 348 },
+            kausBor: { name: "Kaus Borealis", ra: 18.47, dec: -25.42, mag: 2.8, color: 0xffccaa, dist: 78 },
+            alnasl: { name: "Alnasl", ra: 18.10, dec: -30.42, mag: 2.98, color: 0xffccaa, dist: 96 },
+            albaldah: { name: "Albaldah", ra: 19.16, dec: -21.02, mag: 2.88, color: 0xffffff, dist: 510 },
+            rukbat: { name: "Rukbat", ra: 19.39, dec: -40.61, mag: 3.96, color: 0xaaddff, dist: 194 },
+            arkabPrior: { name: "", ra: 19.38, dec: -44.46, mag: 3.96, color: 0xaaddff, dist: 378 },
+            arkabPosterior: { name: "", ra: 19.39, dec: -44.80, mag: 4.27, color: 0xffffff, dist: 137 },
+            terebellum: { name: "", ra: 19.92, dec: -26.29, mag: 4.7, color: 0xffccaa, dist: 150 },
+            tauSgr: { name: "Tau Sgr", ra: 19.11, dec: -27.67, mag: 3.32, color: 0xffccaa, dist: 122 },
+
+            // Capricornus
+            denebAlgedi: { name: "Deneb Algedi", ra: 21.78, dec: -16.13, mag: 2.8, color: 0xffffff, dist: 38 },
+            dabih: { name: "Dabih", ra: 20.35, dec: -14.77, mag: 3.0, color: 0xffccaa, dist: 344 },
+            algedi: { name: "Algedi", ra: 20.30, dec: -12.54, mag: 3.6, color: 0xffccaa, dist: 108 },
+            nashira: { name: "Nashira", ra: 21.67, dec: -16.66, mag: 3.69, color: 0xffffff, dist: 139 },
+            epsilonCap: { name: "", ra: 21.62, dec: -19.46, mag: 4.5, color: 0xaaddff, dist: 660 },
+            zetaCap: { name: "", ra: 21.44, dec: -22.41, mag: 3.77, color: 0xffccaa, dist: 390 },
+            thetaCap: { name: "", ra: 21.01, dec: -17.23, mag: 4.08, color: 0xffffff, dist: 157 },
+            omegaCap: { name: "", ra: 20.86, dec: -26.92, mag: 4.12, color: 0xffccaa, dist: 630 },
+            psiCap: { name: "", ra: 20.77, dec: -25.27, mag: 4.13, color: 0xffffff, dist: 48 },
+
+            // Aquarius
+            sadalsuud: { name: "Sadalsuud", ra: 21.53, dec: -5.57, mag: 2.9, color: 0xffccaa, dist: 540 },
+            sadalmelik: { name: "Sadalmelik", ra: 22.09, dec: -0.32, mag: 2.9, color: 0xffccaa, dist: 520 },
+            skat: { name: "Skat", ra: 22.91, dec: -15.82, mag: 3.2, color: 0xffffff, dist: 160 },
+            albali: { name: "Albali", ra: 20.79, dec: -9.49, mag: 3.78, color: 0xffffff, dist: 210 },
+            sadachbia: { name: "Sadachbia", ra: 22.36, dec: -1.39, mag: 3.86, color: 0xffffff, dist: 164 },
+            zetaAqr: { name: "", ra: 22.47, dec: -0.02, mag: 3.65, color: 0xffffff, dist: 92 },
+            etaAqr: { name: "", ra: 22.58, dec: -0.12, mag: 4.04, color: 0xffffff, dist: 168 },
+            lambdaAqr: { name: "", ra: 22.87, dec: -7.58, mag: 3.73, color: 0xff4444, dist: 390 },
+            phiAqr: { name: "", ra: 23.23, dec: -6.05, mag: 4.22, color: 0xff4444, dist: 222 },
+            ancha: { name: "Ancha", ra: 22.28, dec: -7.82, mag: 4.17, color: 0xffccaa, dist: 191 },
+
+            // Pisces
+            alpherg: { name: "Alpherg", ra: 1.52, dec: 15.35, mag: 3.6, color: 0xffccaa, dist: 294 },
+            alrescha: { name: "Alrescha", ra: 2.03, dec: 2.76, mag: 3.8, color: 0xffffff, dist: 139 },
+            gammaPsc: { name: "Gamma Psc", ra: 23.28, dec: 3.28, mag: 3.7, color: 0xffccaa, dist: 138 },
+            fumAlSamakah: { name: "", ra: 23.06, dec: 3.82, mag: 4.48, color: 0xaaddff, dist: 490 },
+            deltaPsc: { name: "", ra: 0.81, dec: 7.59, mag: 4.44, color: 0xffccaa, dist: 305 },
+            epsilonPsc: { name: "", ra: 1.05, dec: 7.89, mag: 4.27, color: 0xffccaa, dist: 182 },
+            revati: { name: "Revati", ra: 1.23, dec: 7.58, mag: 5.21, color: 0xffffff, dist: 550 },
+            torcular: { name: "Torcular", ra: 1.76, dec: 9.15, mag: 4.26, color: 0xffffff, dist: 290 },
+            omegaPsc: { name: "", ra: 23.99, dec: 6.86, mag: 4.03, color: 0xffffff, dist: 106 },
+            iotaPsc: { name: "", ra: 23.66, dec: 5.62, mag: 4.13, color: 0xffffff, dist: 45 },
+            thetaPsc: { name: "", ra: 23.46, dec: 6.38, mag: 4.27, color: 0xffccaa, dist: 159 },
+
+            // Pegasus (Great Square)
+            markab: { name: "Markab", ra: 23.08, dec: 15.21, mag: 2.49, color: 0xaaddff, dist: 133 },
+            scheat: { name: "Scheat", ra: 23.06, dec: 28.08, mag: 2.4, color: 0xff4444, dist: 196 },
+            algenib: { name: "Algenib", ra: 0.22, dec: 15.18, mag: 2.8, color: 0xaaddff, dist: 390 },
+            enif: { name: "Enif", ra: 21.73, dec: 9.87, mag: 2.4, color: 0xffccaa, dist: 690 },
+            
+
+            // Andromeda
+            alpheratz: { name: "Alpheratz", ra: 0.14, dec: 29.09, mag: 2.06, color: 0xaaddff, dist: 97 },
+            mirach: { name: "Mirach", ra: 1.16, dec: 35.62, mag: 2.0, color: 0xff4444, dist: 197 },
+            almach: { name: "Almach", ra: 2.06, dec: 42.33, mag: 2.1, color: 0xffccaa, dist: 350 },
+            deltaAnd: { name: "Delta And", ra: 1.82, dec: 42.33, mag: 3.0, color: 0xffffff, dist: 105 },
+            gammaAnd: { name: "Gamma And", ra: 2.57, dec: 40.11, mag: 2.1, color: 0xffccaa, dist: 350 },
+
+
+            // Perseus
+            mirfak: { name: "Mirfak", ra: 3.41, dec: 49.86, mag: 1.8, color: 0xffffee, dist: 510 },
+            algol: { name: "Algol", ra: 3.13, dec: 40.96, mag: 2.1, color: 0xaaddff, dist: 90 },
+            
+            // Crux
+            acrux: { name: "Acrux", ra: 12.44, dec: -63.09, mag: 0.7, color: 0xaaddff, dist: 320 },
+            mimosa: { name: "Mimosa", ra: 12.79, dec: -59.68, mag: 1.25, color: 0xaaddff, dist: 280 },
+            gacrux: { name: "Gacrux", ra: 12.51, dec: -57.11, mag: 1.6, color: 0xffaa66, dist: 88 },
+            deltaCru: { name: "Delta Cru", ra: 12.25, dec: -58.74, mag: 2.7, color: 0xaaddff, dist: 345 },
+
+            // Centaurus
+            rigilKent: { name: "Alpha Cen", ra: 14.66, dec: -60.83, mag: -0.01, color: 0xffffee, dist: 4.37 },
+            hadar: { name: "Beta Cen", ra: 14.06, dec: -60.37, mag: 0.6, color: 0xaaddff, dist: 390 },
+
+            // Carina
+            canopus: { name: "Canopus", ra: 6.40, dec: -52.70, mag: -0.72, color: 0xffffee, dist: 310 },
+            miaplacidus: { name: "Miaplacidus", ra: 9.22, dec: -69.72, mag: 1.67, color: 0xffffff, dist: 113 },
+
+            // Eridanus & Piscis Austrinus
+            achernar: { name: "Achernar", ra: 1.63, dec: -57.23, mag: 0.45, color: 0xaaddff, dist: 139 },
+            fomalhaut: { name: "Fomalhaut", ra: 22.96, dec: -29.62, mag: 1.16, color: 0xffffff, dist: 25 }
+        };
+        
+        const constellations = [
+            { 
+                id: "UrsaMinor", name: "Ursa Minor", 
+                stars: ["polaris", "yildun", "epsilonUMi", "zetaUMi", "etaUMi", "kochab", "pherkad"], 
+                lines: [["polaris", "yildun"], ["yildun", "epsilonUMi"], ["epsilonUMi", "zetaUMi"], ["zetaUMi", "etaUMi"], ["etaUMi", "pherkad"], ["pherkad", "kochab"], ["kochab", "zetaUMi"]] 
+            },
+            { 
+                id: "UrsaMajor", name: "Big Dipper", 
+                stars: ["dubhe", "merak", "phecda", "megrez", "alioth", "mizar", "alkaid"], 
+                lines: [["dubhe","merak"],["merak","phecda"],["phecda","megrez"],["megrez","dubhe"],["megrez","alioth"],["alioth","mizar"],["mizar","alkaid"]] 
+            },
+            {
+                id: "Draco", name: "Draco",
+                stars: ["thuban", "eltanin", "rastaban"],
+                lines: [["thuban", "rastaban"], ["rastaban", "eltanin"]]
+            },
+            { 
+                id: "Cassiopeia", name: "Cassiopeia", 
+                stars: ["caph", "schedar", "gammaCas", "ruchbah", "segin"], 
+                lines: [["caph","schedar"],["schedar","gammaCas"],["gammaCas","ruchbah"],["ruchbah","segin"]] 
+            },
+            { 
+                id: "Orion", name: "Orion", 
+                stars: ["betelgeuse", "rigel", "bellatrix", "saiph", "alnitak", "alnilam", "mintaka"], 
+                lines: [
+                    ["betelgeuse","bellatrix"], ["bellatrix","mintaka"], ["mintaka","alnilam"], ["alnilam","alnitak"], ["alnitak","saiph"], ["saiph","rigel"], ["rigel","mintaka"], ["betelgeuse","alnitak"]
+                ] 
+            },
+            {
+                id: "CanisMajor", name: "Canis Major",
+                stars: ["sirius", "mirzam", "wezen", "adhara", "aludra"],
+                lines: [["sirius", "mirzam"], ["mirzam", "wezen"], ["wezen", "adhara"], ["wezen", "aludra"]]
+            },
+            {
+                id: "CanisMinor", name: "Canis Minor",
+                stars: ["procyon", "gomeisa"],
+                lines: [["procyon", "gomeisa"]]
+            },
+            {
+                id: "Auriga", name: "Auriga",
+                stars: ["capella", "menkalinan", "elnath", "zetaAur"], // Elnath is shared
+                lines: [["capella", "menkalinan"], ["menkalinan", "elnath"], ["elnath", "zetaAur"]]
+            },
+            {
+                id: "Lyra", name: "Lyra",
+                stars: ["vega", "sheliak", "sulafat", "epsilonLyr", "etaLyr", "zetaLyr", "phiLyr"],
+                lines: []
+            },
+            {
+                id: "Aquila", name: "Aquila",
+                stars: ["altair", "tarazed"],
+                lines: [["altair", "tarazed"]]
+            },
+            {
+                id: "Cygnus", name: "Cygnus",
+                stars: ["deneb", "sadr", "albireo", "gienah"],
+                lines: [["deneb", "sadr"], ["sadr", "albireo"], ["sadr", "gienah"]]
+            },
+            // --- ZODIAC ---
+            {
+                id: "Aries", name: "Aries",
+                stars: ["hamal", "sheratan", "mesarthim", "botein", "ari41"],
+                lines: [["hamal", "sheratan"], ["sheratan", "mesarthim"], ["mesarthim", "ari41"], ["ari41", "botein"]]
+            },
+            {
+                id: "Taurus", name: "Taurus",
+                stars: ["aldebaran", "elnath", "tianguan", "alcyone", "hyadum1", "hyadum2", "ain", "tau119"],
+                lines: [
+                    ["aldebaran", "hyadum1"], ["hyadum1", "hyadum2"], ["hyadum2", "ain"], // Hyades V-shape
+                    ["ain", "elnath"], // Horn
+                    ["aldebaran", "tau119"], ["tau119", "tianguan"],
+                    ["ain", "alcyone"]
+                ]
+            },
+            {
+                id: "Gemini", name: "Gemini",
+                stars: ["pollux", "castor", "alhena", "wasat", "mekbuda", "propus", "tejat", "mebsuta", "kappaGem", "lambdaGem"],
+                lines: [
+                    ["castor", "pollux"], 
+                    ["castor", "mebsuta"], ["mebsuta", "tejat"], ["tejat", "propus"],
+                    ["pollux", "kappaGem"], ["kappaGem", "wasat"], ["wasat", "mekbuda"], ["mekbuda", "alhena"], ["wasat", "lambdaGem"]
+                ]
+            },
+            {
+                id: "Cancer", name: "Cancer",
+                stars: ["acubens", "altarf", "asellusBor", "asellusAus", "iotaCnc"],
+                lines: [["iotaCnc", "asellusBor"], ["asellusBor", "asellusAus"], ["asellusAus", "acubens"], ["asellusAus", "altarf"]]
+            },
+            {
+                id: "Leo", name: "Leo",
+                stars: ["regulus", "denebola", "algieba", "zosma", "adhafera", "rasalas", "chertan", "rhoLeo", "iotaLeo", "etaLeo"],
+                lines: [
+                    ["regulus", "etaLeo"], ["etaLeo", "algieba"], ["algieba", "adhafera"], ["adhafera", "rasalas"], // Sickle
+                    ["regulus", "chertan"], ["chertan", "zosma"], ["zosma", "denebola"], // Body
+                    ["algieba", "zosma"] // Back
+                ]
+            },
+            {
+                id: "Virgo", name: "Virgo",
+                stars: ["spica", "porrima", "vindemiatrix", "auva", "heze", "zaniah", "syrma", "rijlAlAwwa", "vir109"],
+                lines: [
+                    ["zaniah", "porrima"], // Head
+                    ["porrima", "auva"], ["auva", "heze"], ["heze", "spica"], ["spica", "porrima"], // Body
+                    ["auva", "vindemiatrix"], // Arm
+                    ["spica", "syrma"], ["syrma", "rijlAlAwwa"], // Robe
+                    ["heze", "vir109"] // Leg
+                ]
+            },
+            {
+                id: "Bootes", name: "Boötes",
+                stars: ["arcturus", "izar", "muphrid"],
+                lines: [["arcturus", "izar"], ["arcturus", "muphrid"]]
+            },
+            {
+                id: "Libra", name: "Libra",
+                stars: ["zubenelgenubi", "zubeneschamali", "brachium", "upsilonLib", "tauLib", "gammaLib"],
+                lines: [
+                    ["zubeneschamali", "zubenelgenubi"], // Beam
+                    ["zubeneschamali", "gammaLib"], // Upper Arm
+                    ["zubenelgenubi", "brachium"], ["brachium", "upsilonLib"], ["upsilonLib", "tauLib"] // Lower Arm
+                ]
+            },
+            {
+                id: "Scorpius", name: "Scorpius",
+                stars: ["antares", "shaula", "graffias", "dschubba", "sargas", "jabbah", "piSco", "sigmaSco", "tauSco", "epsilonSco", "mu1Sco", "zeta1Sco", "etaSco", "kappaSco", "iota1Sco"],
+                lines: [
+                    ["graffias", "dschubba"], ["dschubba", "piSco"], ["piSco", "jabbah"], // Head Fan
+                    ["dschubba", "antares"], ["antares", "tauSco"], ["tauSco", "epsilonSco"], ["epsilonSco", "mu1Sco"], ["mu1Sco", "zeta1Sco"], ["zeta1Sco", "etaSco"], ["etaSco", "sargas"], ["sargas", "kappaSco"], ["kappaSco", "iota1Sco"], ["iota1Sco", "shaula"], // Body & Tail
+                    ["antares", "sigmaSco"] // Heart
+                ]
+            },
+            {
+                id: "Ophiuchus", name: "Ophiuchus",
+                stars: ["rasalhague", "sabik", "cebalrai", "yedPrior", "yedPosterior", "zetaOph", "kappaOph", "nuOph"],
+                lines: [
+                    ["rasalhague", "cebalrai"], ["rasalhague", "kappaOph"], 
+                    ["kappaOph", "yedPrior"], ["yedPrior", "yedPosterior"], ["yedPosterior", "zetaOph"], ["zetaOph", "sabik"], ["sabik", "nuOph"]
+                ]
+            },
+            {
+                id: "Sagittarius", name: "Sagittarius",
+                stars: ["kausAus", "nunki", "ascella", "kausMed", "kausBor", "alnasl", "albaldah", "rukbat", "arkabPrior", "arkabPosterior", "terebellum", "tauSgr"],
+                lines: [
+                    ["kausMed", "alnasl"], // Spout
+                    ["kausMed", "kausAus"], ["kausAus", "ascella"], ["ascella", "nunki"], ["nunki", "kausBor"], ["kausBor", "kausMed"], // Teapot Body & Lid
+                    ["ascella", "tauSgr"], ["tauSgr", "nunki"], // Handle
+                    ["ascella", "rukbat"], ["rukbat", "arkabPrior"], ["arkabPrior", "arkabPosterior"] // Legs
+                ]
+            },
+            {
+                id: "Capricornus", name: "Capricornus",
+                stars: ["algedi", "dabih", "denebAlgedi", "nashira", "epsilonCap", "zetaCap", "thetaCap", "omegaCap", "psiCap"],
+                lines: [
+                    ["algedi", "dabih"], ["dabih", "thetaCap"], ["thetaCap", "denebAlgedi"], ["denebAlgedi", "nashira"], ["nashira", "epsilonCap"], ["epsilonCap", "zetaCap"], ["zetaCap", "omegaCap"], ["omegaCap", "psiCap"], ["psiCap", "dabih"]
+                ]
+            },
+            {
+                id: "Aquarius", name: "Aquarius",
+                stars: ["sadalmelik", "sadalsuud", "skat", "albali", "sadachbia", "zetaAqr", "etaAqr", "lambdaAqr", "phiAqr", "ancha"],
+                lines: [
+                    ["sadalmelik", "sadalsuud"], ["sadalsuud", "albali"], ["albali", "ancha"], // Shoulder
+                    ["sadalmelik", "zetaAqr"], ["zetaAqr", "etaAqr"], ["zetaAqr", "sadachbia"], // Jar
+                    ["sadalsuud", "skat"], ["skat", "lambdaAqr"], ["lambdaAqr", "phiAqr"] // Stream
+                ]
+            },
+            {
+                id: "Pisces", name: "Pisces",
+                stars: ["alrescha", "alpherg", "gammaPsc", "fumAlSamakah", "deltaPsc", "epsilonPsc", "revati", "torcular", "omegaPsc", "iotaPsc", "thetaPsc"],
+                lines: [
+                    ["gammaPsc", "thetaPsc"], ["thetaPsc", "iotaPsc"], ["iotaPsc", "omegaPsc"], ["omegaPsc", "gammaPsc"], // Circlet
+                    ["iotaPsc", "deltaPsc"], ["deltaPsc", "epsilonPsc"], ["epsilonPsc", "revati"], ["revati", "alrescha"], // West Fish
+                    ["alrescha", "torcular"], ["torcular", "alpherg"], ["alpherg", "fumAlSamakah"] // North Fish
+                ]
+            },
+            {
+                id: "Pegasus", name: "Pegasus",
+                stars: ["markab", "scheat", "algenib", "enif"],
+                lines: [["markab", "scheat"], ["scheat", "algenib"], ["algenib", "markab"], ["markab", "enif"]]
+            },
+            {
+                id: "Andromeda", name: "Andromeda",
+                stars: ["alpheratz", "mirach", "almach"],
+                lines: [["alpheratz", "mirach"], ["mirach", "almach"], ["alpheratz", "algenib"]]  // Connect to Pegasus
+            },
+            {
+                id: "Perseus", name: "Perseus",
+                stars: ["mirfak", "algol"],
+                lines: [["mirfak", "algol"]]
+            },
+            { 
+                id: "Crux", name: "Crux", 
+                stars: ["acrux", "mimosa", "gacrux", "deltaCru"], 
+                lines: [["acrux","gacrux"],["mimosa","deltaCru"]] 
+            },
+            {
+                id: "Centaurus", name: "Centaurus",
+                stars: ["rigilKent", "hadar"],
+                lines: [["rigilKent", "hadar"], ["hadar", "acrux"]] // Pointers to Crux
+            },
+            {
+                id: "Carina", name: "Carina",
+                stars: ["canopus", "miaplacidus"],
+                lines: [["canopus", "miaplacidus"]]
+            }
+        ];
+
+        // Simplified Planet Data (Speed relative to Earth days)
+        const planetData = [
+            { name: "Mercury", color: 0xaaaaaa, speed: 4.09, offset: 0, size: 0.4, dist: "0.39 AU" },
+            { name: "Venus", color: 0xffcc99, speed: 1.60, offset: 60, size: 0.9, dist: "0.72 AU" },
+            { name: "Mars", color: 0xff5555, speed: 0.52, offset: 120, size: 0.6, dist: "1.52 AU" },
+            { name: "Jupiter", color: 0xffaa88, speed: 0.08, offset: 200, size: 1.8, dist: "5.20 AU" },
+            { name: "Saturn", color: 0xeebb88, speed: 0.03, offset: 300, size: 1.5, dist: "9.58 AU" }
+        ];
+
+        const config = { lat: 13.75, radius: 25, tilt: 23.5 * (Math.PI/180) };
+        let scene, camera, renderer, controls;
+        let rootGroup, tiltGroup, skyGroup, sunMesh;
+        let objects = {}, labelData = [];
+        let timeOfDay = 12, dayOfYear = 80, isAnimating = false;
+        let vis = { ground: true, stars: true, conLines: true, conNames: true, starNames: true, equator: true, raScale: true, ecliptic: true, ecScale: true, moonOrbit: true, planets: true, milkyWay: true, raDecGrid: false, altAzGrid: false, atmosphere: true, trails: false, meridian: false, meridianScale: false };
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2(-1000, -1000);
+        let hoveredLabel = null;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050508);
+            scene.fog = new THREE.FogExp2(0x050508, 0.005);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 300);
+            camera.position.set(0, 25, 80); // Zoom out to show full sphere on load
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 150;
+            controls.minDistance = 5;
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.2)); // Reduced ambient light for better phases
+
+            createWorld();
+            setupEvents();
+            updateSim();
+            animate();
+        }
+
+        function createWorld() {
+            // 1. Horizon / Ground (Solid Opaque)
+            const groundGeo = new THREE.CircleGeometry(config.radius, 64);
+            groundGeo.rotateX(-Math.PI / 2);
+            // Black opaque ground to strictly hide stars below
+            const groundMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide }); 
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.position.y = -0.1; // Just below zero
+            objects.ground = ground;
+            scene.add(ground);
+
+            // Horizon Ring (Green)
+            const hRing = new THREE.Mesh(new THREE.RingGeometry(config.radius, config.radius+0.5, 64).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({color: 0x4ade80, side: THREE.DoubleSide}));
+            hRing.position.y = -0.1;
+            scene.add(hRing);
+
+            // Cardinal Points
+            const cardinals = new THREE.Group();
+            scene.add(cardinals);
+            const r = config.radius + 1.5;
+            addLabel("N", 0, 0, -r, "#4ade80", cardinals, "label-cardinal");
+            addLabel("S", 0, 0, r, "#4ade80", cardinals, "label-cardinal");
+            addLabel("E", r, 0, 0, "#4ade80", cardinals, "label-cardinal");
+            addLabel("W", -r, 0, 0, "#4ade80", cardinals, "label-cardinal");
+
+            // Observer
+            const obs = new THREE.Group();
+            obs.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,1.2,8), new THREE.MeshLambertMaterial({color:0x888888})).translateY(0.6));
+            obs.add(new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshLambertMaterial({color:0xeeeeee})).translateY(1.3));
+            scene.add(obs);
+
+            // Meridian Group
+            const meridianGroup = new THREE.Group();
+            objects.meridian = meridianGroup; meridianGroup.visible = false;
+            scene.add(meridianGroup);
+
+            const meridianLine = new THREE.Mesh(new THREE.TorusGeometry(config.radius*0.99, 0.04, 16, 100).rotateY(Math.PI/2), new THREE.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.4 }));
+            meridianGroup.add(meridianLine);
+            addLabel("Meridian", 0, config.radius*0.7, config.radius*0.7, "#4ade80", meridianGroup, "label-meridian");
+            addLabel("Z", 0, config.radius*0.8, 0, "#4ade80", meridianGroup, "label-cardinal"); // Zenith
+
+            // Meridian Scale
+            const merScaleGroup = new THREE.Group();
+            objects.meridianScale = merScaleGroup; merScaleGroup.visible = false;
+            meridianGroup.add(merScaleGroup);
+            for(let i=10; i<90; i+=10) {
+                const ang = i * Math.PI/180;
+                const y = config.radius * Math.sin(ang);
+                const z = config.radius * Math.cos(ang);
+                // South side
+                addLabel(i+"°", 0, y, z, "#4ade80", merScaleGroup, "label-eq");
+                // North side
+                addLabel(i+"°", 0, y, -z, "#4ade80", merScaleGroup, "label-eq");
+            }
+
+            // Horizontal (Alt-Az) Grid
+            const altAzGrid = new THREE.Group();
+            const altAzMat = new THREE.MeshBasicMaterial({ color: '#4ade80', transparent: true, opacity: 0.08 });
+
+            // Almucantars (Altitude circles)
+            [30, 60].forEach(alt => {
+                const r = config.radius * Math.cos(alt * Math.PI / 180);
+                const y = config.radius * Math.sin(alt * Math.PI / 180);
+                const circle = new THREE.Mesh(new THREE.TorusGeometry(r, 0.04, 16, 100).rotateX(Math.PI/2), altAzMat);
+                circle.position.y = y;
+                altAzGrid.add(circle);
+            });
+
+            // Vertical Circles (Azimuth circles)
+            for (let i = 1; i < 4; i++) { // Skip 0/90 as meridian/prime vertical are similar
+                const angle = i * Math.PI / 4; // 45, 90, 135 degrees
+                altAzGrid.add(new THREE.Mesh(new THREE.TorusGeometry(config.radius, 0.04, 16, 100).rotateY(angle), altAzMat));
+            }
+            objects.altAzGrid = altAzGrid; altAzGrid.visible = false;
+            scene.add(altAzGrid);
+
+            // 2. Celestial Sphere
+            rootGroup = new THREE.Group(); scene.add(rootGroup);
+            tiltGroup = new THREE.Group(); rootGroup.add(tiltGroup);
+            
+            // Axis
+            const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-r,0), new THREE.Vector3(0,r,0)]), new THREE.LineBasicMaterial({ color: 0xff4444, dashSize: 0.5, gapSize: 0.3 }));
+            axis.computeLineDistances();
+            tiltGroup.add(axis);
+            addLabel("NCP", 0, r, 0, "#ff4444", tiltGroup);
+
+            // Sky Group (Rotates with Time)
+            skyGroup = new THREE.Group(); tiltGroup.add(skyGroup);
+
+            // RA/Dec Grid
+            const raDecGrid = new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.SphereGeometry(config.radius*0.99, 12, 12)), new THREE.LineBasicMaterial({ color: 0x00ffff, opacity: 0.08, transparent: true }));
+            objects.raDecGrid = raDecGrid; raDecGrid.visible = false; skyGroup.add(raDecGrid);
+
+            // Equator
+            const eqGroup = new THREE.Group();
+            objects.equator = eqGroup;
+            skyGroup.add(eqGroup);
+
+            const eqLine = new THREE.Mesh(new THREE.TorusGeometry(config.radius, 0.08, 16, 100).rotateX(Math.PI/2), new THREE.MeshBasicMaterial({ color: 0x00ffff }));
+            eqGroup.add(eqLine);
+
+            // RA Scale Group
+            const raScaleGroup = new THREE.Group();
+            objects.raScale = raScaleGroup;
+            eqGroup.add(raScaleGroup);
+
+            // RA Markers
+            for(let i=0; i<24; i+=2) {
+                const angle = (i * 15) * Math.PI / 180;
+                const x = config.radius * Math.cos(angle);
+                const z = -config.radius * Math.sin(angle);
+                const tickGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x*0.98, 0, z*0.98), new THREE.Vector3(x*1.02, 0, z*1.02)]);
+                raScaleGroup.add(new THREE.Line(tickGeo, new THREE.LineBasicMaterial({ color: 0x00ffff, transparent:true, opacity:0.5 })));
+                addLabel(i+"h", x*1.05, 0, z*1.05, "#00ffff", raScaleGroup, "label-eq");
+            }
+
+            // Stars
+            createStars();
+            
+            // Milky Way
+            createMilkyWay();
+
+            // Trails
+            const trails = new THREE.Group();
+            [-60, -30, 0, 30, 60].forEach(deg => {
+                 const tr = config.radius * Math.cos(deg*Math.PI/180);
+                 const ty = config.radius * Math.sin(deg*Math.PI/180);
+                 const ring = new THREE.Mesh(new THREE.RingGeometry(tr-0.05, tr+0.05, 64).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({color:0xffffff, opacity:0.1, transparent:true, side:THREE.DoubleSide}));
+                 ring.position.y = ty; trails.add(ring);
+            });
+            objects.trails = trails; trails.visible = false; skyGroup.add(trails);
+
+            // Ecliptic System
+            const ecGroup = new THREE.Group(); 
+            ecGroup.rotation.x = config.tilt; 
+            skyGroup.add(ecGroup);
+            
+            const ecObjGroup = new THREE.Group();
+            objects.ecliptic = ecObjGroup;
+            ecGroup.add(ecObjGroup);
+
+            // Ecliptic Line (Dashed)
+            const ecCurve = new THREE.EllipseCurve(0, 0, config.radius*0.99, config.radius*0.99, 0, 2*Math.PI, false, 0);
+            const ecPoints = ecCurve.getPoints(128).map(p => new THREE.Vector3(p.x, 0, -p.y));
+            const ecGeo = new THREE.BufferGeometry().setFromPoints(ecPoints);
+            const ecLine = new THREE.Line(ecGeo, new THREE.LineBasicMaterial({ color: 0xffaa00 }));
+            ecLine.computeLineDistances();
+            ecObjGroup.add(ecLine);
+
+            // Ecliptic Scale Group
+            const ecScaleGroup = new THREE.Group();
+            objects.ecScale = ecScaleGroup;
+            ecObjGroup.add(ecScaleGroup);
+
+            // Ecliptic Markers (Months & Degrees)
+            const months = ["Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
+            for(let i=0; i<12; i++) {
+                const angle = (i * 30) * Math.PI / 180;
+                const x = config.radius * 0.99 * Math.cos(angle);
+                const z = -config.radius * 0.99 * Math.sin(angle);
+                const tickGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x*0.98, 0, z*0.98), new THREE.Vector3(x*1.02, 0, z*1.02)]);
+                ecScaleGroup.add(new THREE.Line(tickGeo, new THREE.LineBasicMaterial({ color: 0xffcc00, transparent:true, opacity:0.5 })));
+                addLabel(months[i], x*1.05, 0, z*1.05, "#ffcc00", ecScaleGroup, "label-ec");
+                addLabel((i*30)+"°", x*0.92, 0, z*0.92, "#ffaa00", ecScaleGroup, "label-ec");
+            }
+
+            // Planets
+            createPlanets();
+            
+            sunMesh = new THREE.Group();
+            const sunBody = new THREE.Mesh(new THREE.SphereGeometry(1.5,16,16), new THREE.MeshBasicMaterial({color: 0xffffdd}));
+            sunMesh.add(sunBody);
+            
+            // Sun Light (Point light for phases)
+            const sunLight = new THREE.PointLight(0xffffff, 1.5, 100);
+            sunMesh.add(sunLight);
+
+            // Sun Glow
+            const glowTexture = new THREE.CanvasTexture(createGlow());
+            const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, blending: THREE.AdditiveBlending, color: 0xffaa00 }));
+            glow.scale.set(12,12,1);
+            sunMesh.add(glow);
+            addLabel("Sun", 0, 2.5, 0, "#ffff00", sunMesh, "label-sun");
+            skyGroup.add(sunMesh); // Add to skyGroup directly for equatorial positioning
+
+            // Moon Orbit Group (Inclined 5.14 deg to Ecliptic)
+            const moonOrbitGroup = new THREE.Group();
+            objects.moonOrbit = moonOrbitGroup;
+            moonOrbitGroup.rotation.x = 5.14 * Math.PI / 180; // Inclination
+            ecGroup.add(moonOrbitGroup);
+
+            // Moon Orbit Line
+            const moCurve = new THREE.EllipseCurve(0, 0, config.radius*0.95, config.radius*0.95, 0, 2*Math.PI, false, 0);
+            const moPoints = moCurve.getPoints(128).map(p => new THREE.Vector3(p.x, 0, -p.y));
+            const moLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(moPoints), new THREE.LineBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.4 }));
+            moonOrbitGroup.add(moLine);
+            objects.moonOrbit = moLine; // Control line visibility only
+            // Moon
+            const moonGeo = new THREE.SphereGeometry(0.5, 32, 32); // Increased segments for smoother look
+            const moonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9 }); // Use StandardMaterial for better lighting
+            const moonMesh = new THREE.Mesh(moonGeo, moonMat); 
+            objects.moon = moonMesh;
+            moonOrbitGroup.add(moonMesh); // Add to inclined orbit group
+            addLabel("Moon", 0, 1.5, 0, "#cccccc", moonMesh, "label-star");
+        }
+
+        function createPlanets() {
+            const planetGroup = new THREE.Group();
+            objects.planets = planetGroup;
+            // Add to ecliptic object group so they rotate with the sky and stay on ecliptic plane
+            objects.ecliptic.add(planetGroup); 
+
+            planetData.forEach(p => {
+                const geo = new THREE.SphereGeometry(p.size * 0.5, 16, 16);
+                const mat = new THREE.MeshBasicMaterial({ color: p.color });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.userData = { data: p, isPlanet: true };
+                planetGroup.add(mesh);
+                
+                const lbl = addLabel(p.name, 0, 0, 0, "#"+p.color.toString(16), planetGroup, "label-star");
+                mesh.userData.label = lbl;
+            });
+        }
+
+        function createMilkyWay() {
+            const mwGroup = new THREE.Group();
+            const count = 15000;
+            const positions = [];
+            const colors = [];
+            const color = new THREE.Color();
+
+            for(let i = 0; i < count; i++) {
+                // Create a band of stars
+                const angle = Math.random() * Math.PI * 2;
+                const radius = config.radius * 0.95;
+                const spread = (Math.random() - 0.5) * 0.5; // Width of the band
+                
+                // Position in a ring (initially in XZ plane)
+                const x = radius * Math.cos(angle);
+                const y = radius * Math.sin(spread); // Thickness
+                const z = radius * Math.sin(angle);
+
+                positions.push(x, y, z);
+
+                // Color variation (Blue-white to yellowish)
+                color.setHSL(0.6 + Math.random() * 0.1, 0.8, 0.8);
+                colors.push(color.r, color.g, color.b);
+            }
+
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            const mat = new THREE.PointsMaterial({ size: 0.08, vertexColors: true, transparent: true, opacity: 0.2 });
+            const mw = new THREE.Points(geo, mat);
+
+            // Rotate to align roughly with Galactic Plane (Inclined ~63 deg to Celestial Equator)
+            mwGroup.add(mw);
+            mwGroup.rotation.x = 63 * Math.PI / 180;
+            mwGroup.rotation.y = 280 * Math.PI / 180; // Approximate alignment
+            
+            objects.milkyWay = mwGroup;
+            skyGroup.add(mwGroup);
+        }
+
+        function createStars() {
+            const starGroup = new THREE.Group(); objects.stars = starGroup;
+            const lineGroup = new THREE.Group(); objects.conLines = lineGroup;
+            objects.starNames = [];
+            const dotGeo = new THREE.SphereGeometry(1, 8, 8); // Base geometry size
+            
+            // Faint Background Stars (Simulated) - Increased for mag <= 7 density
+            const bgGeo = new THREE.BufferGeometry(); const bgPos = [];
+            for(let i=0;i<5000;i++){
+                const v = randSphere(config.radius*0.98); // Slightly inside
+                bgPos.push(v.x,v.y,v.z);
+            }
+            bgGeo.setAttribute('position', new THREE.Float32BufferAttribute(bgPos,3));
+            skyGroup.add(new THREE.Points(bgGeo, new THREE.PointsMaterial({color: 0x778899, size: 0.08, transparent: true, opacity: 0.7})));
+
+            // Real Stars
+            for(let k in realStars) {
+                const s = realStars[k];
+                // IMPORTANT: Place stars slightly *closer* than full radius to avoid clipping with skin or background
+                s.id = k; // Add ID for lookup
+                const v = getVec(s.ra, s.dec, config.radius * 0.96); 
+                
+                // Emissive material helps them show up against backgrounds
+                const m = new THREE.Mesh(dotGeo, new THREE.MeshBasicMaterial({color: s.color})); 
+                m.position.copy(v);
+                
+                // Scale based on magnitude (Bright = Big) - Reduced size
+                const sc = Math.max(0.05, 0.35 - s.mag*0.06); 
+                m.scale.set(sc,sc,sc);
+                
+                starGroup.add(m);
+                const lbl = addLabel(s.name, v.x, v.y, v.z, "#fff", skyGroup, "label-star");
+                m.userData = { label: lbl, starData: s };
+            }
+
+            // Constellation Lines
+            const mat = new THREE.LineBasicMaterial({color: 0x3b82f6, transparent: true, opacity: 0.5});
+            constellations.forEach(c => {
+                const pts = [];
+                c.lineObjects = []; // Store line objects for highlighting
+                c.lines.forEach(p => {
+                    if(realStars[p[0]] && realStars[p[1]]) {
+                        pts.push(getVec(realStars[p[0]].ra, realStars[p[0]].dec, config.radius*0.96));
+                        pts.push(getVec(realStars[p[1]].ra, realStars[p[1]].dec, config.radius*0.96));
+                    }
+                });
+                lineGroup.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), mat));
+                // Store reference for highlighting logic (simplified: we'll redraw or change material if needed, 
+                // but for now let's just use a global material change or separate highlight lines)
+                
+                if(c.stars[0]) {
+                    const s = realStars[c.stars[0]];
+                    const v = getVec(s.ra, s.dec-5, config.radius*0.96);
+                    const lbl = addLabel(c.name, v.x, v.y, v.z, "#aaddff", skyGroup, "label-con");
+                    c.labelObj = lbl;
+                }
+            });
+            skyGroup.add(starGroup);
+            skyGroup.add(lineGroup);
+        }
+
+        // --- Utils ---
+        function getVec(ra, dec, r) {
+            const dr = dec * Math.PI/180;
+            const rr = (ra*15) * Math.PI/180;
+            const y = r * Math.sin(dr);
+            const rp = r * Math.cos(dr); // radius projected on equatorial plane
+            const x = rp * Math.cos(rr);
+            const z = -rp * Math.sin(rr); // FIX: Use negative sin for correct RA orientation (Eastward)
+            return new THREE.Vector3(x, y, z);
+        }
+        function randSphere(r) {
+            const t = Math.random()*Math.PI*2, p = Math.acos(2*Math.random()-1);
+            return new THREE.Vector3(r*Math.sin(p)*Math.cos(t), r*Math.cos(p), r*Math.sin(p)*Math.sin(t));
+        }
+        function createGlow() {
+            const c = document.createElement('canvas'); c.width=64; c.height=64;
+            const x = c.getContext('2d');
+            const g = x.createRadialGradient(32,32,0,32,32,32);
+            g.addColorStop(0,'rgba(255,240,150,1)'); g.addColorStop(1,'rgba(0,0,0,0)');
+            x.fillStyle=g; x.fillRect(0,0,64,64); return c;
+        }
+
+        // --- Loop ---
+        function updateSim() {
+            // Latitude Tilt
+            tiltGroup.rotation.x = (config.lat * Math.PI/180) - Math.PI/2;
+            
+            // Time Rotation
+            const sunA = ((dayOfYear-80)/365)*Math.PI*2;
+            const ha = (timeOfDay-12)*15 * Math.PI/180;
+            
+            // Sun Pos
+            const r = config.radius*0.97;
+            const sun_ra_rad = Math.atan2(Math.cos(config.tilt) * Math.sin(sunA), Math.cos(sunA)); // True RA of Sun
+            const sun_dec_rad = Math.asin(Math.sin(config.tilt) * Math.sin(sunA));
+            const sun_ra_h = sun_ra_rad * 180 / Math.PI / 15;
+            const sun_dec_deg = sun_dec_rad * 180 / Math.PI;
+            sunMesh.position.copy(getVec(sun_ra_h, sun_dec_deg, r));
+
+            // Moon Pos (Approximate: Moves ~13 deg/day relative to stars, or ~12 deg/day relative to sun)
+            // Initial offset at day 80 (Equinox)
+            const moonA = sunA + ((dayOfYear * 12.2) % 360) * Math.PI/180; 
+            const rMoon = config.radius*0.95;
+            objects.moon.position.set(rMoon*Math.cos(moonA), 0, -rMoon*Math.sin(moonA)); // Position on inclined plane
+
+            // Update Planets
+            if (objects.planets) {
+                objects.planets.visible = vis.planets;
+                if (vis.planets) {
+                    objects.planets.children.forEach(p => {
+                        const data = p.userData.data;
+                        const angle = (data.offset + (dayOfYear - 80) * data.speed) * Math.PI / 180;
+                        const r = config.radius * 0.96;
+                        p.position.set(r * Math.cos(angle), 0, -r * Math.sin(angle));
+                        if(p.userData.label) p.userData.label.pos.copy(p.position);
+                    });
+                }
+            }
+
+            // Rotate Sky based on LST (sun_ra_rad is calculated above)
+            const lst_rad = ha + sun_ra_rad; // LST = HA_sun + RA_sun
+            skyGroup.rotation.y = -lst_rad - (Math.PI / 2); // Rotate Sky: -LST to match Earth's rotation
+
+            // Data Update
+            const pos = new THREE.Vector3(); 
+            sunMesh.children[0].getWorldPosition(pos);
+            const alt = Math.asin(pos.y/pos.length()) * 180/Math.PI;
+            let az = Math.atan2(pos.x, -pos.z) * 180/Math.PI; if(az<0) az+=360;
+            
+            document.getElementById('sunAlt').innerText = alt.toFixed(1)+"°";
+            document.getElementById('sunAz').innerText = az.toFixed(1)+"°";
+            
+            // Calculate LST and Sun HA
+            let sunHA_h = (timeOfDay - 12);
+            if (sunHA_h < -12) sunHA_h += 24;
+            if (sunHA_h > 12) sunHA_h -= 24;
+            document.getElementById('sunHA').innerText = sunHA_h.toFixed(1) + "h";
+
+            const sunRA_h = sun_ra_rad * 180 / Math.PI / 15; // Use the corrected RA
+            let lst = (timeOfDay - 12) + sunRA_h;
+            if(lst < 0) lst += 24;
+            if(lst >= 24) lst -= 24;
+            
+            const hLST = Math.floor(lst);
+            const mLST = Math.floor((lst - hLST) * 60);
+            document.getElementById('lstVal').innerText = `${hLST.toString().padStart(2,'0')}:${mLST.toString().padStart(2,'0')}`;
+
+            document.getElementById('latVal').innerText = config.lat+"°";
+            document.getElementById('latDisplay').innerText = `Lat: ${config.lat}°`;
+            
+            const h=Math.floor(timeOfDay), m=Math.floor((timeOfDay-h)*60);
+            document.getElementById('timeVal').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+            document.getElementById('solarTimeVal').innerText = document.getElementById('timeVal').innerText;
+            
+            const d = new Date(2023,0); d.setDate(dayOfYear);
+            const dStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            document.getElementById('dayVal').innerText = dStr;
+            document.getElementById('dateDisplay').innerText = `Date: ${dStr}`;
+
+            // Atmosphere Logic (Fixed)
+            if(vis.atmosphere) {
+                let col = 0x050508; // Default Night
+                // If Sun is ABOVE Horizon (Alt > 0) -> Day Blue
+                if(alt >= 0) {
+                    // Linear interpolate blue brightness based on height to allow transition
+                    col = 0x5fa4e6; 
+                } 
+                // Twilight Zone (-12 to 0)
+                else if (alt > -12) {
+                     col = 0xcc5544; // Red/Orange
+                }
+                scene.background.setHex(col);
+                scene.fog.color.setHex(col);
+            } else {
+                scene.background.setHex(0x050508);
+                scene.fog.color.setHex(0x050508);
+            }
+        }
+
+        function updateLabels() {
+            labelData.forEach(l => {
+                const isHovered = (l === hoveredLabel);
+                if(l.type==="label-star" && !vis.starNames && !isHovered) { l.el.style.display='none'; return; }
+                if(l.type==="label-con" && !vis.conNames) { l.el.style.display='none'; return; }
+                
+                // Check parent visibility (Fix for floating labels when scales are hidden)
+                let p = l.parent;
+                let parentVisible = true;
+                while(p) {
+                    if(!p.visible) { parentVisible = false; break; }
+                    p = p.parent;
+                }
+                if(!parentVisible) { l.el.style.display='none'; return; }
+
+                l.el.style.display='block';
+                
+                const v = l.pos.clone(); l.parent.localToWorld(v);
+                
+                // Hide if below horizon
+                if(vis.ground && v.y < -0.2) { 
+                    l.el.style.opacity=0; 
+                    return; 
+                }
+                
+                v.project(camera);
+                if(v.z > 1) {
+                    l.el.style.opacity=0;
+                } else {
+                    if (l.type === 'label-star') {
+                        if (isHovered) {
+                            l.el.style.opacity = 1;
+                            l.el.style.zIndex = 20;
+                            l.el.style.color = "#ffffaa";
+                            l.el.style.textShadow = "0 0 8px #ffff00, 0 0 15px #ffaa00";
+                            l.el.style.fontWeight = "bold";
+                        } else {
+                            l.el.style.opacity = 0.9;
+                            l.el.style.zIndex = 1;
+                            l.el.style.color = "#ffffff";
+                            l.el.style.textShadow = "1px 1px 3px #000, -1px -1px 3px #000";
+                            l.el.style.fontWeight = "600";
+                        }
+                    } else {
+                    l.el.style.opacity = (l.type === 'label-con') ? 0.7 : 1;
+                    }
+                    const x = (v.x*.5+.5)*window.innerWidth;
+                    const y = (v.y*-.5+.5)*window.innerHeight;
+                    l.el.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px)`;
+                    
+                    if (isHovered) {
+                        l.el.style.transform += " scale(1.3)";
+                    }
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            if(isAnimating) {
+                timeOfDay += 0.05;
+                if(timeOfDay>=24) { timeOfDay=0; dayOfYear=(dayOfYear+1)%365; document.getElementById('daySlider').value=dayOfYear; }
+                document.getElementById('timeSlider').value = timeOfDay;
+                updateSim();
+            }
+            updateLabels();
+            scene.updateMatrixWorld(); // Ensure positions are updated for raycaster/labels
+            renderer.render(scene, camera);
+        }
+
+        function setupEvents() {
+            // Disable OrbitControls while dragging sliders
+            const inputs = document.querySelectorAll('input[type=range]');
+            inputs.forEach(input => {
+                input.addEventListener('mousedown', () => controls.enabled = false);
+                input.addEventListener('touchstart', () => controls.enabled = false);
+            });
+            window.addEventListener('mouseup', () => controls.enabled = true);
+            window.addEventListener('touchend', () => controls.enabled = true);
+
+            document.getElementById('latSlider').oninput = e => { config.lat = parseFloat(e.target.value); updateSim(); };
+            document.getElementById('timeSlider').oninput = e => { timeOfDay = parseFloat(e.target.value); updateSim(); };
+            document.getElementById('daySlider').oninput = e => { dayOfYear = parseInt(e.target.value); updateSim(); };
+            
+            const btn = document.getElementById('btnAnimate');
+            btn.onclick = () => { isAnimating=!isAnimating; btn.innerText=isAnimating?"||":"▶ Play"; btn.classList.toggle('bg-gray-700'); btn.classList.toggle('bg-green-600'); };
+            document.getElementById('btnReset').onclick = () => controls.reset();
+            
+            document.getElementById('btnNow').onclick = () => {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), 0, 0);
+                const diff = now - start;
+                const oneDay = 1000 * 60 * 60 * 24;
+                dayOfYear = Math.floor(diff / oneDay);
+                timeOfDay = now.getHours() + now.getMinutes()/60;
+                document.getElementById('daySlider').value = dayOfYear;
+                document.getElementById('timeSlider').value = timeOfDay;
+                updateSim();
+            };
+            
+            window.toggleVis = (k, b) => {
+                vis[k] = !vis[k]; b.classList.toggle('active');
+                if(objects[k]) objects[k].visible = vis[k];
+                if(k==='atmosphere') updateSim();
+            };
+            
+            window.togglePanel = () => document.getElementById('mainPanel').classList.toggle('collapsed');
+            window.onresize = () => {
+                camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth,window.innerHeight);
+            };
+            
+            window.addEventListener('mousemove', (event) => {
+                event.preventDefault();
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                // Hover Check
+                if (vis.stars && objects.stars) {
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(objects.stars.children);
+                    if (intersects.length > 0) {
+                        const hit = intersects.find(i => i.object.userData.starData);
+                        if (hit) {
+                            if (vis.ground && hit.point.y < -0.5) { hoveredLabel = null; document.body.style.cursor = 'default'; return; }
+                            hoveredLabel = hit.object.userData.label;
+                            document.body.style.cursor = 'pointer';
+                            return;
+                        }
+                    }
+                }
+                hoveredLabel = null;
+                document.body.style.cursor = 'default';
+            }, false);
+
+            let isDraggingSun = false;
+            renderer.domElement.addEventListener('mousedown', (event) => {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(sunMesh, true);
+                if (intersects.length > 0) {
+                    isDraggingSun = true;
+                    controls.enabled = false;
+                }
+            }, false);
+            renderer.domElement.addEventListener('mousemove', (event) => {
+                if (isDraggingSun) {
+                    timeOfDay -= event.movementX * 0.05; // Drag Right -> Move Sun Right (East) -> Decrease Time
+                    if (timeOfDay < 0) timeOfDay += 24;
+                    if (timeOfDay >= 24) timeOfDay -= 24;
+                    document.getElementById('timeSlider').value = timeOfDay;
+                    updateSim();
+                }
+            }, false);
+            renderer.domElement.addEventListener('mouseup', () => {
+                isDraggingSun = false; controls.enabled = true;
+            }, false);
+
+            // Highlight Constellation Function
+            function highlightConstellation(conId) {
+                // Reset all labels
+                constellations.forEach(c => {
+                    if(c.labelObj && c.labelObj.el) {
+                        c.labelObj.el.style.color = "#aaddff";
+                        c.labelObj.el.style.fontWeight = "normal";
+                        c.labelObj.el.style.fontSize = "12px";
+                        c.labelObj.el.style.zIndex = "1";
+                    }
+                });
+
+                const con = constellations.find(c => c.id === conId);
+                if(con && con.labelObj && con.labelObj.el) {
+                    con.labelObj.el.style.color = "#ffff00";
+                    con.labelObj.el.style.fontWeight = "bold";
+                    con.labelObj.el.style.fontSize = "16px";
+                    con.labelObj.el.style.zIndex = "100";
+                    // Note: Highlighting lines would require recreating them with a different material or using a shader, 
+                    // for simplicity we highlight the label and show info.
+                }
+            }
+
+            window.addEventListener('click', (event) => {
+                if (vis.stars && objects.stars) {
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(objects.stars.children);
+                    let hit = intersects.find(i => i.object.userData.starData);
+                    
+                    // Check Moon
+                    if (!hit && objects.moon) {
+                        const moonInt = raycaster.intersectObject(objects.moon);
+                        if (moonInt.length > 0) {
+                            const elongation = ((dayOfYear * 12.2) % 360);
+                            let phase = "";
+                            if (elongation < 10 || elongation > 350) phase = "New Moon (จันทร์ดับ)";
+                            else if (elongation < 85) phase = "Waxing Crescent (ข้างขึ้นอ่อนๆ)";
+                            else if (elongation < 95) phase = "First Quarter (ขึ้น 8 ค่ำ)";
+                            else if (elongation < 175) phase = "Waxing Gibbous (ข้างขึ้นแก่ๆ)";
+                            else if (elongation < 185) phase = "Full Moon (จันทร์เพ็ญ)";
+                            else if (elongation < 265) phase = "Waning Gibbous (ข้างแรมแก่ๆ)";
+                            else if (elongation < 275) phase = "Last Quarter (แรม 8 ค่ำ)";
+                            else phase = "Waning Crescent (ข้างแรมอ่อนๆ)";
+
+                            document.getElementById('selName').innerText = "Moon (ดวงจันทร์)";
+                            document.getElementById('selCon').innerText = phase;
+                            document.getElementById('selRA').innerText = "-";
+                            document.getElementById('selDec').innerText = "-";
+                            document.getElementById('selHA').innerText = "-";
+                            document.getElementById('selMag').innerText = "-12.7";
+                            document.getElementById('selDist').innerText = "0.00000004"; // approx light years
+                            document.getElementById('starInfo').classList.remove('hidden');
+                            return;
+                        }
+                    }
+
+                    // Check Planets
+                    if (!hit && vis.planets && objects.planets) {
+                        const pInt = raycaster.intersectObjects(objects.planets.children);
+                        if (pInt.length > 0) {
+                            hit = pInt[0]; // Treat as star hit for display logic below
+                        }
+                    }
+                    
+                    if (hit) {
+                        const s = hit.object.userData.starData || hit.object.userData.data; // Handle stars or planets
+                        document.getElementById('selName').innerText = s.name || "Star";
+                        
+                        if (hit.object.userData.isPlanet) {
+                            document.getElementById('selCon').innerText = "Planet (Solar System)";
+                            document.getElementById('selRA').innerText = "-";
+                            document.getElementById('selDec').innerText = "-";
+                            document.getElementById('selHA').innerText = "-";
+                            document.getElementById('selMag').innerText = "-";
+                            document.getElementById('selDist').innerText = s.dist || "-";
+                        } else {
+                            document.getElementById('selRA').innerText = s.ra.toFixed(2) + "h";
+                            document.getElementById('selDec').innerText = s.dec.toFixed(1) + "°";
+                            
+                            // New Info
+                            const con = constellations.find(c => c.stars.includes(s.id));
+                            document.getElementById('selCon').innerText = con ? con.name : "N/A";
+                            if(con) highlightConstellation(con.id);
+                            document.getElementById('selDist').innerText = s.dist ? s.dist : "-";
+
+                            // Calculate Star HA
+                            const sunA = ((dayOfYear-80)/365)*Math.PI*2;
+                            const sun_ra_rad = Math.atan2(Math.cos(config.tilt) * Math.sin(sunA), Math.cos(sunA)); // Correctly calculate Sun's RA
+                            const sunRA_h = sun_ra_rad * 180 / Math.PI / 15;
+                            let lst = (timeOfDay - 12) + sunRA_h;
+                            if(lst < 0) lst += 24;
+                            if(lst >= 24) lst -= 24;
+                            let starHA = lst - s.ra;
+                            if (starHA < -12) starHA += 24; if (starHA > 12) starHA -= 24;
+                            document.getElementById('selHA').innerText = starHA.toFixed(2) + "h";
+
+                            document.getElementById('selMag').innerText = s.mag;
+                        }
+                        document.getElementById('starInfo').classList.remove('hidden');
+                    } else {
+                        document.getElementById('starInfo').classList.add('hidden');
+                    }
+                }
+            }, false);
+        }
+        
+        function addLabel(t,x,y,z,c,p,cl="label") {
+            const d=document.createElement('div'); d.className=`label ${cl}`; d.textContent=t; d.style.color=c;
+            document.getElementById('labels-container').appendChild(d);
+            const obj = {el:d, pos:new THREE.Vector3(x,y,z), parent:p, type:cl};
+            labelData.push(obj);
+            return obj;
+        }
+
+        init();
+    </script>
+</body>
+</html>

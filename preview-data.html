@@ -163,10 +163,7 @@
                                         (คำอธิบาย)</label><input type="text" id="gen-desc" class="gen-input"></div>
                                 <div><label for="gen-category" class="gen-label">Category (หมวดหมู่หลัก)</label><select
                                         id="gen-category" class="gen-input">
-                                        <option value="Astronomy">Astronomy</option>
-                                        <option value="EarthScience">EarthScience</option>
-                                        <option value="AstronomyReview">AstronomyReview</option>
-                                        <option value="GeneralKnowledge">GeneralKnowledge</option>
+                                        <!-- Options will be populated by JS -->
                                     </select></div>
                                 <div><label for="gen-icon" class="gen-label">Icon Path (เช่น
                                         ./assets/icons/study.png)</label><input type="text" id="gen-icon"
@@ -297,6 +294,33 @@
 
             <!-- Use the more robust loader for better error handling -->
             <script src="./scripts/preview-loader.js" type="module"></script>
+            
+            <!-- Populate Categories from Config -->
+            <script type="module">
+                import { SiteConfig } from './scripts/site-config.js';
+                
+                const populateSelect = (selectorId) => {
+                    const select = document.getElementById(selectorId);
+                    if (!select) return;
+                    // Keep the first option (placeholder) if exists
+                    const placeholder = select.firstElementChild && select.firstElementChild.value === "" ? select.firstElementChild : null;
+                    select.innerHTML = '';
+                    if(placeholder) select.appendChild(placeholder);
+                    
+                    SiteConfig.categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.label || cat.name;
+                        select.appendChild(option);
+                    });
+                };
+
+                // Populate Filter Selectors
+                populateSelect('category-selector');
+                
+                // Populate Generator Selectors
+                populateSelect('gen-category');
+            </script>
 </body>
 
 </html>

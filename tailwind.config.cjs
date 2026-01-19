@@ -4,7 +4,10 @@ module.exports = {
     "./*.html",
     "./components/**/*.html",
     "./quiz/**/*.html",
-    "./scripts/**/*.js", // บรรทัดนี้ครอบคลุมทุกไฟล์ในโฟลเดอร์ scripts แล้ว (รวมถึง main.js, profile.js ฯลฯ)
+    "./scripts/**/*.js",
+    "./sim/**/*.html",
+    "./sim/**/*.js",
+    // บรรทัดนี้ครอบคลุมทุกไฟล์ในโฟลเดอร์ scripts แล้ว (รวมถึง main.js, profile.js ฯลฯ)
   ],
   // Safelist: ป้องกันไม่ให้ Tailwind ลบคลาสที่ถูกเรียกใช้ผ่านตัวแปร JS (Dynamic Classes)
   safelist: [

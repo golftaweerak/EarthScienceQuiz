@@ -5,10 +5,10 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เตรียมความพร้อม สอวน.</title>
-    <meta name="description" content="แหล่งรวมแบบทดสอบออนไลน์สำหรับเตรียมความพร้อม สอวน. ดาราศาสตร์ และสอวน. วิทยาศาสตร์โลกและอวกาศ">
-    <meta name="keywords" content="สอวน, สอวน. ดาราศาสตร์, สอวน. วิทยาศาสตร์โลกและอวกาศ, แบบทดสอบออนไลน์, เตรียมความพร้อม, ดาราศาสตร์, วิทยาศาสตร์โลก, อวกาศ">
-    <meta name="author" content="Taweerak Thuhphuttha">
+    <title>Quiz App</title>
+    <meta name="description" content="Quiz Application">
+    <meta name="keywords" content="Quiz, Education">
+    <meta name="author" content="">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&family=Sarabun:wght@400;700&display=swap"
@@ -116,6 +116,17 @@
 
     <!-- app-loader is a module and will handle importing its own dependencies. -->
     <script src="./scripts/app-loader.js" type="module"></script>
+    
+    <!-- Load Site Configuration -->
+    <script type="module">
+        import { SiteConfig } from './scripts/site-config.js';
+        
+        // Update Meta Tags & Title dynamically
+        document.title = SiteConfig.appTitle;
+        document.querySelector('meta[name="description"]').setAttribute("content", SiteConfig.appDescription);
+        document.querySelector('meta[name="keywords"]').setAttribute("content", SiteConfig.appKeywords);
+        document.querySelector('meta[name="author"]').setAttribute("content", SiteConfig.author);
+    </script>
     <script type="module">
         import { Gamification } from './scripts/gamification.js';
         new Gamification();

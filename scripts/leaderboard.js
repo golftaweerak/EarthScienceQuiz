@@ -3,11 +3,14 @@ import { db } from './firebase-config.js';
 import { collection, query, orderBy, limit, getDocs, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { XP_THRESHOLDS, TRACK_TITLES, PROFICIENCY_GROUPS, getLevelBorderClass, getAvatarFrameClass } from './gamification.js';
 import { escapeHtml } from './utils.js';
+import { SiteConfig } from './site-config.js';
 
 function getLevelInfoForLeaderboard(xp, type) {
     let track = 'overall';
-    if (type === 'astronomyTrackXP') track = 'astronomy';
-    if (type === 'earthTrackXP') track = 'earth';
+    
+    // Dynamic track lookup from SiteConfig
+    const configCat = SiteConfig.categories.find(c => c.id === type);
+    if (configCat && configCat.track) track = configCat.track;
 
     // Map specific proficiency fields to their main tracks
     for (const group of Object.values(PROFICIENCY_GROUPS)) {
@@ -40,27 +43,35 @@ export async function initializeLeaderboard() {
     const earthSciBtnLabel = document.getElementById('earth-science-btn-label');
     
     if (!listContainer || !tabsContainer) return;
+    
+    // --- Dynamic Tabs Generation ---
+    tabsContainer.innerHTML = ''; // Clear existing static tabs
 
-    // --- Dropdown Toggle ---
-    if (earthSciDropdownBtn && earthSciDropdown) {
-        earthSciDropdownBtn.addEventListener('click', (e) => {
-            // This prevents the main tab click logic from firing when just opening the dropdown
-            if (e.target.closest('#earth-science-dropdown-btn')) {
-                 earthSciDropdown.classList.toggle('hidden');
-            }
-        });
+    // 1. Total XP Tab (Always present)
+    const totalTab = document.createElement('button');
+    totalTab.className = "leaderboard-tab whitespace-nowrap py-2 px-4 rounded-full text-sm font-bold transition-all bg-blue-600 text-white shadow-md";
+    totalTab.dataset.type = "xp";
+    totalTab.dataset.mainTab = "true";
+    totalTab.textContent = "คะแนนรวม";
+    tabsContainer.appendChild(totalTab);
 
-        // Close dropdown if clicking outside
-        document.addEventListener('click', (e) => {
-            if (!earthSciDropdownBtn.contains(e.target) && !earthSciDropdown.classList.contains('hidden')) {
-                earthSciDropdown.classList.add('hidden');
-            }
+    // 2. Config Categories
+    if (SiteConfig.categories) {
+        SiteConfig.categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = "leaderboard-tab whitespace-nowrap py-2 px-4 rounded-full text-sm font-bold transition-all bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600";
+            btn.dataset.type = cat.id; // Field name in Firestore
+            btn.dataset.mainTab = "true";
+            btn.textContent = cat.label || cat.name;
+            tabsContainer.appendChild(btn);
         });
     }
 
     const renderList = async (type) => {
         // FIX: Whitelist allowed sort fields to prevent NoSQL Injection (Arbitrary Sort)
-        const allowedTypes = ['xp', 'astronomyTrackXP', 'earthTrackXP'];
+        const configTypes = SiteConfig.categories.map(c => c.id);
+        const allowedTypes = ['xp', ...configTypes];
+        
         if (!allowedTypes.includes(type)) {
             console.error("Invalid leaderboard type requested:", type);
             listContainer.innerHTML = `<div class="text-center py-16 text-red-500">ข้อมูลไม่ถูกต้อง</div>`;
@@ -175,22 +186,18 @@ export async function initializeLeaderboard() {
                 } else {
                     score = user[type] || 0;
                     // On-the-fly calculation to fix display for stale data
-                    if (type === 'astronomyTrackXP') {
-                        let calculatedAstroXP = 0;
+                    // Generic calculation based on track defined in SiteConfig
+                    const configCat = SiteConfig.categories.find(c => c.id === type);
+                    if (configCat && configCat.track) {
+                        let calculatedXP = 0;
+                        let hasSubGroups = false;
                         for (const group of Object.values(PROFICIENCY_GROUPS)) {
-                            if (group.track === 'astronomy') {
-                                calculatedAstroXP += (user[group.field] || 0);
+                            if (group.track === configCat.track) {
+                                calculatedXP += (user[group.field] || 0);
+                                hasSubGroups = true;
                             }
                         }
-                        score = Math.max(score, calculatedAstroXP);
-                    } else if (type === 'earthTrackXP') {
-                        let calculatedEarthXP = 0;
-                        for (const group of Object.values(PROFICIENCY_GROUPS)) {
-                            if (group.track === 'earth') {
-                                calculatedEarthXP += (user[group.field] || 0);
-                            }
-                        }
-                        score = Math.max(score, calculatedEarthXP);
+                        if (hasSubGroups) score = Math.max(score, calculatedXP);
                     }
                 }
 

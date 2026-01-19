@@ -5,6 +5,7 @@ import { showToast } from './toast.js';
 import { db } from './firebase-config.js';
 import { doc, getDoc, updateDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { challengeManager } from './challenge-manager.js';
+import { SiteConfig } from './site-config.js';
 
 /**
  * Animates a numeric value in a specified element.
@@ -316,10 +317,8 @@ export function init(quizData, storageKey, quizTitle, customTime, action, disabl
   ensurePowerUpModalExists();
   injectQuizAnimations();
 
-  // NEW: Cleanup previous game instance to prevent memory leaks
-  if (state.game && typeof state.game.destroy === 'function') {
-      state.game.destroy();
-  }
+  // NOTE: Gamification is now a Singleton, so we don't destroy it here.
+  // It persists across the application lifecycle.
 
   // FIX: Cleanup previous Firestore listener to prevent memory leaks
   if (state.lobbyUnsubscribe) {
@@ -2046,14 +2045,21 @@ function showResults() {
         };
 
         const result = game.submitQuizResult(xpEarned, percentage, state.questionCount, state.isCustomQuiz, topicXPs, questStats);
-        levelResult = { overall: result.overall, astronomy: result.astronomy, earth: result.earth };
+        levelResult = result; // Use the full result object which now contains 'tracks'
         newBadges = result.newBadges || [];
         newAchievements = result.newAchievements || [];
         completedQuests = result.completedQuests || [];
 
         // Play Sounds for Gamification
         if (state.isSoundEnabled && levelResult) {
-            if (levelResult.overall?.leveledUp || levelResult.astronomy?.leveledUp || levelResult.earth?.leveledUp) {
+            let anyLevelUp = levelResult.overall?.leveledUp;
+            if (levelResult.tracks) {
+                Object.values(levelResult.tracks).forEach(t => {
+                    if (t.leveledUp) anyLevelUp = true;
+                });
+            }
+            
+            if (anyLevelUp) {
                 if (state.levelUpSound) {
                     state.levelUpSound.currentTime = 0;
                     state.levelUpSound.play().catch(e => console.warn("Could not play level up sound", e));
@@ -2096,14 +2102,13 @@ function showResults() {
 
   // NEW: Calculate display XP dynamically based on PROFICIENCY_GROUPS
   // This ensures that if new groups are added to gamification.js, they are automatically included here.
-  let displayAstronomyXP = 0;
-  let displayEarthXP = 0;
+  const trackXPs = {};
+  SiteConfig.categories.forEach(cat => trackXPs[cat.track] = 0);
+
   for (const group of Object.values(PROFICIENCY_GROUPS)) {
       const xp = topicXPs[group.field] || 0;
-      if (group.track === 'astronomy') {
-          displayAstronomyXP += xp;
-      } else if (group.track === 'earth') {
-          displayEarthXP += xp;
+      if (trackXPs[group.track] !== undefined) {
+          trackXPs[group.track] += xp;
       }
   }
 
@@ -2121,8 +2126,7 @@ function showResults() {
     xpEarned,
     levelResult,
     newBadges,
-    astronomyXP: displayAstronomyXP, // Already multiplied in topicXPs loop above
-    earthXP: displayEarthXP // Already multiplied in topicXPs loop above
+    trackXPs // Pass the dynamic track XPs
   };
 
   // Clean up old results and build the new layout
@@ -2379,21 +2383,22 @@ function buildResultsLayout(resultInfo, stats) {
         },
     ];
     
-    if (stats.astronomyXP > 0) items.push({ 
-        label: 'ดาราศาสตร์', 
-        value: stats.astronomyXP,
-        color: 'text-purple-600 dark:text-purple-400', 
-        progress: stats.levelResult?.astronomy.info,
-        progressColor: 'bg-purple-500',
-        delay: 150 
-    });
-    if (stats.earthXP > 0) items.push({ 
-        label: 'วิทย์โลก',
-        value: stats.earthXP,
-        color: 'text-teal-600 dark:text-teal-400', 
-        progress: stats.levelResult?.earth.info,
-        progressColor: 'bg-teal-500',
-        delay: 300 
+    // Dynamic rendering from SiteConfig
+    const colors = ['text-purple-600 dark:text-purple-400', 'text-teal-600 dark:text-teal-400', 'text-pink-600 dark:text-pink-400', 'text-orange-600 dark:text-orange-400'];
+    const bgColors = ['bg-purple-500', 'bg-teal-500', 'bg-pink-500', 'bg-orange-500'];
+
+    SiteConfig.categories.forEach((cat, index) => {
+        const xp = stats.trackXPs[cat.track] || 0;
+        if (xp > 0) {
+             items.push({
+                label: cat.label,
+                value: xp,
+                color: colors[index % colors.length],
+                progress: stats.levelResult?.tracks?.[cat.track]?.info,
+                progressColor: bgColors[index % bgColors.length],
+                delay: 150 * (index + 1)
+             });
+        }
     });
     
     items.forEach(item => {
@@ -2908,19 +2913,6 @@ function saveQuizState() {
 async function sendScoreToLobby(isWinner = false) {
     if (!state.lobbyId || !state.game.authManager.currentUser) return;
 
-    // FIX: Snapshot state values immediately to prevent race conditions during async transaction
-    const currentScore = state.score;
-    const currentIndex = state.currentQuestionIndex;
-    const currentLives = state.lives;
-    const currentAns = state.userAnswers[currentIndex];
-    const totalQ = state.questionCount || state.shuffledQuestions.length;
-    
-    // Determine last answer status based on snapshotted state
-    let lastAnswerStatus = null;
-    if (currentAns) {
-        lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
-    }
-
     try {
         const lobbyRef = doc(db, 'lobbies', state.lobbyId);
         
@@ -2933,20 +2925,26 @@ async function sendScoreToLobby(isWinner = false) {
             const players = data.players || [];
             const uid = state.game.authManager.currentUser.uid;
 
+            // Determine last answer status
+            let lastAnswerStatus = null;
+            const currentAns = state.userAnswers[state.currentQuestionIndex];
+            if (currentAns) {
+                lastAnswerStatus = currentAns.isCorrect ? 'correct' : 'incorrect';
+            }
+
+            // Survival Mode Elimination
+            let isEliminated = p.eliminated || false;
+            if (state.mode === 'survival' && lastAnswerStatus === 'incorrect' && state.lives <= 0) {
+                isEliminated = true;
+            }
+            
             const updatedPlayers = players.map(p => {
                 if (p.uid === uid) {
-                    // FIX: Moved elimination logic inside the map loop where 'p' is defined
-                    let isEliminated = p.eliminated || false;
-                    // Check elimination using snapshotted values
-                    if (state.mode === 'survival' && lastAnswerStatus === 'incorrect' && currentLives <= 0) {
-                        isEliminated = true;
-                    }
-
                     return { 
                         ...p, 
-                        score: currentScore,
-                        progress: currentIndex + 1,
-                        totalQuestions: totalQ,
+                        score: state.score,
+                        progress: state.currentQuestionIndex + 1,
+                        totalQuestions: state.questionCount || state.shuffledQuestions.length,
                         lastAnswerStatus: lastAnswerStatus,
                         eliminated: isEliminated
                     };

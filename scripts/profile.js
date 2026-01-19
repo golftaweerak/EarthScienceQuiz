@@ -6,6 +6,7 @@ import { showToast } from './toast.js';
 import { collection, query, orderBy, limit, getDocs, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 import { escapeHtml } from './utils.js';
+import { SiteConfig } from './site-config.js';
 
 const AVATARS = [
     '🧑‍🎓', '👩‍🎓', '👨‍🔬', '👩‍🔬', '👨‍🚀', '👩‍🚀', '👽', '🤖','👻','💩'
@@ -553,8 +554,9 @@ function setupManualSync(game) {
  */
 function getLevelInfoForLeaderboard(xp, type) {
     let track = 'overall';
-    if (type === 'astronomyTrackXP') track = 'astronomy';
-    if (type === 'earthTrackXP') track = 'earth';
+    
+    const configCat = SiteConfig.categories.find(c => c.id === type);
+    if (configCat && configCat.track) track = configCat.track;
 
     // Map specific proficiency fields to their main tracks
     for (const group of Object.values(PROFICIENCY_GROUPS)) {
@@ -651,8 +653,9 @@ function setupLeaderboardSystem(game) {
                 const scoreFormatted = score.toLocaleString();
                 
                 let track = 'overall';
-                if (type === 'astronomyTrackXP') track = 'astronomy';
-                if (type === 'earthTrackXP') track = 'earth';
+                
+                const configCat = SiteConfig.categories.find(c => c.id === type);
+                if (configCat && configCat.track) track = configCat.track;
                 
                 let level = 1;
                 let rankTitle = 'ผู้เริ่มต้น';
@@ -1286,8 +1289,6 @@ function renderShop(game) {
 function renderTrackProgress(game) {
     const container = document.getElementById('track-progress-container');
     if (!container) return;
-    const astronomy = game.getAstronomyTrackLevel();
-    const earth = game.getEarthLevel();
 
     const createTrackHTML = (name, data, colorClass, icon) => `
         <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-xl border border-gray-200 dark:border-gray-700/50">
@@ -1308,9 +1309,17 @@ function renderTrackProgress(game) {
         </div>
     `;
 
-    container.innerHTML = 
-        createTrackHTML('สอวน. ดาราศาสตร์', astronomy, 'bg-purple-500', '🔭') +
-        createTrackHTML('สอวน. วิทย์โลก', earth, 'bg-teal-500', '🌍');
+    // Dynamic rendering based on SiteConfig
+    const colors = ['bg-purple-500', 'bg-teal-500', 'bg-blue-500', 'bg-orange-500', 'bg-pink-500'];
+    const icons = ['🔭', '🌍', '⚛️', '🧪', '🧬'];
+
+    container.innerHTML = SiteConfig.categories.map((cat, index) => {
+        const xp = game.state[cat.id] || 0;
+        const data = game.getLevelInfo(xp, cat.track);
+        const color = colors[index % colors.length];
+        const icon = icons[index % icons.length];
+        return createTrackHTML(cat.label, data, color, icon);
+    }).join('');
 }
 
 function renderBadges(game) {
