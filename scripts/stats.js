@@ -1062,7 +1062,7 @@ function renderDetailedList(stats) {
             <div class="stat-quiz-card flex flex-col bg-white dark:bg-gray-800/50 p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-300 hover:shadow-lg hover:border-${colorName}-400 dark:hover:border-${colorName}-500 transform hover:-translate-y-1" style="animation-delay: ${index * 50}ms;">
                 <div class="flex items-center gap-4 flex-grow">
                     <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-2 overflow-hidden">
-                        <img src="${icon || './assets/icons/dices.png'}" alt="${altText || title}" loading="lazy" class="h-full w-full object-contain">
+                        <img src="${icon || './assets/icons/dices.png'}" alt="${altText || title}" ${index > 4 ? 'loading="lazy"' : ''} class="h-full w-full object-contain">
                     </div>
                     <div class="flex-grow min-w-0">
                         <h4 class="font-bold text-gray-800 dark:text-gray-100 truncate">${title}</h4>
