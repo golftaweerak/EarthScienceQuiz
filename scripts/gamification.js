@@ -335,17 +335,22 @@ export class Gamification {
     // หาก XP หลักน้อยกว่าผลรวม (ซึ่งเป็นไปไม่ได้ในทางทฤษฎี) ระบบจะปรับค่า XP หลักให้เท่ากับผลรวมทันที
     ensureConsistency() {
         let needsSave = false;
-        let calculatedAstroTrackXP = 0;
-        let calculatedEarthTrackXP = 0;
-
-        if (typeof this.state.oceanographyXP !== 'number') { this.state.oceanographyXP = Number(this.state.oceanographyXP) || 0; needsSave = true; }
-        // 1. ตรวจสอบว่าค่า XP หลักเป็นตัวเลข
+        
+        // 1. ตรวจสอบค่าพื้นฐาน
         if (typeof this.state.xp !== 'number') { this.state.xp = Number(this.state.xp) || 0; needsSave = true; }
         if (typeof this.state.level !== 'number') { this.state.level = Number(this.state.level) || 1; needsSave = true; }
-        if (typeof this.state.astronomyTrackXP !== 'number') { this.state.astronomyTrackXP = Number(this.state.astronomyTrackXP) || 0; needsSave = true; }
-        if (typeof this.state.earthTrackXP !== 'number') { this.state.earthTrackXP = Number(this.state.earthTrackXP) || 0; needsSave = true; }
 
-        // 2. คำนวณผลรวม XP จากหมวดย่อย (Proficiency Groups)
+        // 2. เตรียมตัวแปรสำหรับคำนวณผลรวมของแต่ละ Track
+        const calculatedTrackXPs = {};
+        SiteConfig.categories.forEach(cat => {
+            if (typeof this.state[cat.id] !== 'number') {
+                this.state[cat.id] = Number(this.state[cat.id]) || 0;
+                needsSave = true;
+            }
+            calculatedTrackXPs[cat.track] = 0;
+        });
+
+        // 3. คำนวณผลรวม XP จากหมวดย่อย (Proficiency Groups)
         for (const group of Object.values(PROFICIENCY_GROUPS)) {
             const groupXP = Number(this.state[group.field]) || 0;
             
@@ -354,29 +359,28 @@ export class Gamification {
                 needsSave = true;
             }
 
-            if (group.track === 'astronomy') {
-                calculatedAstroTrackXP += groupXP;
-            } else if (group.track === 'earth') {
-                calculatedEarthTrackXP += groupXP;
+            if (calculatedTrackXPs[group.track] !== undefined) {
+                calculatedTrackXPs[group.track] += groupXP;
             }
         }
 
-        // 3. แก้ไข XP ของสายวิชาหลักหากน้อยกว่าผลรวมของหมวดย่อย
+        // 4. แก้ไข XP ของสายวิชาหลักหากน้อยกว่าผลรวมของหมวดย่อย
         // (XP หลักอาจจะมากกว่าได้ หากได้จากโจทย์ทั่วไป แต่ห้ามน้อยกว่า)
-        if (this.state.astronomyTrackXP < calculatedAstroTrackXP) {
-            console.log(`Correcting astronomyTrackXP from ${this.state.astronomyTrackXP} to ${calculatedAstroTrackXP}`);
-            this.state.astronomyTrackXP = calculatedAstroTrackXP;
-            needsSave = true;
-        }
-        if (this.state.earthTrackXP < calculatedEarthTrackXP) {
-            console.log(`Correcting earthTrackXP from ${this.state.earthTrackXP} to ${calculatedEarthTrackXP}`);
-            this.state.earthTrackXP = calculatedEarthTrackXP;
-            needsSave = true;
-        }
+        SiteConfig.categories.forEach(cat => {
+            const calculated = calculatedTrackXPs[cat.track];
+            if (this.state[cat.id] < calculated) {
+                console.log(`Correcting ${cat.id} from ${this.state[cat.id]} to ${calculated}`);
+                this.state[cat.id] = calculated;
+                needsSave = true;
+            }
+        });
 
-        // 4. Reconcile Total XP with the sum of its parts (Physics, Earth, General)
+        // 5. Reconcile Total XP with the sum of its parts
         // This ensures that data from older versions (without generalXP) is corrected.
-        const sumOfParts = (this.state.astronomyTrackXP || 0) + (this.state.earthTrackXP || 0) + (this.state.generalXP || 0);
+        let sumOfParts = (this.state.generalXP || 0);
+        SiteConfig.categories.forEach(cat => {
+            sumOfParts += (this.state[cat.id] || 0);
+        });
 
         // FIX: ยกเลิกการดันคะแนนขึ้น (xp < sumOfParts) เพราะ XP ปัจจุบันอาจน้อยกว่าผลรวมได้ (จากการซื้อของ)
         // แต่ยังคงตรวจสอบกรณีคะแนนเฟ้อ (xp > sumOfParts)
@@ -402,11 +406,9 @@ export class Gamification {
     }
 
     getDefaultState() {
-        return {
+        const state = {
             level: 1,
             xp: 0,
-            astronomyTrackXP: 0,
-            earthTrackXP: 0,
             badges: [],
             quizzesCompleted: 0,
             lastLogin: null,
@@ -427,15 +429,30 @@ export class Gamification {
             perfectScores: 0,
             highScores80: 0,
             weekendQuizzesCompleted: 0,
-            astronomyXP: 0, geologyXP: 0, meteorologyXP: 0, oceanographyXP: 0,
             freeNameChangeAvailable: true, generalXP: 0, accumulatedQuestionsForBonus: 0,
             totalSpentXP: 0, // NEW: ติดตามยอด XP ที่ใช้ไปทั้งหมด (ป้องกันการคืน XP จากไอเทมที่ใช้แล้ว)
         };
+
+        // Dynamic Categories
+        SiteConfig.categories.forEach(cat => {
+            state[cat.id] = 0;
+        });
+
+        // Dynamic Proficiency Fields
+        Object.values(PROFICIENCY_GROUPS).forEach(group => {
+            state[group.field] = 0;
+        });
+
+        return state;
     }
 
     // ฟังก์ชันสำหรับลบ XP ที่เฟ้อเกินจริง (เรียกใช้เมื่อต้องการล้างค่าที่ผิดปกติ)
     fixInflatedXP() {
-        const sumOfParts = (this.state.astronomyTrackXP || 0) + (this.state.earthTrackXP || 0) + (this.state.generalXP || 0);
+        let sumOfParts = (this.state.generalXP || 0);
+        SiteConfig.categories.forEach(cat => {
+            sumOfParts += (this.state[cat.id] || 0);
+        });
+
         if (this.state.xp > sumOfParts) {
             const difference = this.state.xp - sumOfParts;
             console.log(`Removing inflated XP: ${difference}. Resetting total XP from ${this.state.xp} to ${sumOfParts}.`);
@@ -456,7 +473,9 @@ export class Gamification {
                 break;
             }
             const currentLevel = parseInt(this.state.level) || 1;
-            const nextLevelThreshold = XP_THRESHOLDS.find(t => t.level === currentLevel + 1);
+            // OPTIMIZATION: Direct array access is faster than find() since thresholds are sorted
+            // XP_THRESHOLDS[0] is Level 1. XP_THRESHOLDS[currentLevel] is the threshold for Level (currentLevel + 1)
+            const nextLevelThreshold = XP_THRESHOLDS[currentLevel];
 
             if (!nextLevelThreshold) {
                 break; // Max level reached
@@ -496,8 +515,9 @@ export class Gamification {
     // แล้วคำนวณ XP ย้อนหลังให้ผู้ใช้ที่เคยเล่นก่อนมีระบบ Gamification
     recalculateFromHistory() { // Renamed from syncProgress to be a general purpose recalculation tool
         let totalXP = 0;
-        let astronomyTrackXP = 0;
-        let earthTrackXP = 0;
+        const accumulatedTrackXPs = {};
+        SiteConfig.categories.forEach(c => accumulatedTrackXPs[c.id] = 0);
+
         let completed = 0;
         let totalCorrect = 0;
         let perfectScores = 0;
@@ -506,6 +526,10 @@ export class Gamification {
         let weekendQuizzes = 0;
         let generalQuizXP = 0;
         let totalQuestionsAnswered = 0; // NEW: นับจำนวนข้อที่ตอบทั้งหมดเพื่อคำนวณ Bonus
+
+        // OPTIMIZATION: Cache subcategory string matching to avoid repeated loops and string includes
+        const subCategoryCache = new Map();
+        const proficiencyEntries = Object.entries(PROFICIENCY_GROUPS);
 
         // วนลูปดูข้อมูลทั้งหมดใน LocalStorage
         for (let i = 0; i < localStorage.length; i++) {
@@ -517,8 +541,8 @@ export class Gamification {
                     // NEW: Check for shuffledQuestions to ensure we can calculate XP accurately
                     if (data && data.userAnswers && data.shuffledQuestions) {
                         let calculatedXp = 0;
-                        let quizAstronomyXP = 0;
-                        let quizEarthTrackXP = 0;
+                        const quizTrackXPs = {};
+                        SiteConfig.categories.forEach(c => quizTrackXPs[c.track] = 0);
 
                         data.userAnswers.forEach((ans, index) => {
                             if (ans && ans.isCorrect) {
@@ -574,25 +598,38 @@ export class Gamification {
                                     if (typeof ans.subCategory === 'string') subCatStr = ans.subCategory;
                                     else if (ans.subCategory.main) subCatStr = ans.subCategory.main;
                                 }
-                                for (const [groupKey, groupDef] of Object.entries(PROFICIENCY_GROUPS)) {
-                                    if (groupDef.keywords.some(k => subCatStr.includes(k))) {
-                                        topicXPs[groupDef.field] = (topicXPs[groupDef.field] || 0) + points;
-                                        
-                                        // Accumulate track XP based on proficiency group
-                                        if (groupDef.track === 'astronomy') {
-                                            quizAstronomyXP += points;
-                                        } else if (groupDef.track === 'earth') {
-                                            quizEarthTrackXP += points;
+
+                                // OPTIMIZATION: Use cache for proficiency matching
+                                let matchedGroup = subCategoryCache.get(subCatStr);
+                                
+                                if (matchedGroup === undefined) {
+                                    matchedGroup = null; // Default if not found
+                                    for (const [groupKey, groupDef] of proficiencyEntries) {
+                                        if (groupDef.keywords.some(k => subCatStr.includes(k))) {
+                                            matchedGroup = groupDef;
+                                            break;
                                         }
-                                        
-                                        break;
+                                    }
+                                    subCategoryCache.set(subCatStr, matchedGroup);
+                                }
+
+                                if (matchedGroup) {
+                                    topicXPs[matchedGroup.field] = (topicXPs[matchedGroup.field] || 0) + points;
+                                    if (quizTrackXPs[matchedGroup.track] !== undefined) {
+                                        quizTrackXPs[matchedGroup.track] += points;
                                     }
                                 }
                             }
                         });
 
-                        // ถ้ายังระบุสายวิชาไม่ได้จาก Proficiency Group ให้ลองดูจากหมวดหมู่หรือชื่อไฟล์
-                        if (quizAstronomyXP === 0 && quizEarthTrackXP === 0) {
+                        // Check if any track XP was added
+                        let allTracksZero = true;
+                        for (const t in quizTrackXPs) {
+                            if (quizTrackXPs[t] > 0) allTracksZero = false;
+                        }
+
+                        // ถ้ายังระบุสายวิชาไม่ได้จาก Proficiency Group ให้ลองดูจากหมวดหมู่หรือชื่อไฟล์ (Fallback)
+                        if (allTracksZero) {
                             let category = 'General';
                             const firstAns = data.userAnswers.find(a => a);
                             if (firstAns) {
@@ -602,23 +639,21 @@ export class Gamification {
                                 }
                             }
                             
-                            const lowerCat = String(category).toLowerCase();
-                            if (lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') || key.includes('phy_') || lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || lowerCat.includes('space') || lowerCat.includes('อวกาศ') || key.includes('astro') || key.includes('junior') || key.includes('senior')) {
-                                quizAstronomyXP = calculatedXp;
-                                // FIX: เพิ่มลงใน topicXPs ด้วย เพื่อให้สอดคล้องกับ Track XP
-                                topicXPs['astronomyXP'] = (topicXPs['astronomyXP'] || 0) + calculatedXp;
-                            } else if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || key.includes('ess_') || key.includes('ES') || key.includes('ESR') || lowerCat.includes('geology') || lowerCat.includes('ธรณีวิทยา') || lowerCat.includes('meteorology') || lowerCat.includes('อุตุนิยมวิทยา') || lowerCat.includes('oceanography') || lowerCat.includes('สมุทรศาสตร์') || key.includes('earth')) {
-                                quizEarthTrackXP = calculatedXp;
-                                // FIX: เพิ่มลงใน topicXPs ด้วย (เลือก geologyXP เป็นตัวแทนคร่าวๆ หากระบุไม่ได้)
-                                topicXPs['geologyXP'] = (topicXPs['geologyXP'] || 0) + calculatedXp;
+                            const track = this.identifyTrack(category, key);
+                            if (track !== 'general' && quizTrackXPs[track] !== undefined) {
+                                quizTrackXPs[track] = calculatedXp;
                             }
                         }
 
-                        // The difference is general XP
-                        generalQuizXP += (calculatedXp - quizAstronomyXP - quizEarthTrackXP);
+                        // Sum up and calculate General XP
+                        let sumQuizTracks = 0;
+                        for (const [track, xp] of Object.entries(quizTrackXPs)) {
+                            sumQuizTracks += xp;
+                            const catConfig = SiteConfig.categories.find(c => c.track === track);
+                            if (catConfig) accumulatedTrackXPs[catConfig.id] += xp;
+                        }
 
-                        astronomyTrackXP += quizAstronomyXP;
-                        earthTrackXP += quizEarthTrackXP;
+                        generalQuizXP += (calculatedXp - sumQuizTracks);
                     }
                 } catch (e) {
                     console.warn("Skipping invalid quiz state during sync:", key);
@@ -662,14 +697,17 @@ export class Gamification {
         // ถ้าพบข้อมูลเก่า ให้อัปเดตสถานะเริ่มต้นทันที
         // FIX: Always update if called manually, even if totalXP is 0 (to reset inflated stats)
             this.state.xp = Math.max(0, totalXP - spentXP); // XP สุทธิ = ที่หาได้ - ที่ใช้ไป
-            this.state.astronomyTrackXP = astronomyTrackXP;
-            this.state.earthTrackXP = earthTrackXP;
+            
+            // Apply accumulated track XPs
+            for (const [id, xp] of Object.entries(accumulatedTrackXPs)) {
+                this.state[id] = xp;
+            }
+
             this.state.quizzesCompleted = completed;
             this.state.totalCorrectAnswers = totalCorrect;
             this.state.perfectScores = perfectScores;
             this.state.highScores80 = highScores80;
             this.state.weekendQuizzesCompleted = weekendQuizzes;
-            this.state.oceanographyXP = topicXPs.oceanographyXP || 0;
             this.state.generalXP = generalQuizXP;
             
             // Apply calculated topic XPs
@@ -1409,11 +1447,10 @@ export class Gamification {
         this.state.xp += amount;
 
         const track = this.identifyTrack(category);
-        
-        if (track === 'astronomy') {
-            this.state.astronomyTrackXP = (this.state.astronomyTrackXP || 0) + amount;
-        } else if (track === 'earth') {
-            this.state.earthTrackXP = (this.state.earthTrackXP || 0) + amount;
+        const catConfig = SiteConfig.categories.find(c => c.track === track);
+
+        if (catConfig) {
+            this.state[catConfig.id] = (this.state[catConfig.id] || 0) + amount;
         } else {
             // XP ที่ไม่มีหมวดหมู่ชัดเจน (เช่น จากเควส) จะถูกนับเป็น General XP
             this.state.generalXP = (this.state.generalXP || 0) + amount;
@@ -1696,21 +1733,12 @@ export class Gamification {
         const lowerCat = catString.toLowerCase();
         const lowerId = String(quizId).toLowerCase();
 
-        // Astronomy / Physics Track
-        if (lowerCat.includes('astronomy') || lowerCat.includes('ดาราศาสตร์') || 
-            lowerCat.includes('space') || lowerCat.includes('อวกาศ') || 
-            lowerCat.includes('physics') || lowerCat.includes('ฟิสิกส์') ||
-            lowerId.includes('astro') || lowerId.startsWith('junior') || lowerId.startsWith('senior') || lowerId.includes('phy_')) {
-            return 'astronomy';
-        }
+        const textToSearch = lowerCat + ' ' + lowerId;
 
-        // Earth Science / Geology / Meteorology Track
-        if (lowerCat.includes('earth') || lowerCat.includes('โลก') || lowerCat.includes('วิทย์โลก') || 
-            lowerCat.includes('geology') || lowerCat.includes('ธรณี') || 
-            lowerCat.includes('meteorology') || lowerCat.includes('อุตุนิยมวิทยา') || 
-            lowerCat.includes('oceanography') || lowerCat.includes('สมุทรศาสตร์') ||
-            lowerId.startsWith('es') || lowerId.includes('earth') || lowerId.includes('ess_')) {
-            return 'earth';
+        for (const cat of SiteConfig.categories) {
+            if (cat.keywords && cat.keywords.some(k => textToSearch.includes(k.toLowerCase()))) {
+                return cat.track;
+            }
         }
 
         return 'general';
@@ -1752,6 +1780,10 @@ export class Gamification {
 
         const isEligibleForStats = !isCustomQuiz || (isCustomQuiz && questionCount >= 20);
 
+        // OPTIMIZATION: Calculate levels once and reuse
+        const astroLevel = this.getAstronomyTrackLevel().level;
+        const earthLevel = this.getEarthLevel().level;
+
         if (this.state.quizzesCompleted >= 1) unlock('first_quiz');
 
         if (isEligibleForStats) {
@@ -1779,16 +1811,16 @@ export class Gamification {
         if (this.state.streak >= 30) unlock('streak_30');
         if (this.state.streak >= 60) unlock('streak_60');
 
-        if (this.getAstronomyTrackLevel().level >= 3) unlock('astro_lover');
-        if (this.getAstronomyTrackLevel().level >= 5) unlock('astro_expert');
-        if (this.getAstronomyTrackLevel().level >= 10) unlock('astro_master');
-        if (this.getEarthLevel().level >= 3) unlock('earth_lover');
-        if (this.getEarthLevel().level >= 5) unlock('earth_expert');
-        if (this.getEarthLevel().level >= 10) unlock('earth_master');
+        if (astroLevel >= 3) unlock('astro_lover');
+        if (astroLevel >= 5) unlock('astro_expert');
+        if (astroLevel >= 10) unlock('astro_master');
+        if (earthLevel >= 3) unlock('earth_lover');
+        if (earthLevel >= 5) unlock('earth_expert');
+        if (earthLevel >= 10) unlock('earth_master');
         if (this.state.xp >= 5000) unlock('xp_5k');
         if (this.state.xp >= 10000) unlock('xp_10k');
         
-        if (this.getAstronomyTrackLevel().level >= 5 && this.getEarthLevel().level >= 5) unlock('dual_expert');
+        if (astroLevel >= 5 && earthLevel >= 5) unlock('dual_expert');
 
         if ((this.state.weekendQuizzesCompleted || 0) >= 3) unlock('weekend_learner_3');
         if ((this.state.weekendQuizzesCompleted || 0) >= 5) unlock('weekend_learner_5');

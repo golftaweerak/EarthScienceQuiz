@@ -8,9 +8,22 @@ export const SiteConfig = {
     author: "Taweerak Thuhphuttha",
     
     // หมวดหมู่รายวิชา (ใช้สำหรับตัวกรองและ Generator)
+    // keywords: คำค้นหาที่ใช้ระบุว่าข้อสอบชุดนี้ควรถูกนับคะแนนเข้าสายวิชาใด (ใช้ใน gamification.js)
     categories: [
-        { id: "astronomyTrackXP", name: "Astronomy", label: "สอวน. ดาราศาสตร์", track: "astronomy" },
-        { id: "earthTrackXP", name: "EarthScience", label: "สอวน. วิทย์โลก", track: "earth" }
+        { 
+            id: "astronomyTrackXP", 
+            name: "Astronomy", 
+            label: "สอวน. ดาราศาสตร์", 
+            track: "astronomy",
+            keywords: ['astronomy', 'ดาราศาสตร์', 'space', 'อวกาศ', 'physics', 'ฟิสิกส์', 'astro', 'junior', 'senior', 'phy_']
+        },
+        { 
+            id: "earthTrackXP", 
+            name: "EarthScience", 
+            label: "สอวน. วิทย์โลก", 
+            track: "earth",
+            keywords: ['earth', 'โลก', 'วิทย์โลก', 'geology', 'ธรณี', 'meteorology', 'อุตุนิยมวิทยา', 'oceanography', 'สมุทรศาสตร์', 'es', 'ess_']
+        }
     ],
 
     // เกณฑ์ XP และเงื่อนไขการเลเวลอัพ (XP Thresholds & Quests)

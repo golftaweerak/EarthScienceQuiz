@@ -279,8 +279,12 @@ export function loadQuizState(storageKey) {
  * @returns {Promise<Array<object>>} An array of detailed progress objects.
  */
 export async function getDetailedProgressForAllQuizzes() {
-  const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
-  const { getSavedCustomQuizzes } = await import("./custom-quiz-handler.js");
+  const [quizListModule, customQuizHandlerModule] = await Promise.all([
+    import(`../data/quizzes-list.js?v=${Date.now()}`),
+    import("./custom-quiz-handler.js")
+  ]);
+  const { quizList } = quizListModule;
+  const { getSavedCustomQuizzes } = customQuizHandlerModule;
 
   // Add timeout to prevent hanging
   const customQuizzesPromise = getSavedCustomQuizzes();
@@ -313,8 +317,12 @@ export async function getDetailedProgressForAllQuizzes() {
  * @returns {Promise<Array<object>>} An array of progress objects for all quizzes.
  */
 export async function getAllQuizProgress() {
-  const { quizList } = await import(`../data/quizzes-list.js?v=${Date.now()}`);
-  const { getSavedCustomQuizzes } = await import("./custom-quiz-handler.js");
+  const [quizListModule, customQuizHandlerModule] = await Promise.all([
+    import(`../data/quizzes-list.js?v=${Date.now()}`),
+    import("./custom-quiz-handler.js")
+  ]);
+  const { quizList } = quizListModule;
+  const { getSavedCustomQuizzes } = customQuizHandlerModule;
 
   // Add timeout to prevent hanging
   const customQuizzesPromise = getSavedCustomQuizzes();
@@ -347,6 +355,9 @@ let allQuestionsCache = null;
 let questionsBySubCategoryCache = {};
 let scenariosCache = new Map();
 
+const DATA_CACHE_KEY = 'quiz_data_full_cache_v1';
+const CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 /**
  * Fetches and processes all questions from all quiz data files.
  * Caches the result for subsequent calls.
@@ -364,6 +375,26 @@ export async function fetchAllQuizData() {
       byCategory: questionsBySubCategoryCache,
       scenarios: scenariosCache,
     };
+  }
+
+  // 2. Check LocalStorage Cache (NEW)
+  try {
+      const cached = localStorage.getItem(DATA_CACHE_KEY);
+      if (cached) {
+          const { timestamp, data } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_EXPIRY_MS) {
+              allQuestionsCache = data.allQuestions;
+              questionsBySubCategoryCache = data.byCategory;
+              scenariosCache = new Map(data.scenarios); // Rehydrate Map
+              return {
+                  allQuestions: allQuestionsCache,
+                  byCategory: questionsBySubCategoryCache,
+                  scenarios: scenariosCache,
+              };
+          }
+      }
+  } catch (e) {
+      console.warn("Failed to load quiz data cache:", e);
   }
 
   let quizList;
@@ -476,6 +507,21 @@ export async function fetchAllQuizData() {
     return acc;
   }, {});
 
+  // 3. Save to LocalStorage Cache (NEW)
+  try {
+      const cachePayload = {
+          timestamp: Date.now(),
+          data: {
+              allQuestions: allQuestionsCache,
+              byCategory: questionsBySubCategoryCache,
+              scenarios: Array.from(scenariosCache.entries()) // Map to Array
+          }
+      };
+      localStorage.setItem(DATA_CACHE_KEY, JSON.stringify(cachePayload));
+  } catch (e) {
+      console.warn("Failed to save quiz data cache (likely quota exceeded):", e);
+  }
+
   return {
     allQuestions: allQuestionsCache,
     byCategory: questionsBySubCategoryCache,
@@ -486,10 +532,11 @@ export async function fetchAllQuizData() {
 /**
  * Calculates the learner's strengths and weaknesses based on aggregated quiz data.
  * Analyzes performance across different sub-categories (topics).
+ * @param {Array<object>|null} providedProgress - Optional pre-loaded progress data to avoid re-fetching.
  * @returns {Promise<{strengths: Array<{name: string, percentage: number, total: number}>, weaknesses: Array<{name: string, percentage: number, total: number}>}>}
  */
-export async function calculateStrengthsAndWeaknesses() {
-  const allProgress = await getDetailedProgressForAllQuizzes();
+export async function calculateStrengthsAndWeaknesses(providedProgress = null) {
+  const allProgress = providedProgress || await getDetailedProgressForAllQuizzes();
   const topicStats = {};
 
   allProgress.forEach((quiz) => {

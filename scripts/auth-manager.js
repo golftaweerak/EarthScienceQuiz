@@ -70,9 +70,15 @@ class AuthManagerInternal {
                      return;
                 }
 
+                // FIX: Notify UI immediately with cached/basic data for perceived speed
+                this.currentUser = user;
+                this.isInitialized = true;
+                this.notifyUserChange(user);
+
                 try {
                     await this.syncLocalToCloud(user);
-                    await this.syncHistory(user); // ซิงค์ประวัติการทำข้อสอบ
+                    // Run history sync in background, don't await it for UI update
+                    this.syncHistory(user).catch(e => console.warn("Background history sync failed:", e));
                 } catch (e) {
                     console.warn("Data sync failed:", e);
                 }
@@ -80,12 +86,11 @@ class AuthManagerInternal {
                 console.log("User signed out");
                 // NEW: Clear cache on logout
                 this.clearCachedUser();
+                
+                this.currentUser = null;
+                this.isInitialized = true;
+                this.notifyUserChange(null);
             }
-            
-            // FIX: Update state and notify listeners AFTER sync is complete to prevent race conditions
-            this.currentUser = user;
-            this.isInitialized = true;
-            this.notifyUserChange(user);
             
             // แจ้งว่า Auth ตรวจสอบเสร็จแล้ว (ไม่ว่าจะล็อกอินหรือไม่)
             if (this.resolveAuthReady) {

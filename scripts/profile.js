@@ -79,10 +79,12 @@ export async function initializeProfile(gameInstance) {
     document.getElementById('strengths-weaknesses-loader')?.classList.remove('hidden');
     
     setupRefreshChartsSystem(game); // Setup once
+    
+    const allProgress = await getDetailedProgressForAllQuizzes();
     const chartsRendered = await Promise.all([
-        renderRadarChart(game),
-        renderProficiencyHistoryChart(game),
-        renderStrengthsWeaknesses()
+        renderRadarChart(game, allProgress),
+        renderProficiencyHistoryChart(game, allProgress),
+        renderStrengthsWeaknesses(allProgress)
     ]);
     if (chartsRendered.every(Boolean)) {
         document.getElementById('refresh-charts-btn')?.classList.add('hidden');
@@ -105,10 +107,11 @@ export async function initializeProfile(gameInstance) {
         renderSyncStatus(game);
 
         // Re-render charts to reflect merged data
+        const updatedProgress = await getDetailedProgressForAllQuizzes();
         await Promise.all([
-            renderRadarChart(game),
-            renderProficiencyHistoryChart(game),
-            renderStrengthsWeaknesses()
+            renderRadarChart(game, updatedProgress),
+            renderProficiencyHistoryChart(game, updatedProgress),
+            renderStrengthsWeaknesses(updatedProgress)
         ]);
     };
 
@@ -492,10 +495,11 @@ function setupRefreshChartsSystem(game) {
         document.getElementById('history-chart-loader')?.classList.remove('hidden');
         document.getElementById('strengths-weaknesses-loader')?.classList.remove('hidden');
 
+        const allProgress = await getDetailedProgressForAllQuizzes();
         const [r1, r2, r3] = await Promise.all([
-            renderRadarChart(game),
-            renderProficiencyHistoryChart(game),
-            renderStrengthsWeaknesses()
+            renderRadarChart(game, allProgress),
+            renderProficiencyHistoryChart(game, allProgress),
+            renderStrengthsWeaknesses(allProgress)
         ]);
 
         if (r1 && r2 && r3) {
@@ -1642,7 +1646,7 @@ function renderQuestHistory(game) {
     `).join('');
 }
 
-async function renderRadarChart(game) {
+async function renderRadarChart(game, allProgress = null) {
     const ctx = document.getElementById('skills-radar-chart')?.getContext('2d');
     const loader = document.getElementById('radar-chart-loader');
     if (!ctx) {
@@ -1688,7 +1692,7 @@ async function renderRadarChart(game) {
         } else {
             // Recalculate data
             console.log("Recalculating radar chart data for caching.");
-            const allProgress = await getDetailedProgressForAllQuizzes();
+            if (!allProgress) allProgress = await getDetailedProgressForAllQuizzes();
     
             const newStats = {};
             Object.keys(PROFICIENCY_GROUPS).forEach(key => {
@@ -2096,7 +2100,7 @@ function externalTooltipHandler(context) {
     tooltipEl.style.marginTop = marginTop;
 }
 
-async function renderProficiencyHistoryChart(game) {
+async function renderProficiencyHistoryChart(game, allProgress = null) {
     const ctx = document.getElementById('proficiency-history-chart')?.getContext('2d');
     const loader = document.getElementById('history-chart-loader');
     if (!ctx) {
@@ -2112,7 +2116,7 @@ async function renderProficiencyHistoryChart(game) {
     }
 
     try {
-        const allProgress = await getDetailedProgressForAllQuizzes();
+        if (!allProgress) allProgress = await getDetailedProgressForAllQuizzes();
         
         // Prepare data structure: { 'Mechanics': [{date, score}, ...], ... }
         const historyData = {};
@@ -2245,7 +2249,7 @@ async function renderProficiencyHistoryChart(game) {
     }
 }
 
-async function renderStrengthsWeaknesses() {
+async function renderStrengthsWeaknesses(allProgress = null) {
     const strengthsList = document.getElementById('strengths-list');
     const weaknessesList = document.getElementById('weaknesses-list');
     const loader = document.getElementById('strengths-weaknesses-loader');
@@ -2279,7 +2283,7 @@ async function renderStrengthsWeaknesses() {
         if (cachedData && cachedData.timestamp >= lastCompletionTime) {
             analysis = cachedData.analysis;
         } else {
-            analysis = await calculateStrengthsAndWeaknesses();
+            analysis = await calculateStrengthsAndWeaknesses(allProgress);
             localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: new Date().getTime(), analysis: analysis }));
         }
 

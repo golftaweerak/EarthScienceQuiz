@@ -58,8 +58,7 @@ async function main() {
         const mainScriptPromise = import('./main.js');
         const customQuizHandlerPromise = import('./custom-quiz-handler.js');
 
-        // FIX: Initialize Theme & Gamification early to prevent FOUC (Flash of Unstyled Content)
-        // This applies classes to <html> immediately before waiting for network requests.
+        // FIX: Initialize Theme immediately to prevent FOUC
         initializeDarkMode();
         new Gamification();
 
