@@ -445,7 +445,7 @@ export function initializeCustomQuizHandler() {
                 <div class="flex-grow">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-700 p-2 overflow-hidden">
-                            <img src="${iconUrl}" alt="${iconAlt}" ${index > 6 ? 'loading="lazy"' : ''} class="h-full w-full object-contain">
+                            <img src="${iconUrl}" alt="${iconAlt}" ${index > 10 ? 'loading="lazy"' : ''} class="h-full w-full object-contain">
                         </div>
                         <div class="flex-grow min-w-0">
                             <div data-title-display class="flex justify-between items-start gap-2">
